@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jacopo Natoli</title>
+<meta name="description" content="Jacopo Natoli, artista visivo. CV e portfolio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* Layout: schermo nero, parole bianche che rimbalzano sui bordi come un vecchio screensaver. Un solo look scuro, scelto apposta. */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --muted: #8a8a8a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  overflow: hidden;
+  cursor: default;
+}
+.float {
+  position: fixed; top: 0; left: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: clamp(28px, 6vw, 72px);
+  line-height: 0.74;
+  text-transform: uppercase;
+  color: var(--fg);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0;
+  will-change: transform;
+}
+.float:hover { opacity: 0.6; }
+.float:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
+.tree {
+  position: fixed; inset: 0; z-index: 10;
+  background: var(--bg);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}
+/* lista secca in alto a sinistra: la dimensione segue la larghezza della finestra */
+.tree ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.18em; font-size: clamp(22px, 5.4vw, 72px); }
+.tree a {
+  font-family: var(--display); font-weight: 800; font-stretch: 125%;
+  font-size: 1em; line-height: 0.9; text-transform: uppercase;
+  color: var(--fg); text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.tree a:hover { opacity: 0.6; }
+.tree a:focus-visible, .close:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+.close {
+  position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-family: var(--display); font-weight: 800; font-stretch: 125%;
+  font-size: clamp(22px, 5.4vw, 72px); line-height: 0.9;
+  color: var(--fg); background: var(--bg); border: 0; padding: 0; cursor: pointer;
+}
+.close:hover { opacity: 0.6; }
+</style>
+</head>
+<body>
+
+
+<h1 class="vh">Jacopo Natoli, artista visivo</h1>
+
+<!-- cv.pdf e portfolio.pdf stanno nella stessa cartella di questo file -->
+<a class="float" href="cv.pdf" target="_blank" rel="noopener">CV</a>
+<a class="float" href="portfolio.pdf" target="_blank" rel="noopener">Portfolio</a>
+<a class="float" href="#online" id="online-btn">Online</a>
+<a class="float" href="https://linktr.ee/jacoponatoli" target="_blank" rel="noopener">Link</a>
+
+<!-- ONLINE: per aggiungere un lavoro copia una riga <li> e cambia indirizzo e nome -->
+<section class="tree" id="tree" hidden aria-label="Lavori online">
+  <button class="close" type="button" id="close-tree" aria-label="Chiudi">×</button>
+  <ul>
+    <li><a href="https://japoconatoll.github.io/PLAYPLAYPLAYPLAY/" target="_blank" rel="noopener">PLAYPLAYPLAYPLAY</a></li>
+    <li><a href="https://japoconatoll.github.io/poesia_la_notizia/" target="_blank" rel="noopener">Poesia la notizia</a></li>
+    <li><a href="https://japoconatoll.github.io/imageoftheday/" target="_blank" rel="noopener">Image of the Day</a></li>
+  </ul>
+</section>
+
+<script>
+(function () {
+  var VELOCITA = 1.6;   // pixel per fotogramma: più alto = più veloce
+
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) VELOCITA = 0.4;
+
+  var items = Array.prototype.map.call(document.querySelectorAll(".float"), function (el) {
+    var a = Math.random() * Math.PI * 2;
+    return {
+      el: el, x: 0, y: 0,
+      vx: Math.cos(a) || 0.7, vy: Math.sin(a) || 0.7,
+      hold: false
+    };
+  });
+
+  // separa due parole che si sovrappongono (dx,dy = di quanto spostare "a")
+  function shift(a, b, dx, dy) {
+    if (a.hold && b.hold) return;
+    if (a.hold) { b.x -= dx; b.y -= dy; }
+    else if (b.hold) { a.x += dx; a.y += dy; }
+    else { a.x += dx / 2; a.y += dy / 2; b.x -= dx / 2; b.y -= dy / 2; }
+  }
+
+  function step() {
+    var W = innerWidth, H = innerHeight;
+    items.forEach(function (it) {
+      if (!it.hold) {
+        var w = it.el.offsetWidth, h = it.el.offsetHeight;
+        it.x += it.vx; it.y += it.vy;
+        if (it.x <= 0) { it.x = 0; it.vx = Math.abs(it.vx); }
+        if (it.x + w >= W) { it.x = Math.max(0, W - w); it.vx = -Math.abs(it.vx); }
+        if (it.y <= 0) { it.y = 0; it.vy = Math.abs(it.vy); }
+        if (it.y + h >= H) { it.y = Math.max(0, H - h); it.vy = -Math.abs(it.vy); }
+      }
+    });
+    // urti tra le parole: rimbalzano invece di attraversarsi
+    for (var i = 0; i < items.length; i++) {
+      for (var k = i + 1; k < items.length; k++) {
+        var a = items[i], b = items[k];
+        var aw = a.el.offsetWidth, ah = a.el.offsetHeight, bw = b.el.offsetWidth, bh = b.el.offsetHeight;
+        var ox = Math.min(a.x + aw, b.x + bw) - Math.max(a.x, b.x);
+        var oy = Math.min(a.y + ah, b.y + bh) - Math.max(a.y, b.y);
+        if (ox <= 0 || oy <= 0) continue;
+        if (ox < oy) {
+          var dir = (a.x + aw / 2) < (b.x + bw / 2) ? -1 : 1;
+          shift(a, b, dir * ox, 0);
+          var t = a.vx; a.vx = b.vx; b.vx = t;
+          if ((b.vx - a.vx) * -dir < 0) { a.vx = dir * Math.abs(a.vx); b.vx = -dir * Math.abs(b.vx); }
+          if (a.hold) b.vx = -dir * Math.abs(b.vx);
+          if (b.hold) a.vx = dir * Math.abs(a.vx);
+        } else {
+          var dy = (a.y + ah / 2) < (b.y + bh / 2) ? -1 : 1;
+          shift(a, b, 0, dy * oy);
+          var u = a.vy; a.vy = b.vy; b.vy = u;
+          if ((b.vy - a.vy) * -dy < 0) { a.vy = dy * Math.abs(a.vy); b.vy = -dy * Math.abs(b.vy); }
+          if (a.hold) b.vy = -dy * Math.abs(b.vy);
+          if (b.hold) a.vy = dy * Math.abs(a.vy);
+        }
+      }
+    }
+    items.forEach(function (it) {
+      it.el.style.transform = "translate(" + it.x + "px," + it.y + "px)";
+    });
+    requestAnimationFrame(step);
+  }
+
+  // si ferma sotto il mouse o col focus, così è facile cliccare
+  items.forEach(function (it) {
+    ["mouseenter", "focus", "touchstart"].forEach(function (ev) {
+      it.el.addEventListener(ev, function () { it.hold = true; }, { passive: true });
+    });
+    ["mouseleave", "blur"].forEach(function (ev) {
+      it.el.addEventListener(ev, function () { it.hold = false; });
+    });
+  });
+
+  // linktree dei lavori online
+  var tree = document.getElementById("tree");
+  document.getElementById("online-btn").addEventListener("click", function (e) {
+    e.preventDefault(); tree.hidden = false; document.getElementById("close-tree").focus();
+  });
+  document.getElementById("close-tree").addEventListener("click", function () { tree.hidden = true; });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") tree.hidden = true; });
+
+  // posizioni iniziali senza sovrapposizioni
+  function place() {
+    var W = innerWidth, H = innerHeight;
+    items.forEach(function (it, n) {
+      for (var tries = 0; tries < 60; tries++) {
+        it.x = Math.random() * Math.max(1, W - it.el.offsetWidth);
+        it.y = Math.random() * Math.max(1, H - it.el.offsetHeight);
+        var ok = true;
+        for (var m = 0; m < n; m++) {
+          var o = items[m];
+          if (it.x < o.x + o.el.offsetWidth && o.x < it.x + it.el.offsetWidth && it.y < o.y + o.el.offsetHeight && o.y < it.y + it.el.offsetHeight) { ok = false; break; }
+        }
+        if (ok) break;
+      }
+      it.vx = (Math.random() < 0.5 ? -1 : 1) * VELOCITA * (0.8 + Math.random() * 0.4);
+      it.vy = (Math.random() < 0.5 ? -1 : 1) * VELOCITA * (0.8 + Math.random() * 0.4);
+    });
+  }
+
+  function go() { place(); requestAnimationFrame(step); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
+  addEventListener("resize", function () {
+    items.forEach(function (it) {
+      it.x = Math.min(it.x, Math.max(0, innerWidth - it.el.offsetWidth));
+      it.y = Math.min(it.y, Math.max(0, innerHeight - it.el.offsetHeight));
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
