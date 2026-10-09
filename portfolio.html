@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jacopo Natoli · Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --red: #ff1a1a;
+  --muted: #8a8a8a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--mono);
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box; overflow: hidden;
+}
+.title, .count {
+  font-family: var(--display); font-weight: 800; font-stretch: 125%;
+  text-transform: uppercase; line-height: 0.85; margin: 0;
+}
+.title { font-size: clamp(28px, 6vw, 72px); }
+.count {
+  font-size: clamp(120px, 38vw, 520px);
+  color: var(--red);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.info { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); line-height: 1.6; }
+.bar { height: 4px; background: #222; margin-top: 10px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--red); transition: width .2s linear; }
+a { color: var(--fg); }
+</style>
+</head>
+<body>
+<p class="title">Portfolio</p>
+<p class="count" id="count" aria-live="polite">…</p>
+<div>
+  <div class="info" id="info">Caricamento del portfolio, si apre da solo tra pochi secondi</div>
+  <div class="bar"><i id="bar"></i></div>
+</div>
+<script>
+(function () {
+  var FILE = "portfolio.pdf";
+  var SIZE = 23583644; // usata se il server non comunica la dimensione
+  var count = document.getElementById("count");
+  var info = document.getElementById("info");
+  var bar = document.getElementById("bar");
+
+  function open() { location.replace(FILE); }
+
+  if (!window.fetch || !window.ReadableStream) { open(); return; }
+
+  var t0 = performance.now(), shown = null;
+  fetch(FILE).then(function (res) {
+    if (!res.ok || !res.body) throw new Error("http");
+    var total = +res.headers.get("Content-Length") || SIZE;
+    var loaded = 0, reader = res.body.getReader();
+    function pump() {
+      return reader.read().then(function (r) {
+        if (r.done) return;
+        loaded += r.value.length;
+        var p = Math.min(1, loaded / total);
+        var secs = (performance.now() - t0) / 1000;
+        bar.style.width = (p * 100).toFixed(1) + "%";
+        if (secs > 0.4 && loaded > 0) {
+          var left = Math.max(0, Math.ceil((total - loaded) / (loaded / secs)));
+          // il conto alla rovescia non risale mai
+          shown = shown === null ? left : Math.min(shown, left);
+          count.textContent = shown;
+        }
+        info.textContent = "Caricamento " + Math.round(p * 100) + "% · " +
+          (loaded / 1048576).toFixed(1) + " di " + (total / 1048576).toFixed(1) + " MB";
+        return pump();
+      });
+    }
+    return pump();
+  }).then(function () {
+    count.textContent = "0";
+    bar.style.width = "100%";
+    info.textContent = "Apertura…";
+    open(); // il file è già scaricato, quindi si apre subito
+  }).catch(open);
+})();
+</script>
+</body>
+</html>
