@@ -81,9 +81,14 @@ h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; 
 <a class="close disp" href="../" aria-label="Back to home">×</a>
 <main class="wrap" id="cv"></main>
 
-<script src="cv.js"></script>
 <script>
-(function () {
+// carica sempre la versione più recente dei dati (niente copie vecchie in memoria)
+(function (start) {
+  var sc = document.createElement("script");
+  sc.src = "cv.js?v=" + Date.now();
+  sc.onload = start;
+  document.head.appendChild(sc);
+})(function () {
   var d = window.CV, root = document.getElementById("cv");
   function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
@@ -132,7 +137,7 @@ h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; 
     else sel();
     setTimeout(function () { btn.textContent = "copy"; }, 1600);
   });
-})();
+});
 </script>
 </body>
 </html>
