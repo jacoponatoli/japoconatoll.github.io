@@ -1309,8 +1309,8 @@ window.WORKS = [
     "h": 1400
    },
    {
-    "type": "youtube",
-    "id": "csNm1f48qt8",
+    "type": "video",
+    "src": "media/20-siderarco-clip.mp4",
     "w": 1280,
     "h": 720,
     "title": "SIDERARCO"
@@ -1333,43 +1333,63 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/21-la-festa-del-rumore-01.webp",
-    "w": 709,
-    "h": 399
-   },
-   {
-    "src": "img/21-la-festa-del-rumore-02.webp",
-    "w": 709,
-    "h": 399
-   },
-   {
-    "src": "img/21-la-festa-del-rumore-03.webp",
-    "w": 710,
-    "h": 399
-   },
-   {
-    "src": "img/21-la-festa-del-rumore-04.webp",
-    "w": 1400,
-    "h": 789
-   },
-   {
-    "src": "img/21-la-festa-del-rumore-05.webp",
-    "w": 1400,
-    "h": 787
-   },
-   {
-    "src": "img/21-la-festa-del-rumore-06.webp",
+    "src": "img/21-la-festa-del-rumore-r01.webp",
     "w": 1400,
     "h": 788
    },
    {
-    "src": "img/21-la-festa-del-rumore-07.webp",
-    "w": 1076,
-    "h": 605
+    "src": "img/21-la-festa-del-rumore-r02.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "type": "youtube",
-    "id": "4XVYgcvavzI",
+    "src": "img/21-la-festa-del-rumore-r03.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r04.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r05.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r06.webp",
+    "w": 787,
+    "h": 1400
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r07.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r08.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r09.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r10.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/21-la-festa-del-rumore-r11.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "type": "video",
+    "src": "media/21-la-festa-del-rumore-clip.mp4",
     "w": 1280,
     "h": 720,
     "title": "LA FESTA DEL RUMORE"
@@ -1392,29 +1412,44 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/22-in-ogni-dove-01.webp",
-    "w": 640,
-    "h": 360
+    "src": "img/22-in-ogni-dove-r01.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/22-in-ogni-dove-02.webp",
-    "w": 640,
-    "h": 360
+    "src": "img/22-in-ogni-dove-r02.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/22-in-ogni-dove-03.webp",
-    "w": 640,
-    "h": 360
+    "src": "img/22-in-ogni-dove-r03.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/22-in-ogni-dove-04.webp",
-    "w": 640,
-    "h": 360
+    "src": "img/22-in-ogni-dove-r04.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/22-in-ogni-dove-05.webp",
-    "w": 640,
-    "h": 360
+    "src": "img/22-in-ogni-dove-r05.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/22-in-ogni-dove-r06.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/22-in-ogni-dove-r07.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/22-in-ogni-dove-r08.webp",
+    "w": 1400,
+    "h": 788
    },
    {
     "type": "youtube",
@@ -1441,24 +1476,34 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/23-possibilmondi-01.webp",
-    "w": 390,
-    "h": 519
+    "src": "img/23-possibilmondi-r01.webp",
+    "w": 810,
+    "h": 1080
    },
    {
-    "src": "img/23-possibilmondi-02.webp",
-    "w": 524,
-    "h": 389
+    "src": "img/23-possibilmondi-r02.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/23-possibilmondi-03.webp",
-    "w": 519,
-    "h": 294
+    "src": "img/23-possibilmondi-r03.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/23-possibilmondi-04.webp",
-    "w": 519,
-    "h": 294
+    "src": "img/23-possibilmondi-r04.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/23-possibilmondi-r05.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/23-possibilmondi-r06.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
     "type": "youtube",
@@ -1485,39 +1530,79 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-01.webp",
-    "w": 578,
-    "h": 385
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-02.webp",
-    "w": 578,
-    "h": 385
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-03.webp",
-    "w": 591,
-    "h": 399
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-04.webp",
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r01.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-05.webp",
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r02.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-06.webp",
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r03.webp",
     "w": 1400,
-    "h": 789
+    "h": 934
    },
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-07.webp",
-    "w": 684,
-    "h": 385
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r04.webp",
+    "w": 1400,
+    "h": 934
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r05.webp",
+    "w": 1400,
+    "h": 934
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r06.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r07.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r08.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r09.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r10.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r11.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r12.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r13.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r14.webp",
+    "w": 1368,
+    "h": 768
+   },
+   {
+    "src": "img/24-dalla-galassia-dei-buchi-neri-r15.webp",
+    "w": 1368,
+    "h": 768
    },
    {
     "type": "youtube",
