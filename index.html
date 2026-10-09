@@ -102,14 +102,15 @@ body {
   if (reduce) VELOCITA = 0.05;
 
   var items = Array.prototype.map.call(document.querySelectorAll(".float"), function (el) {
-    var a = Math.random() * Math.PI * 2;
-    return {
-      el: el, x: 0, y: 0,
-      vx: Math.cos(a) || 0.7, vy: Math.sin(a) || 0.7,
-      hold: false,
-      stopped: false
-    };
+    return { el: el, x: 0, y: 0, w: 0, h: 0, vx: 0.7, vy: 0.7, hold: false, stopped: false };
   });
+  var W = innerWidth, H = innerHeight, diag = Math.hypot(W, H);
+
+  // misura una volta sola (e al resize), non a ogni fotogramma: animazione più fluida
+  function measure() {
+    W = innerWidth; H = innerHeight; diag = Math.hypot(W, H);
+    items.forEach(function (it) { it.w = it.el.offsetWidth; it.h = it.el.offsetHeight; });
+  }
 
   // separa due parole che si sovrappongono (dx,dy = di quanto spostare "a")
   function shift(a, b, dx, dy) {
@@ -119,50 +120,73 @@ body {
     else { a.x += dx / 2; a.y += dy / 2; b.x -= dx / 2; b.y -= dy / 2; }
   }
 
+  // ricorda le voci cliccate finché si resta sul sito (anche tornando con "indietro");
+  // a ogni nuova visita si riparte da zero
+  var KEY = "jn-cliccate";
+  function save() {
+    try {
+      var d = {};
+      items.forEach(function (it, n) { if (it.stopped) d[n] = [it.x / W, it.y / H]; });
+      sessionStorage.setItem(KEY, JSON.stringify(d));
+    } catch (e) {}
+  }
+  function restore() {
+    try {
+      var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+      if (!nav || nav.type !== "back_forward") { sessionStorage.removeItem(KEY); return; }
+      var d = JSON.parse(sessionStorage.getItem(KEY) || "{}");
+      Object.keys(d).forEach(function (n) {
+        var it = items[n]; if (!it) return;
+        it.stopped = true; it.hold = true; it.el.classList.add("done");
+        it.x = Math.min(d[n][0] * W, Math.max(0, W - it.w));
+        it.y = Math.min(d[n][1] * H, Math.max(0, H - it.h));
+      });
+    } catch (e) {}
+  }
+
   var lastT = 0;
-  function step(t) {
-    var dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0;
-    lastT = t;
-    var k = VELOCITA * Math.hypot(innerWidth, innerHeight) * dt;
-    var W = innerWidth, H = innerHeight;
-    items.forEach(function (it) {
-      if (!it.hold) {
-        var w = it.el.offsetWidth, h = it.el.offsetHeight;
-        it.x += it.vx * k; it.y += it.vy * k;
-        if (it.x <= 0) { it.x = 0; it.vx = Math.abs(it.vx); }
-        if (it.x + w >= W) { it.x = Math.max(0, W - w); it.vx = -Math.abs(it.vx); }
-        if (it.y <= 0) { it.y = 0; it.vy = Math.abs(it.vy); }
-        if (it.y + h >= H) { it.y = Math.max(0, H - h); it.vy = -Math.abs(it.vy); }
-      }
-    });
+  function step(now) {
+    var dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0;
+    lastT = now;
+
+
+    var dist = VELOCITA * diag * dt;
+    for (var n = 0; n < items.length; n++) {
+      var it = items[n];
+      if (it.hold) continue;
+      it.x += it.vx * dist; it.y += it.vy * dist;
+      if (it.x <= 0) { it.x = 0; it.vx = Math.abs(it.vx); }
+      if (it.x + it.w >= W) { it.x = Math.max(0, W - it.w); it.vx = -Math.abs(it.vx); }
+      if (it.y <= 0) { it.y = 0; it.vy = Math.abs(it.vy); }
+      if (it.y + it.h >= H) { it.y = Math.max(0, H - it.h); it.vy = -Math.abs(it.vy); }
+    }
     // urti tra le parole: rimbalzano invece di attraversarsi
     for (var i = 0; i < items.length; i++) {
-      for (var k = i + 1; k < items.length; k++) {
-        var a = items[i], b = items[k];
-        var aw = a.el.offsetWidth, ah = a.el.offsetHeight, bw = b.el.offsetWidth, bh = b.el.offsetHeight;
-        var ox = Math.min(a.x + aw, b.x + bw) - Math.max(a.x, b.x);
-        var oy = Math.min(a.y + ah, b.y + bh) - Math.max(a.y, b.y);
+      for (var j = i + 1; j < items.length; j++) {
+        var a = items[i], b = items[j];
+        var ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+        var oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
         if (ox <= 0 || oy <= 0) continue;
         if (ox < oy) {
-          var dir = (a.x + aw / 2) < (b.x + bw / 2) ? -1 : 1;
-          shift(a, b, dir * ox, 0);
-          var t = a.vx; a.vx = b.vx; b.vx = t;
-          if ((b.vx - a.vx) * -dir < 0) { a.vx = dir * Math.abs(a.vx); b.vx = -dir * Math.abs(b.vx); }
-          if (a.hold) b.vx = -dir * Math.abs(b.vx);
-          if (b.hold) a.vx = dir * Math.abs(a.vx);
+          var dx = (a.x + a.w / 2) < (b.x + b.w / 2) ? -1 : 1;
+          shift(a, b, dx * ox, 0);
+          var tx = a.vx; a.vx = b.vx; b.vx = tx;
+          if ((b.vx - a.vx) * -dx < 0) { a.vx = dx * Math.abs(a.vx); b.vx = -dx * Math.abs(b.vx); }
+          if (a.hold) b.vx = -dx * Math.abs(b.vx);
+          if (b.hold) a.vx = dx * Math.abs(a.vx);
         } else {
-          var dy = (a.y + ah / 2) < (b.y + bh / 2) ? -1 : 1;
+          var dy = (a.y + a.h / 2) < (b.y + b.h / 2) ? -1 : 1;
           shift(a, b, 0, dy * oy);
-          var u = a.vy; a.vy = b.vy; b.vy = u;
+          var ty = a.vy; a.vy = b.vy; b.vy = ty;
           if ((b.vy - a.vy) * -dy < 0) { a.vy = dy * Math.abs(a.vy); b.vy = -dy * Math.abs(b.vy); }
           if (a.hold) b.vy = -dy * Math.abs(b.vy);
           if (b.hold) a.vy = dy * Math.abs(a.vy);
         }
       }
     }
-    items.forEach(function (it) {
-      it.el.style.transform = "translate(" + it.x + "px," + it.y + "px)";
-    });
+    for (var m = 0; m < items.length; m++) {
+      items[m].el.style.transform = "translate3d(" + items[m].x + "px," + items[m].y + "px,0)";
+    }
     requestAnimationFrame(step);
   }
 
@@ -174,40 +198,50 @@ body {
     ["mouseleave", "blur", "touchend"].forEach(function (ev) {
       it.el.addEventListener(ev, function () { it.hold = it.stopped; });
     });
-    // al clic la voce diventa rossa e si ferma
+    // al clic la voce diventa rossa e resta ferma (finché non si esce dal sito)
     it.el.addEventListener("click", function () {
       it.stopped = true; it.hold = true;
       it.el.classList.add("done");
-      // quando sono state cliccate tutte, ripartono
-      if (items.every(function (x) { return x.stopped; })) {
-        setTimeout(function () {
-          items.forEach(function (x) {
-            x.stopped = false; x.hold = false; x.el.classList.remove("done");
-          });
-        }, 700);
-      }
+      save();
     });
   });
-
-  // linktree dei lavori online
-  var tree = document.getElementById("tree");
-  document.getElementById("online-btn").addEventListener("click", function (e) {
-    e.preventDefault(); tree.hidden = false; document.getElementById("close-tree").focus();
+  // tornando con "indietro" da un'altra pagina
+  addEventListener("pageshow", function (e) {
+    syncTree();
   });
-  document.getElementById("close-tree").addEventListener("click", function () { tree.hidden = true; });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") tree.hidden = true; });
+
+  // ONLINE: lista dei lavori. Si chiude con la ×, con Esc o con "indietro" del browser
+  var tree = document.getElementById("tree");
+  var closeBtn = document.getElementById("close-tree");
+  function syncTree() {
+    var open = location.hash === "#online";
+    tree.hidden = !open;
+    if (open) closeBtn.focus();
+  }
+  function closeTree() {
+    if (location.hash === "#online") history.back();
+    else tree.hidden = true;
+  }
+  document.getElementById("online-btn").addEventListener("click", function (e) {
+    e.preventDefault();
+    if (location.hash !== "#online") history.pushState(null, "", "#online");
+    syncTree();
+  });
+  closeBtn.addEventListener("click", closeTree);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !tree.hidden) closeTree(); });
+  addEventListener("popstate", syncTree);
+  addEventListener("hashchange", syncTree);
 
   // posizioni iniziali senza sovrapposizioni
   function place() {
-    var W = innerWidth, H = innerHeight;
     items.forEach(function (it, n) {
       for (var tries = 0; tries < 60; tries++) {
-        it.x = Math.random() * Math.max(1, W - it.el.offsetWidth);
-        it.y = Math.random() * Math.max(1, H - it.el.offsetHeight);
+        it.x = Math.random() * Math.max(1, W - it.w);
+        it.y = Math.random() * Math.max(1, H - it.h);
         var ok = true;
         for (var m = 0; m < n; m++) {
           var o = items[m];
-          if (it.x < o.x + o.el.offsetWidth && o.x < it.x + it.el.offsetWidth && it.y < o.y + o.el.offsetHeight && o.y < it.y + it.el.offsetHeight) { ok = false; break; }
+          if (it.x < o.x + o.w && o.x < it.x + it.w && it.y < o.y + o.h && o.y < it.y + it.h) { ok = false; break; }
         }
         if (ok) break;
       }
@@ -216,12 +250,13 @@ body {
     });
   }
 
-  function go() { place(); requestAnimationFrame(step); }
+  function go() { measure(); place(); restore(); syncTree(); requestAnimationFrame(step); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
   addEventListener("resize", function () {
+    measure();
     items.forEach(function (it) {
-      it.x = Math.min(it.x, Math.max(0, innerWidth - it.el.offsetWidth));
-      it.y = Math.min(it.y, Math.max(0, innerHeight - it.el.offsetHeight));
+      it.x = Math.min(it.x, Math.max(0, W - it.w));
+      it.y = Math.min(it.y, Math.max(0, H - it.h));
     });
   });
 })();
