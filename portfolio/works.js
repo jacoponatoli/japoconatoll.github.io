@@ -134,29 +134,29 @@ window.WORKS = [
   "links": [],
   "images": [
    {
-    "src": "img/03-quadreria-pornografica-n01.webp",
-    "w": 934,
-    "h": 1400
+    "src": "img/03-quadreria-pornografica-01.webp",
+    "w": 381,
+    "h": 148
    },
    {
-    "src": "img/03-quadreria-pornografica-n02.webp",
-    "w": 934,
-    "h": 1400
+    "src": "img/03-quadreria-pornografica-02.webp",
+    "w": 460,
+    "h": 586
    },
    {
-    "src": "img/03-quadreria-pornografica-n03.webp",
-    "w": 934,
-    "h": 1400
+    "src": "img/03-quadreria-pornografica-03.webp",
+    "w": 481,
+    "h": 642
    },
    {
-    "src": "img/03-quadreria-pornografica-n04.webp",
-    "w": 1400,
-    "h": 934
+    "src": "img/03-quadreria-pornografica-04.webp",
+    "w": 717,
+    "h": 406
    },
    {
-    "src": "img/03-quadreria-pornografica-n05.webp",
-    "w": 1400,
-    "h": 934
+    "src": "img/03-quadreria-pornografica-05.webp",
+    "w": 717,
+    "h": 406
    }
   ]
  },
@@ -173,6 +173,26 @@ window.WORKS = [
   "extra": "",
   "links": [],
   "images": [
+   {
+    "src": "img/04-distruggi-questa-icona-n05.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n06.webp",
+    "w": 1400,
+    "h": 1054
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-05.webp",
+    "w": 1361,
+    "h": 767
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-06.webp",
+    "w": 1400,
+    "h": 791
+   },
    {
     "src": "img/04-distruggi-questa-icona-02.webp",
     "w": 373,
@@ -199,21 +219,6 @@ window.WORKS = [
     "h": 933
    },
    {
-    "src": "img/04-distruggi-questa-icona-n04.webp",
-    "w": 1400,
-    "h": 933
-   },
-   {
-    "src": "img/04-distruggi-questa-icona-n05.webp",
-    "w": 1054,
-    "h": 1400
-   },
-   {
-    "src": "img/04-distruggi-questa-icona-n06.webp",
-    "w": 1400,
-    "h": 1054
-   },
-   {
     "src": "img/04-distruggi-questa-icona-03.webp",
     "w": 573,
     "h": 447
@@ -222,16 +227,6 @@ window.WORKS = [
     "src": "img/04-distruggi-questa-icona-04.webp",
     "w": 275,
     "h": 388
-   },
-   {
-    "src": "img/04-distruggi-questa-icona-05.webp",
-    "w": 1361,
-    "h": 767
-   },
-   {
-    "src": "img/04-distruggi-questa-icona-06.webp",
-    "w": 1400,
-    "h": 791
    }
   ]
  },
@@ -251,9 +246,19 @@ window.WORKS = [
   ],
   "images": [
    {
+    "src": "img/05-corticale-05.webp",
+    "w": 1400,
+    "h": 789
+   },
+   {
     "src": "img/05-corticale-01.webp",
-    "w": 687,
-    "h": 711
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/05-corticale-zoom.webp",
+    "w": 686,
+    "h": 1064
    },
    {
     "src": "img/05-corticale-n01.webp",
@@ -279,11 +284,6 @@ window.WORKS = [
     "src": "img/05-corticale-04.webp",
     "w": 455,
     "h": 464
-   },
-   {
-    "src": "img/05-corticale-05.webp",
-    "w": 1400,
-    "h": 789
    },
    {
     "type": "video",
