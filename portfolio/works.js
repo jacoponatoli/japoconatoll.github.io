@@ -739,6 +739,13 @@ window.WORKS = [
     "src": "img/14-non-e-la-rosa-non-e-il-tulipano-08.webp",
     "w": 648,
     "h": 367
+   },
+   {
+    "type": "youtube",
+    "id": "stPrlZQ-Dz0",
+    "w": 1280,
+    "h": 720,
+    "title": "NON É LA ROSA NON É IL TULIPANO"
    }
   ]
  },
@@ -858,6 +865,13 @@ window.WORKS = [
     "src": "img/16-reel-deleuze-11.webp",
     "w": 496,
     "h": 280
+   },
+   {
+    "type": "youtube",
+    "id": "ytjK1WMjkhk",
+    "w": 1280,
+    "h": 720,
+    "title": "REEL DELEUZE"
    }
   ]
  },
@@ -1024,6 +1038,13 @@ window.WORKS = [
     "src": "img/19-aion-o-della-noia-08.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "youtube",
+    "id": "hgnDHnnJxc0",
+    "w": 1280,
+    "h": 720,
+    "title": "AÎON O DELLA NOÎA"
    }
   ]
  },
@@ -1091,6 +1112,13 @@ window.WORKS = [
     "src": "img/20-siderarco-azione-mutante-i-10.webp",
     "w": 502,
     "h": 283
+   },
+   {
+    "type": "youtube",
+    "id": "csNm1f48qt8",
+    "w": 1280,
+    "h": 720,
+    "title": "SIDERARCO"
    }
   ]
  },
@@ -1143,6 +1171,13 @@ window.WORKS = [
     "src": "img/21-la-festa-del-rumore-07.webp",
     "w": 1076,
     "h": 605
+   },
+   {
+    "type": "youtube",
+    "id": "4XVYgcvavzI",
+    "w": 1280,
+    "h": 720,
+    "title": "LA FESTA DEL RUMORE"
    }
   ]
  },
@@ -1185,6 +1220,13 @@ window.WORKS = [
     "src": "img/22-in-ogni-dove-05.webp",
     "w": 640,
     "h": 360
+   },
+   {
+    "type": "youtube",
+    "id": "Q5l9f_jxl_M",
+    "w": 1280,
+    "h": 720,
+    "title": "IN OGNI DOVE"
    }
   ]
  },
@@ -1222,6 +1264,13 @@ window.WORKS = [
     "src": "img/23-possibilmondi-04.webp",
     "w": 519,
     "h": 294
+   },
+   {
+    "type": "youtube",
+    "id": "zotio1L5oEI",
+    "w": 1280,
+    "h": 720,
+    "title": "POSSIBILMONDI"
    }
   ]
  },
@@ -1274,6 +1323,13 @@ window.WORKS = [
     "src": "img/24-dalla-galassia-dei-buchi-neri-07.webp",
     "w": 684,
     "h": 385
+   },
+   {
+    "type": "youtube",
+    "id": "IVmswTh-N1s",
+    "w": 1280,
+    "h": 720,
+    "title": "DALLA GALASSIA DEI BUCHI NERI"
    }
   ]
  },
@@ -1490,6 +1546,13 @@ window.WORKS = [
     "src": "img/28-ab-oculis-barocca-08.webp",
     "w": 1400,
     "h": 790
+   },
+   {
+    "type": "youtube",
+    "id": "277pMHrF1Og",
+    "w": 1280,
+    "h": 720,
+    "title": "AB OCULIS BAROCCA"
    }
   ]
  },
@@ -1537,6 +1600,13 @@ window.WORKS = [
     "src": "img/29-loltrefesta-06.webp",
     "w": 713,
     "h": 402
+   },
+   {
+    "type": "youtube",
+    "id": "LV1nWaEc-yg",
+    "w": 1280,
+    "h": 720,
+    "title": "L’OLTREFESTA"
    }
   ]
  },
@@ -1594,6 +1664,13 @@ window.WORKS = [
     "src": "img/30-visti-i-tempi-che-corrono-08.webp",
     "w": 1280,
     "h": 722
+   },
+   {
+    "type": "youtube",
+    "id": "lY-Aj8M6huI",
+    "w": 1280,
+    "h": 720,
+    "title": "VISTI I TEMPI CHE CORRONO"
    }
   ]
  },
@@ -1681,6 +1758,13 @@ window.WORKS = [
     "src": "img/33-the-artist-is-cycling-02.webp",
     "w": 421,
     "h": 237
+   },
+   {
+    "type": "youtube",
+    "id": "B5Uw68FQRSU",
+    "w": 1280,
+    "h": 720,
+    "title": "THE ARTIST IS CYCLING"
    }
   ]
  },
@@ -1851,6 +1935,13 @@ window.WORKS = [
     "src": "img/38-ritratt0-atipic0-03.webp",
     "w": 1287,
     "h": 726
+   },
+   {
+    "type": "youtube",
+    "id": "3XDP6Mzyktk",
+    "w": 1280,
+    "h": 720,
+    "title": "RITRATT0 ATIPIC0"
    }
   ]
  },
@@ -2201,6 +2292,13 @@ window.WORKS = [
     "src": "img/43-giro-cosmico-08.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "youtube",
+    "id": "gO3v5UKZGkY",
+    "w": 1280,
+    "h": 720,
+    "title": "GIRO COSMICO"
    }
   ]
  },
@@ -2253,6 +2351,13 @@ window.WORKS = [
     "src": "img/44-sticlip-07.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "youtube",
+    "id": "XW3c1rBkLec",
+    "w": 1280,
+    "h": 720,
+    "title": "STICLIP"
    }
   ]
  },
@@ -2300,6 +2405,13 @@ window.WORKS = [
     "src": "img/45-zine-lab-06.webp",
     "w": 1280,
     "h": 723
+   },
+   {
+    "type": "youtube",
+    "id": "5R-doMj37dI",
+    "w": 1280,
+    "h": 720,
+    "title": "ZINE-LAB"
    }
   ]
  },
@@ -2533,6 +2645,13 @@ window.WORKS = [
     "src": "img/51-aacccddffggggkllmmmpsssv-04.webp",
     "w": 1038,
     "h": 583
+   },
+   {
+    "type": "youtube",
+    "id": "6ofe1OBlJWw",
+    "w": 1280,
+    "h": 720,
+    "title": "AACCCDDFFGGGGKLLMMMPSSSV"
    }
   ]
  },
@@ -3387,6 +3506,13 @@ window.WORKS = [
     "src": "img/69-vogliamo-la-notte-04.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "youtube",
+    "id": "3pknHOSTKcw",
+    "w": 1280,
+    "h": 720,
+    "title": "VOGLIAMO LA NOTTE"
    }
   ]
  },
@@ -3439,6 +3565,13 @@ window.WORKS = [
     "src": "img/71-politica-qui-e-morte-07.webp",
     "w": 1024,
     "h": 578
+   },
+   {
+    "type": "youtube",
+    "id": "dObkY0h8miI",
+    "w": 1280,
+    "h": 720,
+    "title": "POLITICA QUI É MORTE"
    }
   ]
  },
@@ -3562,6 +3695,13 @@ window.WORKS = [
     "src": "img/74-millepiani-a-movie-03.webp",
     "w": 498,
     "h": 281
+   },
+   {
+    "type": "vimeo",
+    "id": "s2002956",
+    "w": 1280,
+    "h": 720,
+    "title": "MILLEPIANI. A MOVIE"
    }
   ]
  }

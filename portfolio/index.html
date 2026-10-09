@@ -170,6 +170,9 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
           var cap = '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
           if (im.type === "youtube") {
             h += '<figure><iframe src="https://www.youtube-nocookie.com/embed/' + esc(im.id) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>' + cap;
+          } else if (im.type === "vimeo") {
+            var vsrc = im.id.charAt(0) === "s" ? "https://vimeo.com/showcase/" + im.id.slice(1) + "/embed" : "https://player.vimeo.com/video/" + im.id + "?dnt=1";
+            h += '<figure><iframe src="' + esc(vsrc) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' + cap;
           } else if (im.type === "video") {
             h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
           } else if (im.type === "audio") {
