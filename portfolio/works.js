@@ -830,14 +830,19 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/15-morto-che-parla-01.webp",
-    "w": 300,
-    "h": 451
+    "src": "img/15-morto-che-parla-n01.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/15-morto-che-parla-02.webp",
-    "w": 300,
-    "h": 451
+    "src": "img/15-morto-che-parla-n02.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/15-morto-che-parla-n03.webp",
+    "w": 933,
+    "h": 1400
    },
    {
     "src": "img/15-morto-che-parla-03.webp",
