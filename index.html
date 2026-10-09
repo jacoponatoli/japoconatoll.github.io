@@ -205,6 +205,10 @@ body {
       save();
     });
   });
+  // il CV si apre sempre nella versione più recente (niente copia vecchia dalla cache)
+  var cv = document.querySelector('.float[href^="cv.pdf"]');
+  if (cv) cv.addEventListener("click", function () { cv.href = "cv.pdf?v=" + Date.now(); });
+
   // tornando con "indietro" da un'altra pagina
   addEventListener("pageshow", function (e) {
     syncTree();
