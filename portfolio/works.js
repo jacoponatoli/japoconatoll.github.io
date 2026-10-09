@@ -1568,7 +1568,7 @@ window.WORKS = [
   "why": "The performance explores the senses of celebration as a collective experience, a multiplication of centers, a diffusion of actions, and a loss of time. What makes a party a party? What community inhabits and unleashes it? And what is its power?",
   "extra": "",
   "links": [
-   "https://youtu.be/LV1nWaEc-yg"
+   "https://www.youtube.com/watch?v=nxkfN4bLu6U"
   ],
   "images": [
    {
@@ -1603,7 +1603,7 @@ window.WORKS = [
    },
    {
     "type": "youtube",
-    "id": "LV1nWaEc-yg",
+    "id": "nxkfN4bLu6U",
     "w": 1280,
     "h": 720,
     "title": "L’OLTREFESTA"
