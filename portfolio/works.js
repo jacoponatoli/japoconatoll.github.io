@@ -362,6 +362,11 @@ window.WORKS = [
   ],
   "images": [
    {
+    "src": "img/08-sicurazione-n01.webp",
+    "w": 1400,
+    "h": 984
+   },
+   {
     "src": "img/08-sicurazione-01.webp",
     "w": 1158,
     "h": 644
@@ -375,6 +380,11 @@ window.WORKS = [
     "src": "img/08-sicurazione-03.webp",
     "w": 1400,
     "h": 788
+   },
+   {
+    "src": "img/08-sicurazione-n02.webp",
+    "w": 1020,
+    "h": 1400
    }
   ]
  },
@@ -394,14 +404,44 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/10-che-cosa-minsegni-01.webp",
-    "w": 720,
-    "h": 847
+    "src": "img/10-che-cosa-minsegni-n01.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/10-che-cosa-minsegni-02.webp",
-    "w": 547,
-    "h": 405
+    "src": "img/10-che-cosa-minsegni-n02.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n03.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n04.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n07.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/10-che-cosa-minsegni-n08.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "src": "img/10-che-cosa-minsegni-03.webp",
@@ -431,11 +471,6 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/11-atlas-viafarini-01.webp",
-    "w": 351,
-    "h": 1292
-   },
-   {
     "src": "img/11-atlas-viafarini-02.webp",
     "w": 757,
     "h": 1026
@@ -444,6 +479,31 @@ window.WORKS = [
     "src": "img/11-atlas-viafarini-03.webp",
     "w": 1304,
     "h": 736
+   },
+   {
+    "src": "img/11-atlas-viafarini-n01.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/11-atlas-viafarini-n02.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/11-atlas-viafarini-n03.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/11-atlas-viafarini-n04.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/11-atlas-viafarini-n05.webp",
+    "w": 1400,
+    "h": 1050
    }
   ]
  },
@@ -463,19 +523,59 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/09-lightbox-cabina-01.webp",
-    "w": 768,
-    "h": 478
-   },
-   {
-    "src": "img/09-lightbox-cabina-02.webp",
-    "w": 968,
-    "h": 602
-   },
-   {
-    "src": "img/09-lightbox-cabina-03.webp",
+    "src": "img/09-lightbox-cabina-n01.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
+   },
+   {
+    "src": "img/09-lightbox-cabina-n02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/09-lightbox-cabina-n03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/09-lightbox-cabina-n04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/09-lightbox-cabina-n05.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/09-lightbox-cabina-n06.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/09-lightbox-cabina-n07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/09-lightbox-cabina-n08.webp",
+    "w": 1136,
+    "h": 640
+   },
+   {
+    "src": "img/09-lightbox-cabina-n09.webp",
+    "w": 1400,
+    "h": 1279
+   },
+   {
+    "src": "img/09-lightbox-cabina-n10.webp",
+    "w": 1400,
+    "h": 1117
+   },
+   {
+    "src": "img/09-lightbox-cabina-n11.webp",
+    "w": 1400,
+    "h": 1133
    }
   ]
  },
