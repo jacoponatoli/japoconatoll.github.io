@@ -726,44 +726,84 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-01.webp",
-    "w": 414,
-    "h": 620
+    "src": "img/14-non-e-la-rosa-01.webp",
+    "w": 1120,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-02.webp",
-    "w": 416,
-    "h": 625
+    "src": "img/14-non-e-la-rosa-02.webp",
+    "w": 1120,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-03.webp",
-    "w": 293,
-    "h": 367
+    "src": "img/14-non-e-la-rosa-03.webp",
+    "w": 1120,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-04.webp",
-    "w": 413,
-    "h": 517
+    "src": "img/14-non-e-la-rosa-04.webp",
+    "w": 1120,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-05.webp",
-    "w": 648,
-    "h": 367
+    "src": "img/14-non-e-la-rosa-05.webp",
+    "w": 1120,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-06.webp",
-    "w": 648,
-    "h": 366
+    "src": "img/14-non-e-la-rosa-06.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-07.webp",
-    "w": 310,
-    "h": 177
+    "src": "img/14-non-e-la-rosa-07.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/14-non-e-la-rosa-non-e-il-tulipano-08.webp",
-    "w": 648,
-    "h": 367
+    "src": "img/14-non-e-la-rosa-08.webp",
+    "w": 1120,
+    "h": 1400
+   },
+   {
+    "src": "img/14-non-e-la-rosa-09.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/14-non-e-la-rosa-10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/14-non-e-la-rosa-11.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/14-non-e-la-rosa-12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/14-non-e-la-rosa-13.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/14-non-e-la-rosa-14.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/14-non-e-la-rosa-15.webp",
+    "w": 1120,
+    "h": 1400
+   },
+   {
+    "src": "img/14-non-e-la-rosa-16.webp",
+    "w": 933,
+    "h": 1400
    },
    {
     "type": "youtube",
