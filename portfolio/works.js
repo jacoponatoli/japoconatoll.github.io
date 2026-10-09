@@ -674,9 +674,19 @@ window.WORKS = [
     "h": 575
    },
    {
-    "src": "img/13-indicibile-vol-1-02.webp",
-    "w": 1162,
-    "h": 616
+    "src": "img/13-indicibile-vol-1-n01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/13-indicibile-vol-1-n02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/13-indicibile-vol-1-n03.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "src": "img/13-indicibile-vol-1-03.webp",
@@ -692,6 +702,11 @@ window.WORKS = [
     "src": "img/13-indicibile-vol-1-05.webp",
     "w": 1400,
     "h": 788
+   },
+   {
+    "src": "img/13-indicibile-vol-1-02.webp",
+    "w": 1162,
+    "h": 616
    }
   ]
  },
