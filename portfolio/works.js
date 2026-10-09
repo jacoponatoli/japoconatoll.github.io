@@ -633,6 +633,13 @@ window.WORKS = [
     "src": "img/12-lady-buffer-08.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "youtube",
+    "id": "sVx1XRlPNSs",
+    "w": 1280,
+    "h": 720,
+    "title": "Lady Buffer"
    }
   ]
  },

@@ -76,6 +76,7 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
 .strip figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; background: #0d0d0d; }
 .strip img { display: block; height: clamp(220px, 52vh, 620px); width: auto; max-width: 88vw; object-fit: contain; }
 .strip video { display: block; height: clamp(220px, 52vh, 620px); width: auto; max-width: 88vw; background: #000; }
+.strip iframe { display: block; border: 0; height: clamp(220px, 52vh, 620px); aspect-ratio: 16 / 9; width: auto; max-width: 88vw; background: #000; }
 .strip .audio { height: clamp(220px, 52vh, 620px); width: min(420px, 80vw); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 18px; border: 1px solid var(--line); background: var(--bg); }
 .strip .audio .t { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; font-size: 18px; line-height: 1; }
 .strip .audio .k { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
@@ -167,7 +168,9 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
         h += '<div class="strip">';
         w.images.forEach(function (im, ii) {
           var cap = '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
-          if (im.type === "video") {
+          if (im.type === "youtube") {
+            h += '<figure><iframe src="https://www.youtube-nocookie.com/embed/' + esc(im.id) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>' + cap;
+          } else if (im.type === "video") {
             h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
           } else if (im.type === "audio") {
             h += '<figure><div class="audio"><span class="k">Audio</span><span class="t">' + esc(im.title || w.title) + '</span><audio src="' + esc(im.src) + '" controls preload="none"></audio></div>' + cap;
