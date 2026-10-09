@@ -184,16 +184,6 @@ window.WORKS = [
     "h": 1054
    },
    {
-    "src": "img/04-distruggi-questa-icona-05.webp",
-    "w": 1361,
-    "h": 767
-   },
-   {
-    "src": "img/04-distruggi-questa-icona-06.webp",
-    "w": 1400,
-    "h": 791
-   },
-   {
     "src": "img/04-distruggi-questa-icona-02.webp",
     "w": 373,
     "h": 291
@@ -212,6 +202,16 @@ window.WORKS = [
     "src": "img/04-distruggi-questa-icona-n02.webp",
     "w": 1400,
     "h": 933
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-05.webp",
+    "w": 1361,
+    "h": 767
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-06.webp",
+    "w": 1400,
+    "h": 791
    },
    {
     "src": "img/04-distruggi-questa-icona-n03.webp",
