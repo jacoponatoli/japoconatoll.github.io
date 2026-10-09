@@ -1249,54 +1249,64 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/20-siderarco-azione-mutante-i-01.webp",
-    "w": 256,
-    "h": 381
+    "src": "img/20-siderarco-azione-mutante-i-r01.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-02.webp",
-    "w": 320,
-    "h": 481
+    "src": "img/20-siderarco-azione-mutante-i-r02.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-03.webp",
-    "w": 240,
-    "h": 359
+    "src": "img/20-siderarco-azione-mutante-i-r03.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-04.webp",
-    "w": 259,
-    "h": 387
+    "src": "img/20-siderarco-azione-mutante-i-r04.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-05.webp",
-    "w": 320,
-    "h": 481
+    "src": "img/20-siderarco-azione-mutante-i-r05.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-06.webp",
-    "w": 287,
-    "h": 430
+    "src": "img/20-siderarco-azione-mutante-i-r06.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-07.webp",
-    "w": 502,
-    "h": 282
+    "src": "img/20-siderarco-azione-mutante-i-r07.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-08.webp",
-    "w": 502,
-    "h": 282
+    "src": "img/20-siderarco-azione-mutante-i-r08.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-09.webp",
-    "w": 481,
-    "h": 271
+    "src": "img/20-siderarco-azione-mutante-i-r09.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/20-siderarco-azione-mutante-i-10.webp",
-    "w": 502,
-    "h": 283
+    "src": "img/20-siderarco-azione-mutante-i-r10.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/20-siderarco-azione-mutante-i-r11.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/20-siderarco-azione-mutante-i-r12.webp",
+    "w": 933,
+    "h": 1400
    },
    {
     "type": "youtube",
