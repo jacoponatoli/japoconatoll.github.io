@@ -882,59 +882,99 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/16-reel-deleuze-01.webp",
-    "w": 331,
-    "h": 435
+    "src": "img/16-reel-deleuze-r01.webp",
+    "w": 1400,
+    "h": 811
    },
    {
-    "src": "img/16-reel-deleuze-02.webp",
-    "w": 290,
-    "h": 378
+    "src": "img/16-reel-deleuze-r02.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/16-reel-deleuze-03.webp",
-    "w": 320,
-    "h": 417
+    "src": "img/16-reel-deleuze-r03.webp",
+    "w": 1400,
+    "h": 679
    },
    {
-    "src": "img/16-reel-deleuze-04.webp",
-    "w": 360,
-    "h": 246
+    "src": "img/16-reel-deleuze-r04.webp",
+    "w": 1400,
+    "h": 867
    },
    {
-    "src": "img/16-reel-deleuze-05.webp",
-    "w": 361,
-    "h": 245
+    "src": "img/16-reel-deleuze-r05.webp",
+    "w": 885,
+    "h": 1400
    },
    {
-    "src": "img/16-reel-deleuze-06.webp",
-    "w": 363,
-    "h": 244
+    "src": "img/16-reel-deleuze-r06.webp",
+    "w": 1400,
+    "h": 882
    },
    {
-    "src": "img/16-reel-deleuze-07.webp",
-    "w": 461,
-    "h": 260
+    "src": "img/16-reel-deleuze-r07.webp",
+    "w": 1143,
+    "h": 1400
    },
    {
-    "src": "img/16-reel-deleuze-08.webp",
-    "w": 495,
-    "h": 279
+    "src": "img/16-reel-deleuze-r08.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/16-reel-deleuze-09.webp",
-    "w": 494,
-    "h": 280
+    "src": "img/16-reel-deleuze-r09.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/16-reel-deleuze-10.webp",
-    "w": 448,
-    "h": 254
+    "src": "img/16-reel-deleuze-r10.webp",
+    "w": 1110,
+    "h": 1400
    },
    {
-    "src": "img/16-reel-deleuze-11.webp",
-    "w": 496,
-    "h": 280
+    "src": "img/16-reel-deleuze-r11.webp",
+    "w": 1400,
+    "h": 797
+   },
+   {
+    "src": "img/16-reel-deleuze-r12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/16-reel-deleuze-r13.webp",
+    "w": 1400,
+    "h": 775
+   },
+   {
+    "src": "img/16-reel-deleuze-r14.webp",
+    "w": 1400,
+    "h": 792
+   },
+   {
+    "src": "img/16-reel-deleuze-r15.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/16-reel-deleuze-r16.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/16-reel-deleuze-r17.webp",
+    "w": 1215,
+    "h": 1400
+   },
+   {
+    "src": "img/16-reel-deleuze-r18.webp",
+    "w": 1065,
+    "h": 1400
+   },
+   {
+    "src": "img/16-reel-deleuze-r19.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "type": "youtube",
