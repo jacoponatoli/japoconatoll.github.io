@@ -620,6 +620,16 @@ window.WORKS = [
     "h": 789
    },
    {
+    "src": "img/12-lady-buffer-n01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/12-lady-buffer-n02.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
     "src": "img/12-lady-buffer-06.webp",
     "w": 1400,
     "h": 788
