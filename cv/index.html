@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jacopo Natoli · CV</title>
+<meta name="description" content="Jacopo Natoli, CV: shows, performances, workshops, publications, lectures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Stesso mondo del sito: nero, bianco, rosso. La short bio è il pezzo in evidenza; poi le sezioni con gli anni a sinistra */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --red: #ff1a1a;
+  --muted: #9a9a9a;
+  --line: #2a2a2a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--mono); font-size: 14px; line-height: 1.55;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(56px + env(safe-area-inset-bottom, 0px));
+}
+a { color: var(--fg); }
+a:hover, a:focus-visible { color: var(--red); outline: none; }
+.disp { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; line-height: 0.9; }
+.close {
+  position: fixed; z-index: 5; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; text-decoration: none;
+}
+.wrap { max-width: 1100px; }
+h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(24px, 4vw, 48px); }
+
+/* short bio in evidenza */
+.bio {
+  font-size: clamp(17px, 2vw, 22px); line-height: 1.5; max-width: 52ch;
+  margin: 0 0 28px; padding-left: 16px; border-left: 3px solid var(--red);
+}
+.meta { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; color: var(--muted); font-size: 13px; margin-bottom: 36px; }
+.meta b { color: var(--fg); font-weight: 500; }
+.copy { font: inherit; color: var(--muted); background: none; border: 1px solid var(--line); padding: 1px 8px; cursor: pointer; margin-left: 6px; }
+.copy:hover { color: var(--red); border-color: var(--red); }
+
+/* indice delle sezioni */
+.toc { list-style: none; margin: 0 0 clamp(36px, 6vw, 64px); padding: 0; display: flex; flex-wrap: wrap; gap: 0.35em 0.9em; font-size: clamp(15px, 2vw, 22px); }
+.toc a { text-decoration: none; }
+
+section { border-top: 1px solid var(--line); padding-block: clamp(24px, 4vw, 40px); scroll-margin-top: 16px; }
+h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; }
+.rows { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); column-gap: 18px; }
+.yr { color: var(--red); font-weight: 500; padding-top: 10px; font-variant-numeric: tabular-nums; }
+.yr:first-child { padding-top: 0; }
+.items { list-style: none; margin: 0; padding: 10px 0 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.yr:first-child + .items { padding-top: 0; }
+.items li { overflow-wrap: anywhere; padding-left: 1.1em; text-indent: -1.1em; }
+.items li::before { content: "– "; color: var(--muted); }
+.items li.sub { color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; padding-top: 6px; text-indent: 0; padding-left: 0; }
+.items li.sub::before { content: none; }
+.items a { color: var(--muted); }
+.items a:hover { color: var(--red); }
+.top { display: inline-block; margin-top: 8px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.pdf { margin-top: 36px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.pdf a { color: var(--muted); }
+@media (max-width: 560px) {
+  .rows { grid-template-columns: minmax(0, 1fr); }
+  .yr { padding-top: 16px; }
+  .items { padding-top: 4px; }
+}
+</style>
+</head>
+<body>
+<a class="close disp" href="../" aria-label="Back to home">×</a>
+<main class="wrap" id="cv"></main>
+
+<script src="cv.js"></script>
+<script>
+(function () {
+  var d = window.CV, root = document.getElementById("cv");
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  // i link nel testo diventano cliccabili, mostrati con il solo nome del sito
+  function linkify(t) {
+    return esc(t).replace(/https?:\/\/[^\s;,]+/g, function (u) {
+      u = u.replace(/[.)]+$/, "");
+      var clean = u.replace(/[?&]fbclid=[^&]*/, "");
+      var host = clean.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
+      return '<a href="' + clean + '" target="_blank" rel="noopener">' + host + ' ↗</a>';
+    });
+  }
+  function rows(blocks) {
+    var h = '<div class="rows">', open = false;
+    function close() { if (open) { h += "</ul>"; open = false; } }
+    blocks.forEach(function (b) {
+      if (b.t === "year") { close(); h += '<div class="yr">' + esc(b.v) + '</div><ul class="items">'; open = true; return; }
+      if (!open) { h += '<div class="yr"></div><ul class="items">'; open = true; }
+      h += b.t === "sub" ? '<li class="sub">' + esc(b.v) + "</li>" : "<li>" + linkify(b.v) + "</li>";
+    });
+    close();
+    return h + "</div>";
+  }
+
+  var h = '<h1 class="disp">CV</h1>';
+  h += '<p class="bio">' + esc(d.bio) + "</p>";
+  h += '<div class="meta"><span>' + esc(d.info) + "</span>" +
+       '<span><b>email</b> <span id="mail">' + esc(d.contacts.email) + '</span><button class="copy" type="button" id="copy">copy</button></span>' +
+       '<span><b>website</b> <a href="https://' + esc(d.contacts.website) + '">' + esc(d.contacts.website) + "</a></span>" +
+       (d.contacts.mobile ? "<span><b>mobile</b> " + esc(d.contacts.mobile) + "</span>" : "") + "</div>";
+
+  var secs = [{ title: "Education", blocks: [] }].concat(d.sections);
+  h += '<ul class="toc">' + secs.map(function (s) { return '<li><a class="disp" href="#' + slug(s.title) + '">' + esc(s.title) + "</a></li>"; }).join("") + "</ul>";
+
+  h += '<section id="education"><h2 class="disp">Education</h2><div class="rows">' +
+       d.education.map(function (e) { return '<div class="yr">' + esc(e[0]) + '</div><ul class="items"><li>' + esc(e[1]) + "</li></ul>"; }).join("") +
+       '</div><a class="top" href="#cv">↑ Top</a></section>';
+  d.sections.forEach(function (s) {
+    h += '<section id="' + slug(s.title) + '"><h2 class="disp">' + esc(s.title) + "</h2>" + rows(s.blocks) + '<a class="top" href="#cv">↑ Top</a></section>';
+  });
+  h += '<p class="pdf"><a href="../cv.pdf" target="_blank" rel="noopener">CV in PDF</a></p>';
+  root.innerHTML = h;
+  root.id = "cv";
+
+  var btn = document.getElementById("copy");
+  btn.addEventListener("click", function () {
+    var t = document.getElementById("mail").textContent;
+    function sel() { var r = document.createRange(); r.selectNodeContents(document.getElementById("mail")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { btn.textContent = "copied"; }, function () { sel(); });
+    else sel();
+    setTimeout(function () { btn.textContent = "copy"; }, 1600);
+  });
+})();
+</script>
+</body>
+</html>
