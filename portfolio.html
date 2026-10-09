@@ -50,8 +50,8 @@ body {
 </div>
 <script>
 (function () {
-  var FILE = "portfolio.pdf?v=" + Date.now(); // sempre la versione più recente
-  var SIZE = 23583644; // usata se il server non comunica la dimensione
+  var FILE = "portfolio.pdf";
+  var SIZE = 15174090; // usata se il server non comunica la dimensione
   var count = document.getElementById("count");
   var info = document.getElementById("info");
   var bar = document.getElementById("bar");
@@ -61,7 +61,8 @@ body {
   if (!window.fetch || !window.ReadableStream) { open(); return; }
 
   var t0 = performance.now(), shown = null;
-  fetch(FILE).then(function (res) {
+  // "no-cache": controlla se il file è cambiato; se no, lo prende subito dalla memoria del browser
+  fetch(FILE, { cache: "no-cache" }).then(function (res) {
     if (!res.ok || !res.body) throw new Error("http");
     var total = +res.headers.get("Content-Length") || SIZE;
     var loaded = 0, reader = res.body.getReader();

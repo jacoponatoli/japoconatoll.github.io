@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jacopo Natoli · Portfolio</title>
+<meta name="description" content="Jacopo Natoli, portfolio: exhibitions, performances, workshops, devices, on paper, on street, online.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Stesso mondo della home: nero, bianco, rosso al passaggio. Lista secca in alto a sinistra, poi i lavori uno sotto l'altro */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --red: #ff1a1a;
+  --muted: #8f8f8f;
+  --line: #2a2a2a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--mono); font-size: 14px; line-height: 1.55;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px));
+}
+a { color: var(--fg); }
+a:hover, a:focus-visible, button:hover, button:focus-visible { color: var(--red); outline: none; }
+.disp {
+  font-family: var(--display); font-weight: 800; font-stretch: 125%;
+  text-transform: uppercase; line-height: 0.9; letter-spacing: -0.005em;
+}
+.close {
+  position: fixed; z-index: 5;
+  top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-size: clamp(22px, 5.4vw, 72px);
+  background: var(--bg); color: var(--fg); border: 0; padding: 0 0 0 8px; cursor: pointer; text-decoration: none;
+}
+
+/* elenco categorie: come la lista ONLINE della home */
+.cats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.18em; font-size: clamp(22px, 5.4vw, 72px); }
+.cats a { text-decoration: none; display: inline-flex; align-items: baseline; gap: 0.3em; }
+.cats sup { font-family: var(--mono); font-weight: 400; font-size: max(10px, 0.28em); letter-spacing: 0.05em; color: var(--muted); }
+.cats a:hover sup { color: var(--red); }
+.pdf { margin-top: 2.2em; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.pdf a { color: var(--muted); }
+
+/* pagina categoria */
+.cat-head { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(28px, 6vw, 72px); padding-right: 1.4em; }
+.cat-head a { text-decoration: none; }
+.cat-head .crumb { display: block; font-size: 0.42em; color: var(--muted); margin-bottom: 0.25em; }
+.work { border-top: 1px solid var(--line); padding-block: clamp(22px, 4vw, 44px); }
+.work-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+@media (min-width: 900px) { .work-top { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; } }
+.w-title { font-size: clamp(24px, 3.6vw, 46px); margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.w-sub { font-family: var(--display); font-weight: 800; font-stretch: 100%; font-size: clamp(15px, 1.6vw, 20px); color: var(--muted); margin: 0.5em 0 0; }
+.w-credit { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 12px; }
+dl { margin: 0; display: grid; grid-template-columns: 4.6em minmax(0, 1fr); column-gap: 14px; row-gap: 10px; }
+dt { color: var(--red); font-weight: 500; }
+dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.w-extra { white-space: pre-line; color: var(--muted); margin: 14px 0 0; max-width: 70ch; overflow-wrap: anywhere; }
+.w-links { margin-top: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.w-links a { overflow-wrap: anywhere; }
+.w-links .u { text-transform: none; letter-spacing: 0; }
+
+/* foto: striscia orizzontale che si scorre */
+.strip {
+  margin-top: 22px; display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; padding-bottom: 10px;
+  scrollbar-color: #444 transparent; scrollbar-width: thin;
+}
+.strip figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; background: #0d0d0d; }
+.strip img { display: block; height: clamp(220px, 52vh, 620px); width: auto; max-width: 88vw; object-fit: contain; }
+.strip .n { font-size: 11px; color: var(--muted); padding-top: 6px; letter-spacing: 0.08em; }
+.top { display: inline-block; margin-top: 28px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* visore a schermo intero */
+.viewer { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewer button { position: absolute; background: none; border: 0; color: var(--fg); cursor: pointer; font-family: var(--display); font-weight: 800; font-stretch: 125%; font-size: clamp(22px, 4vw, 48px); padding: 10px; }
+.viewer .vx { top: calc(8px + env(safe-area-inset-top, 0px)); right: 8px; }
+.viewer .vp { left: 4px; top: 50%; transform: translateY(-50%); }
+.viewer .vn { right: 4px; top: 50%; transform: translateY(-50%); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<a class="close disp" href="../" aria-label="Torna alla home" id="close">×</a>
+
+<main id="app"></main>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-label="Foto">
+  <img id="v-img" alt="">
+  <button class="vx" type="button" id="v-x" aria-label="Chiudi">×</button>
+  <button class="vp" type="button" id="v-p" aria-label="Foto precedente">←</button>
+  <button class="vn" type="button" id="v-n" aria-label="Foto successiva">→</button>
+</div>
+
+<script src="works.js"></script>
+<script>
+(function () {
+  var CATS = ["EXHIBITIONS", "PERFORMANCES", "WORKSHOPS", "DEVICES", "ON PAPER", "ON STREET", "ONLINE"];
+  var LABELS = [["who", "Who"], ["what", "What"], ["when", "When"], ["where", "Where"], ["why", "Why"]];
+  var app = document.getElementById("app");
+  var closeBtn = document.getElementById("close");
+  var works = window.WORKS || [];
+
+  function slug(c) { return c.toLowerCase().replace(/\s+/g, "-"); }
+  function catFrom(hash) {
+    var h = decodeURIComponent((hash || "").replace(/^#/, ""));
+    for (var i = 0; i < CATS.length; i++) if (slug(CATS[i]) === h) return CATS[i];
+    return null;
+  }
+  function esc(s) {
+    return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+  function shortUrl(u) { return u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""); }
+
+  function renderList() {
+    document.title = "Jacopo Natoli · Portfolio";
+    closeBtn.href = "../"; closeBtn.setAttribute("aria-label", "Torna alla home");
+    var h = '<ul class="cats">';
+    CATS.forEach(function (c) {
+      h += '<li><a class="disp" href="#' + slug(c) + '">' + c + '</a></li>';
+    });
+    h += '</ul><p class="pdf"><a href="../portfolio.html">Portfolio completo in PDF</a></p>';
+    app.innerHTML = h;
+    window.scrollTo(0, 0);
+  }
+
+  var current = [];
+  function renderCat(cat) {
+    document.title = "Jacopo Natoli · " + cat.charAt(0) + cat.slice(1).toLowerCase();
+    closeBtn.href = "#"; closeBtn.setAttribute("aria-label", "Torna alle categorie");
+    current = works.filter(function (w) { return w.cat === cat; });
+    var h = '<h1 class="cat-head disp"><a class="crumb" href="#">Portfolio</a>' + cat + '</h1>';
+    current.forEach(function (w, wi) {
+      h += '<article class="work"><div class="work-top"><div>';
+      h += '<h2 class="w-title disp">' + esc(w.title) + '</h2>';
+      if (w.subtitle) h += '<p class="w-sub">' + esc(w.subtitle) + '</p>';
+      if (w.credit) h += '<div class="w-credit">Foto ' + esc(w.credit) + '</div>';
+      h += '</div><div><dl>';
+      LABELS.forEach(function (l) { if (w[l[0]]) h += '<dt>' + l[1] + '</dt><dd>' + esc(w[l[0]]) + '</dd>'; });
+      h += '</dl>';
+      if (w.extra) h += '<p class="w-extra">' + esc(w.extra) + '</p>';
+      if (w.links && w.links.length) {
+        h += '<div class="w-links">';
+        w.links.forEach(function (u) { var href = /^https?:/.test(u) ? u : "https://" + u; h += '<a href="' + esc(href) + '" target="_blank" rel="noopener">More info → <span class="u">' + esc(shortUrl(u)) + '</span></a>'; });
+        h += '</div>';
+      }
+      h += '</div></div>';
+      if (w.images && w.images.length) {
+        h += '<div class="strip">';
+        w.images.forEach(function (im, ii) {
+          h += '<figure><img src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" loading="lazy" decoding="async" alt="' + esc(w.title) + ', foto ' + (ii + 1) + '" data-w="' + wi + '" data-i="' + ii + '">' +
+               '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
+        });
+        h += '</div>';
+      }
+      h += '</article>';
+    });
+    h += '<a class="top" href="#">← Tutte le categorie</a>';
+    app.innerHTML = h;
+    window.scrollTo(0, 0);
+  }
+
+  function route() {
+    var c = catFrom(location.hash);
+    if (c) renderCat(c); else renderList();
+  }
+  addEventListener("hashchange", route);
+  route();
+
+  // visore: clic su una foto per vederla grande, frecce o swipe per scorrere
+  var viewer = document.getElementById("viewer"), vimg = document.getElementById("v-img");
+  var vw = 0, vi = 0;
+  function show() {
+    var ims = current[vw].images; vi = (vi + ims.length) % ims.length;
+    vimg.src = ims[vi].src; vimg.alt = current[vw].title + ", foto " + (vi + 1);
+  }
+  app.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t.tagName === "IMG" && t.dataset.w) { vw = +t.dataset.w; vi = +t.dataset.i; show(); viewer.hidden = false; document.getElementById("v-x").focus(); }
+  });
+  function closeV() { viewer.hidden = true; vimg.removeAttribute("src"); }
+  document.getElementById("v-x").addEventListener("click", closeV);
+  document.getElementById("v-p").addEventListener("click", function () { vi--; show(); });
+  document.getElementById("v-n").addEventListener("click", function () { vi++; show(); });
+  viewer.addEventListener("click", function (e) { if (e.target === viewer) closeV(); });
+  document.addEventListener("keydown", function (e) {
+    if (viewer.hidden) return;
+    if (e.key === "Escape") closeV();
+    if (e.key === "ArrowLeft") { vi--; show(); }
+    if (e.key === "ArrowRight") { vi++; show(); }
+  });
+  var sx = null;
+  viewer.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
+  viewer.addEventListener("touchend", function (e) {
+    if (sx === null) return; var dx = e.changedTouches[0].clientX - sx; sx = null;
+    if (Math.abs(dx) > 40) { vi += dx < 0 ? 1 : -1; show(); }
+  });
+})();
+</script>
+</body>
+</html>
