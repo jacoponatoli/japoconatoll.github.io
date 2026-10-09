@@ -63,6 +63,7 @@ body {
   overflow-y: auto;
 }
 /* lista secca in alto a sinistra: la dimensione segue la larghezza della finestra */
+.tree .note { margin: 0 0 14px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-right: 3em; }
 .tree ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.18em; font-size: clamp(22px, 5.4vw, 72px); }
 .tree a {
   font-family: var(--display); font-weight: 800; font-stretch: 125%;
@@ -95,6 +96,7 @@ body {
 <!-- ONLINE: per aggiungere un lavoro copia una riga <li> e cambia indirizzo e nome -->
 <section class="tree" id="tree" hidden aria-label="Lavori onlife">
   <button class="close" type="button" id="close-tree" aria-label="Chiudi">×</button>
+  <p class="note">Generative works</p>
   <ul>
     <li><a href="https://jacoponatoli.github.io/PLAYPLAYPLAYPLAY/" target="_blank" rel="noopener">PLAYPLAYPLAYPLAY</a></li>
     <li><a href="https://jacoponatoli.github.io/poesia_la_notizia/" target="_blank" rel="noopener">Poesia la notizia</a></li>
