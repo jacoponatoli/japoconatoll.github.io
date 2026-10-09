@@ -42,7 +42,7 @@ body {
   padding: 0;
   will-change: transform;
 }
-.float:hover { opacity: 0.6; }
+.float:hover, .float:focus-visible { color: var(--red); }
 .float.done { color: var(--red); }
 .float:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
@@ -60,7 +60,7 @@ body {
   color: var(--fg); text-decoration: none;
   overflow-wrap: anywhere;
 }
-.tree a:hover { opacity: 0.6; }
+.tree a:hover, .tree a:focus-visible { color: var(--red); }
 .tree a:focus-visible, .close:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .close {
   position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
@@ -68,7 +68,7 @@ body {
   font-size: clamp(22px, 5.4vw, 72px); line-height: 0.9;
   color: var(--fg); background: var(--bg); border: 0; padding: 0; cursor: pointer;
 }
-.close:hover { opacity: 0.6; }
+.close:hover, .close:focus-visible { color: var(--red); }
 </style>
 </head>
 <body>
@@ -94,10 +94,12 @@ body {
 
 <script>
 (function () {
-  var VELOCITA = 1.6;   // pixel per fotogramma: più alto = più veloce
+  // velocità in proporzione allo schermo: 0.2 = un quinto della diagonale al secondo.
+  // Così su cellulare e su laptop sembrano andare allo stesso ritmo.
+  var VELOCITA = 0.2;
 
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce) VELOCITA = 0.4;
+  if (reduce) VELOCITA = 0.05;
 
   var items = Array.prototype.map.call(document.querySelectorAll(".float"), function (el) {
     var a = Math.random() * Math.PI * 2;
@@ -117,12 +119,16 @@ body {
     else { a.x += dx / 2; a.y += dy / 2; b.x -= dx / 2; b.y -= dy / 2; }
   }
 
-  function step() {
+  var lastT = 0;
+  function step(t) {
+    var dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0;
+    lastT = t;
+    var k = VELOCITA * Math.hypot(innerWidth, innerHeight) * dt;
     var W = innerWidth, H = innerHeight;
     items.forEach(function (it) {
       if (!it.hold) {
         var w = it.el.offsetWidth, h = it.el.offsetHeight;
-        it.x += it.vx; it.y += it.vy;
+        it.x += it.vx * k; it.y += it.vy * k;
         if (it.x <= 0) { it.x = 0; it.vx = Math.abs(it.vx); }
         if (it.x + w >= W) { it.x = Math.max(0, W - w); it.vx = -Math.abs(it.vx); }
         if (it.y <= 0) { it.y = 0; it.vy = Math.abs(it.vy); }
@@ -205,8 +211,8 @@ body {
         }
         if (ok) break;
       }
-      it.vx = (Math.random() < 0.5 ? -1 : 1) * VELOCITA * (0.8 + Math.random() * 0.4);
-      it.vy = (Math.random() < 0.5 ? -1 : 1) * VELOCITA * (0.8 + Math.random() * 0.4);
+      it.vx = (Math.random() < 0.5 ? -1 : 1) * (0.55 + Math.random() * 0.3);
+      it.vy = (Math.random() < 0.5 ? -1 : 1) * (0.55 + Math.random() * 0.3);
     });
   }
 
