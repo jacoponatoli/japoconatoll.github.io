@@ -1185,14 +1185,14 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/19-aion-o-della-noia-01.webp",
-    "w": 317,
-    "h": 380
+    "src": "img/19-aion-o-della-noia-n01.webp",
+    "w": 1198,
+    "h": 1400
    },
    {
-    "src": "img/19-aion-o-della-noia-02.webp",
-    "w": 231,
-    "h": 276
+    "src": "img/19-aion-o-della-noia-n02.webp",
+    "w": 843,
+    "h": 1400
    },
    {
     "src": "img/19-aion-o-della-noia-03.webp",
