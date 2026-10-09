@@ -111,7 +111,7 @@ h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; 
   h += '<div class="meta"><span>' + esc(d.info) + "</span>" +
        '<span><b>email</b> <span id="mail">' + esc(d.contacts.email) + '</span><button class="copy" type="button" id="copy">copy</button></span>' +
        '<span><b>website</b> <a href="https://' + esc(d.contacts.website) + '">' + esc(d.contacts.website) + "</a></span>" +
-       (d.contacts.mobile ? "<span><b>mobile</b> " + esc(d.contacts.mobile) + "</span>" : "") + "</div>";
+       "</div>";
 
   var secs = [{ title: "Education", blocks: [] }].concat(d.sections);
   h += '<ul class="toc">' + secs.map(function (s) { return '<li><a class="disp" href="#' + slug(s.title) + '">' + esc(s.title) + "</a></li>"; }).join("") + "</ul>";
@@ -122,7 +122,6 @@ h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; 
   d.sections.forEach(function (s) {
     h += '<section id="' + slug(s.title) + '"><h2 class="disp">' + esc(s.title) + "</h2>" + rows(s.blocks) + '<a class="top" href="#cv">↑ Top</a></section>';
   });
-  h += '<p class="pdf"><a href="../cv.pdf" target="_blank" rel="noopener">CV in PDF</a></p>';
   root.innerHTML = h;
   root.id = "cv";
 

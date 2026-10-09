@@ -1,10 +1,9 @@
 // Dati del CV. Ogni sezione ha blocchi: year (anno), sub (sottotitolo), item (voce).
 window.CV = {
- "info": "Jacopo Natoli born in Rome the 31th of January 1985. The following CV is inevitably partial.",
+ "info": "Jacopo Natoli (Rome, 1985). The following CV is inevitably partial.",
  "contacts": {
   "email": "jacoponatoli@gmail.com",
-  "website": "jacoponatoli.net",
-  "mobile": "(0039) 3315430139"
+  "website": "jacoponatoli.net"
  },
  "bio": "His practice intersects visual poetry, performance and radical pedagogy. Rooted in a relational and iconoclastic approach, he creates works in dialogue with the post-internet horizon. Through an undisciplined approach and the logic of montage, he plays with the limits of systems of power, forces open fields that extend the possible, and pursues the suspension of meaning. He writes essays, interviews and poems, and curates exhibition projects in non-designated spaces. He teaches Art and Image at a lower secondary school. In 2026 he founded the publishing house Tempo Perso. Since 2021 he has been part of the independent space Post Ex, and he has been its president since 2026. With Indicibili he experiments with non-ordinary states of consciousness. He was a co-founder of Numero Cromatico and Nodes Journal (2011–2018).",
  "education": [
@@ -26,7 +25,7 @@ window.CV = {
   ],
   [
    "2004-2008",
-   "Bachalor degree in Painting, Accademy of Fine Art, Rome."
+   "Bachelor degree in Painting, Academy of Fine Arts, Rome."
   ]
  ],
  "sections": [
@@ -39,19 +38,19 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Surfing the scrolling (performance), Supernova, Rome, curated by Nicolo’ Giacomazzi, 15 June."
+     "v": "Surfing the scrolling (performance), Supernova, Rome, curated by Niccolò Giacomazzi, 15 June."
     },
     {
      "t": "item",
-     "v": "Identita’ Commestibili (group show), Accademia Italiana, Rome and the support of Roma Capitale, curated by Gemma Gulisano, June."
+     "v": "Identità Commestibili (group show), Accademia Italiana, Rome and the support of Roma Capitale, curated by Gemma Gulisano, June."
     },
     {
      "t": "item",
-     "v": "Lady Buffer (performance), Cafe twin, Rome for the event Meccaniche IV, Cattura part of the project Meccaniche curated by Gemma Gulisano e Jacopo Natoli, 16 may."
+     "v": "Lady Buffer (performance), Cafe Twin, Rome for the event Meccaniche IV, Cattura part of the project Meccaniche curated by Gemma Gulisano e Jacopo Natoli, 16 May."
     },
     {
      "t": "item",
-     "v": "Ambigua (solo show), CAOS, Centro Arti Opifici Siri, Terni, 24 January - 5 April, Curated by Chiara Ronchini e Post Ex."
+     "v": "Ambigua (solo show), CAOS, Centro Arti Opificio Siri, Terni, 24 January - 5 April, curated by Chiara Ronchini e Post Ex."
     },
     {
      "t": "year",
@@ -59,7 +58,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Non è la rosa non è il tulipano (performance), Museo Barracco, Roma diffusa Festival, 19 october."
+     "v": "Non è la rosa non è il tulipano (performance), Museo Barracco, Roma diffusa Festival, 19 October."
     },
     {
      "t": "item",
@@ -67,23 +66,23 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Morto che Parla (Performace), Parco Ex Paolo Pini, Godai Fest, Milan, 20-21 September."
+     "v": "Morto che Parla (Performance), Parco Ex Paolo Pini, Godai Fest, Milan, 20-21 September."
     },
     {
      "t": "item",
-     "v": "Reel Deleuze (performace), Museo Civico di Zoologia, Notte dei Musei, Rome, 17 May."
+     "v": "Reel Deleuze (performance), Museo Civico di Zoologia, Notte dei Musei, Rome, 17 May."
     },
     {
      "t": "item",
-     "v": "48 48 48 (performance), The Hoxton Hotel - Roma Diffusa, Parioli Punk,, Rome. 4-5-6 April."
+     "v": "48 48 48 (performance), The Hoxton Hotel - Roma Diffusa, Parioli Punk, Rome, 4-5-6 April."
     },
     {
      "t": "item",
-     "v": "Distruggi questa icona (Putin, Trump) (group show Lascia Andare), Cosmo, Rome, march."
+     "v": "Distruggi questa icona (Putin, Trump) (group show Lascia Andare), Cosmo, Rome, March."
     },
     {
      "t": "item",
-     "v": "Non ti vedo, ma t’immagino (performance), Fanfulla, Rome, 9 january."
+     "v": "Non ti vedo, ma t’immagino (performance), Fanfulla, Rome, 9 January."
     },
     {
      "t": "year",
@@ -91,15 +90,15 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Aîon o della Noîa (performance), GAM Gallery of Modern Art, Rome 7 december."
+     "v": "Aîon o della Noîa (performance), GAM Gallery of Modern Art, Rome, 7 December."
     },
     {
      "t": "item",
-     "v": "Siderarco. Azione mutante I (performance), Liminal Space, Rome, 2 december."
+     "v": "Siderarco. Azione mutante I (performance), Liminal Space, Rome, 2 December."
     },
     {
      "t": "item",
-     "v": "La festa del Rumore (public space performance) Venice, 11 November."
+     "v": "La festa del Rumore (public space performance), Venice, 11 November."
     },
     {
      "t": "item",
@@ -107,15 +106,15 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Dalla Galassa dei Buchi Neri (performance), Biblioteca Elsa Morante, Rome, 27 September."
+     "v": "Dalla Galassia dei Buchi Neri (performance), Biblioteca Elsa Morante, Rome, 27 September."
     },
     {
      "t": "item",
-     "v": "Address Unknown - Città, limiti, confini (group show), Fabrica del Vapore, Milan, 17 may - 5 June."
+     "v": "Address Unknown - Città, limiti, confini (group show), Fabbrica del Vapore, Milan, 17 May - 5 June."
     },
     {
      "t": "item",
-     "v": "La Cena Forse L’ultima (performance), Magma, curated by Studio Drang, Rome, 5 april"
+     "v": "La Cena Forse L’ultima (performance), Magma, curated by Studio Drang, Rome, 5 April"
     },
     {
      "t": "item",
@@ -131,15 +130,15 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Ab Oculis Barocca (Performance), Campo de’ fiori, Piazza Navona (Rome) within Meta-Turismo curated by Giuliana Benassi for Roma Diffusa festival, Rome, 30 Setember."
+     "v": "Ab Oculis Barocca (Performance), Campo de’ fiori, Piazza Navona (Rome) within Meta-Turismo curated by Giuliana Benassi for Roma Diffusa festival, Rome, 30 September."
     },
     {
      "t": "item",
-     "v": "L’Oltrefesta (Performance), with John Cascone, for Performative 03 Internatiol festival of performance, MAXXI, National museum of contemporary art, L’aquila, September 16."
+     "v": "L’Oltrefesta (Performance), with John Cascone, for Performative 03 International festival of performance, MAXXI, National museum of contemporary art, L’aquila, September 16."
     },
     {
      "t": "item",
-     "v": "In coda (Performance & group show), with Giuseppe Palmisano e Wang Yuxiang, curated by Niccolò Giacomazzi, Officine Brandimerte, Ascoli Piceno, July - September."
+     "v": "In coda (Performance & group show), with Giuseppe Palmisano e Wang Yuxiang, curated by Niccolò Giacomazzi, Officine Brandimarte, Ascoli Piceno, July - September."
     },
     {
      "t": "item",
@@ -151,7 +150,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "2222 (Fried Show), Post Ex per Artverona Lab, Verrona, October."
+     "v": "2222 (Fried Show), Post Ex per Artverona Lab, Verona, October."
     },
     {
      "t": "item",
@@ -159,7 +158,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Domina MIlano (performance), Vagare ai Margini, Stazione del Passante ferroviario di Porta Garibaldi, MIlan 26-30 July"
+     "v": "Domina Milano (performance), Vagare ai Margini, Stazione del Passante ferroviario di Porta Garibaldi, Milan 26-30 July"
     },
     {
      "t": "item",
@@ -179,7 +178,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Sicurazione (solo show) for Materia Nova. Nuove generazioni a confronto curated my Massimo Mininni, GAM (Galleria Arte Moderna), Museum of Modern Art, Rome."
+     "v": "Sicurazione (solo show) for Materia Nova. Nuove generazioni a confronto curated by Massimo Mininni, GAM (Galleria Arte Moderna), Museum of Modern Art, Rome."
     },
     {
      "t": "year",
@@ -195,7 +194,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Magic Carpets landed (group show). Kaunas Biennal, Kaunas."
+     "v": "Magic Carpets landed (group show). Kaunas Biennial, Kaunas."
     },
     {
      "t": "item",
@@ -211,7 +210,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Address Uknown (group show), Edicola Radetzky, Milan, April."
+     "v": "Address Unknown (group show), Edicola Radetzky, Milan, April."
     },
     {
      "t": "item",
@@ -223,7 +222,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "ATLAS ViaFarnini (group show), Archivo Docva, Milan, April."
+     "v": "ATLAS ViaFarini (group show), Archivio Docva, Milan, April."
     },
     {
      "t": "sub",
@@ -239,7 +238,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "FAIRWARCHING 2, mail art, December."
+     "v": "FAIRWATCHING 2, mail art, December."
     },
     {
      "t": "item",
@@ -267,11 +266,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Fuori Fase, videocilp, May;"
+     "v": "Fuori Fase, videoclip, May;"
     },
     {
      "t": "item",
-     "v": "Politic is death (A reading from Borroughs), reading-concert on live streaming, April."
+     "v": "Politic is death (A reading from Burroughs), reading-concert on live streaming, April."
     },
     {
      "t": "year",
@@ -279,7 +278,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "JUST ART, The first company in the world delivering eadable art works."
+     "v": "JUST ART, The first company in the world delivering edible art works."
     },
     {
      "t": "year",
@@ -287,7 +286,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "ESECUZIONE PUBB.LICA DI GIORGIO VASARI, The S.A.V. decrees the second death of Giorgio Vasari by means of a public execution, ritual+zine+poster+posting, December 12."
+     "v": "ESECUZIONE PUBBLICA DI GIORGIO VASARI, The S.A.V. decrees the second death of Giorgio Vasari by means of a public execution, ritual+zine+poster+posting, December 12."
     },
     {
      "t": "item",
@@ -295,7 +294,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "ESONDARE (with Luna Sarti), Piscogeographic exploration of the Florentine Arno, Florence, August 29."
+     "v": "ESONDARE (with Luna Sarti), Psychogeographic exploration of the Florentine Arno, Florence, August 29."
     },
     {
      "t": "item",
@@ -355,7 +354,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "BEHOLDER’S SHARE, performance, Arci LeCentoCittà, Crotone, January 2,"
+     "v": "BEHOLDER’S SHARE, performance, Arci LeCentoCittà, Crotone, January 2."
     },
     {
      "t": "year",
@@ -423,7 +422,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "SUBTERFUGE (group show), curated by Mike Watson with Julia Brown, Chto Delat?, Ana Pecar and Oliver Ressler, Alessandro Rolandi, The Gallery Apart, Rome, 18 January-15 march."
+     "v": "SUBTERFUGE (group show), curated by Mike Watson with Julia Brown, Chto Delat?, Ana Pecar and Oliver Ressler, Alessandro Rolandi, The Gallery Apart, Rome, 18 January-15 March."
     },
     {
      "t": "year",
@@ -444,7 +443,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "ATELIER INDICIBILE, A temporary comunity for experimenting non-ordinary states of consciousness."
+     "v": "ATELIER INDICIBILE, A temporary community for experimenting non-ordinary states of consciousness."
     },
     {
      "t": "year",
@@ -452,7 +451,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Professor of Art and Imagine in Montessori lower secondary education (middle school), Rome."
+     "v": "Professor of Art and Image in Montessori lower secondary education (middle school), Rome."
     },
     {
      "t": "item",
@@ -472,7 +471,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "La festa del Rumore, IUAV unversity, Venice 7-10 November."
+     "v": "La festa del Rumore, IUAV university, Venice, 7-10 November."
     },
     {
      "t": "item",
@@ -496,7 +495,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Zine Lab, Galline Bianche library, Labaro, Rome, 16 december 2022, 17 february, 24 march, 28 april, 26 may 2023 within the project 15lab curated by Latitudo Art Project."
+     "v": "Zine Lab, Galline Bianche library, Labaro, Rome, 16 December 2022, 17 February, 24 March, 28 April, 26 May 2023 within the project 15lab curated by Latitudo Art Project."
     },
     {
      "t": "year",
@@ -512,7 +511,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Il Sole del Villagio, Cianotype Workshop, Rome, 12 June."
+     "v": "Il Sole del Villaggio, Cyanotype Workshop, Rome, 12 June."
     },
     {
      "t": "item",
@@ -520,7 +519,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Professor of History of Cinema and Video at the Accademy of Fine Art of Sassari."
+     "v": "Professor of History of Cinema and Video at the Academy of Fine Arts of Sassari."
     },
     {
      "t": "item",
@@ -528,7 +527,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "La.Pe.Ci., permanent cyanotopic workshop."
+     "v": "La.Pe.Ci., permanent cyanotypic workshop."
     },
     {
      "t": "item",
@@ -536,7 +535,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "MANIFESTO ERGO VIVO, cordinated by Fondazione Palazzo Strozzi and Teatro Povero di Monticchiello, July 20-24."
+     "v": "MANIFESTO ERGO VIVO, coordinated by Fondazione Palazzo Strozzi and Teatro Povero di Monticchiello, July 20-24."
     },
     {
      "t": "item",
@@ -628,7 +627,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Coordinator and ignorant schoolmaster of Sgorbio - Athecnical Laboraory for the new image."
+     "v": "Coordinator and ignorant schoolmaster of Sgorbio - Athecnical Laboratory for the new image."
     },
     {
      "t": "year",
@@ -660,7 +659,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Selected by the LLP for the European Program Comenius. Teaching art through video, Istanbul, January May."
+     "v": "Selected by the LLP for the European Program Comenius. Teaching art through video, Istanbul, January - May."
     },
     {
      "t": "year",
@@ -685,7 +684,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Natoli J., Come spiegare a mio padre che i funghi pscihedelici fanno bene?, Kabul Magazine, Caos p. II n.26."
+     "v": "Natoli J., Come spiegare a mio padre che i funghi psichedelici fanno bene?, Kabul Magazine, Caos p. II n.26."
     },
     {
      "t": "year",
@@ -737,7 +736,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Natoli J., Introduction to Psychosis. A survey of historical theories, nodes, anno V, n. 7-8 (ISSN: 22811168)."
+     "v": "Natoli J., Introduction to Psychosis. A survey of historical theories, nodes, anno V, n. 7-8 (ISSN: 2281-1168)."
     },
     {
      "t": "item",
@@ -773,19 +772,19 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Natoli J., 10 thesis for a new approach to experimental cinema (unpublished manifesto)."
+     "v": "Natoli J., 10 theses for a new approach to experimental cinema (unpublished manifesto)."
     },
     {
      "t": "item",
-     "v": "Natoli J., (interview) Cesare Pietroiusti: Non-Functional Thoughts, nodes, anno III, n. 3-4 (ISSN: 22811168)."
+     "v": "Natoli J., (interview) Cesare Pietroiusti: Non-Functional Thoughts, nodes, anno III, n. 3-4 (ISSN: 2281-1168)."
     },
     {
      "t": "item",
-     "v": "Natoli J., Aesthetics Of Negation: definition and method of research, nodes, anno III, n. 3-4 (ISSN: 22811168)."
+     "v": "Natoli J., Aesthetics Of Negation: definition and method of research, nodes, anno III, n. 3-4 (ISSN: 2281-1168)."
     },
     {
      "t": "item",
-     "v": "Natoli J., Semiotic empasse: the cinematographic issue, nodes, anno III, n. 3-4 (ISSN: 2281-1168)."
+     "v": "Natoli J., Semiotic impasse: the cinematographic issue, nodes, anno III, n. 3-4 (ISSN: 2281-1168)."
     },
     {
      "t": "year",
@@ -797,7 +796,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Natoli J., (Interview/experiment with Uochi Toki) Title? Circle Order, nodes, anno II, n. 2 (ISSN: 22811168)."
+     "v": "Natoli J., (Interview/experiment with Uochi Toki) Title? Circle Order, nodes, anno II, n. 2 (ISSN: 2281-1168)."
     },
     {
      "t": "year",
@@ -897,7 +896,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Perimetro – pubblicazione sul quartiere Pigneto di Roma."
+     "v": "Perimetro – publicazione sul quartiere Pigneto di Roma."
     },
     {
      "t": "year",
@@ -925,7 +924,7 @@ window.CV = {
     },
     {
      "t": "sub",
-     "v": "Booklet Device & Fanzine (n.c. necessaries copies b.d. booklet device)"
+     "v": "Booklet Device & Fanzine (n.c. necessary copies b.d. booklet device)"
     },
     {
      "t": "year",
@@ -973,7 +972,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "MMD, 15 x 25mm, n.c.-b.d, Milan, 15 January 15."
+     "v": "MMD, 15 x 25mm, n.c.-b.d, Milan, January 15."
     },
     {
      "t": "item",
@@ -989,11 +988,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "CianoBasiKit, Folder with phosensitive paper, n.c., Rome, January 9."
+     "v": "CianoBasiKit, Folder with photosensitive paper, n.c., Rome, January 9."
     },
     {
      "t": "item",
-     "v": "PornoAntiPorn, A7, n.c.-b.d, MIlan, January 15."
+     "v": "PornoAntiPorn, A7, n.c.-b.d, Milan, January 15."
     },
     {
      "t": "item",
@@ -1001,15 +1000,15 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "On&On&On&On&o, .14.5 x 24 cm, n.c.-b.d, Milan, January 29."
+     "v": "On&On&On&On&o, 14.5 x 24 cm, n.c.-b.d, Milan, January 29."
     },
     {
      "t": "item",
-     "v": "WakeUpWakeUp, differnt shapes, n.c.-b.d, January 29."
+     "v": "WakeUpWakeUp, different shapes, n.c.-b.d, January 29."
     },
     {
      "t": "item",
-     "v": "DreamYouDream, differnt shapes, n.c.-b.d, January 29."
+     "v": "DreamYouDream, different shapes, n.c.-b.d, January 29."
     },
     {
      "t": "item",
@@ -1021,7 +1020,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Nastiushkazine, A5, 10copies, Lviv, December."
+     "v": "Nastiushkazine, A5, 10 copies, Lviv, December."
     },
     {
      "t": "item",
@@ -1033,7 +1032,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Kràsis Nature, Booklet Device, A5, 20c-b.d-b.d, Rome, October."
+     "v": "Kràsis Nature, Booklet Device, A5, 20c-b.d, Rome, October."
     },
     {
      "t": "item",
@@ -1049,7 +1048,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "B-sidy, rarity, oscenity, blasfemity and pornography, A4, 20c, June;"
+     "v": "B-sidy, rarity, obscenity, blasphemy and pornography, A4, 20c, June;"
     },
     {
      "t": "item",
@@ -1121,7 +1120,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Pera e Secchio,A4, 20c, Tivoli, July;"
+     "v": "Pera e Secchio, A4, 20c, Tivoli, July;"
     },
     {
      "t": "item",
@@ -1129,7 +1128,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Secrèto. Furori l’arte, appunti, A5, 30c, Tivoli, June."
+     "v": "Secrèto. Fuori l’arte, appunti, A5, 30c, Tivoli, June."
     },
     {
      "t": "item",
@@ -1137,7 +1136,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Draw with food and drink, n.c.-b.d, The Picnic Pavillion, 58. Venice Biennal, A5, May."
+     "v": "Draw with food and drink, n.c.-b.d, The Picnic Pavilion, 58th Venice Biennale, A5, May."
     },
     {
      "t": "item",
@@ -1153,7 +1152,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Quaderno 2 - Riscaldamento. Scarabocchio,A5, 30c-b.d, Tivoli, May."
+     "v": "Quaderno 2 - Riscaldamento. Scarabocchio, A5, 30c-b.d, Tivoli, May."
     },
     {
      "t": "item",
@@ -1185,7 +1184,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "The Median 1, A5, 25c, Jenuary;"
+     "v": "The Median 1, A5, 25c, January;"
     },
     {
      "t": "item",
@@ -1201,11 +1200,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Apriamo le danze, Il Nemico, 13 december."
+     "v": "Apriamo le danze, Il Nemico, 13 December."
     },
     {
      "t": "item",
-     "v": "I nemici, Il Nemico, 18 november."
+     "v": "I nemici, Il Nemico, 18 November."
     },
     {
      "t": "sub",
@@ -1281,11 +1280,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Cristina, mamma di Flavio Orlando: «la curiosità rende liberi», InsideArt, Dicember."
+     "v": "Cristina, mamma di Flavio Orlando: «la curiosità rende liberi», InsideArt, December."
     },
     {
      "t": "item",
-     "v": "Maria Emilia racconta Alberto Montorfano, InsideArt, Dicember."
+     "v": "Maria Emilia racconta Alberto Montorfano, InsideArt, December."
     },
     {
      "t": "item",
@@ -1341,7 +1340,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Interview 9. Guerilla Spam, Room. Juda magazine, January."
+     "v": "Interview 9, Guerilla Spam, Room. Juda magazine, January."
     },
     {
      "t": "year",
@@ -1365,11 +1364,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Interview 4, Mai Mai Mai, Pizzino Interviw. Juda magazine, July."
+     "v": "Interview 4, Mai Mai Mai, Pizzino Interview. Juda magazine, July."
     },
     {
      "t": "item",
-     "v": "Interview 3, Paulina Michnowscha, Ayahyasca. Juda magazine, July."
+     "v": "Interview 3, Paulina Michnowska, Ayahuasca. Juda magazine, July."
     },
     {
      "t": "item",
@@ -1398,7 +1397,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Esci quando vuoi, HD, digital video allarm for Edicola Radetzky, 666 sec."
+     "v": "Esci quando vuoi, HD, digital video alarm for Edicola Radetzky, 666 sec."
     },
     {
      "t": "year",
@@ -1410,7 +1409,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "VOLIAMO LA NOTTE (We want the night);"
+     "v": "VOGLIAMO LA NOTTE (We want the night);"
     },
     {
      "t": "item",
@@ -1418,7 +1417,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "FARE FORESTA (Make Forest) . video documentation of collective audio-visual performances, 16:9, digital file."
+     "v": "FARE FORESTA (Make Forest). Video documentation of collective audio-visual performances, 16:9, digital file."
     },
     {
      "t": "year",
@@ -1450,7 +1449,7 @@ window.CV = {
     },
     {
      "t": "year",
-     "v": "2025"
+     "v": "2015"
     },
     {
      "t": "item",
@@ -1498,7 +1497,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "3. 10.000 av. J.-c. – La géologie de la morale (pour qui elle se prend, la terre?)"
+     "v": "3. 10.000 av. J.-C. – La géologie de la morale (pour qui elle se prend, la terre?)"
     },
     {
      "t": "item",
@@ -1534,7 +1533,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "14. 1440 - Le lisse et le strié Found footage, 4:3, colore, stereo, Digital Video, 00:04:33 each."
+     "v": "14. 1440 - Le lisse et le strié Found footage, 4:3, colour, stereo, Digital Video, 00:04:33 each."
     },
     {
      "t": "year",
@@ -1550,7 +1549,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "S.P.Q.T., 16:9, colour, stereo,Digital Video, 00:07:35."
+     "v": "S.P.Q.T., 16:9, colour, stereo, Digital Video, 00:07:35."
     },
     {
      "t": "year",
@@ -1558,7 +1557,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "From the serious based on the “image-event” (of the era) of the Syrian civil war:"
+     "v": "From the series based on the “image-event” (of the era) of the Syrian civil war:"
     },
     {
      "t": "item",
@@ -1574,7 +1573,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Burning, Falling, Brushing, Found footage, 16:9, colour, stereo, digital video,, 00:06:14;"
+     "v": "Burning, Falling, Brushing, Found footage, 16:9, colour, stereo, digital video, 00:06:14;"
     },
     {
      "t": "item",
@@ -1632,7 +1631,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Abecedario Città-foresta, tetaro Corviale, Rome, October 8."
+     "v": "Abecedario Città-foresta, teatro Corviale, Rome, October 8."
     },
     {
      "t": "item",
@@ -1672,7 +1671,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Research presentation, Archivio ViaFarini, Fabrica del Vapore, Milano, January 29."
+     "v": "Research presentation, Archivio ViaFarini, Fabbrica del Vapore, Milano, January 29."
     },
     {
      "t": "year",
@@ -1680,11 +1679,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "That’s what I do, lecture at AIR SPACE, Lviv ."
+     "v": "That’s what I do, lecture at AIR SPACE, Lviv."
     },
     {
      "t": "item",
-     "v": "That’s what I do, lecture at the Accademy of Fine Art of Lviv."
+     "v": "That’s what I do, lecture at the Academy of Fine Arts of Lviv."
     },
     {
      "t": "item",
@@ -1716,7 +1715,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Speaker for the art teraphy conference La mamma non esiste, Villa Giuseppina, Rome."
+     "v": "Speaker for the art therapy conference La mamma non esiste, Villa Giuseppina, Rome."
     },
     {
      "t": "item",
@@ -1724,7 +1723,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "TheArtChapter, First edition, art books fair, BASE, Bookcity, Milano, novembre17-18-29."
+     "v": "TheArtChapter, First edition, art books fair, BASE, Bookcity, Milano, November 17-18-29."
     },
     {
      "t": "year",
@@ -1744,7 +1743,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Partecipation at the independent books festival SCANNER, Monk, Rome."
+     "v": "Participation at the independent books festival SCANNER, Monk, Rome."
     },
     {
      "t": "year",
@@ -1764,7 +1763,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Partecipation at the Quadriennale di Roma È l’arte, bellezza… E tu non puoi farci niente, indipendent publishers, Rome, April 19-20."
+     "v": "Participation at the Quadriennale di Roma È l’arte, bellezza… E tu non puoi farci niente, independent publishers, Rome, April 19-20."
     },
     {
      "t": "year",
@@ -1772,7 +1771,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Speaker for the table The Italian Language, at the first Forum of contempoprary Italian Art 2015, Prato."
+     "v": "Speaker for the table The Italian Language, at the first Forum of contemporary Italian Art 2015, Prato."
     },
     {
      "t": "year",
@@ -1780,7 +1779,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Presentation of the project IONE e LE CURE, convived during the workshop SCUOLA QUADRI of/with Cesare Pietroiusti, CCC Strozzina, Florence."
+     "v": "Presentation of the project IONE e LE CURE, conceived during the workshop SCUOLA QUADRI of/with Cesare Pietroiusti, CCC Strozzina, Florence."
     },
     {
      "t": "year",
@@ -1809,7 +1808,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "VIA FARINI, Fabrica del vapore, Milan, January - April."
+     "v": "VIA FARINI, Fabbrica del Vapore, Milan, January - April."
     },
     {
      "t": "item",
@@ -1896,7 +1895,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Aliaskar Abarkas, The Community Whistling Choir, Biblioteca Casanatense, Rome,18-19 June."
+     "v": "Aliaskar Abarkas, The Community Whistling Choir, Biblioteca Casanatense, Rome, 18-19 June."
     },
     {
      "t": "year",
@@ -1904,7 +1903,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Simposio, BASE, Milano July 2-4."
+     "v": "Simposio, BASE, Milano, July 2-4."
     },
     {
      "t": "year",
@@ -1932,7 +1931,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "The man who smilled too much, workshop and performance with/of Pasquale Polidori, MACRO, Rome, May."
+     "v": "The man who smiled too much, workshop and performance with/of Pasquale Polidori, MACRO, Rome, May."
     },
     {
      "t": "item",
@@ -1944,7 +1943,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Simposio, Villagio Eni, Borca di Cadore, 2-5 luglio."
+     "v": "Simposio, Villaggio Eni, Borca di Cadore, 2-5 luglio."
     },
     {
      "t": "year",
@@ -1956,7 +1955,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Collaboration with MAAC Master Arti architettura Città directed by Francesco Careri (Stalker), Città Interculturali week, for the preparation of the curdish celebration Newroz, Rome."
+     "v": "Collaboration with MAAC Master Arti architettura Città directed by Francesco Careri (Stalker), Città Interculturali week, for the preparation of the Kurdish celebration Newroz, Rome."
     },
     {
      "t": "item",
@@ -1972,7 +1971,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "CULTUS, coltiviamo cultura, a pubblic happening, Montevarchi (Arezzo)."
+     "v": "CULTUS, coltiviamo cultura, a public happening, Montevarchi (Arezzo)."
     },
     {
      "t": "item",
@@ -1996,7 +1995,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Frozen City a project by di Simon Fujiwara, Arkhaiologia, CentrePasquArt, Biel (Swiss)."
+     "v": "Frozen City a project by Simon Fujiwara, Arkhaiologia, CentrePasquArt, Biel (Swiss)."
     },
     {
      "t": "item",
@@ -2057,7 +2056,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Desideri Arianna, Comunità divergenti e pratiche artistiche di cura. Tre esempi,https://www.roots-routes.org/comunita-divergenti-e-pratiche-artistiche-di-cura-tre-esempi-di-arianna-desideri/?fbclid=IwAR1FLI2hKiTd7Bd712ElJU7JYFqqYaFpKlvMIimXzShKa0PJjSCkCNAIhfY https://www.artribune.com/progettazione/new-media/2023/01/artribune-twitch-protagonisti-puntate-open-studio/."
+     "v": "Desideri Arianna, Comunità divergenti e pratiche artistiche di cura. Tre esempi, https://www.roots-routes.org/comunita-divergenti-e-pratiche-artistiche-di-cura-tre-esempi-di-arianna-desideri/?fbclid=IwAR1FLI2hKiTd7Bd712ElJU7JYFqqYaFpKlvMIimXzShKa0PJjSCkCNAIhfY https://www.artribune.com/progettazione/new-media/2023/01/artribune-twitch-protagonisti-puntate-open-studio/."
     },
     {
      "t": "item",
@@ -2073,11 +2072,11 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Materia Nova. Ulteme generazioni a confronto (cat.), Manfredi edizioni (ISBN 979-12-80049-41-4)."
+     "v": "Materia Nova. Ultime generazioni a confronto (cat.), Manfredi edizioni (ISBN 979-12-80049-41-4)."
     },
     {
      "t": "item",
-     "v": "Jacopo Natoli in Istruzioni d’artista: il gioco di istruire al gioco. da Dada Keri Smith, Tesi di Laura Specialistica in Storia dell’arte di Giacomo Isidori."
+     "v": "Jacopo Natoli in Istruzioni d’artista: il gioco di istruire al gioco. da Dada Keri Smith, Tesi di Laurea Specialistica in Storia dell’arte di Giacomo Isidori."
     },
     {
      "t": "item",
@@ -2089,19 +2088,19 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "L’italia è una repubblica fondata sul gioco. Intervista a Jacopo Natoli, Viaggiarte, https://viaggiarte.org/index.php/2021/10/13/intervista-jacopo-natoli/"
+     "v": "L’italia è una republica fondata sul gioco. Intervista a Jacopo Natoli, Viaggiarte, https://viaggiarte.org/index.php/2021/10/13/intervista-jacopo-natoli/"
     },
     {
      "t": "item",
-     "v": "Video-iterview for ALT in Tour - Il manifesto, https://vimeo.com/549175739."
+     "v": "Video-interview for ALT in Tour - Il manifesto, https://vimeo.com/549175739."
     },
     {
      "t": "item",
-     "v": "Photo-inteview for ALT - Il manifesto, https://www.instagram.com/p/CO7E_iJneGQ/."
+     "v": "Photo-interview for ALT - Il manifesto, https://www.instagram.com/p/CO7E_iJneGQ/."
     },
     {
      "t": "item",
-     "v": "Staging the residency, intrevirw by Francesca De Zotti e Tommaso Pagani for ATP Diary, http://atpdiary.com/staging-the-residency-j-natoli-2021/?fbclid=IwAR3gDKmEHP5t6MOxkjWsuw0XpcAsHtme9lzzuU7vOwzdMGR0ecG1Wtpl1Tk."
+     "v": "Staging the residency, interview by Francesca De Zotti e Tommaso Pagani for ATP Diary, http://atpdiary.com/staging-the-residency-j-natoli-2021/?fbclid=IwAR3gDKmEHP5t6MOxkjWsuw0XpcAsHtme9lzzuU7vOwzdMGR0ecG1Wtpl1Tk."
     },
     {
      "t": "item",
