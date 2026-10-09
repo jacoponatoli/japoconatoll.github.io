@@ -39,29 +39,67 @@ body {
 .info { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); line-height: 1.6; }
 .bar { height: 4px; background: #222; margin-top: 10px; }
 .bar i { display: block; height: 100%; width: 0; background: var(--red); transition: width .2s linear; }
-a { color: var(--fg); }
+.actions { display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; margin-bottom: 14px; }
+.btn {
+  font-family: var(--display); font-weight: 800; font-stretch: 125%;
+  font-size: clamp(22px, 3.6vw, 40px); line-height: 0.9; text-transform: uppercase;
+  color: var(--fg); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none;
+}
+.btn:hover, .btn:focus-visible { color: var(--red); outline: none; }
+.btn[aria-pressed="true"] { color: var(--red); }
 </style>
 </head>
 <body>
 <p class="title">Portfolio</p>
 <p class="count" id="count" aria-live="polite">…</p>
 <div>
+  <div class="actions">
+    <button class="btn" id="dl" type="button" aria-pressed="false">Scarica PDF</button>
+  </div>
   <div class="info" id="info">Caricamento del portfolio, si apre da solo tra pochi secondi</div>
   <div class="bar"><i id="bar"></i></div>
 </div>
 <script>
 (function () {
   var FILE = "portfolio.pdf";
+  var NAME = "Jacopo_Natoli_portfolio.pdf";
   var SIZE = 23583644; // usata se il server non comunica la dimensione
   var count = document.getElementById("count");
   var info = document.getElementById("info");
   var bar = document.getElementById("bar");
+  var dl = document.getElementById("dl");
+  var MIN_ATTESA = 3; // secondi minimi in cui la pagina resta visibile, anche se il file arriva prima
+  var wantDownload = false, blob = null;
 
   function open() { location.replace(FILE); }
+  function save(b) {
+    var url = URL.createObjectURL(b);
+    var a = document.createElement("a");
+    a.href = url; a.download = NAME;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+  function afterDownload() {
+    count.textContent = "0";
+    info.innerHTML = 'Portfolio scaricato · <a href="' + FILE + '" style="color:inherit">aprilo qui</a>';
+    dl.textContent = "Scarica di nuovo";
+  }
 
-  if (!window.fetch || !window.ReadableStream) { open(); return; }
+  // "Scarica PDF": durante il caricamento il file viene salvato invece che aperto
+  dl.addEventListener("click", function () {
+    if (blob) { save(blob); afterDownload(); return; }
+    wantDownload = !wantDownload;
+    dl.setAttribute("aria-pressed", wantDownload);
+    dl.textContent = wantDownload ? "Verrà scaricato ✓" : "Scarica PDF";
+  });
 
-  var t0 = performance.now(), shown = null;
+  if (!window.fetch || !window.ReadableStream) {
+    dl.outerHTML = '<a class="btn" href="' + FILE + '" download="' + NAME + '">Scarica PDF</a>';
+    setTimeout(open, 4000);
+    return;
+  }
+
+  var t0 = performance.now(), shown = null, chunks = [];
   fetch(FILE).then(function (res) {
     if (!res.ok || !res.body) throw new Error("http");
     var total = +res.headers.get("Content-Length") || SIZE;
@@ -69,6 +107,7 @@ a { color: var(--fg); }
     function pump() {
       return reader.read().then(function (r) {
         if (r.done) return;
+        chunks.push(r.value);
         loaded += r.value.length;
         var p = Math.min(1, loaded / total);
         var secs = (performance.now() - t0) / 1000;
@@ -86,11 +125,23 @@ a { color: var(--fg); }
     }
     return pump();
   }).then(function () {
-    count.textContent = "0";
     bar.style.width = "100%";
-    info.textContent = "Apertura…";
-    open(); // il file è già scaricato, quindi si apre subito
-  }).catch(open);
+    blob = new Blob(chunks, { type: "application/pdf" }); chunks = null;
+    info.textContent = "Pronto";
+    // se è arrivato in un lampo, conto alla rovescia breve per lasciare il tempo di scegliere "Scarica"
+    var left = Math.ceil(MIN_ATTESA - (performance.now() - t0) / 1000);
+    function tick() {
+      if (left > 0 && !wantDownload) {
+        count.textContent = left; left--;
+        setTimeout(tick, 1000);
+        return;
+      }
+      count.textContent = "0";
+      if (wantDownload) { save(blob); afterDownload(); }
+      else { info.textContent = "Apertura…"; open(); }
+    }
+    tick();
+  }).catch(function () { if (!wantDownload) open(); else location.href = FILE; });
 })();
 </script>
 </body>
