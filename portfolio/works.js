@@ -52,6 +52,16 @@ window.WORKS = [
     "src": "img/01-identita-commestibili-08.webp",
     "w": 1400,
     "h": 788
+   },
+   {
+    "src": "img/01-identita-commestibili-09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "type": "audio",
+    "src": "media/01-identita-commestibili-acoustic-collage.mp3",
+    "title": "Acoustic Collage for Mouth, Anus, Urethra (3 min 15 sec)"
    }
   ]
  },
@@ -124,29 +134,29 @@ window.WORKS = [
   "links": [],
   "images": [
    {
-    "src": "img/03-quadreria-pornografica-01.webp",
-    "w": 381,
-    "h": 148
+    "src": "img/03-quadreria-pornografica-n01.webp",
+    "w": 934,
+    "h": 1400
    },
    {
-    "src": "img/03-quadreria-pornografica-02.webp",
-    "w": 460,
-    "h": 586
+    "src": "img/03-quadreria-pornografica-n02.webp",
+    "w": 934,
+    "h": 1400
    },
    {
-    "src": "img/03-quadreria-pornografica-03.webp",
-    "w": 481,
-    "h": 642
+    "src": "img/03-quadreria-pornografica-n03.webp",
+    "w": 934,
+    "h": 1400
    },
    {
-    "src": "img/03-quadreria-pornografica-04.webp",
-    "w": 717,
-    "h": 406
+    "src": "img/03-quadreria-pornografica-n04.webp",
+    "w": 1400,
+    "h": 934
    },
    {
-    "src": "img/03-quadreria-pornografica-05.webp",
-    "w": 717,
-    "h": 406
+    "src": "img/03-quadreria-pornografica-n05.webp",
+    "w": 1400,
+    "h": 934
    }
   ]
  },
@@ -164,14 +174,44 @@ window.WORKS = [
   "links": [],
   "images": [
    {
+    "src": "img/04-distruggi-questa-icona-02.webp",
+    "w": 373,
+    "h": 291
+   },
+   {
     "src": "img/04-distruggi-questa-icona-01.webp",
     "w": 578,
     "h": 451
    },
    {
-    "src": "img/04-distruggi-questa-icona-02.webp",
-    "w": 373,
-    "h": 291
+    "src": "img/04-distruggi-questa-icona-n01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n05.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/04-distruggi-questa-icona-n06.webp",
+    "w": 1400,
+    "h": 1054
    },
    {
     "src": "img/04-distruggi-questa-icona-03.webp",
@@ -216,9 +256,19 @@ window.WORKS = [
     "h": 711
    },
    {
+    "src": "img/05-corticale-n01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
     "src": "img/05-corticale-02.webp",
     "w": 457,
     "h": 709
+   },
+   {
+    "src": "img/05-corticale-n02.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "src": "img/05-corticale-03.webp",
@@ -234,6 +284,13 @@ window.WORKS = [
     "src": "img/05-corticale-05.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "type": "video",
+    "src": "media/05-corticale-scan.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "CORTICALE (Scan)"
    }
   ]
  },

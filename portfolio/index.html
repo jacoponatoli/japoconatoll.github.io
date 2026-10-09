@@ -75,6 +75,11 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
 }
 .strip figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; background: #0d0d0d; }
 .strip img { display: block; height: clamp(220px, 52vh, 620px); width: auto; max-width: 88vw; object-fit: contain; }
+.strip video { display: block; height: clamp(220px, 52vh, 620px); width: auto; max-width: 88vw; background: #000; }
+.strip .audio { height: clamp(220px, 52vh, 620px); width: min(420px, 80vw); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 18px; border: 1px solid var(--line); background: var(--bg); }
+.strip .audio .t { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; font-size: 18px; line-height: 1; }
+.strip .audio .k { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
+.strip audio { width: 100%; color-scheme: dark; }
 .strip .n { font-size: 11px; color: var(--muted); padding-top: 6px; letter-spacing: 0.08em; }
 .top { display: inline-block; margin-top: 28px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
 
@@ -161,8 +166,14 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
       if (w.images && w.images.length) {
         h += '<div class="strip">';
         w.images.forEach(function (im, ii) {
-          h += '<figure><img src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" loading="lazy" decoding="async" alt="' + esc(w.title) + ', foto ' + (ii + 1) + '" data-w="' + wi + '" data-i="' + ii + '">' +
-               '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
+          var cap = '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
+          if (im.type === "video") {
+            h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
+          } else if (im.type === "audio") {
+            h += '<figure><div class="audio"><span class="k">Audio</span><span class="t">' + esc(im.title || w.title) + '</span><audio src="' + esc(im.src) + '" controls preload="none"></audio></div>' + cap;
+          } else {
+            h += '<figure><img src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" loading="lazy" decoding="async" alt="' + esc(w.title) + ', foto ' + (ii + 1) + '" data-w="' + wi + '" data-i="' + ii + '">' + cap;
+          }
         });
         h += '</div>';
       }
@@ -183,8 +194,11 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
   // visore: clic su una foto per vederla grande, frecce o swipe per scorrere
   var viewer = document.getElementById("viewer"), vimg = document.getElementById("v-img");
   var vw = 0, vi = 0;
-  function show() {
-    var ims = current[vw].images; vi = (vi + ims.length) % ims.length;
+  // nel visore solo le foto (audio e video si guardano nella striscia)
+  function show(step) {
+    var ims = current[vw].images, n = ims.length, k = 0;
+    vi = ((vi % n) + n) % n;
+    while (ims[vi].type && k++ < n) vi = (((vi + (step || 1)) % n) + n) % n;
     vimg.src = ims[vi].src; vimg.alt = current[vw].title + ", foto " + (vi + 1);
   }
   app.addEventListener("click", function (e) {
@@ -193,20 +207,20 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
   });
   function closeV() { viewer.hidden = true; vimg.removeAttribute("src"); }
   document.getElementById("v-x").addEventListener("click", closeV);
-  document.getElementById("v-p").addEventListener("click", function () { vi--; show(); });
+  document.getElementById("v-p").addEventListener("click", function () { vi--; show(-1); });
   document.getElementById("v-n").addEventListener("click", function () { vi++; show(); });
   viewer.addEventListener("click", function (e) { if (e.target === viewer) closeV(); });
   document.addEventListener("keydown", function (e) {
     if (viewer.hidden) return;
     if (e.key === "Escape") closeV();
-    if (e.key === "ArrowLeft") { vi--; show(); }
+    if (e.key === "ArrowLeft") { vi--; show(-1); }
     if (e.key === "ArrowRight") { vi++; show(); }
   });
   var sx = null;
   viewer.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
   viewer.addEventListener("touchend", function (e) {
     if (sx === null) return; var dx = e.changedTouches[0].clientX - sx; sx = null;
-    if (Math.abs(dx) > 40) { vi += dx < 0 ? 1 : -1; show(); }
+    if (Math.abs(dx) > 40) { var st = dx < 0 ? 1 : -1; vi += st; show(st); }
   });
 });
 </script>
