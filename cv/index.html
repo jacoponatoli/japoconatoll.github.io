@@ -36,21 +36,22 @@ a:hover, a:focus-visible { color: var(--red); outline: none; }
   font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; text-decoration: none;
 }
 .wrap { max-width: 1100px; }
-h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(24px, 4vw, 48px); }
+/* CV con accanto la nota */
+.head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 clamp(24px, 4vw, 48px); padding-right: 1.6em; }
+h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0; }
+.head .info { color: var(--muted); font-size: 13px; max-width: 40ch; }
 
 /* short bio in evidenza */
 .bio {
-  font-size: clamp(17px, 2vw, 22px); line-height: 1.5; max-width: 52ch;
+  font-size: clamp(17px, 2vw, 22px); line-height: 1.5; max-width: 60ch;
   margin: 0 0 28px; padding-left: 16px; border-left: 3px solid var(--red);
+  text-align: justify; hyphens: auto; -webkit-hyphens: auto;
 }
 .meta { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; color: var(--muted); font-size: 13px; margin-bottom: 36px; }
 .meta b { color: var(--fg); font-weight: 500; }
 .copy { font: inherit; color: var(--muted); background: none; border: 1px solid var(--line); padding: 1px 8px; cursor: pointer; margin-left: 6px; }
 .copy:hover { color: var(--red); border-color: var(--red); }
 
-/* indice delle sezioni */
-.toc { list-style: none; margin: 0 0 clamp(36px, 6vw, 64px); padding: 0; display: flex; flex-wrap: wrap; gap: 0.35em 0.9em; font-size: clamp(15px, 2vw, 22px); }
-.toc a { text-decoration: none; }
 
 section { border-top: 1px solid var(--line); padding-block: clamp(24px, 4vw, 40px); scroll-margin-top: 16px; }
 h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; }
@@ -106,15 +107,12 @@ h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0 0 22px; text-wrap: balance; 
     return h + "</div>";
   }
 
-  var h = '<h1 class="disp">CV</h1>';
+  var h = '<div class="head"><h1 class="disp">CV</h1><span class="info">' + esc(d.info) + '</span></div>';
   h += '<p class="bio">' + esc(d.bio) + "</p>";
-  h += '<div class="meta"><span>' + esc(d.info) + "</span>" +
+  h += '<div class="meta">' +
        '<span><b>email</b> <span id="mail">' + esc(d.contacts.email) + '</span><button class="copy" type="button" id="copy">copy</button></span>' +
-       '<span><b>website</b> <a href="https://' + esc(d.contacts.website) + '">' + esc(d.contacts.website) + "</a></span>" +
        "</div>";
 
-  var secs = [{ title: "Education", blocks: [] }].concat(d.sections);
-  h += '<ul class="toc">' + secs.map(function (s) { return '<li><a class="disp" href="#' + slug(s.title) + '">' + esc(s.title) + "</a></li>"; }).join("") + "</ul>";
 
   h += '<section id="education"><h2 class="disp">Education</h2><div class="rows">' +
        d.education.map(function (e) { return '<div class="yr">' + esc(e[0]) + '</div><ul class="items"><li>' + esc(e[1]) + "</li></ul>"; }).join("") +
