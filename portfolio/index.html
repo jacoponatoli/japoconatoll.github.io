@@ -168,7 +168,9 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
         h += '<div class="strip">';
         w.images.forEach(function (im, ii) {
           var cap = '<figcaption class="n">' + (ii + 1) + '/' + w.images.length + '</figcaption></figure>';
-          if (im.type === "youtube") {
+          if (im.type === "ytlist") {
+            h += '<figure><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=' + esc(im.id) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>' + cap;
+          } else if (im.type === "youtube") {
             h += '<figure><iframe src="https://www.youtube-nocookie.com/embed/' + esc(im.id) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>' + cap;
           } else if (im.type === "vimeo") {
             var vsrc = im.id.charAt(0) === "s" ? "https://vimeo.com/showcase/" + im.id.slice(1) + "/embed" : "https://player.vimeo.com/video/" + im.id + "?dnt=1";

@@ -3641,7 +3641,7 @@ window.WORKS = [
   "why": "TO INTEVIEW THE PUBLIC DURING ART EVENTS",
   "extra": "",
   "links": [
-   "https://www.youtube.com/playlist"
+   "https://www.youtube.com/playlist?list=PLTdUv4eHYpVFRjxfdTlwnc_3raPoqIzEZ"
   ],
   "images": [
    {
@@ -3663,6 +3663,13 @@ window.WORKS = [
     "src": "img/73-enjambement-04.webp",
     "w": 1280,
     "h": 722
+   },
+   {
+    "type": "ytlist",
+    "id": "PLTdUv4eHYpVFRjxfdTlwnc_3raPoqIzEZ",
+    "w": 1280,
+    "h": 720,
+    "title": "Enjambement"
    }
   ]
  },
