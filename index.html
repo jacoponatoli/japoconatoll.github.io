@@ -14,6 +14,7 @@
   --bg: #000000;
   --fg: #ffffff;
   --muted: #8a8a8a;
+  --red: #ff1a1a;
   --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   color-scheme: dark;
@@ -42,6 +43,7 @@ body {
   will-change: transform;
 }
 .float:hover { opacity: 0.6; }
+.float.done { color: var(--red); }
 .float:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
 .tree {
@@ -102,7 +104,8 @@ body {
     return {
       el: el, x: 0, y: 0,
       vx: Math.cos(a) || 0.7, vy: Math.sin(a) || 0.7,
-      hold: false
+      hold: false,
+      stopped: false
     };
   });
 
@@ -162,8 +165,21 @@ body {
     ["mouseenter", "focus", "touchstart"].forEach(function (ev) {
       it.el.addEventListener(ev, function () { it.hold = true; }, { passive: true });
     });
-    ["mouseleave", "blur"].forEach(function (ev) {
-      it.el.addEventListener(ev, function () { it.hold = false; });
+    ["mouseleave", "blur", "touchend"].forEach(function (ev) {
+      it.el.addEventListener(ev, function () { it.hold = it.stopped; });
+    });
+    // al clic la voce diventa rossa e si ferma
+    it.el.addEventListener("click", function () {
+      it.stopped = true; it.hold = true;
+      it.el.classList.add("done");
+      // quando sono state cliccate tutte, ripartono
+      if (items.every(function (x) { return x.stopped; })) {
+        setTimeout(function () {
+          items.forEach(function (x) {
+            x.stopped = false; x.hold = false; x.el.classList.remove("done");
+          });
+        }, 700);
+      }
     });
   });
 
