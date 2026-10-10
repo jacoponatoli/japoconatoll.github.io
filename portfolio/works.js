@@ -3924,6 +3924,11 @@ window.WORKS = [
     "src": "img/58-intervista-doppia-con-termine-ultimo-01.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "src": "img/58-intervista-doppia-con-termine-ultimo-dichiarazione-2016.webp",
+    "w": 1400,
+    "h": 966
    }
   ]
  },
