@@ -3277,6 +3277,16 @@ window.WORKS = [
   ],
   "images": [
    {
+    "src": "img/48-manifesto-ergo-vivo-x3.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-x1.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
     "src": "img/48-manifesto-ergo-vivo-r01.webp",
     "w": 1400,
     "h": 933
@@ -3428,6 +3438,11 @@ window.WORKS = [
    },
    {
     "src": "img/48-manifesto-ergo-vivo-r31.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-x2.webp",
     "w": 933,
     "h": 1400
    }
