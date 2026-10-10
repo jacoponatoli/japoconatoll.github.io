@@ -3028,24 +3028,79 @@ window.WORKS = [
   "links": [],
   "images": [
    {
-    "src": "img/50-il-sole-del-villaggio-01.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/50-il-sole-del-villaggio-02.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/50-il-sole-del-villaggio-03.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/50-il-sole-del-villaggio-04.webp",
+    "src": "img/50-il-sole-del-villaggio-r01.webp",
     "w": 1400,
-    "h": 790
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r11.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r13.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r14.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/50-il-sole-del-villaggio-r15.webp",
+    "w": 1400,
+    "h": 933
    }
   ]
  },
