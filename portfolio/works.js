@@ -3033,6 +3033,11 @@ window.WORKS = [
     "h": 933
    },
    {
+    "src": "img/50-il-sole-del-villaggio-r16.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
     "src": "img/50-il-sole-del-villaggio-r02.webp",
     "w": 1400,
     "h": 933
