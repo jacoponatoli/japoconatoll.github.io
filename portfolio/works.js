@@ -1788,34 +1788,69 @@ window.WORKS = [
   "links": [],
   "images": [
    {
-    "src": "img/27-le-immagini-ci-sentono-i-01.webp",
-    "w": 468,
-    "h": 623
-   },
-   {
-    "src": "img/27-le-immagini-ci-sentono-i-02.webp",
-    "w": 471,
-    "h": 623
-   },
-   {
-    "src": "img/27-le-immagini-ci-sentono-i-03.webp",
-    "w": 470,
-    "h": 625
-   },
-   {
-    "src": "img/27-le-immagini-ci-sentono-i-04.webp",
-    "w": 470,
-    "h": 627
-   },
-   {
-    "src": "img/27-le-immagini-ci-sentono-i-05.webp",
+    "src": "img/27-le-immagini-ci-sentono-i-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 1050
    },
    {
-    "src": "img/27-le-immagini-ci-sentono-i-06.webp",
+    "src": "img/27-le-immagini-ci-sentono-i-r02.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r03.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r04.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r05.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r06.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r07.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r08.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r09.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r10.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r11.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r12.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/27-le-immagini-ci-sentono-i-r13.webp",
+    "w": 1400,
+    "h": 1050
    }
   ]
  },
