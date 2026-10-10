@@ -3660,6 +3660,31 @@ window.WORKS = [
     "src": "img/59-edizioni-04.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "src": "img/59-edizioni-n01.webp",
+    "w": 1024,
+    "h": 683
+   },
+   {
+    "src": "img/59-edizioni-n02.webp",
+    "w": 1024,
+    "h": 768
+   },
+   {
+    "src": "img/59-edizioni-n03.webp",
+    "w": 1024,
+    "h": 768
+   },
+   {
+    "src": "img/59-edizioni-n04.webp",
+    "w": 1024,
+    "h": 768
+   },
+   {
+    "src": "img/59-edizioni-n05.webp",
+    "w": 1024,
+    "h": 683
    }
   ]
  },
