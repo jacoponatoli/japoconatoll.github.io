@@ -2228,14 +2228,44 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/34-domina-milano-01.webp",
-    "w": 1033,
-    "h": 1293
+    "src": "img/34-domina-milano-r01.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/34-domina-milano-02.webp",
+    "src": "img/34-domina-milano-r02.webp",
     "w": 1400,
-    "h": 789
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r03.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r04.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r05.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r06.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r07.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/34-domina-milano-r08.webp",
+    "w": 1400,
+    "h": 1050
    }
   ]
  },
