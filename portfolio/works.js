@@ -4958,6 +4958,27 @@ window.WORKS = [
     "src": "img/68-fare-foresta-03.webp",
     "w": 370,
     "h": 209
+   },
+   {
+    "type": "youtube",
+    "id": "MVq8n1iMkO8",
+    "w": 1280,
+    "h": 720,
+    "title": "FARE FORESTA"
+   },
+   {
+    "type": "youtube",
+    "id": "_Ccehuk_RRQ",
+    "w": 1280,
+    "h": 720,
+    "title": "FARE FORESTA"
+   },
+   {
+    "type": "youtube",
+    "id": "AH08hkjMfGg",
+    "w": 1280,
+    "h": 720,
+    "title": "FARE FORESTA"
    }
   ]
  },
