@@ -3981,6 +3981,26 @@ window.WORKS = [
     "src": "img/57-nodes-journal-07.webp",
     "w": 1400,
     "h": 792
+   },
+   {
+    "src": "img/57-nodes-journal-n01.webp",
+    "w": 1000,
+    "h": 667
+   },
+   {
+    "src": "img/57-nodes-journal-n02.webp",
+    "w": 1000,
+    "h": 667
+   },
+   {
+    "src": "img/57-nodes-journal-n03.webp",
+    "w": 1000,
+    "h": 667
+   },
+   {
+    "src": "img/57-nodes-journal-n04.webp",
+    "w": 1000,
+    "h": 667
    }
   ]
  },
