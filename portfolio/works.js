@@ -2776,6 +2776,11 @@ window.WORKS = [
     "h": 633
    },
    {
+    "src": "img/41-lassemblea-locandina-iii.webp",
+    "w": 990,
+    "h": 1400
+   },
+   {
     "src": "img/41-lassemblea-r01.webp",
     "w": 1400,
     "h": 933
