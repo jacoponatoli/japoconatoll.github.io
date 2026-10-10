@@ -5141,33 +5141,6 @@ window.WORKS = [
  },
  {
   "cat": "ONLINE",
-  "title": "WWW.JACOPONATOLI.IT",
-  "subtitle": "",
-  "credit": "",
-  "who": "OTHERNESS",
-  "what": "CV This is Jacopo Natoli’s CV. The CV is a shared folder text document. Write and upload what you know or don’t know about Jacopo Natoli.",
-  "when": "2019 - ONGOING",
-  "where": "ONLINE",
-  "why": "TO HAVE AN ONLINE CV WRITTEN BY OTHERS",
-  "extra": "",
-  "links": [
-   "https://www.jacoponatoli.it/"
-  ],
-  "images": [
-   {
-    "src": "img/72-www-jacoponatoli-it-01.webp",
-    "w": 673,
-    "h": 594
-   },
-   {
-    "src": "img/72-www-jacoponatoli-it-02.webp",
-    "w": 1400,
-    "h": 787
-   }
-  ]
- },
- {
-  "cat": "ONLINE",
   "title": "ENJAMBEMENT",
   "subtitle": "",
   "credit": "",
