@@ -4301,129 +4301,419 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/66-stolen-nyc-01.webp",
-    "w": 604,
-    "h": 844
+    "src": "img/66-stolen-nyc-r01.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-02.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r02.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-03.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r03.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-04.webp",
-    "w": 284,
-    "h": 378
+    "src": "img/66-stolen-nyc-r04.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-05.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r05.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-06.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r06.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-07.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r07.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-08.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r08.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-09.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r09.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-10.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r10.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-11.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r11.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-12.webp",
-    "w": 284,
-    "h": 378
+    "src": "img/66-stolen-nyc-r12.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-13.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r13.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-14.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r14.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-15.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r15.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-16.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r16.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-17.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r17.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-18.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r18.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-19.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r19.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-20.webp",
-    "w": 284,
-    "h": 378
+    "src": "img/66-stolen-nyc-r20.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-21.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r21.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-22.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r22.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-23.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r23.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-24.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r24.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/66-stolen-nyc-25.webp",
-    "w": 283,
-    "h": 378
+    "src": "img/66-stolen-nyc-r25.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r26.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r27.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r28.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r29.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r30.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r31.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r32.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r33.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r34.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r35.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r36.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r37.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r38.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r39.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r40.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r41.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r42.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r43.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r44.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r45.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r46.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r47.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r48.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r49.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r50.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r51.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r52.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r53.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r54.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r55.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r56.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r57.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r58.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r59.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r60.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r61.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r62.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r63.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r64.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r65.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r66.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r67.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r68.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r69.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r70.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r71.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r72.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r73.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r74.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r75.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r76.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r77.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r78.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r79.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r80.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r81.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r82.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/66-stolen-nyc-r83.webp",
+    "w": 1050,
+    "h": 1400
    }
   ]
  },
@@ -4443,59 +4733,199 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/67-roots-bloody-roots-01.webp",
-    "w": 604,
-    "h": 844
+    "src": "img/67-roots-bloody-roots-r01.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-02.webp",
-    "w": 445,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r02.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-03.webp",
-    "w": 445,
-    "h": 593
+    "src": "img/67-roots-bloody-roots-r03.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-04.webp",
-    "w": 445,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r04.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-05.webp",
-    "w": 445,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r05.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/67-roots-bloody-roots-06.webp",
-    "w": 445,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r06.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-07.webp",
-    "w": 444,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r07.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-08.webp",
-    "w": 445,
-    "h": 593
+    "src": "img/67-roots-bloody-roots-r08.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-09.webp",
-    "w": 444,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r09.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-10.webp",
-    "w": 432,
-    "h": 576
+    "src": "img/67-roots-bloody-roots-r10.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/67-roots-bloody-roots-11.webp",
-    "w": 444,
-    "h": 592
+    "src": "img/67-roots-bloody-roots-r11.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r12.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r13.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r14.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r15.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r16.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r17.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r18.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r19.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r20.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r21.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r22.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r23.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r24.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r25.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r26.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r27.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r28.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r29.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r30.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r31.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r32.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r33.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r34.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r35.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r36.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r37.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r38.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/67-roots-bloody-roots-r39.webp",
+    "w": 1050,
+    "h": 1400
    }
   ]
  },
