@@ -3536,9 +3536,9 @@ window.WORKS = [
     "h": 401
    },
    {
-    "src": "img/52-distruggi-questa-icona-07.webp",
-    "w": 283,
-    "h": 401
+    "src": "img/52-distruggi-questa-icona-musk.webp",
+    "w": 991,
+    "h": 1400
    },
    {
     "src": "img/52-distruggi-questa-icona-08.webp",
@@ -3564,6 +3564,21 @@ window.WORKS = [
     "src": "img/52-distruggi-questa-icona-12.webp",
     "w": 283,
     "h": 401
+   },
+   {
+    "src": "img/52-distruggi-questa-icona-putin.webp",
+    "w": 991,
+    "h": 1400
+   },
+   {
+    "src": "img/52-distruggi-questa-icona-trump.webp",
+    "w": 991,
+    "h": 1400
+   },
+   {
+    "src": "img/52-distruggi-questa-icona-meloni.webp",
+    "w": 991,
+    "h": 1400
    },
    {
     "src": "img/52-distruggi-questa-icona-13.webp",
