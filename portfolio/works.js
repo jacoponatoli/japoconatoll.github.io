@@ -3190,49 +3190,74 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/47-i-am-where-i-am-fine-01.webp",
-    "w": 417,
-    "h": 300
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-02.webp",
-    "w": 560,
-    "h": 399
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-03.webp",
-    "w": 562,
-    "h": 404
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-04.webp",
-    "w": 562,
-    "h": 397
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-05.webp",
-    "w": 562,
-    "h": 400
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-06.webp",
-    "w": 561,
-    "h": 403
-   },
-   {
-    "src": "img/47-i-am-where-i-am-fine-07.webp",
+    "src": "img/47-i-am-where-i-am-fine-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 1050
    },
    {
-    "src": "img/47-i-am-where-i-am-fine-08.webp",
-    "w": 1400,
-    "h": 790
+    "src": "img/47-i-am-where-i-am-fine-r02.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/47-i-am-where-i-am-fine-09.webp",
+    "src": "img/47-i-am-where-i-am-fine-r03.webp",
     "w": 1400,
-    "h": 791
+    "h": 1050
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r11.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r13.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/47-i-am-where-i-am-fine-r14.webp",
+    "w": 1400,
+    "h": 995
    }
   ]
  },
