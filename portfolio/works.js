@@ -1959,34 +1959,69 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/29-loltrefesta-01.webp",
-    "w": 363,
-    "h": 271
+    "src": "img/29-loltrefesta-r01.webp",
+    "w": 1400,
+    "h": 795
    },
    {
-    "src": "img/29-loltrefesta-02.webp",
-    "w": 549,
-    "h": 409
+    "src": "img/29-loltrefesta-r02.webp",
+    "w": 1400,
+    "h": 795
    },
    {
-    "src": "img/29-loltrefesta-03.webp",
-    "w": 480,
-    "h": 270
+    "src": "img/29-loltrefesta-r03.webp",
+    "w": 1400,
+    "h": 795
    },
    {
-    "src": "img/29-loltrefesta-04.webp",
-    "w": 825,
-    "h": 467
+    "src": "img/29-loltrefesta-r04.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/29-loltrefesta-05.webp",
-    "w": 715,
-    "h": 402
+    "src": "img/29-loltrefesta-r05.webp",
+    "w": 1400,
+    "h": 788
    },
    {
-    "src": "img/29-loltrefesta-06.webp",
-    "w": 713,
-    "h": 402
+    "src": "img/29-loltrefesta-r06.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/29-loltrefesta-r07.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/29-loltrefesta-r08.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/29-loltrefesta-r09.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/29-loltrefesta-r10.webp",
+    "w": 1400,
+    "h": 1164
+   },
+   {
+    "src": "img/29-loltrefesta-r11.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/29-loltrefesta-r12.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/29-loltrefesta-r13.webp",
+    "w": 1400,
+    "h": 788
    },
    {
     "type": "youtube",
