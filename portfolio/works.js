@@ -2380,6 +2380,31 @@ window.WORKS = [
     "src": "img/36-esondare-03.webp",
     "w": 1205,
     "h": 680
+   },
+   {
+    "src": "img/36-esondare-n01.webp",
+    "w": 800,
+    "h": 1200
+   },
+   {
+    "src": "img/36-esondare-n02.webp",
+    "w": 800,
+    "h": 1200
+   },
+   {
+    "src": "img/36-esondare-n03.webp",
+    "w": 1400,
+    "h": 936
+   },
+   {
+    "src": "img/36-esondare-n04.webp",
+    "w": 990,
+    "h": 1400
+   },
+   {
+    "type": "pdf",
+    "src": "media/36-esondare-leonardo-da-vinci-il-diluvio.pdf",
+    "title": "Leonardo da Vinci · Il Diluvio"
    }
   ]
  },
