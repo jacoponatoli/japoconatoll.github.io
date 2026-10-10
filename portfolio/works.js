@@ -2776,14 +2776,29 @@ window.WORKS = [
     "h": 633
    },
    {
-    "src": "img/41-lassemblea-03.webp",
-    "w": 563,
-    "h": 319
+    "src": "img/41-lassemblea-r01.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/41-lassemblea-04.webp",
-    "w": 563,
-    "h": 319
+    "src": "img/41-lassemblea-r02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/41-lassemblea-r03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/41-lassemblea-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/41-lassemblea-r05.webp",
+    "w": 1400,
+    "h": 933
    }
   ]
  },
