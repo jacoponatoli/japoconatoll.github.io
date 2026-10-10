@@ -3852,39 +3852,69 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/64-1shape2dots-01.webp",
-    "w": 539,
-    "h": 405
+    "src": "img/64-1shape2dots-r01.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-02.webp",
-    "w": 534,
-    "h": 404
+    "src": "img/64-1shape2dots-r02.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-03.webp",
-    "w": 539,
-    "h": 397
+    "src": "img/64-1shape2dots-r03.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-04.webp",
-    "w": 530,
-    "h": 397
+    "src": "img/64-1shape2dots-r04.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-05.webp",
-    "w": 543,
-    "h": 402
+    "src": "img/64-1shape2dots-r05.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-06.webp",
-    "w": 534,
-    "h": 404
+    "src": "img/64-1shape2dots-r06.webp",
+    "w": 1400,
+    "h": 1050
    },
    {
-    "src": "img/64-1shape2dots-07.webp",
-    "w": 864,
-    "h": 486
+    "src": "img/64-1shape2dots-r07.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/64-1shape2dots-r08.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/64-1shape2dots-r09.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/64-1shape2dots-r10.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/64-1shape2dots-r11.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/64-1shape2dots-r12.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/64-1shape2dots-r13.webp",
+    "w": 1050,
+    "h": 1400
    }
   ]
  },
