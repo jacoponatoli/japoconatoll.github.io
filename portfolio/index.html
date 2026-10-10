@@ -79,6 +79,8 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
 .strip iframe { display: block; border: 0; height: clamp(220px, 52vh, 620px); aspect-ratio: 16 / 9; width: auto; max-width: 88vw; background: #000; }
 .strip .audio { height: clamp(220px, 52vh, 620px); width: min(420px, 80vw); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 18px; border: 1px solid var(--line); background: var(--bg); }
 .strip .audio .t { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; font-size: 18px; line-height: 1; }
+.strip .audio .dl { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; align-self: flex-start; }
+.strip .audio .dl:hover, .strip .audio .dl:focus-visible { color: var(--red); border-color: var(--red); }
 .strip .audio .k { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
 .strip audio { width: 100%; color-scheme: dark; }
 .strip .n { font-size: 11px; color: var(--muted); padding-top: 6px; letter-spacing: 0.08em; }
@@ -177,6 +179,8 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
             h += '<figure><iframe src="' + esc(vsrc) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' + cap;
           } else if (im.type === "video") {
             h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
+          } else if (im.type === "pdf") {
+            h += '<figure><div class="audio"><span class="k">PDF</span><span class="t">' + esc(im.title || w.title) + '</span><a class="dl" href="' + esc(im.src) + '" download target="_blank" rel="noopener">Download PDF ↓</a></div>' + cap;
           } else if (im.type === "audio") {
             h += '<figure><div class="audio"><span class="k">Audio</span><span class="t">' + esc(im.title || w.title) + '</span><audio src="' + esc(im.src) + '" controls preload="none"></audio></div>' + cap;
           } else {

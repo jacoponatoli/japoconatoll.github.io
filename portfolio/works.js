@@ -2290,14 +2290,54 @@ window.WORKS = [
     "h": 773
    },
    {
-    "src": "img/35-fairwatching-02.webp",
-    "w": 248,
-    "h": 367
+    "src": "img/35-fairwatching-n01.webp",
+    "w": 1050,
+    "h": 1400
    },
    {
-    "src": "img/35-fairwatching-03.webp",
-    "w": 248,
-    "h": 367
+    "src": "img/35-fairwatching-n02.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/35-fairwatching-n04.webp",
+    "w": 732,
+    "h": 1087
+   },
+   {
+    "src": "img/35-fairwatching-n03.webp",
+    "w": 732,
+    "h": 1087
+   },
+   {
+    "src": "img/35-fairwatching-n06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/35-fairwatching-n05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/35-fairwatching-n07.webp",
+    "w": 936,
+    "h": 1400
+   },
+   {
+    "src": "img/35-fairwatching-n08.webp",
+    "w": 936,
+    "h": 1400
+   },
+   {
+    "src": "img/35-fairwatching-n09.webp",
+    "w": 1400,
+    "h": 936
+   },
+   {
+    "src": "img/35-fairwatching-05.webp",
+    "w": 1400,
+    "h": 790
    },
    {
     "src": "img/35-fairwatching-04.webp",
@@ -2305,9 +2345,9 @@ window.WORKS = [
     "h": 374
    },
    {
-    "src": "img/35-fairwatching-05.webp",
-    "w": 1400,
-    "h": 790
+    "type": "pdf",
+    "src": "media/35-fairwatching-political-compass-test-artissima-2019.pdf",
+    "title": "Political Compass Test · Artissima 2019"
    }
   ]
  },
