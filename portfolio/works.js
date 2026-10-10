@@ -3375,6 +3375,61 @@ window.WORKS = [
     "src": "img/48-manifesto-ergo-vivo-r20.webp",
     "w": 933,
     "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r21.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r22.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r23.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r24.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r25.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r26.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r27.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r28.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r29.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r30.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r31.webp",
+    "w": 933,
+    "h": 1400
    }
   ]
  },
