@@ -4998,24 +4998,44 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/69-vogliamo-la-notte-01.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/69-vogliamo-la-notte-02.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/69-vogliamo-la-notte-03.webp",
-    "w": 608,
-    "h": 405
-   },
-   {
-    "src": "img/69-vogliamo-la-notte-04.webp",
+    "src": "img/69-vogliamo-la-notte-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r04.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/69-vogliamo-la-notte-r08.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "type": "youtube",
