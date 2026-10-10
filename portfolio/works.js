@@ -4020,24 +4020,29 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/62-panico-a-venezia-01.webp",
-    "w": 398,
-    "h": 624
+    "src": "img/62-panico-a-venezia-r01.webp",
+    "w": 891,
+    "h": 1400
    },
    {
-    "src": "img/62-panico-a-venezia-02.webp",
-    "w": 489,
-    "h": 480
+    "src": "img/62-panico-a-venezia-r02.webp",
+    "w": 891,
+    "h": 1400
    },
    {
-    "src": "img/62-panico-a-venezia-03.webp",
-    "w": 663,
-    "h": 375
+    "src": "img/62-panico-a-venezia-r03.webp",
+    "w": 1242,
+    "h": 1233
    },
    {
-    "src": "img/62-panico-a-venezia-04.webp",
-    "w": 504,
-    "h": 285
+    "src": "img/62-panico-a-venezia-r04.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/62-panico-a-venezia-r05.webp",
+    "w": 1050,
+    "h": 1400
    }
   ]
  },
