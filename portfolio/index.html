@@ -182,7 +182,7 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
             var vsrc = im.id.charAt(0) === "s" ? "https://vimeo.com/showcase/" + im.id.slice(1) + "/embed" : "https://player.vimeo.com/video/" + im.id + "?dnt=1";
             h += '<figure><iframe src="' + esc(vsrc) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' + cap;
           } else if (im.type === "video") {
-            h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
+            h += '<figure><video src="' + esc(im.src) + (im.noauto ? '#t=0.1' : '') + '" width="' + im.w + '" height="' + im.h + '"' + (im.noauto ? '' : ' muted loop autoplay') + ' playsinline controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
           } else if (im.type === "pdf" && im.thumb) {
             h += '<figure><a class="pdfp" href="' + esc(im.src) + '" download target="_blank" rel="noopener" aria-label="Download PDF: ' + esc(im.title || w.title) + '"><img src="' + esc(im.thumb) + '" width="' + im.w + '" height="' + im.h + '" loading="lazy" decoding="async" alt="' + esc(im.title || w.title) + ', anteprima"><span class="dl2">PDF · Download ↓</span></a>' + cap;
           } else if (im.type === "pdf") {

@@ -3698,6 +3698,38 @@ window.WORKS = [
     "src": "img/54-stimolatore-strobo-fosfenico-02.webp",
     "w": 674,
     "h": 380
+   },
+   {
+    "type": "video",
+    "src": "media/55-stimolatore-6hz.mp4",
+    "w": 1920,
+    "h": 1080,
+    "title": "Stimolatore strobo-fosfenico · 6 Hz",
+    "noauto": true
+   },
+   {
+    "type": "video",
+    "src": "media/55-stimolatore-7-5hz.mp4",
+    "w": 1920,
+    "h": 1080,
+    "title": "Stimolatore strobo-fosfenico · 7.5 Hz",
+    "noauto": true
+   },
+   {
+    "type": "video",
+    "src": "media/55-stimolatore-10hz.mp4",
+    "w": 1920,
+    "h": 1080,
+    "title": "Stimolatore strobo-fosfenico · 10 Hz",
+    "noauto": true
+   },
+   {
+    "type": "video",
+    "src": "media/55-stimolatore-15hz.mp4",
+    "w": 1920,
+    "h": 1080,
+    "title": "Stimolatore strobo-fosfenico · 15 Hz",
+    "noauto": true
    }
   ]
  },
