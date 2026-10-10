@@ -1703,49 +1703,74 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/26-la-cena-forse-lultima-01.webp",
-    "w": 320,
-    "h": 320
+    "src": "img/26-la-cena-forse-lultima-r01.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-02.webp",
-    "w": 319,
-    "h": 319
+    "src": "img/26-la-cena-forse-lultima-r02.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-03.webp",
-    "w": 320,
-    "h": 320
+    "src": "img/26-la-cena-forse-lultima-r03.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-04.webp",
-    "w": 319,
-    "h": 319
+    "src": "img/26-la-cena-forse-lultima-r04.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-05.webp",
-    "w": 320,
-    "h": 320
+    "src": "img/26-la-cena-forse-lultima-r05.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-06.webp",
-    "w": 319,
-    "h": 319
+    "src": "img/26-la-cena-forse-lultima-r06.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-07.webp",
-    "w": 600,
-    "h": 338
+    "src": "img/26-la-cena-forse-lultima-r07.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-08.webp",
-    "w": 1327,
-    "h": 749
+    "src": "img/26-la-cena-forse-lultima-r08.webp",
+    "w": 1400,
+    "h": 1400
    },
    {
-    "src": "img/26-la-cena-forse-lultima-09.webp",
-    "w": 1046,
-    "h": 590
+    "src": "img/26-la-cena-forse-lultima-r09.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/26-la-cena-forse-lultima-r10.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/26-la-cena-forse-lultima-r11.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/26-la-cena-forse-lultima-r12.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/26-la-cena-forse-lultima-r13.webp",
+    "w": 1400,
+    "h": 1400
+   },
+   {
+    "src": "img/26-la-cena-forse-lultima-r14.webp",
+    "w": 1400,
+    "h": 1400
    }
   ]
  },
