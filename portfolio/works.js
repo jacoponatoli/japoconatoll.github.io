@@ -444,9 +444,9 @@ window.WORKS = [
     "h": 933
    },
    {
-    "src": "img/10-che-cosa-minsegni-03.webp",
-    "w": 547,
-    "h": 406
+    "src": "img/10-che-cosa-minsegni-03-b.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "src": "img/10-che-cosa-minsegni-04.webp",
