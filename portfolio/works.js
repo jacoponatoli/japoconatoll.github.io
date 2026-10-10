@@ -4239,9 +4239,39 @@ window.WORKS = [
     "h": 396
    },
    {
+    "src": "img/65-come-mamma-mha-fatto-mare.webp",
+    "w": 1052,
+    "h": 1260
+   },
+   {
     "src": "img/65-come-mamma-mha-fatto-04.webp",
     "w": 536,
     "h": 365
+   },
+   {
+    "src": "img/65-come-mamma-mha-fatto-n01.webp",
+    "w": 939,
+    "h": 1400
+   },
+   {
+    "src": "img/65-come-mamma-mha-fatto-n02.webp",
+    "w": 1400,
+    "h": 955
+   },
+   {
+    "src": "img/65-come-mamma-mha-fatto-n03.webp",
+    "w": 961,
+    "h": 1400
+   },
+   {
+    "src": "img/65-come-mamma-mha-fatto-n04.webp",
+    "w": 549,
+    "h": 895
+   },
+   {
+    "src": "img/65-come-mamma-mha-fatto-n05.webp",
+    "w": 944,
+    "h": 1400
    },
    {
     "src": "img/65-come-mamma-mha-fatto-05.webp",
