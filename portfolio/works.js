@@ -2589,29 +2589,39 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/40-la-galassia-dei-buchi-neri-01.webp",
-    "w": 591,
-    "h": 394
-   },
-   {
-    "src": "img/40-la-galassia-dei-buchi-neri-02.webp",
-    "w": 595,
-    "h": 402
-   },
-   {
-    "src": "img/40-la-galassia-dei-buchi-neri-03.webp",
-    "w": 591,
-    "h": 394
-   },
-   {
-    "src": "img/40-la-galassia-dei-buchi-neri-04.webp",
+    "src": "img/40-la-galassia-dei-buchi-neri-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
-    "src": "img/40-la-galassia-dei-buchi-neri-05.webp",
+    "src": "img/40-la-galassia-dei-buchi-neri-r02.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
+   },
+   {
+    "src": "img/40-la-galassia-dei-buchi-neri-r03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/40-la-galassia-dei-buchi-neri-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/40-la-galassia-dei-buchi-neri-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/40-la-galassia-dei-buchi-neri-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/40-la-galassia-dei-buchi-neri-r07.webp",
+    "w": 1400,
+    "h": 1051
    }
   ]
  },
