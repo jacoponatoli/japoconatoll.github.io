@@ -2197,6 +2197,13 @@ window.WORKS = [
     "h": 237
    },
    {
+    "type": "video",
+    "src": "media/33-the-artist-is-cycling.mp4",
+    "w": 720,
+    "h": 1280,
+    "title": "THE ARTIST IS CYCLING"
+   },
+   {
     "type": "youtube",
     "id": "B5Uw68FQRSU",
     "w": 1280,
