@@ -79,6 +79,10 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
 .strip iframe { display: block; border: 0; height: clamp(220px, 52vh, 620px); aspect-ratio: 16 / 9; width: auto; max-width: 88vw; background: #000; }
 .strip .audio { height: clamp(220px, 52vh, 620px); width: min(420px, 80vw); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 18px; border: 1px solid var(--line); background: var(--bg); }
 .strip .audio .t { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; font-size: 18px; line-height: 1; }
+.strip .pdfp { position: relative; display: block; text-decoration: none; }
+.strip .pdfp img { display: block; }
+.strip .pdfp .dl2 { position: absolute; left: 12px; bottom: 12px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); background: var(--bg); padding: 8px 12px; border: 1px solid var(--line); }
+.strip .pdfp:hover .dl2, .strip .pdfp:focus-visible .dl2 { color: var(--red); border-color: var(--red); }
 .strip .audio .dl { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); text-decoration: none; border: 1px solid var(--line); padding: 8px 12px; align-self: flex-start; }
 .strip .audio .dl:hover, .strip .audio .dl:focus-visible { color: var(--red); border-color: var(--red); }
 .strip .audio .k { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); }
@@ -179,6 +183,8 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
             h += '<figure><iframe src="' + esc(vsrc) + '" title="' + esc(im.title || w.title) + '" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' + cap;
           } else if (im.type === "video") {
             h += '<figure><video src="' + esc(im.src) + '" width="' + im.w + '" height="' + im.h + '" muted loop playsinline autoplay controls preload="metadata" aria-label="' + esc(im.title || w.title) + '"></video>' + cap;
+          } else if (im.type === "pdf" && im.thumb) {
+            h += '<figure><a class="pdfp" href="' + esc(im.src) + '" download target="_blank" rel="noopener" aria-label="Download PDF: ' + esc(im.title || w.title) + '"><img src="' + esc(im.thumb) + '" width="' + im.w + '" height="' + im.h + '" loading="lazy" decoding="async" alt="' + esc(im.title || w.title) + ', anteprima"><span class="dl2">PDF · Download ↓</span></a>' + cap;
           } else if (im.type === "pdf") {
             h += '<figure><div class="audio"><span class="k">PDF</span><span class="t">' + esc(im.title || w.title) + '</span><a class="dl" href="' + esc(im.src) + '" download target="_blank" rel="noopener">Download PDF ↓</a></div>' + cap;
           } else if (im.type === "audio") {

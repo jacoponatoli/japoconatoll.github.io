@@ -3158,6 +3158,14 @@ window.WORKS = [
     "src": "img/46-uzhorod-everything-07.webp",
     "w": 1277,
     "h": 719
+   },
+   {
+    "type": "pdf",
+    "src": "media/46-uzhhorod-poster.pdf",
+    "thumb": "img/46-uzhhorod-poster-p1.webp",
+    "w": 990,
+    "h": 1400,
+    "title": "Poster Užhorod"
    }
   ]
  },
