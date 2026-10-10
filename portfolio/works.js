@@ -2058,44 +2058,44 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/30-visti-i-tempi-che-corrono-01.webp",
-    "w": 570,
-    "h": 381
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-02.webp",
-    "w": 570,
-    "h": 405
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-03.webp",
-    "w": 570,
-    "h": 406
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-04.webp",
-    "w": 570,
-    "h": 405
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-05.webp",
-    "w": 571,
-    "h": 406
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-06.webp",
-    "w": 571,
-    "h": 404
-   },
-   {
-    "src": "img/30-visti-i-tempi-che-corrono-07.webp",
+    "src": "img/30-visti-i-tempi-che-corrono-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
-    "src": "img/30-visti-i-tempi-che-corrono-08.webp",
+    "src": "img/30-visti-i-tempi-che-corrono-r02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r06.webp",
     "w": 1280,
-    "h": 722
+    "h": 738
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r07.webp",
+    "w": 1280,
+    "h": 738
+   },
+   {
+    "src": "img/30-visti-i-tempi-che-corrono-r08.webp",
+    "w": 1280,
+    "h": 738
    },
    {
     "type": "youtube",
