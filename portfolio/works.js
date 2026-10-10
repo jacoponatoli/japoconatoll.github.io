@@ -2818,44 +2818,79 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/43-giro-cosmico-01.webp",
-    "w": 569,
-    "h": 405
-   },
-   {
-    "src": "img/43-giro-cosmico-02.webp",
-    "w": 569,
-    "h": 405
-   },
-   {
-    "src": "img/43-giro-cosmico-03.webp",
-    "w": 570,
-    "h": 406
-   },
-   {
-    "src": "img/43-giro-cosmico-04.webp",
-    "w": 570,
-    "h": 405
-   },
-   {
-    "src": "img/43-giro-cosmico-05.webp",
-    "w": 570,
-    "h": 405
-   },
-   {
-    "src": "img/43-giro-cosmico-06.webp",
-    "w": 569,
-    "h": 392
-   },
-   {
-    "src": "img/43-giro-cosmico-07.webp",
+    "src": "img/43-giro-cosmico-r01.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/43-giro-cosmico-08.webp",
+    "src": "img/43-giro-cosmico-r02.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
+   },
+   {
+    "src": "img/43-giro-cosmico-r03.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/43-giro-cosmico-r04.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/43-giro-cosmico-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/43-giro-cosmico-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/43-giro-cosmico-r07.webp",
+    "w": 1400,
+    "h": 934
+   },
+   {
+    "src": "img/43-giro-cosmico-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/43-giro-cosmico-r09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/43-giro-cosmico-r10.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/43-giro-cosmico-r11.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/43-giro-cosmico-r12.webp",
+    "w": 1400,
+    "h": 1051
+   },
+   {
+    "src": "img/43-giro-cosmico-r13.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/43-giro-cosmico-r14.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/43-giro-cosmico-r15.webp",
+    "w": 1400,
+    "h": 934
    },
    {
     "type": "youtube",
