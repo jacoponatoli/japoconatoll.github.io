@@ -3277,34 +3277,104 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/48-manifesto-ergo-vivo-01.webp",
-    "w": 720,
-    "h": 405
-   },
-   {
-    "src": "img/48-manifesto-ergo-vivo-02.webp",
-    "w": 720,
-    "h": 405
-   },
-   {
-    "src": "img/48-manifesto-ergo-vivo-03.webp",
-    "w": 721,
-    "h": 404
-   },
-   {
-    "src": "img/48-manifesto-ergo-vivo-04.webp",
+    "src": "img/48-manifesto-ergo-vivo-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
-    "src": "img/48-manifesto-ergo-vivo-05.webp",
-    "w": 1145,
-    "h": 646
-   },
-   {
-    "src": "img/48-manifesto-ergo-vivo-06.webp",
+    "src": "img/48-manifesto-ergo-vivo-r02.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r03.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r04.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r09.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r11.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r13.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r14.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r15.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r16.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r17.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r18.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r19.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/48-manifesto-ergo-vivo-r20.webp",
+    "w": 933,
+    "h": 1400
    }
   ]
  },
