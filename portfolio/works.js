@@ -4279,6 +4279,13 @@ window.WORKS = [
     "w": 1280,
     "h": 720,
     "title": "POLITICA QUI É MORTE"
+   },
+   {
+    "type": "video",
+    "src": "media/71-fuori-fase.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "FUORI FASE"
    }
   ]
  },
