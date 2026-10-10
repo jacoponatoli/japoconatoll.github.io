@@ -2024,6 +2024,16 @@ window.WORKS = [
     "h": 788
    },
    {
+    "src": "img/29-loltrefesta-r14.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
+    "src": "img/29-loltrefesta-r15.webp",
+    "w": 1400,
+    "h": 1050
+   },
+   {
     "type": "youtube",
     "id": "nxkfN4bLu6U",
     "w": 1280,
