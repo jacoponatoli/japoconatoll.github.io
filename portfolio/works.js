@@ -4062,24 +4062,29 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/63-green-pass-01.webp",
-    "w": 425,
-    "h": 630
-   },
-   {
-    "src": "img/63-green-pass-02.webp",
-    "w": 451,
-    "h": 671
-   },
-   {
-    "src": "img/63-green-pass-03.webp",
-    "w": 1013,
-    "h": 566
-   },
-   {
-    "src": "img/63-green-pass-04.webp",
+    "src": "img/63-green-pass-r01.webp",
     "w": 1400,
-    "h": 803
+    "h": 933
+   },
+   {
+    "src": "img/63-green-pass-r02.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/63-green-pass-r03.webp",
+    "w": 769,
+    "h": 1144
+   },
+   {
+    "src": "img/63-green-pass-r04.webp",
+    "w": 1400,
+    "h": 783
+   },
+   {
+    "src": "img/63-green-pass-r05.webp",
+    "w": 283,
+    "h": 420
    }
   ]
  },
