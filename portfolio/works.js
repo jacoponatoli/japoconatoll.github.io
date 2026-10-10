@@ -3615,6 +3615,16 @@ window.WORKS = [
     "src": "img/61-mappe-02.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "src": "img/61-mappe-n01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/61-mappe-n02.webp",
+    "w": 1400,
+    "h": 933
    }
   ]
  },
