@@ -1629,39 +1629,61 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/25-mi-resisti-01.webp",
-    "w": 313,
-    "h": 414
+    "src": "img/25-mi-resisti-r01.webp",
+    "w": 1400,
+    "h": 933
    },
    {
-    "src": "img/25-mi-resisti-02.webp",
-    "w": 417,
-    "h": 623
+    "src": "img/25-mi-resisti-r02.webp",
+    "w": 935,
+    "h": 1400
    },
    {
-    "src": "img/25-mi-resisti-03.webp",
-    "w": 409,
-    "h": 546
+    "src": "img/25-mi-resisti-r03.webp",
+    "w": 935,
+    "h": 1400
    },
    {
-    "src": "img/25-mi-resisti-04.webp",
-    "w": 389,
-    "h": 559
+    "src": "img/25-mi-resisti-r04.webp",
+    "w": 935,
+    "h": 1400
    },
    {
-    "src": "img/25-mi-resisti-05.webp",
-    "w": 426,
-    "h": 242
+    "src": "img/25-mi-resisti-r05.webp",
+    "w": 935,
+    "h": 1400
    },
    {
-    "src": "img/25-mi-resisti-06.webp",
-    "w": 480,
-    "h": 270
+    "src": "img/25-mi-resisti-r06.webp",
+    "w": 935,
+    "h": 1400
    },
    {
-    "src": "img/25-mi-resisti-07.webp",
-    "w": 480,
-    "h": 270
+    "src": "img/25-mi-resisti-r07.webp",
+    "w": 935,
+    "h": 1400
+   },
+   {
+    "src": "img/25-mi-resisti-r08.webp",
+    "w": 935,
+    "h": 1400
+   },
+   {
+    "src": "img/25-mi-resisti-r09.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "src": "img/25-mi-resisti-r10.webp",
+    "w": 1400,
+    "h": 788
+   },
+   {
+    "type": "video",
+    "src": "media/25-mi-resisti-clip.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "MI RESISTI?"
    }
   ]
  },
