@@ -434,6 +434,11 @@ window.WORKS = [
     "h": 933
    },
    {
+    "src": "img/10-che-cosa-minsegni-add7.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
     "src": "img/10-che-cosa-minsegni-n07.webp",
     "w": 933,
     "h": 1400
