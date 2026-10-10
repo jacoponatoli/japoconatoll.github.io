@@ -1870,44 +1870,69 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/28-ab-oculis-barocca-01.webp",
-    "w": 583,
-    "h": 404
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-02.webp",
-    "w": 582,
-    "h": 405
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-03.webp",
-    "w": 583,
-    "h": 404
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-04.webp",
-    "w": 583,
-    "h": 404
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-05.webp",
-    "w": 583,
-    "h": 404
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-06.webp",
-    "w": 583,
-    "h": 404
-   },
-   {
-    "src": "img/28-ab-oculis-barocca-07.webp",
+    "src": "img/28-ab-oculis-barocca-r01.webp",
     "w": 1400,
-    "h": 789
+    "h": 932
    },
    {
-    "src": "img/28-ab-oculis-barocca-08.webp",
+    "src": "img/28-ab-oculis-barocca-r02.webp",
     "w": 1400,
-    "h": 790
+    "h": 932
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r03.webp",
+    "w": 1400,
+    "h": 932
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r04.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r05.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r06.webp",
+    "w": 1400,
+    "h": 932
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r07.webp",
+    "w": 1400,
+    "h": 932
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r09.webp",
+    "w": 1400,
+    "h": 932
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r11.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r12.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/28-ab-oculis-barocca-r13.webp",
+    "w": 1400,
+    "h": 933
    },
    {
     "type": "youtube",
