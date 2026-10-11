@@ -696,7 +696,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "Ajello F., Natoli J., *Riconfigurare docente-corpo-discente. Esperienze, ipotesi e strategie per lo spazio condiviso dei saperi*, in L’educazione nel corpo. Per una somatica della relazione pedagogica, Roots§Routes – Research on Visual Cultures, year XI, no. 36, May – August."
+     "v": "Ajello F., Natoli J., *Riconfigurare docente-corpo-discente. Esperienze, ipotesi e strategie per lo spazio condiviso dei saperi*, in L’educazione nel corpo. Per una somatica della relazione pedagogica, Roots§Routes – Research on Visual Cultures, year XI, no. 36, May – August, https://www.roots-routes.org/riconfigurare-docente-corpo-discente-esperienze-ipotesi-e-strategie-per-lo-spazio-condiviso-dei-saperi-di-fabrizio-ajello-e-jacopo-natoli/"
     },
     {
      "t": "year",
