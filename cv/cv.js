@@ -49,6 +49,10 @@ window.CV = {
      "v": "*Lady Buffer* (performance), Cafe Twin, Rome, for the event Meccaniche IV: Cattura, part of the project Meccaniche, curated by Gemma Gulisano and Jacopo Natoli, 16 May."
     },
     {
+      "t": "item",
+      "v": "*Concerto per 7 speakers* (sound installation), with John Cascone, Post Ex, Rome, for the event Giardini, part of Unaroma Off, MACRO, 28 March."
+    },
+    {
      "t": "item",
      "v": "*Ambigua* (solo show), CAOS – Centro Arti Opificio Siri, Terni, curated by Chiara Ronchini and Post Ex, 24 January – 5 April."
     },
