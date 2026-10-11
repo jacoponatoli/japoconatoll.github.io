@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ABOUTJACOPONATOLI</title>
+<meta name="description" content="ABOUTJACOPONATOLI — tutte le frasi trovate in rete che contengono Jacopo Natoli, in un unico testo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+/* ABOUTJACOPONATOLI: le frasi trovate in rete che contengono "Jacopo Natoli", una per riga,
+   in ordine sempre diverso a ogni visita. Il testo sta in frasi.txt */
+:root { --bg: #000; --fg: #fff; --red: #ff1a1a; --muted: #9a9a9a; --display: "Archivo", "Arial Black", Arial, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--mono);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(56px + env(safe-area-inset-bottom, 0px)); }
+.disp { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; line-height: 0.9; }
+.close { position: fixed; z-index: 5; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; color: var(--fg); text-decoration: none; }
+.close:hover, .close:focus-visible { color: var(--hc, var(--red)); outline: none; }
+h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(28px, 6vw, 64px); padding-right: 1.6em; overflow-wrap: anywhere; }
+#t { margin: 0; max-width: 72ch; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.5; overflow-wrap: anywhere; }
+#t p { margin: 0 0 0.35em; padding-left: 2ch; text-indent: -2ch; }
+</style>
+</head>
+<body>
+<a class="close disp" href="../" aria-label="Torna alla home">×</a>
+<h1 class="disp">ABOUTJACOPONATOLI</h1>
+<div id="t"></div>
+<script>
+fetch("frasi.txt?v=" + Date.now()).then(function (r) { return r.text(); }).then(function (txt) {
+  var f = txt.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+  for (var i = f.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = f[i]; f[i] = f[j]; f[j] = x; }
+  var t = document.getElementById("t");
+  f.forEach(function (s) { var p = document.createElement("p"); p.textContent = s; t.appendChild(p); });
+});
+</script>
+<script src="../hover.js"></script>
+</body>
+</html>
