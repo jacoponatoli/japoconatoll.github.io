@@ -51,6 +51,10 @@ body {
   white-space: nowrap;
   padding: 0;
   will-change: transform;
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  contain: layout style;
 }
 .float:hover, .float:focus-visible { color: var(--hc, var(--red)); }
 .float.done { color: var(--done, var(--red)); }
@@ -110,8 +114,8 @@ body {
   // Così su cellulare e su laptop sembrano andare allo stesso ritmo.
   var VELOCITA = 0.2;
 
-  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce) VELOCITA = 0.05;
+  // (prima, con "Riduci movimento" attivo sul dispositivo, andavano 4 volte più lente:
+  // tolto, così su iPad e iPhone hanno lo stesso ritmo del computer)
 
   var items = Array.prototype.map.call(document.querySelectorAll(".float"), function (el) {
     return { el: el, x: 0, y: 0, w: 0, h: 0, vx: 0.7, vy: 0.7, hold: false, stopped: false };
@@ -157,11 +161,14 @@ body {
     } catch (e) {}
   }
 
-  var lastT = 0;
+  // tempo tra un fotogramma e l'altro, ammorbidito: i piccoli scatti del browser non si vedono
+  var lastT = 0, dtS = 1 / 60;
   function step(now) {
-    var dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0;
+    var raw = lastT ? (now - lastT) / 1000 : dtS;
     lastT = now;
-
+    if (raw > 0.25) raw = dtS;            // dopo una pausa (scheda nascosta) niente salto
+    dtS += (Math.min(raw, 0.1) - dtS) * 0.2;
+    var dt = dtS;
 
     var dist = VELOCITA * diag * dt;
     for (var n = 0; n < items.length; n++) {
