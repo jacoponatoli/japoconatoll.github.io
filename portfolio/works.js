@@ -667,29 +667,29 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/12-lady-buffer-01.webp",
-    "w": 545,
-    "h": 630
+    "src": "img/12-lady-buffer-01-r1.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/12-lady-buffer-02.webp",
-    "w": 548,
-    "h": 629
+    "src": "img/12-lady-buffer-02-r1.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/12-lady-buffer-03.webp",
-    "w": 548,
-    "h": 629
+    "src": "img/12-lady-buffer-03-r1.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/12-lady-buffer-04.webp",
-    "w": 545,
-    "h": 629
+    "src": "img/12-lady-buffer-04-r1.webp",
+    "w": 933,
+    "h": 1400
    },
    {
-    "src": "img/12-lady-buffer-05.webp",
+    "src": "img/12-lady-buffer-05-r1.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
     "src": "img/12-lady-buffer-n01.webp",
@@ -702,9 +702,9 @@ window.WORKS = [
     "h": 1400
    },
    {
-    "src": "img/12-lady-buffer-06.webp",
+    "src": "img/12-lady-buffer-06-r1.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
     "src": "img/12-lady-buffer-07.webp",
@@ -712,9 +712,9 @@ window.WORKS = [
     "h": 789
    },
    {
-    "src": "img/12-lady-buffer-08.webp",
+    "src": "img/12-lady-buffer-08-r1.webp",
     "w": 1400,
-    "h": 789
+    "h": 933
    },
    {
     "type": "youtube",
