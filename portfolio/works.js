@@ -79,44 +79,84 @@ window.WORKS = [
   "links": [],
   "images": [
    {
-    "src": "img/02-ambigua-01.webp",
-    "w": 573,
-    "h": 449
-   },
-   {
-    "src": "img/02-ambigua-02.webp",
-    "w": 555,
-    "h": 447
-   },
-   {
-    "src": "img/02-ambigua-03.webp",
-    "w": 553,
-    "h": 445
-   },
-   {
-    "src": "img/02-ambigua-04.webp",
+    "src": "img/02-ambigua-r01.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/02-ambigua-05.webp",
+    "src": "img/02-ambigua-r02.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/02-ambigua-06.webp",
+    "src": "img/02-ambigua-r03.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/02-ambigua-07.webp",
+    "src": "img/02-ambigua-r04.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
    },
    {
-    "src": "img/02-ambigua-08.webp",
+    "src": "img/02-ambigua-r05.webp",
     "w": 1400,
-    "h": 788
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r06.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r07.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r08.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r10.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r11.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r12.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r13.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r14.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r15.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/02-ambigua-r16.webp",
+    "w": 1400,
+    "h": 933
    }
   ]
  },
