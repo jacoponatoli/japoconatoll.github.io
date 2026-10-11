@@ -1129,7 +1129,7 @@ window.WORKS = [
  },
  {
   "cat": "PERFORMANCES",
-  "title": "NON TI VEDO MA T’IMMAGINIO",
+  "title": "NON TI VEDO MA T’IMMAGINO",
   "subtitle": "I don’t see you but I imagine you",
   "credit": "Massimiliano Rasori",
   "who": "JACOPO NATOLI",
@@ -3454,7 +3454,7 @@ window.WORKS = [
   "who": "JACOPO NATOLI + THE STAFF AND GUESTS OF VILLA LETIZIA",
   "what": "WORKSHOP + 24 VIDEO PORTRAITS (various formats, HD, colour, stereo, digital file, 72 min)",
   "when": "2012",
-  "where": "VILLA LETIZIA PSYCHIATRIC CLINIC + ONLINE",
+  "where": "VILLA LETIZIA PSYCHIATRIC CLINIC, ROME + ONLINE",
   "why": "TO MAKE A WORKSHOP AND A DOCUMENTARY WITH (NOT ABOUT) SO-CALLED “MADNESS”",
   "extra": "",
   "links": [
@@ -5144,7 +5144,7 @@ window.WORKS = [
   "credit": "",
   "who": "NUMERO CROMATICO (DIONIGI MATTIA GAGLIARDI + JACOPO NATOLI)",
   "what": "VIDEO INTERVIEWS (25 EPISODES)\nRecorded at exhibition openings to document the opinions of art professionals and enthusiasts at shows and events in galleries, museums and fairs, highlighting the trends and weaknesses of the contemporary art system.",
-  "when": "2014",
+  "when": "2014–2016",
   "where": "ART EVENTS AND OPENINGS",
   "why": "TO INTERVIEW THE PUBLIC AT ART EVENTS",
   "extra": "",
