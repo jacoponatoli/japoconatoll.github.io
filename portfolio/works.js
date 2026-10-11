@@ -401,7 +401,7 @@ window.WORKS = [
   "why": "TO STEAL MY OWN ARTWORK",
   "extra": "",
   "links": [
-   "https://www.galleriaartemodernaroma.it/"
+   "https://www.galleriaartemodernaroma.it/it/mostra-evento/materia-nova"
   ],
   "images": [
    {
