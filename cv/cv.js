@@ -803,10 +803,6 @@ window.CV = {
      "v": "Natoli J., *Title? Circle Order* (interview/experiment with Uochi Toki), nodes, year II, no. 2 (ISSN 2281-1168)."
     },
     {
-     "t": "year",
-     "v": "2012"
-    },
-    {
      "t": "item",
      "v": "Natoli J., *On the concept of interdisciplinarity through the lexicon of Deleuze and Guattari*, nodes, year II, no. 1 (ISSN 2281-1168)."
     },
@@ -815,12 +811,12 @@ window.CV = {
      "v": "Natoli J., *Intervista doppia con termine ultimo* (Double interview with a final deadline), nodes, year II, no. 1 (ISSN 2281-1168)."
     },
     {
-     "t": "item",
-     "v": "Natoli J., *Interview/experiment with Paulina Michnowska*, on the occasion of the solo show Now, if one returns to melancholy, FOODFACE, London."
+     "t": "year",
+     "v": "2012"
     },
     {
-     "t": "year",
-     "v": "2011"
+     "t": "item",
+     "v": "Natoli J., *Interview/experiment with Paulina Michnowska*, on the occasion of the solo show Now, if one returns to melancholy, FOODFACE, London."
     },
     {
      "t": "item",
@@ -863,20 +859,16 @@ window.CV = {
      "v": "*Dreamask*, 60 copies, risograph."
     },
     {
-     "t": "item",
-     "v": "*nodes 9/10*, 500 copies (ISSN 2281-1168)."
-    },
-    {
-     "t": "item",
-     "v": "*nodes 7/8*, 500 copies (ISSN 2281-1168)."
-    },
-    {
      "t": "year",
      "v": "2017"
     },
     {
      "t": "item",
      "v": "*Fabio Mauri. A Memory Archive* (ISBN 978-88-940734-1-6)."
+    },
+    {
+     "t": "item",
+     "v": "*nodes 9/10*, 500 copies (ISSN 2281-1168)."
     },
     {
      "t": "year",
@@ -887,20 +879,20 @@ window.CV = {
      "v": "*Fabio Mauri. Archivio di memoria* (ISBN 978-88-940734-0-9)."
     },
     {
+     "t": "item",
+     "v": "*nodes 7/8*, 500 copies (ISSN 2281-1168)."
+    },
+    {
      "t": "year",
      "v": "2015"
     },
     {
      "t": "item",
-     "v": "*nodes 5/6*, 500 copies (ISSN 2281-1168)."
-    },
-    {
-     "t": "item",
-     "v": "*nodes 3/4*, 500 copies (ISSN 2281-1168)."
-    },
-    {
-     "t": "item",
      "v": "*Perimetro*, a publication on the Pigneto neighbourhood of Rome."
+    },
+    {
+     "t": "item",
+     "v": "*nodes 5/6*, 500 copies (ISSN 2281-1168)."
     },
     {
      "t": "year",
@@ -908,11 +900,15 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "*nodes 2*, 500 copies (ISSN 2281-1168)."
+     "v": "*nodes 3/4*, 500 copies (ISSN 2281-1168)."
     },
     {
      "t": "year",
      "v": "2013"
+    },
+    {
+     "t": "item",
+     "v": "*nodes 2*, 500 copies (ISSN 2281-1168)."
     },
     {
      "t": "item",
