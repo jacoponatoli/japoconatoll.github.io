@@ -39,6 +39,11 @@ window.WORKS = [
     "h": 788
    },
    {
+    "src": "img/identita-commestibili-x01.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
     "src": "img/01-identita-commestibili-06.webp",
     "w": 1400,
     "h": 789
