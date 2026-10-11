@@ -70,13 +70,13 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
 /* foto: striscia orizzontale che si scorre */
 .strip {
   /* stessa altezza per tutte le foto, anche su cellulare: sotto i 52vw anche le orizzontali entrano nello schermo */
-  --h: min(clamp(220px, 52vh, 620px), 52vw);
+  --h: min(clamp(220px, 52vh, 620px), 60vw);
   margin-top: 22px; display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain;
   scroll-snap-type: x proximity; padding-bottom: 10px;
   scrollbar-color: #444 transparent; scrollbar-width: thin;
 }
 .strip figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; background: #0d0d0d; }
-.strip img { display: block; height: var(--h); width: auto; }
+.strip img { display: block; height: var(--h); width: auto; max-width: 92vw; object-fit: contain; }
 .strip video { display: block; height: var(--h); width: auto; background: #000; }
 .strip iframe { display: block; border: 0; height: var(--h); aspect-ratio: 16 / 9; width: auto; background: #000; }
 .strip .audio { height: var(--h); width: min(420px, 80vw); display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; padding: 18px; border: 1px solid var(--line); background: var(--bg); }
