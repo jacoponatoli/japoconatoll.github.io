@@ -1658,16 +1658,6 @@ window.WORKS = [
     "h": 1051
    },
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r07.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r08.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
     "src": "img/24-dalla-galassia-dei-buchi-neri-r09.webp",
     "w": 1368,
     "h": 768
@@ -1678,27 +1668,7 @@ window.WORKS = [
     "h": 768
    },
    {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r11.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r12.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r13.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
     "src": "img/24-dalla-galassia-dei-buchi-neri-r14.webp",
-    "w": 1368,
-    "h": 768
-   },
-   {
-    "src": "img/24-dalla-galassia-dei-buchi-neri-r15.webp",
     "w": 1368,
     "h": 768
    },
