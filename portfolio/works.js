@@ -5134,39 +5134,64 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/71-politica-qui-e-morte-01.webp",
-    "w": 587,
-    "h": 368
+    "src": "img/71-politica-qui-e-morte-n01.webp",
+    "w": 1024,
+    "h": 642
    },
    {
-    "src": "img/71-politica-qui-e-morte-02.webp",
-    "w": 587,
-    "h": 368
+    "src": "img/71-politica-qui-e-morte-n02.webp",
+    "w": 1024,
+    "h": 642
    },
    {
-    "src": "img/71-politica-qui-e-morte-03.webp",
-    "w": 587,
-    "h": 368
+    "src": "img/71-politica-qui-e-morte-n03.webp",
+    "w": 1024,
+    "h": 642
    },
    {
-    "src": "img/71-politica-qui-e-morte-04.webp",
-    "w": 587,
-    "h": 368
+    "src": "img/71-politica-qui-e-morte-n04.webp",
+    "w": 1024,
+    "h": 642
    },
    {
-    "src": "img/71-politica-qui-e-morte-05.webp",
-    "w": 587,
-    "h": 368
+    "src": "img/71-politica-qui-e-morte-n05.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n06.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n07.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n08.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n09.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n10.webp",
+    "w": 1024,
+    "h": 642
+   },
+   {
+    "src": "img/71-politica-qui-e-morte-n11.webp",
+    "w": 1024,
+    "h": 642
    },
    {
     "src": "img/71-politica-qui-e-morte-06.webp",
     "w": 587,
     "h": 368
-   },
-   {
-    "src": "img/71-politica-qui-e-morte-07.webp",
-    "w": 1024,
-    "h": 578
    },
    {
     "type": "youtube",
