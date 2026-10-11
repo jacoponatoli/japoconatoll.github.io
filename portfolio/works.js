@@ -727,6 +727,43 @@ window.WORKS = [
  },
  {
   "cat": "PERFORMANCES",
+  "title": "GIARDINI",
+  "subtitle": "gardens",
+  "credit": "",
+  "who": "J&J – JOHN CASCONE & JACOPO NATOLI, with the participation of POST EX",
+  "what": "SOUND INSTALLATION",
+  "when": "28 MARCH 2026",
+  "where": "POST EX, ROME, for the event GIARDINI, part of UNAROMA OFF, MACRO MUSEUM",
+  "why": "An audio installation creating an emotional, uncanny soundscape that runs through all the studios of Post Ex.",
+  "extra": "",
+  "links": [
+   "https://www.museomacro.it/evento/post-ex-giardini"
+  ],
+  "images": [
+   {
+    "src": "img/giardini-01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/giardini-02.webp",
+    "w": 1400,
+    "h": 990
+   },
+   {
+    "src": "img/giardini-03.webp",
+    "w": 990,
+    "h": 1400
+   },
+   {
+    "src": "img/giardini-04.webp",
+    "w": 1400,
+    "h": 990
+   }
+  ]
+ },
+ {
+  "cat": "PERFORMANCES",
   "title": "INDICIBILE VOL. 1",
   "subtitle": "",
   "credit": "Erika Radonic",
