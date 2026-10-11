@@ -109,6 +109,16 @@ body {
 </section>
 
 <script>
+window.jnNuovaVisita = window.jnNuovaVisita || function () {
+  if (window.__jnVisita !== undefined) return window.__jnVisita;
+  var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+  var tipo = nav ? nav.type : "navigate";
+  var daDentro = false;
+  try { daDentro = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+  var nuova = tipo === "navigate" && !daDentro;
+  if (nuova) try { ["jn-cliccati", "jn-cliccate", "jn-cv-aperte"].forEach(function (k) { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {}
+  return (window.__jnVisita = nuova);
+};
 (function () {
   // velocità in proporzione allo schermo: 0.2 = un quinto della diagonale al secondo.
   // Così su cellulare e su laptop sembrano andare allo stesso ritmo.
@@ -136,21 +146,20 @@ body {
     else { a.x += dx / 2; a.y += dy / 2; b.x -= dx / 2; b.y -= dy / 2; }
   }
 
-  // ricorda le voci cliccate finché si resta sul sito (anche tornando con "indietro");
+  // ricorda le voci cliccate finché si resta sul sito (anche tornando dalle altre pagine);
   // a ogni nuova visita si riparte da zero
   var KEY = "jn-cliccate";
   function save() {
     try {
       var d = {};
       items.forEach(function (it, n) { if (it.stopped) d[n] = [it.x / W, it.y / H, it.color || ""]; });
-      sessionStorage.setItem(KEY, JSON.stringify(d));
+      localStorage.setItem(KEY, JSON.stringify(d));
     } catch (e) {}
   }
   function restore() {
     try {
-      var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
-      if (!nav || nav.type !== "back_forward") { sessionStorage.removeItem(KEY); return; }
-      var d = JSON.parse(sessionStorage.getItem(KEY) || "{}");
+      if (jnNuovaVisita()) return;
+      var d = JSON.parse(localStorage.getItem(KEY) || "{}");
       Object.keys(d).forEach(function (n) {
         var it = items[n]; if (!it) return;
         it.stopped = true; it.hold = true; it.el.classList.add("done");

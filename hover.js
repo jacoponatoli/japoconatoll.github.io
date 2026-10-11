@@ -2,6 +2,18 @@
 // o in un pulsante, questo prende un colore nuovo. La tinta avanza di circa 137° (angolo aureo) più un
 // piccolo scarto casuale, così si gira per tutta la ruota dei colori e due colori di fila non si somigliano.
 // La tinta continua da una pagina all'altra finché si resta sul sito.
+// Una "visita" dura finché si naviga dentro il sito. Si arriva da fuori (link esterno, indirizzo
+// scritto a mano, segnalibro) = nuova visita: colori cliccati e sezioni aperte tornano da zero.
+window.jnNuovaVisita = window.jnNuovaVisita || function () {
+  if (window.__jnVisita !== undefined) return window.__jnVisita;
+  var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+  var tipo = nav ? nav.type : "navigate";
+  var daDentro = false;
+  try { daDentro = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+  var nuova = tipo === "navigate" && !daDentro;
+  if (nuova) try { ["jn-cliccati", "jn-cliccate", "jn-cv-aperte"].forEach(function (k) { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {}
+  return (window.__jnVisita = nuova);
+};
 (function () {
   var KEY = "jn-hue", hue;
   try { hue = parseFloat(sessionStorage.getItem(KEY)); } catch (e) {}
@@ -28,10 +40,11 @@
     if (el && !el.matches(":hover")) paint(el); // col mouse sopra (clic) il colore resta quello che c'è
   });
   // Link cliccati: restano del colore che avevano al clic (come le parole della home),
-  // tutti quanti, finché si resta sul sito in questa scheda. Vale per links, portfolio e CV
+  // tutti quanti, finché si resta sul sito (anche passando da una scheda all'altra). Vale per links, portfolio e CV
   // (nel CV anche i titoli delle sezioni a tendina).
   var CK = "jn-cliccati", done = {};
-  try { done = JSON.parse(sessionStorage.getItem(CK) || "{}") || {}; } catch (e) {}
+  jnNuovaVisita();
+  try { done = JSON.parse(localStorage.getItem(CK) || "{}") || {}; } catch (e) {}
   var st = document.createElement("style");
   st.textContent = "a.jn-done,summary.jn-done,summary.jn-done *{color:var(--done)!important}";
   document.head.appendChild(st);
@@ -46,7 +59,7 @@
     if (!a || a.matches(".float, .close, .crumb, .top")) return;
     var k = key(a), c = done[k] || a.style.getPropertyValue("--hc") || next();
     done[k] = c; mark(a, c);
-    try { sessionStorage.setItem(CK, JSON.stringify(done)); } catch (e2) {}
+    try { localStorage.setItem(CK, JSON.stringify(done)); } catch (e2) {}
   }, true);
   // le pagine che si ridisegnano (portfolio) riprendono i colori a ogni cambio
   if (window.MutationObserver) new MutationObserver(applyAll).observe(document.documentElement, { childList: true, subtree: true });

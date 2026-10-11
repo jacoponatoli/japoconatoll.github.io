@@ -141,13 +141,14 @@ details > .rows { padding-bottom: clamp(24px, 4vw, 40px); }
 
   // le sezioni aperte restano aperte tornando sulla pagina (finché si resta sul sito)
   var OK = "jn-cv-aperte", aperte = {};
-  try { aperte = JSON.parse(sessionStorage.getItem(OK) || "{}") || {}; } catch (e) {}
+  if (window.jnNuovaVisita) jnNuovaVisita();
+  try { aperte = JSON.parse(localStorage.getItem(OK) || "{}") || {}; } catch (e) {}
   if (location.hash && document.getElementById(location.hash.slice(1))) aperte[location.hash.slice(1)] = 1;
   Array.prototype.forEach.call(root.querySelectorAll("details"), function (el) {
     if (aperte[el.id]) el.open = true;
     el.addEventListener("toggle", function () {
       if (el.open) aperte[el.id] = 1; else delete aperte[el.id];
-      try { sessionStorage.setItem(OK, JSON.stringify(aperte)); } catch (e) {}
+      try { localStorage.setItem(OK, JSON.stringify(aperte)); } catch (e) {}
     });
   });
 
