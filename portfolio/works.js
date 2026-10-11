@@ -165,8 +165,7 @@ window.WORKS = [
     "src": "media/02-ambigua-v1.mp4",
     "w": 786,
     "h": 576,
-    "title": "Ambigua",
-    "noauto": true
+    "title": "Ambigua"
    }
   ]
  },
@@ -335,7 +334,8 @@ window.WORKS = [
     "src": "media/05-corticale-scan.mp4",
     "w": 1280,
     "h": 720,
-    "title": "CORTICALE (Scan)"
+    "title": "CORTICALE (Scan)",
+    "auto": true
    }
   ]
  },
@@ -1223,6 +1223,27 @@ window.WORKS = [
     "src": "img/18-non-ti-vedo-ma-timmaginio-06.webp",
     "w": 652,
     "h": 369
+   },
+   {
+    "type": "video",
+    "src": "media/non-ti-vedo-v1.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "Cessiamo"
+   },
+   {
+    "type": "video",
+    "src": "media/non-ti-vedo-v2.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "Cessiamo"
+   },
+   {
+    "type": "video",
+    "src": "media/non-ti-vedo-v3.mp4",
+    "w": 1280,
+    "h": 720,
+    "title": "Cessiamo"
    }
   ]
  },
@@ -3754,32 +3775,28 @@ window.WORKS = [
     "src": "media/55-stimolatore-6hz.mp4",
     "w": 1920,
     "h": 1080,
-    "title": "Stimolatore strobo-fosfenico · 6 Hz",
-    "noauto": true
+    "title": "Stimolatore strobo-fosfenico · 6 Hz"
    },
    {
     "type": "video",
     "src": "media/55-stimolatore-7-5hz.mp4",
     "w": 1920,
     "h": 1080,
-    "title": "Stimolatore strobo-fosfenico · 7.5 Hz",
-    "noauto": true
+    "title": "Stimolatore strobo-fosfenico · 7.5 Hz"
    },
    {
     "type": "video",
     "src": "media/55-stimolatore-10hz.mp4",
     "w": 1920,
     "h": 1080,
-    "title": "Stimolatore strobo-fosfenico · 10 Hz",
-    "noauto": true
+    "title": "Stimolatore strobo-fosfenico · 10 Hz"
    },
    {
     "type": "video",
     "src": "media/55-stimolatore-15hz.mp4",
     "w": 1920,
     "h": 1080,
-    "title": "Stimolatore strobo-fosfenico · 15 Hz",
-    "noauto": true
+    "title": "Stimolatore strobo-fosfenico · 15 Hz"
    }
   ]
  },
