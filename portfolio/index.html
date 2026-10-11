@@ -135,7 +135,16 @@ dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
   function esc(s) {
     return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
   }
-  function shortUrl(u) { return u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""); }
+  function shortUrl(u) {
+    var s = u.replace(/^https?:\/\/(www\.)?/, "").replace(/[?#].*$/, "").replace(/\/$/, "");
+    if (s.length <= 36) return s;
+    var host = s.split("/")[0], path = s.slice(host.length);
+    var room = 34 - host.length;
+    if (room < 8) return host + "/…";
+    var cut = path.slice(0, room), b = Math.max(cut.lastIndexOf("-"), cut.lastIndexOf("/"), cut.lastIndexOf("_"));
+    if (b > 0) cut = cut.slice(0, b);
+    return host + cut + "…";
+  }
 
   function renderList() {
     document.title = "Jacopo Natoli · Portfolio";

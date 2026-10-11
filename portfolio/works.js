@@ -375,7 +375,9 @@ window.WORKS = [
   "where": "SPORTING BEACH, OSTIA, for the group show BAGNI MISTERIOSI",
   "why": "TO CREATE CONFUSION",
   "extra": "",
-  "links": [],
+  "links": [
+   "https://www.ibs.it/bagni-misteriosi-cabine-d-artista-libro-vari/e/9788867263776"
+  ],
   "images": [
    {
     "src": "img/07-forza-01.webp",
