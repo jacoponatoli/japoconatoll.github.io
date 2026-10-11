@@ -1901,11 +1901,6 @@ window.WORKS = [
     "h": 1400
    },
    {
-    "src": "img/27-le-immagini-ci-sentono-i-r10.webp",
-    "w": 1050,
-    "h": 1400
-   },
-   {
     "src": "img/27-le-immagini-ci-sentono-i-r11.webp",
     "w": 1050,
     "h": 1400
