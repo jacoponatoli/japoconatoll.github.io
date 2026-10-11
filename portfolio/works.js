@@ -76,7 +76,9 @@ window.WORKS = [
   "where": "CAOS – CENTRO ARTI OPIFICIO SIRI, TERNI",
   "why": "The exhibition presents 21 works by Jacopo Natoli, spanning from the distant past (1885) to the future anterior (?). At its core is the idea of the ambiguous image — or rather, its possibility. Working across multiple media, Natoli creates performative works of uncertain value that resist interpretation and question the role of misunderstanding in art. Moving between retrospection and introspection, the exhibition ranges from a rediscovered ancestral drawing to works yet to be realized, including new pieces created specifically for the museum.",
   "extra": "",
-  "links": [],
+  "links": [
+   "https://www.caos.museum/archivio/ambigua/"
+  ],
   "images": [
    {
     "src": "img/02-ambigua-r01.webp",
