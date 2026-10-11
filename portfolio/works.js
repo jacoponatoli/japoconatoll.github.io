@@ -157,6 +157,14 @@ window.WORKS = [
     "src": "img/02-ambigua-r16.webp",
     "w": 1400,
     "h": 933
+   },
+   {
+    "type": "video",
+    "src": "media/02-ambigua-v1.mp4",
+    "w": 786,
+    "h": 576,
+    "title": "Ambigua",
+    "noauto": true
    }
   ]
  },
@@ -173,11 +181,6 @@ window.WORKS = [
   "extra": "",
   "links": [],
   "images": [
-   {
-    "src": "img/03-quadreria-pornografica-01.webp",
-    "w": 381,
-    "h": 148
-   },
    {
     "src": "img/03-quadreria-pornografica-02.webp",
     "w": 460,
