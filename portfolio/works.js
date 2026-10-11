@@ -405,29 +405,34 @@ window.WORKS = [
   ],
   "images": [
    {
-    "src": "img/08-sicurazione-n01.webp",
+    "src": "img/08-sicurazione-r01.webp",
     "w": 1400,
     "h": 984
    },
    {
-    "src": "img/08-sicurazione-01.webp",
-    "w": 1158,
-    "h": 644
-   },
-   {
-    "src": "img/08-sicurazione-02.webp",
-    "w": 1156,
-    "h": 622
-   },
-   {
-    "src": "img/08-sicurazione-03.webp",
+    "src": "img/08-sicurazione-r02.webp",
     "w": 1400,
-    "h": 788
+    "h": 966
    },
    {
-    "src": "img/08-sicurazione-n02.webp",
+    "src": "img/08-sicurazione-r03.webp",
+    "w": 1400,
+    "h": 1061
+   },
+   {
+    "src": "img/08-sicurazione-r04.webp",
+    "w": 1400,
+    "h": 944
+   },
+   {
+    "src": "img/08-sicurazione-r05.webp",
     "w": 1020,
     "h": 1400
+   },
+   {
+    "src": "img/08-sicurazione-r06.webp",
+    "w": 1400,
+    "h": 934
    }
   ]
  },
