@@ -62,7 +62,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "*Quadreria pornografica* (group show Ex Ex), Olinda Hostel, Milan, curated by Luca Grimaldi and Pietro Moretti, September – October."
+     "v": "*Quadreria pornografica* (group show Cortile), Olinda Hostel, Milan, curated by Luca Grimaldi and Pietro Moretti, September – October."
     },
     {
      "t": "item",
@@ -158,10 +158,6 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "*Domina Milano* (performance), Vagare ai Margini, Passante ferroviario di Porta Garibaldi, Milan, 26–30 July."
-    },
-    {
-     "t": "item",
      "v": "*The Milky Way* (group show), Bonomo Gallery, Rome, May."
     },
     {
@@ -182,11 +178,11 @@ window.CV = {
     },
     {
      "t": "year",
-     "v": "2021–2022"
+     "v": "2021–2023"
     },
     {
      "t": "item",
-     "v": "*1 MQ*, a movable 1 m² studio within the 1,103 m² of Post Ex’s shared studio space, Rome."
+     "v": "*1 MQ*, a movable 1 m² studio within the 1,103 m² of Post Ex’s shared studio space, Rome, October 2021 – March 2023."
     },
     {
      "t": "year",
@@ -199,6 +195,10 @@ window.CV = {
     {
      "t": "item",
      "v": "*Vagabondi efficaci* (group show), Centro Pecci, Prato."
+    },
+    {
+     "t": "item",
+     "v": "*Domina Milano* (performance), Vagare ai Margini, Passante ferroviario di Porta Garibaldi, Milan, 26–30 July."
     },
     {
      "t": "item",
@@ -499,6 +499,14 @@ window.CV = {
     },
     {
      "t": "year",
+     "v": "2022"
+    },
+    {
+     "t": "item",
+     "v": "*Il sole del villaggio* (cyanotype workshop), Edicola del Villaggio, Campo Boario, Rome, 12 June."
+    },
+    {
+     "t": "year",
      "v": "2021"
     },
     {
@@ -508,10 +516,6 @@ window.CV = {
     {
      "t": "year",
      "v": "2020"
-    },
-    {
-     "t": "item",
-     "v": "*Il sole del villaggio* (cyanotype workshop), Rome, 12 June."
     },
     {
      "t": "item",
