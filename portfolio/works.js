@@ -49,6 +49,11 @@ window.WORKS = [
     "h": 788
    },
    {
+    "src": "img/01-identita-commestibili-09.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
     "src": "img/01-identita-commestibili-08.webp",
     "w": 1400,
     "h": 788
@@ -57,11 +62,6 @@ window.WORKS = [
     "type": "audio",
     "src": "media/01-identita-commestibili-acoustic-collage.mp3",
     "title": "Acoustic Collage for Mouth, Anus, Urethra (3 min 15 sec)"
-   },
-   {
-    "src": "img/01-identita-commestibili-09.webp",
-    "w": 1400,
-    "h": 933
    }
   ]
  },
