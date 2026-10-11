@@ -707,14 +707,14 @@ window.WORKS = [
     "h": 933
    },
    {
-    "src": "img/12-lady-buffer-07.webp",
-    "w": 1400,
-    "h": 789
-   },
-   {
     "src": "img/12-lady-buffer-08-r1.webp",
     "w": 1400,
     "h": 933
+   },
+   {
+    "src": "img/12-lady-buffer-n03.webp",
+    "w": 1400,
+    "h": 795
    },
    {
     "type": "youtube",
