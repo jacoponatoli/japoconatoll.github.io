@@ -587,7 +587,7 @@ window.WORKS = [
   "why": "TO PRESENT MY PRACTICE IN A RATIONAL WAY",
   "extra": "",
   "links": [
-   "https://www.dapa.biz/"
+   "https://www.dapa.biz/lightbox-cabina-doppia-transpersonale-di-jacopo-natoli-a-cura-di-arianna-desideri/"
   ],
   "images": [
    {
