@@ -16,7 +16,7 @@
   window.jnNextColor = next;
 
   function paint(el) { el.style.setProperty("--hc", next()); }
-  function target(n) { return n && n.closest ? n.closest("a, button") : null; }
+  function target(n) { return n && n.closest ? n.closest("a, button, summary") : null; }
 
   document.addEventListener("pointerover", function (e) {
     var el = target(e.target);
@@ -28,20 +28,21 @@
     if (el && !el.matches(":hover")) paint(el); // col mouse sopra (clic) il colore resta quello che c'è
   });
   // Link cliccati: restano del colore che avevano al clic (come le parole della home),
-  // tutti quanti, finché si resta sul sito in questa scheda. Vale per links, portfolio e CV.
+  // tutti quanti, finché si resta sul sito in questa scheda. Vale per links, portfolio e CV
+  // (nel CV anche i titoli delle sezioni a tendina).
   var CK = "jn-cliccati", done = {};
   try { done = JSON.parse(sessionStorage.getItem(CK) || "{}") || {}; } catch (e) {}
   var st = document.createElement("style");
-  st.textContent = "a.jn-done{color:var(--done)!important}";
+  st.textContent = "a.jn-done,summary.jn-done,summary.jn-done *{color:var(--done)!important}";
   document.head.appendChild(st);
-  function key(a) { return location.pathname + "|" + a.getAttribute("href") + "|" + a.textContent.trim().slice(0, 80); }
+  function key(a) { return location.pathname + "|" + (a.getAttribute("href") || a.tagName) + "|" + a.textContent.trim().slice(0, 80); }
   function mark(a, c) { a.style.setProperty("--done", c); a.classList.add("jn-done"); }
   function applyAll() {
-    var links = document.querySelectorAll("a[href]:not(.float):not(.close):not(.crumb):not(.top)");
+    var links = document.querySelectorAll("a[href]:not(.float):not(.close):not(.crumb):not(.top), summary");
     for (var i = 0; i < links.length; i++) { var c = done[key(links[i])]; if (c && !links[i].classList.contains("jn-done")) mark(links[i], c); }
   }
   document.addEventListener("click", function (e) {
-    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    var a = e.target && e.target.closest ? e.target.closest("a[href], summary") : null;
     if (!a || a.matches(".float, .close, .crumb, .top")) return;
     var k = key(a), c = done[k] || a.style.getPropertyValue("--hc") || next();
     done[k] = c; mark(a, c);
