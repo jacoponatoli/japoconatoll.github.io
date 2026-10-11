@@ -727,8 +727,8 @@ window.WORKS = [
  },
  {
   "cat": "PERFORMANCES",
-  "title": "GIARDINI",
-  "subtitle": "gardens",
+  "title": "CONCERTO PER 7 SPEAKERS",
+  "subtitle": "concert for 7 speakers",
   "credit": "",
   "who": "J&J – JOHN CASCONE & JACOPO NATOLI, with the participation of POST EX",
   "what": "SOUND INSTALLATION",
