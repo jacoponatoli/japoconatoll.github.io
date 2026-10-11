@@ -52,8 +52,8 @@ body {
   padding: 0;
   will-change: transform;
 }
-.float:hover, .float:focus-visible { color: var(--red); }
-.float.done { color: var(--red); }
+.float:hover, .float:focus-visible { color: var(--hc, var(--red)); }
+.float.done { color: var(--done, var(--red)); }
 .float:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; }
 .tree {
@@ -71,7 +71,7 @@ body {
   color: var(--fg); text-decoration: none;
   overflow-wrap: anywhere;
 }
-.tree a:hover, .tree a:focus-visible { color: var(--red); }
+.tree a:hover, .tree a:focus-visible { color: var(--hc, var(--red)); }
 .tree a:focus-visible, .close:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
 .close {
   position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
@@ -79,7 +79,7 @@ body {
   font-size: clamp(22px, 5.4vw, 72px); line-height: 0.9;
   color: var(--fg); background: var(--bg); border: 0; padding: 0; cursor: pointer;
 }
-.close:hover, .close:focus-visible { color: var(--red); }
+.close:hover, .close:focus-visible { color: var(--hc, var(--red)); }
 </style>
 </head>
 <body>
@@ -138,7 +138,7 @@ body {
   function save() {
     try {
       var d = {};
-      items.forEach(function (it, n) { if (it.stopped) d[n] = [it.x / W, it.y / H]; });
+      items.forEach(function (it, n) { if (it.stopped) d[n] = [it.x / W, it.y / H, it.color || ""]; });
       sessionStorage.setItem(KEY, JSON.stringify(d));
     } catch (e) {}
   }
@@ -150,6 +150,7 @@ body {
       Object.keys(d).forEach(function (n) {
         var it = items[n]; if (!it) return;
         it.stopped = true; it.hold = true; it.el.classList.add("done");
+        it.color = d[n][2] || ""; if (it.color) it.el.style.setProperty("--done", it.color);
         it.x = Math.min(d[n][0] * W, Math.max(0, W - it.w));
         it.y = Math.min(d[n][1] * H, Math.max(0, H - it.h));
       });
@@ -210,9 +211,11 @@ body {
     ["mouseleave", "blur", "touchend"].forEach(function (ev) {
       it.el.addEventListener(ev, function () { it.hold = it.stopped; });
     });
-    // al clic la voce diventa rossa e resta ferma (finché non si esce dal sito)
+    // al clic la voce tiene il colore che aveva e resta ferma (finché non si esce dal sito)
     it.el.addEventListener("click", function () {
       it.stopped = true; it.hold = true;
+      it.color = it.el.style.getPropertyValue("--hc") || "";
+      if (it.color) it.el.style.setProperty("--done", it.color);
       it.el.classList.add("done");
       save();
     });
@@ -278,5 +281,6 @@ body {
 })();
 </script>
 
+<script src="hover.js"></script>
 </body>
 </html>

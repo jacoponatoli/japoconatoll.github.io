@@ -33,7 +33,7 @@ a { color: var(--fg); }
   position: fixed; z-index: 5; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
   font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; text-decoration: none;
 }
-.close:hover, .close:focus-visible { color: var(--red); outline: none; }
+.close:hover, .close:focus-visible { color: var(--hc, var(--red)); outline: none; }
 .wrap { max-width: 1100px; }
 h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(28px, 6vw, 72px); padding-right: 1.6em; }
 h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
@@ -80,22 +80,6 @@ li a:focus-visible { outline: none; }
     </ul>
   </section>
 </main>
-<script>
-// Al passaggio ogni voce prende un colore nuovo: la tinta avanza ogni volta di circa 137° (angolo aureo)
-// più un piccolo scarto casuale, così i colori girano su tutta la ruota e due di fila non si somigliano mai
-(function () {
-  var hue = Math.random() * 360;
-  function next() {
-    hue = (hue + 137.508 + (Math.random() * 40 - 20) + 360) % 360;
-    var l = (hue > 200 && hue < 290) ? 68 : 58; // blu e viola più chiari, per restare leggibili sul nero
-    return "hsl(" + hue.toFixed(0) + ", 100%, " + l + "%)";
-  }
-  document.querySelectorAll("li a").forEach(function (a) {
-    function paint() { a.style.setProperty("--hc", next()); }
-    a.addEventListener("mouseenter", paint);
-    a.addEventListener("focus", paint);
-  });
-})();
-</script>
+<script src="../hover.js"></script>
 </body>
 </html>
