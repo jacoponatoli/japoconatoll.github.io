@@ -27,4 +27,28 @@
     var el = target(e.target);
     if (el && !el.matches(":hover")) paint(el); // col mouse sopra (clic) il colore resta quello che c'è
   });
+  // Link cliccati: restano del colore che avevano al clic (come le parole della home),
+  // tutti quanti, finché si resta sul sito in questa scheda. Vale per links, portfolio e CV.
+  var CK = "jn-cliccati", done = {};
+  try { done = JSON.parse(sessionStorage.getItem(CK) || "{}") || {}; } catch (e) {}
+  var st = document.createElement("style");
+  st.textContent = "a.jn-done{color:var(--done)!important}";
+  document.head.appendChild(st);
+  function key(a) { return location.pathname + "|" + a.getAttribute("href") + "|" + a.textContent.trim().slice(0, 80); }
+  function mark(a, c) { a.style.setProperty("--done", c); a.classList.add("jn-done"); }
+  function applyAll() {
+    var links = document.querySelectorAll("a[href]:not(.float):not(.close):not(.crumb):not(.top)");
+    for (var i = 0; i < links.length; i++) { var c = done[key(links[i])]; if (c && !links[i].classList.contains("jn-done")) mark(links[i], c); }
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a || a.matches(".float, .close, .crumb, .top")) return;
+    var k = key(a), c = done[k] || a.style.getPropertyValue("--hc") || next();
+    done[k] = c; mark(a, c);
+    try { sessionStorage.setItem(CK, JSON.stringify(done)); } catch (e2) {}
+  }, true);
+  // le pagine che si ridisegnano (portfolio) riprendono i colori a ogni cambio
+  if (window.MutationObserver) new MutationObserver(applyAll).observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyAll); else applyAll();
+  addEventListener("pageshow", applyAll);
 })();
