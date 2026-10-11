@@ -5208,6 +5208,26 @@ window.WORKS = [
     "src": "img/70-just-art-02.webp",
     "w": 1019,
     "h": 575
+   },
+   {
+    "src": "img/70-just-art-03.webp",
+    "w": 800,
+    "h": 3037
+   },
+   {
+    "src": "img/70-just-art-04.webp",
+    "w": 800,
+    "h": 3250
+   },
+   {
+    "src": "img/70-just-art-05.webp",
+    "w": 800,
+    "h": 1769
+   },
+   {
+    "src": "img/70-just-art-06.webp",
+    "w": 800,
+    "h": 725
    }
   ]
  },
