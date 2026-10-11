@@ -1357,6 +1357,16 @@ window.WORKS = [
     "h": 933
    },
    {
+    "src": "img/20-siderarco-a01.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "src": "img/20-siderarco-a02.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
     "src": "img/20-siderarco-azione-mutante-i-r07.webp",
     "w": 1400,
     "h": 933
@@ -1370,6 +1380,16 @@ window.WORKS = [
     "src": "img/20-siderarco-azione-mutante-i-r09.webp",
     "w": 1400,
     "h": 933
+   },
+   {
+    "src": "img/20-siderarco-a03.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
+    "src": "img/20-siderarco-a04.webp",
+    "w": 933,
+    "h": 1400
    },
    {
     "src": "img/20-siderarco-azione-mutante-i-r10.webp",
