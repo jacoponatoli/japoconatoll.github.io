@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Jacopo Natoli – Curriculum Vitae</title>
+<style>
+/* Versione stampabile del CV: fondo bianco, testo nero, impaginazione classica A4.
+   Si genera il PDF con: node tools/build-cv-pdf.js  (legge gli stessi dati di cv/cv.js) */
+@page { size: A4; margin: 16mm 18mm 18mm 18mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #fff; color: #000; }
+body { font-family: "Inter", Helvetica, Arial, sans-serif; font-size: 8.6pt; line-height: 1.42; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+a { color: inherit; text-decoration: none; }
+header { margin-bottom: 9mm; }
+h1 { font-size: 21pt; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 1.5mm; line-height: 1.1; }
+.contacts { color: #444; font-size: 8.6pt; }
+.contacts span + span::before { content: "·"; margin: 0 2mm; color: #999; }
+.bio { margin: 6mm 0 0; font-size: 9pt; line-height: 1.5; max-width: 150mm; }
+.bio p { margin: 0 0 1.6mm; }
+section { margin-top: 7mm; }
+h2 { font-size: 8pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; margin: 0 0 3mm; padding-top: 2mm; border-top: 0.6pt solid #000; break-after: avoid; }
+.rows { display: grid; grid-template-columns: 22mm minmax(0, 1fr); column-gap: 4mm; }
+.yr { font-weight: 600; font-variant-numeric: tabular-nums; padding-top: 2.2mm; break-after: avoid; }
+.yr:first-child { padding-top: 0; }
+ul { list-style: none; margin: 0; padding: 2.2mm 0 0; }
+.yr:first-child + ul { padding-top: 0; }
+li { margin: 0 0 1.1mm; break-inside: avoid; overflow-wrap: anywhere; }
+li.sub { font-size: 7.2pt; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin: 1.6mm 0 1.1mm; break-after: avoid; }
+b.t { font-weight: 600; font-style: italic; }
+.url { color: #555; }
+</style>
+</head>
+<body>
+<main id="cv"></main>
+<script src="../cv/cv.js"></script>
+<script>
+(function () {
+  var d = window.CV, root = document.getElementById("cv");
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function fmt(t) {
+    return esc(t).replace(/https?:\/\/[^\s;,]+/g, function (u) {
+      u = u.replace(/[.)]+$/, "");
+      var clean = u.replace(/[?&]fbclid=[^&]*/, "");
+      var host = clean.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
+      return '<a class="url" href="' + clean + '">' + host + '</a>';
+    }).replace(/\*([^*]+)\*/g, '<b class="t">$1</b>');
+  }
+  function rows(blocks) {
+    var h = '<div class="rows">', open = false;
+    function close() { if (open) { h += "</ul>"; open = false; } }
+    blocks.forEach(function (b) {
+      if (b.t === "year") { close(); h += '<div class="yr">' + esc(b.v) + '</div><ul>'; open = true; return; }
+      if (!open) { h += '<div class="yr"></div><ul>'; open = true; }
+      h += b.t === "sub" ? '<li class="sub">' + esc(b.v) + "</li>" : "<li>" + fmt(b.v) + "</li>";
+    });
+    close();
+    return h + "</div>";
+  }
+  var site = d.contacts.website || "jacoponatoli.net";
+  var h = '<header><h1>Jacopo Natoli</h1><div class="contacts">' +
+          '<span>Rome, 1985</span>' +
+          '<span><a href="mailto:' + esc(d.contacts.email) + '">' + esc(d.contacts.email) + '</a></span>' +
+          '<span><a href="https://' + esc(site) + '">' + esc(site) + '</a></span></div>' +
+          '<div class="bio">' + d.bio.split("\n").map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + '</div></header>';
+  h += '<section><h2>Education</h2><div class="rows">' +
+       d.education.map(function (e) { return '<div class="yr">' + esc(e[0]) + '</div><ul><li>' + fmt(e[1]) + "</li></ul>"; }).join("") +
+       '</div></section>';
+  d.sections.forEach(function (s) { h += '<section><h2>' + esc(s.title) + '</h2>' + rows(s.blocks) + '</section>'; });
+  root.innerHTML = h;
+  document.body.setAttribute("data-ready", "1");
+})();
+</script>
+</body>
+</html>
