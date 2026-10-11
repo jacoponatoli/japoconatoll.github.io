@@ -63,7 +63,7 @@ summary { list-style: none; cursor: pointer; display: flex; align-items: baselin
 summary::-webkit-details-marker { display: none; }
 summary::after { content: "+"; font-family: var(--display); font-weight: 800; font-size: clamp(20px, 3.2vw, 40px); line-height: 0.9; }
 details[open] > summary::after { content: "−"; }
-summary:hover, summary:focus-visible { color: var(--hc, var(--red)); outline: none; }
+summary:hover, summary:focus-visible { color: var(--hc, var(--fg)); outline: none; }
 h2 { font-size: clamp(20px, 3.2vw, 40px); margin: 0; text-wrap: balance; }
 details > .rows { padding-bottom: clamp(24px, 4vw, 40px); }
 .rows { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); column-gap: 18px; }
@@ -162,6 +162,6 @@ details > .rows { padding-bottom: clamp(24px, 4vw, 40px); }
   });
 });
 </script>
-<script src="../hover.js"></script>
+<script src="../hover.js?v=1791736236"></script>
 </body>
 </html>
