@@ -4110,6 +4110,11 @@ window.WORKS = [
     "src": "img/62-panico-a-venezia-r05.webp",
     "w": 1050,
     "h": 1400
+   },
+   {
+    "src": "img/panico-a-venezia-x01.webp",
+    "w": 1400,
+    "h": 1050
    }
   ]
  },
