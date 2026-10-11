@@ -2196,6 +2196,13 @@ window.WORKS = [
     "src": "img/31-knots-03.webp",
     "w": 1400,
     "h": 788
+   },
+   {
+    "type": "video",
+    "src": "media/31-knots.mp4",
+    "w": 640,
+    "h": 480,
+    "title": "KNOTS"
    }
   ]
  },
