@@ -5196,7 +5196,7 @@ window.WORKS = [
   "why": "TO DELIVER EDIBLE ARTWORKS TO PEOPLE’S HOMES",
   "extra": "",
   "links": [
-   "https://www.eatjustart.it/"
+   "https://web.archive.org/web/2023/https://www.eatjustart.it/"
   ],
   "images": [
    {
@@ -5211,23 +5211,63 @@ window.WORKS = [
    },
    {
     "src": "img/70-just-art-03.webp",
-    "w": 800,
-    "h": 3037
+    "w": 1400,
+    "h": 933
    },
    {
     "src": "img/70-just-art-04.webp",
     "w": 800,
-    "h": 3250
+    "h": 963
    },
    {
     "src": "img/70-just-art-05.webp",
     "w": 800,
-    "h": 1769
+    "h": 793
    },
    {
     "src": "img/70-just-art-06.webp",
     "w": 800,
+    "h": 1281
+   },
+   {
+    "src": "img/70-just-art-07.webp",
+    "w": 800,
+    "h": 1200
+   },
+   {
+    "src": "img/70-just-art-08.webp",
+    "w": 800,
+    "h": 945
+   },
+   {
+    "src": "img/70-just-art-09.webp",
+    "w": 800,
+    "h": 665
+   },
+   {
+    "src": "img/70-just-art-10.webp",
+    "w": 800,
+    "h": 866
+   },
+   {
+    "src": "img/70-just-art-11.webp",
+    "w": 800,
+    "h": 663
+   },
+   {
+    "src": "img/70-just-art-12.webp",
+    "w": 800,
     "h": 725
+   },
+   {
+    "src": "img/70-just-art-13.webp",
+    "w": 320,
+    "h": 640
+   },
+   {
+    "src": "img/70-just-art-14.webp",
+    "w": 720,
+    "h": 1520
    }
   ]
  },
