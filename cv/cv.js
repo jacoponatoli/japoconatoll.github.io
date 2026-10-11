@@ -1228,7 +1228,7 @@ window.CV = {
     },
     {
      "t": "item",
-     "v": "*We are Geco*, DinamoPress, November."
+     "v": "*Siamo Geco*, DinamoPress, November, https://www.dinamopress.it/news/siamo-geco/"
     },
     {
      "t": "item",
