@@ -557,6 +557,21 @@ window.WORKS = [
     "src": "img/11-atlas-viafarini-n05.webp",
     "w": 1400,
     "h": 1050
+   },
+   {
+    "src": "img/11-atlas-viafarini-n06.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/11-atlas-viafarini-n07.webp",
+    "w": 1050,
+    "h": 1400
+   },
+   {
+    "src": "img/11-atlas-viafarini-n08.webp",
+    "w": 1400,
+    "h": 1050
    }
   ]
  },
