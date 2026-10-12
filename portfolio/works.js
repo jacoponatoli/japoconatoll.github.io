@@ -273,9 +273,16 @@ window.WORKS = [
     "h": 447
    },
    {
-    "src": "img/04-distruggi-questa-icona-04.webp",
-    "w": 275,
-    "h": 388
+    "src": "img/04-distruggi-questa-icona-n07.webp",
+    "w": 933,
+    "h": 1400
+   },
+   {
+    "type": "video",
+    "src": "media/04-distruggi-questa-icona-v1.mp4",
+    "w": 720,
+    "h": 1280,
+    "title": "Distruggi questa icona"
    }
   ]
  },
