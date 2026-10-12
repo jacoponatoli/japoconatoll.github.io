@@ -198,14 +198,14 @@ window.WORKS = [
     "h": 642
    },
    {
-    "src": "img/03-quadreria-pornografica-04.webp",
-    "w": 717,
-    "h": 406
+    "src": "img/03-quadreria-pornografica-r03.webp",
+    "w": 1400,
+    "h": 934
    },
    {
-    "src": "img/03-quadreria-pornografica-05.webp",
-    "w": 717,
-    "h": 406
+    "src": "img/03-quadreria-pornografica-r04.webp",
+    "w": 1400,
+    "h": 934
    }
   ]
  },
