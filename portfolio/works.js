@@ -307,6 +307,11 @@ window.WORKS = [
     "h": 789
    },
    {
+    "src": "img/05-corticale-x01.webp",
+    "w": 1400,
+    "h": 933
+   },
+   {
     "src": "img/05-corticale-01.webp",
     "w": 1400,
     "h": 933
