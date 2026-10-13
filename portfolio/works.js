@@ -1913,7 +1913,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 OCTOBER 2023, 16:00–20:00",
   "where": "SUPEROTIUM, NAPLES, within the project DIALOGOS PART SEVEN for ARTDAYS NAPLES",
-  "why": "AN EXERCISE IN FEELING IMAGES LIKE A CHILD",
+  "why": "A performance on feeling images as a child would.",
   "extra": "",
   "links": [],
   "images": [
