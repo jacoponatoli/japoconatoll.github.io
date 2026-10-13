@@ -79,7 +79,7 @@ window.WORKS = [
   "what": "SOLO SHOW, curated by CHIARA RONCHINI and POST EX",
   "when": "JANUARY – APRIL 2026",
   "where": "CAOS – CENTRO ARTI OPIFICIO SIRI, TERNI",
-  "why": "The exhibition presents 21 works by Jacopo Natoli, spanning from the distant past (1885) to the future anterior (?). At its core is the idea of the ambiguous image — or rather, its possibility. Working across multiple media, Natoli creates performative works of uncertain value that resist interpretation and question the role of misunderstanding in art. Moving between retrospection and introspection, the exhibition ranges from a rediscovered ancestral drawing to works yet to be realized, including new pieces created specifically for the museum.",
+  "why": "A solo show of 21 works in different media, from a rediscovered drawing by an ancestor (1885) to works not yet made, including new pieces created for the museum.",
   "extra": "",
   "links": [
    "https://www.caos.museum/archivio/ambigua/"
@@ -295,7 +295,7 @@ window.WORKS = [
   "what": "EXHIBITION\n- 71 cyanotypes on cotton paper, 12.8 × 18 cm each\n- Assembled frottage on paper, 80 × 120 cm\n- Carbon-paper drawing, 150 × 150 cm\n- 225 “scan-drawing” sequences, video loop at 24, 12 and 2 fps",
   "when": "14 JUNE – 30 SEPTEMBER 2022",
   "where": "FONDAZIONE BARUCHELLO, ROME, for the project IL GIARDINO LIBERNAUTICO, curated by ELENA BELLANTONI, with SARA BASTA, JOHN CASCONE and GROSSI MAGLIONI",
-  "why": "TO EXPLORE THE OUTDOOR GROUNDS OF GIANFRANCO BARUCHELLO’S FORMER AGRICOLA CORNELIA S.P.A. THROUGH A “SURFACE-SUPERFICIAL” MAPPING",
+  "why": "A mapping of the outdoor grounds of Gianfranco Baruchello’s former Agricola Cornelia S.p.A., made by recording their surfaces: cyanotypes, frottage, a carbon-paper drawing and scans.",
   "extra": "",
   "links": [
    "https://www.fondazionebaruchello.com/"
@@ -392,7 +392,7 @@ window.WORKS = [
   "what": "BEACH TOWEL, 75 × 150 cm",
   "when": "2023",
   "where": "SPORTING BEACH, OSTIA, for the group show BAGNI MISTERIOSI",
-  "why": "TO CREATE CONFUSION",
+  "why": "A beach towel that merges the crests of AS Roma and SS Lazio, Rome’s two rival football clubs, hung inside a beach cabin.",
   "extra": "",
   "links": [
    "https://www.ibs.it/bagni-misteriosi-cabine-d-artista-libro-vari/e/9788867263776"
@@ -677,7 +677,7 @@ window.WORKS = [
   "what": "PERFORMANCE, AUDIO/VIDEO INSTALLATION",
   "when": "16 MAY 2026",
   "where": "CAFE TWIN, ROME, for the event MECCANICHE IV: CATTURA, part of the project MECCANICHE, curated by GEMMA GULISANO and JACOPO NATOLI",
-  "why": "Lady Buffer is an entity inhabiting the time between virtual memory and lived memory. She embodies the not-yet of the unproductive image. Amid the frenzy of the algorithm, Lady Buffer emerges to capture fragments of infinity. An image without spectacle, she feeds on our waiting, moving through the space of her own memory. Through continuous variation, through the difference within sameness, she gives us a memory of the present.",
+  "why": "A performance among the motorbikes of Cafe Twin: Veronica Tundis moves slowly between an armchair and the floor, a light tube taped to her arm, while a camcorder connected to a projector shows her image on a screen.",
   "extra": "",
   "links": [
    "https://youtu.be/sVx1XRlPNSs"
@@ -845,7 +845,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 OCTOBER 2025",
   "where": "MUSEO DI SCULTURA ANTICA GIOVANNI BARRACCO, ROME, for ROMA DIFFUSA FESTIVAL",
-  "why": "Dancing with the weapon. A choreography of challenging poses between the marble statues and the fragility of gazes. A solitary body, amid the eternal beauty of the classical, turns the atrocious synthesis of the present back on us. The gesture remains suspended, uneasy — between contemplation and danger. Do you act? Do you dodge, or film? Do you look me in the eyes? A performance that stages reciprocal vision: seeing oneself being seen, when the moment comes.",
+  "why": "A performer, her head wrapped in a keffiyeh and a gun in her hand, moves and holds poses among the classical statues of the museum, close to the visitors, who decide whether to watch, step aside or film.",
   "extra": "",
   "links": [
    "https://youtu.be/stPrlZQ-Dz0"
@@ -949,7 +949,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "20–21 SEPTEMBER 2025",
   "where": "GODAI FEST, PARCO EX PAOLO PINI, MILAN",
-  "why": "What’s left to say once you’ve just died? From the slow motion of a funeral carriage, Jacopo Natoli voices seven improvisations — vocal and semantic interferences that drag the living through the elements of the Godai Festival: AHAHAHAHAHAH, DID YOU EVER WONDER?, GIORGIA MELONI, I OFFEND YOU, IT’S LATE, I SEE, FREE PALESTINE.",
+  "why": "From a funeral carriage moving slowly through the Godai Festival, Jacopo Natoli plays a man who has just died and voices seven improvisations: AHAHAHAHAHAH, DID YOU EVER WONDER?, GIORGIA MELONI, I OFFEND YOU, IT’S LATE, I SEE, FREE PALESTINE.",
   "extra": "",
   "links": [
    "https://arte.sky.it/news/2026/godai-fest-programmi-tv-7-gennaio"
@@ -1001,7 +1001,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "17 MAY 2025, 20:15–22:15",
   "where": "MUSEO CIVICO DI ZOOLOGIA, ROME",
-  "why": "One hundred years after the birth of Gilles Deleuze, a performance celebrating, once again, the lines of flight traced by his thought. A circuit of transgenerational bodies in becoming moves through the historic halls of Rome’s Civic Museum of Zoology. Voices, dance, drawings, knots, poses, singing, guided tours: dismantling and recomposing the philosopher’s writings — on the reel and beyond. A tribute in waves: partial, emotional, open-ended.",
+  "why": "A performance for the centenary of Gilles Deleuze’s birth, moving through the historic halls of Rome’s Civic Museum of Zoology: performers of different generations take apart and recompose his writings through voice, dance, drawing, knots, poses, singing and guided tours.",
   "extra": "",
   "links": [
    "https://youtu.be/ytjK1WMjkhk"
@@ -1242,7 +1242,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 JANUARY 2025, 21:30–00:30",
   "where": "FANFULLA, ROME, for CESSIAMO",
-  "why": "Lunar Pierrotism: a speaker in the Fanfulla bathroom connected to a Bluetooth microphone. I stand at the highest possible point of the club. When people enter the bathroom, I speak to them.",
+  "why": "A speaker in the Fanfulla bathroom, connected to a Bluetooth microphone. I stand at the highest possible point of the club; when people enter the bathroom, I speak to them.",
   "extra": "",
   "links": [
    "https://zero.eu/en/news/cessiamo-o-del-bagno-del-fanfulla-come-spazio-darte-cessiamo-cedere-non-essere-amare/"
@@ -1310,7 +1310,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "7 DECEMBER 2024",
   "where": "GAM – GALLERIA D’ARTE MODERNA, ROME",
-  "why": "Time is a flat circle in which we simulate ourselves, thin, inside the music box of becoming. A revolving scene: a military countertenor breathing Baroque arias, a feral ballerina and another in shibari, a pianist who almost accompanies, an upright bass caressing Gaber’s BPM, a writing that is never spoken.",
+  "why": "A revolving scene, like a music box, about time and boredom: a countertenor in military dress singing Baroque arias, two dancers (one in shibari), a pianist, a double bass playing on Giorgio Gaber’s rhythms, and a text that is written but never spoken.",
   "extra": "",
   "links": [
    "https://youtu.be/hgnDHnnJxc0?feature=shared"
@@ -1374,7 +1374,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "2 DECEMBER 2024, 23:00–24:00",
   "where": "LIMINAL SPACE, ROME",
-  "why": "Altered states, parallel dimensions, skull openings, brain mapping, textless texts, ghosts, disappearances, distorted visions, psychedelic mushrooms, radio interference, no ending.",
+  "why": "The first of the Azione mutante series, on altered states of consciousness: in the dark, masked performers play synthesizers and electronics among brain models, candles and psychedelic mushrooms, while voice, video projections and radio interference build a performance with no ending.",
   "extra": "",
   "links": [
    "https://youtu.be/csNm1f48qt8?feature=shared"
@@ -1557,7 +1557,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "27 OCTOBER 2024, 12:00–17:00",
   "where": "VACONE, for VACUNALIA IV, curated by NICCOLÒ GIACOMAZZI",
-  "why": "AFTER THE IMPACT, A BECOMING ROAMS THROUGH VACONE. WHAT STORIES ARE THESE?",
+  "why": "A hooded figure in a golden cloak wanders for five hours through the woods and the village of Vacone, approaching inhabitants and visitors one by one.",
   "extra": "",
   "links": [
    "https://youtu.be/Q5l9f_jxl_M?feature=shared"
@@ -1621,7 +1621,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "15 SEPTEMBER 2024, 16:00–19:00",
   "where": "FORTE BEGATO, GENOA",
-  "why": "A FIGURE WITH UNDEFINED FEATURES EXHALES TO CREATE WORLDS. HOW MANY, BEFORE RUNNING OUT OF BREATH? EXHAUSTED, IT ENTRUSTS THEM TO THE AUDIENCE.",
+  "why": "A masked figure blows up inflatable globes with its own breath, one after another, on the meadow of Forte Begato; when out of breath, it leaves these worlds to the audience.",
   "extra": "",
   "links": [
    "https://youtu.be/zotio1L5oEI?feature=shared"
@@ -1675,7 +1675,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "27 SEPTEMBER 2024",
   "where": "BIBLIOTECA ELSA MORANTE, ROME",
-  "why": "TO BRING BACK SOME EVIDENCE FROM THE GALAXY OF BLACK HOLES",
+  "why": "The closing performance of the workshop La galassia dei buchi neri: a veiled figure, between neon lights, shows the audience one by one, on a tablet, the evidence brought back from the galaxy.",
   "extra": "",
   "links": [
    "https://youtu.be/IVmswTh-N1s"
@@ -2069,7 +2069,7 @@ window.WORKS = [
   "what": "WORKSHOP & PERFORMANCE",
   "when": "WORKSHOP: 12–15 SEPTEMBER 2023\nPERFORMANCE: 16 SEPTEMBER 2023, 16:00–17:00",
   "where": "WORKSHOP: ACCADEMIA DI BELLE ARTI, L’AQUILA\nPERFORMANCE: MAXXI L’AQUILA, for PERFORMATIVE 03 – INTERNATIONAL PERFORMANCE FESTIVAL",
-  "why": "The performance explores celebration as a collective experience, a multiplication of centres, a diffusion of actions and a loss of time. What makes a party a party? What community inhabits and unleashes it? And what is its power?",
+  "why": "A collective performance developed with students of the Accademia di Belle Arti during a four-day workshop: a party with many centres of action at once, spread through MAXXI L’Aquila.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=nxkfN4bLu6U"
@@ -2339,7 +2339,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "26–30 JULY 2021",
   "where": "PASSANTE FERROVIARIO, PORTA GARIBALDI STATION, MILAN, for VAGARE AI MARGINI – RESIDENZA CO_ATTO #1",
-  "why": "TO DOMINATE MILAN\nAleksandra, a woman in a shop window, enclosed behind glass that exposed her to everyone’s gaze, as if on a silver platter or under a spotlight. Aleksandra, a dominatrix with a whip and a diary, provoking reactions and writing them down.",
+  "why": "For five days Aleksandra, a dominatrix with a whip and a diary, stays behind the glass of a shop window in the Porta Garibaldi underground passage, exposed to everyone’s gaze: she provokes passers-by and writes down their reactions.",
   "extra": "",
   "links": [
    "https://www.coattoproject.com/vagare-ai-margini/"
@@ -2396,7 +2396,7 @@ window.WORKS = [
   "what": "UNAUTHORIZED SURVEY",
   "when": "1 NOVEMBER 2019",
   "where": "ARTISSIMA – INTERNATIONAL ART FAIR, TURIN",
-  "why": "TO INQUIRE INTO THE END OF GALLERIES",
+  "why": "Wearing bird masks and posing as researchers on endangered species, the performers walk through the fair without speaking and ask gallerists to answer their questions in writing: a survey of galleries as a species at risk of extinction.",
   "extra": "",
   "links": [
    "https://www.dapa.biz/fairwatching/"
@@ -2611,7 +2611,7 @@ window.WORKS = [
   "what": "BAND",
   "when": "2014",
   "where": "CLUBS, BARS, GALLERIES, BIRTHDAY PARTIES",
-  "why": "TO PLAY WITH MUSIC",
+  "why": "A band that changed its name at every concert, playing improvised music with electronics, tapes and live instruments.",
   "extra": "",
   "links": [
    "https://questoilnostronomeperquestoblog.tumblr.com/"
@@ -2700,7 +2700,7 @@ window.WORKS = [
   "what": "WORKSHOP",
   "when": "JUNE – SEPTEMBER 2024",
   "where": "CORVIALE, LABARO, LAURENTINO, TRULLO, TUFELLO, ROME",
-  "why": "HAVE YOU EVER IMAGINED A GALAXY MADE UP OF 5 BLACK HOLES?",
+  "why": "A series of summer workshops with children in five neighbourhoods on the outskirts of Rome, imagined as the five black holes of one galaxy: drawing, games and collective stories inspired by Italo Calvino’s Cosmicomiche.",
   "links": [
    "https://www.latitudo.net/art-projects/cittaforestalecosmicomiche/"
   ],
@@ -3300,7 +3300,7 @@ window.WORKS = [
   "what": "RESIDENCY = WORKSHOP + EXHIBITION\nA collective mutation: clay village, posters, subvertising, masks and costumes, performance and dance, photo shoots, public banners, fanzine, postcards, exhibition.",
   "when": "23 AUGUST – 30 SEPTEMBER 2020",
   "where": "LVIV, UKRAINE, within the project MAGIC CARPETS, curated by JAM FACTORY ART CENTER",
-  "why": "TO PERFORM A MYTHOGENESIS",
+  "why": "To invent a new collective myth together with the participants and give it shape through objects, images, costumes and actions.",
   "extra": "",
   "links": [
    "https://jamfactory.ua/projects/i-am-where-i-am-fine/"
@@ -3618,7 +3618,7 @@ window.WORKS = [
   "what": "CLASS ASSIGNMENT (PRINTED A4 SHEETS)",
   "when": "2023 – ONGOING",
   "where": "SCHOOL",
-  "why": "TO DESTROY ICONS",
+  "why": "Students receive printed portraits of powerful figures, such as Putin and Trump, and are free to draw on them, deface them or tear them up.",
   "extra": "",
   "links": [],
   "images": [
@@ -3753,7 +3753,7 @@ window.WORKS = [
   "what": "EXPERIMENTAL DEVICES\n- DADISEGNA\n- ALTRORIVELO",
   "when": "2019 – ONGOING",
   "where": "WITH THE DEVICES, ON PAPER",
-  "why": "TO PLAY WITH DRAWING",
+  "why": "Devices for drawing by chance and blind: dice that tell you what to draw, a closed box in which you draw without seeing your hand, tactile reliefs to copy by touch.",
   "extra": "",
   "links": [
    "https://www.sgorbio.it/category/dispositivi/"
@@ -3800,7 +3800,7 @@ window.WORKS = [
   "what": "CINEMATIC DEVICE",
   "when": "2017",
   "where": "TOTALE – GROUP SHOW BY NUMERO CROMATICO, ROME",
-  "why": "TO REACH THE ZERO DEGREE OF CINEMA THROUGH BLACK-AND-WHITE FLICKER, ACTIVATING UNCONTROLLED, INDIVIDUAL, PSYCHEDELIC CINEMATIC IMAGES IN THE BRAIN",
+  "why": "Black-and-white flicker at set frequencies (6, 7.5, 10 and 15 Hz) that makes the brain produce phosphenes: uncontrolled, individual, psychedelic images. Cinema reduced to zero.",
   "extra": "",
   "links": [
    "https://www.numerocromatico.com/totale"
@@ -4462,7 +4462,7 @@ window.WORKS = [
   "what": "ONLINE FOLDER OF 83 DIGITAL PHOTOS",
   "when": "NOVEMBER 2023 – JANUARY 2024",
   "where": "NEW YORK CITY",
-  "why": "TO NOT SPEND MONEY",
+  "why": "An archive of the groceries I stole during my stay in New York, each one photographed in my hand, so as not to spend money.",
   "extra": "",
   "links": [
    "https://od.lk/fl/ODhfMTQ4NjcyNF8"
