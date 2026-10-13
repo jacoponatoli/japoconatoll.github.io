@@ -4045,6 +4045,26 @@ window.WORKS = [
  },
  {
   "cat": "ON PAPER",
+  "title": "DICHIARAZIONE ATTO DI VENDITA CONVERSAZIONI WHATSAPP",
+  "subtitle": "declaration of sale of WhatsApp conversations: terms and conditions",
+  "credit": "",
+  "who": "JACOPO NATOLI",
+  "what": "TEXT-WORK, PRIVATE DEED OF SALE",
+  "when": "2014",
+  "where": "NODES, YEAR IV, NO. 5–6",
+  "why": "To put all my WhatsApp conversations of the year up for sale. Sold in yearly blocks, split into individual “dialogues” and delivered on paper: each conversation can be sold only once, at 10 euro cents per word. The buyer agrees never to distribute or publish it.",
+  "extra": "",
+  "links": [],
+  "images": [
+   {
+    "src": "img/whatsapp-vendita-01.webp",
+    "w": 989,
+    "h": 1400
+   }
+  ]
+ },
+ {
+  "cat": "ON PAPER",
   "title": "INTERVISTA DOPPIA CON TERMINE ULTIMO",
   "subtitle": "double interview with a final deadline",
   "credit": "",
