@@ -218,7 +218,7 @@ window.WORKS = [
   "what": "MIXED MEDIA ON A4 RISOGRAPH PRINTS",
   "when": "1 MARCH 2025",
   "where": "COSMO, ROME, for the group show LASCIA ANDARE, curated by MAJD EL ROUMY",
-  "why": "TO PRESENT A SELECTION OF RESULTS FROM THE CLASSROOM PROJECT “DESTROY THIS ICON”",
+  "why": "To present a selection of results from the classroom project “Destroy this icon”.",
   "extra": "",
   "links": [],
   "images": [
@@ -365,7 +365,7 @@ window.WORKS = [
   "what": "GROUP SHOW OF DEEP-FRIED ARTWORKS",
   "when": "14–16 OCTOBER 2022",
   "where": "ARTVERONA (LAB SECTION), VERONA",
-  "why": "TO PRESENT DEEP-FRIED ARTWORKS IN A COLLECTIVE SHOW BY POST EX AT AN ART FAIR BOOTH",
+  "why": "To present deep-fried artworks in a collective show by Post Ex at an art fair booth.",
   "extra": "",
   "links": [
    "https://www.instagram.com/p/CkSwXSJoC1G/"
@@ -419,7 +419,7 @@ window.WORKS = [
   "what": "A €500 BANKNOTE INSURED FOR €20,000\nSerial number: X01719798662. I tried to steal the artwork by swapping it for another €500 note. The theft failed: the museum attendant had memorized the serial number.",
   "when": "19–22 JANUARY 2022",
   "where": "GAM – GALLERIA D’ARTE MODERNA, ROME",
-  "why": "TO STEAL MY OWN ARTWORK",
+  "why": "To steal my own artwork.",
   "extra": "",
   "links": [
    "https://www.galleriaartemodernaroma.it/it/mostra-evento/materia-nova"
@@ -466,7 +466,7 @@ window.WORKS = [
   "what": "RESIDENCY + SHOW\nDuring my residency at Viafarini, I asked the resident artists, the curators, the director and all the staff of the cultural centre to teach me something. The final show is the result of what I learned.",
   "when": "JANUARY – APRIL 2021",
   "where": "VIAFARINI STUDIO, MILAN",
-  "why": "TO LEARN",
+  "why": "To learn.",
   "extra": "",
   "links": [
    "https://www.viafarini.org/433/viafarini-open-studio/"
@@ -538,7 +538,7 @@ window.WORKS = [
   "what": "DRAWING\nA visual study of the specialized library held by Viafarini, Careof and Giovanni Quadrio: 25,000 volumes including monographs, catalogues, essays and periodicals.",
   "when": "JANUARY – APRIL 2021",
   "where": "VIAFARINI LIBRARY, MILAN",
-  "why": "TO VISUALLY STUDY A LIBRARY",
+  "why": "To visually study a library.",
   "extra": "",
   "links": [
    "https://www.viafarini.org/433/viafarini-open-studio/"
@@ -605,7 +605,7 @@ window.WORKS = [
   "what": "TRANSPERSONAL SHOW\n7 lightboxes, various dimensions",
   "when": "JUNE 2020",
   "where": "HOME",
-  "why": "TO PRESENT MY PRACTICE IN A RATIONAL WAY",
+  "why": "To present my practice in a rational way.",
   "extra": "",
   "links": [
    "https://www.dapa.biz/lightbox-cabina-doppia-transpersonale-di-jacopo-natoli-a-cura-di-arianna-desideri/"
@@ -1128,7 +1128,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "FROM 19:00 ON 4 APRIL TO 19:00 ON 6 APRIL 2025",
   "where": "HOXTON HOTEL, ROME, for PARIOLI PUNK",
-  "why": "48 PERFORMANCES IN 48 HOURS FOR 48 INSTAGRAM LIVE STREAMS",
+  "why": "48 performances in 48 hours for 48 Instagram live streams.",
   "extra": "",
   "links": [
    "https://www.instagram.com/reel/DJWRTmIszPA/"
@@ -1752,7 +1752,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 APRIL 2024, 19:30–21:30",
   "where": "QUADRARO, ROME, for LEZIONI DI RESISTENZA",
-  "why": "TO ACT LIKE MONSTERS IN THE STREET, ON STRANGERS",
+  "why": "To act like monsters in the street, on strangers.",
   "extra": "",
   "links": [
    "https://ditopublishing.com/prodotto/lezioni-di-resistenza/"
@@ -1826,7 +1826,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "5 APRIL 2024, 18:30–22:30",
   "where": "MAGMA, ROME, curated by STUDIO DRANG",
-  "why": "TO HAVE DINNER IN PUBLIC WITH MY FAMILY",
+  "why": "To have dinner in public with my family.",
   "extra": "",
   "links": [
    "https://zero.eu/en/eventi/305770-jacopo-natoli-la-cena-forse-lultima,roma/"
@@ -2277,7 +2277,7 @@ window.WORKS = [
   "what": "LECTURE-PERFORMANCE",
   "when": "8 OCTOBER 2022",
   "where": "TEATRO CORVIALE, ROME, for the closing event of the CITTÀ FORESTA festival, organized by LATITUDO ART PROJECTS",
-  "why": "TO PERFORM AN ALPHABET DERIVED FROM THE CONCEPT OF “CITY-FOREST”",
+  "why": "To perform an alphabet derived from the concept of “city-forest”.",
   "links": [],
   "images": [
    {
@@ -2306,7 +2306,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "15 JUNE 2021",
   "where": "SPAZIO CONCORDIA II, MILAN",
-  "why": "CYCLING FOR 4 HOURS NON-STOP, DELIVERING NOTHING TO NOBODY, NOWHERE",
+  "why": "Cycling for 4 hours non-stop, delivering nothing to nobody, nowhere.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=B5Uw68FQRSU"
@@ -2486,7 +2486,7 @@ window.WORKS = [
   "what": "DRIFT",
   "when": "29 AUGUST 2019",
   "where": "FLORENCE",
-  "why": "TO EXPLORE THE CITY OF FLORENCE THROUGH ITS RIVER, THE ARNO",
+  "why": "To explore the city of Florence through its river, the Arno.",
   "extra": "",
   "links": [
    "https://www.dapa.biz/esondare-1/"
@@ -2543,7 +2543,7 @@ window.WORKS = [
   "what": "DRIFT\nParticipants are asked to explore the city within a set time, without being able to see. Each blindfolded participant is accompanied by another person, who guides them and traces the route on a map. Once the route is complete, the blindfolded participants record an audio account of the experience.",
   "when": "JULY 2017",
   "where": "BOCS ART RESIDENCY, COSENZA",
-  "why": "TO OFFER AN UNUSUAL URBAN EXPLORATION",
+  "why": "To offer an unusual urban exploration.",
   "extra": "",
   "links": [
    "https://en.numerocromatico.com/"
@@ -2580,7 +2580,7 @@ window.WORKS = [
   "what": "PERFORMANCE\nAn auditory, musical-visual and textual event: five kinds of immanent portrait of the event, made in real time — poetic, musical, tactile, acoustic and vocal. During the performance, members of the public are blindfolded in turn and can use an open microphone.",
   "when": "2015–2017",
   "where": "VARIOUS VENUES: GALLERIES, BARS, FESTIVALS",
-  "why": "TO OVERTURN THE PARTICIPANTS’ POINT OF VIEW: THE PUBLIC DOES NOT JUST WATCH BUT MAKES THE EXPERIENCE, BECOMING AN ACTIVE PART OF THE EVENT",
+  "why": "To overturn the participants’ point of view: the public does not just watch but makes the experience, becoming an active part of the event.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=3XDP6Mzyktk"
@@ -2661,7 +2661,7 @@ window.WORKS = [
   "what": "WORKSHOP",
   "when": "ONGOING",
   "where": "FONDAZIONE LAC O LE MON, LECCE",
-  "why": "TO COLLECTIVELY EXPERIMENT, BOTH IN THEORY AND PRACTICE, WITH VARIOUS ALTERED STATES OF CONSCIOUSNESS",
+  "why": "To collectively experiment, both in theory and practice, with various altered states of consciousness.",
   "extra": "",
   "links": [
    "https://indicibile.xyz"
@@ -2759,7 +2759,7 @@ window.WORKS = [
   "what": "WORKSHOP",
   "when": "23 MARCH 2024",
   "where": "CARICO MASSIMO, LIVORNO, for COORDINATE N.2. LOOKED IN FROM THE OUTSIDE – STATI GENERALI DEGLI STATI NON ORDINARI DI COSCIENZA",
-  "why": "TO EXPLORE THE CONCEPT OF THE PSYCHEDELIC THROUGH 15 DRAWING SCORES",
+  "why": "To explore the concept of the psychedelic through 15 drawing scores.",
   "extra": "DISEGNA — draw\nUNA VISIONE — a vision\nUN’ALLUCINAZIONE — a hallucination\nUN FRATTALE — a fractal\nUN PATTERN DI FORME GEOMETRICHE — a pattern of geometric shapes\nUN ESSERE TRANSINDIVIDUALE — a transindividual being\nIL TUO ANIMALE GUIDA — your spirit animal\nCIÒ CHE NON È — what is not\nL’ESPANSIONE DEL TUO IO — the expansion of your self\nLA DISSOLUZIONE DEL TUO IO — the dissolution of your self\nTE CHE NON SEI — you who are not\nUN FUNGHETTO PSICHEDELICO — a psychedelic mushroom\nUNO SCIAMANO — a shaman\nUN TESTO IN UNA LINGUA SCONOSCIUTA — a text in an unknown language\nUNA PIANTA DAI POTERI ENTEOGENI — a plant with entheogenic powers\nCOME SE FOSSI SOTTO L’EFFETTO DI SOSTANZE PSICHEDELICHE — as if you were under the effect of psychedelic substances",
   "links": [
    "https://caricomassimo.org/en/projects/coordinate-n-2"
@@ -2886,7 +2886,7 @@ window.WORKS = [
   "what": "DISCUSSION & WORKSHOP",
   "when": "DECEMBER 2023 – ONGOING",
   "where": "VARIOUS SPACES IN ROME",
-  "why": "TO CREATE A SPACE FOR PLAYFUL DISCUSSION OF SPECIFIC ART-RELATED TOPICS",
+  "why": "To create a space for playful discussion of specific art-related topics.",
   "extra": "",
   "links": [],
   "images": [
@@ -2941,7 +2941,7 @@ window.WORKS = [
   "what": "WORKSHOP",
   "when": "12 JULY, 29 AUGUST, 13 and 28 SEPTEMBER, 11 and 14 OCTOBER 2023",
   "where": "LABARO, LAURENTINO, CORVIALE, TUFELLO, ROME, for the festival CITTÀ FORESTA. LE COSMICOMICHE, curated by LATITUDO ART PROJECTS",
-  "why": "TO COLLECTIVELY DRAW ON A 36 M² CANVAS, TRANSFORMING A SELECTION OF KEYWORDS FROM ITALO CALVINO’S COSMICOMICHE INTO DRAWINGS",
+  "why": "To collectively draw on a 36 m² canvas, transforming a selection of keywords from Italo Calvino’s Cosmicomiche into drawings.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=gO3v5UKZGkY"
@@ -3040,7 +3040,7 @@ window.WORKS = [
   "what": "WORKSHOP & VIDEO",
   "when": "OCTOBER 2022 – JUNE 2023",
   "where": "ISTITUTO COMPRENSIVO LARGO VOLUMNIA, ROME",
-  "why": "TO SHOOT AND EDIT A SERIES OF SHORT CLIPS ON A MOBILE PHONE, MOCKING THE SCHOOL",
+  "why": "To shoot and edit a series of short clips on a mobile phone, mocking the school.",
   "extra": "",
   "links": [
    "https://youtu.be/XW3c1rBkLec"
@@ -3099,7 +3099,7 @@ window.WORKS = [
   "what": "WORKSHOP",
   "when": "16 DECEMBER 2022; 17 FEBRUARY, 24 MARCH, 28 APRIL, 26 MAY 2023",
   "where": "GALLINE BIANCHE LIBRARY, LABARO, ROME, within the project 15LAB, curated by LATITUDO ART PROJECTS",
-  "why": "TO TEACH HOW TO MAKE AN ARTIST’S BOOK FROM SIMPLE PAPER, TO PLAY WITH NOTEBOOK FORMATS AND TO MAKE COLLECTIVE ZINES",
+  "why": "To teach how to make an artist’s book from simple paper, to play with notebook formats and to make collective zines.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=5R-doMj37dI"
@@ -3248,7 +3248,7 @@ window.WORKS = [
   "what": "RESIDENCY = WORKSHOP + DRIFT + STREET POSTER BOMBING",
   "when": "AUGUST 2021",
   "where": "SORRY NO ROOMS AVAILABLE, UŽHOROD, UKRAINE",
-  "why": "TO MEET, SHARE, IMAGINE, ACT WITH THE LOCAL COMMUNITY",
+  "why": "To meet, share, imagine and act with the local community.",
   "extra": "",
   "links": [
    "https://sorrynoroomsavailable.tumblr.com/post/661396668469706752/"
@@ -3395,7 +3395,7 @@ window.WORKS = [
   "what": "WORKSHOP\nMythogenesis, cyanotype, fanzine, strike posters, masks, musical instruments, photo shoot, protest.",
   "when": "20–24 JUNE 2020",
   "where": "FOREST OF VIVO D’ORCIA, for the project VAGABONDI EFFICACI by FONDAZIONE PALAZZO STROZZI, coordinated by OXFAM ITALIA, in partnership with TEATRO POVERO DI MONTICCHIELLO",
-  "why": "TO ORGANIZE A PROTEST FOR THE FOREST IN THE FOREST",
+  "why": "To organize a protest for the forest, in the forest.",
   "extra": "",
   "links": [
    "https://www.sgorbio.it/manifesto-ergo-vivo/"
@@ -3582,7 +3582,7 @@ window.WORKS = [
   "what": "WORKSHOP + 24 VIDEO PORTRAITS (various formats, HD, colour, stereo, digital file, 72 min)",
   "when": "2012",
   "where": "VILLA LETIZIA PSYCHIATRIC CLINIC, ROME + ONLINE",
-  "why": "TO MAKE A WORKSHOP AND A DOCUMENTARY WITH (NOT ABOUT) SO-CALLED “MADNESS”",
+  "why": "To make a workshop and a documentary with (not about) so-called “madness”.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=6ofe1OBlJWw"
@@ -3721,7 +3721,7 @@ window.WORKS = [
   "what": "A 1 M² MOVABLE STUDIO SPACE\nThe smallest studio in the world, inside Post Ex, one of the largest artist-run spaces in Italy (1,103 m²).",
   "when": "OCTOBER 2021 – MARCH 2023",
   "where": "POST EX, ROME",
-  "why": "TO EXPLORE THE LIMITS OF THE STUDIO",
+  "why": "To explore the limits of the studio.",
   "extra": "",
   "links": [],
   "images": [
@@ -3863,7 +3863,7 @@ window.WORKS = [
   "what": "EDITION\nA tool for dreaming — or rather, for remembering dreams. It consists of a box containing an eye mask and a set of written rules to follow before falling asleep.",
   "when": "2017",
   "where": "INSCAPE / LA VITA DELLA MENTE, SWISS INSTITUTE, ROME",
-  "why": "TO STIMULATE DREAM RECALL",
+  "why": "To stimulate dream recall.",
   "extra": "",
   "links": [
    "https://en.numerocromatico.com/dreamask"
@@ -3900,7 +3900,7 @@ window.WORKS = [
   "what": "DRAWING",
   "when": "2021 – ONGOING",
   "where": "BOOKLET-DEVICE",
-  "why": "TO COLLECT PORNOGRAPHIC DRAWINGS",
+  "why": "To collect pornographic drawings.",
   "extra": "",
   "links": [],
   "images": [
@@ -3950,7 +3950,7 @@ window.WORKS = [
   "what": "CARBON-PAPER DRAWINGS ON FOLDABLE PAPER",
   "when": "2020 – ONGOING",
   "where": "PLACES I TRAVEL",
-  "why": "TO COLLECT PSYCHEDELIC MAPS OF MY JOURNEYS THROUGH “BLIND DRAWINGS”",
+  "why": "To collect psychedelic maps of my journeys through “blind drawings”.",
   "extra": "",
   "links": [],
   "images": [
@@ -4000,7 +4000,7 @@ window.WORKS = [
   "what": "FANZINES, POSTERS, STICKERS, POSTCARDS, FLYERS, BOOKLET-DEVICES",
   "when": "2019 – ONGOING",
   "where": "ON PAPER (MAINLY)",
-  "why": "TO SELF-PUBLISH ANY KIND OF EDITION:\nDO IT YOURSELF!",
+  "why": "To self-publish any kind of edition: do it yourself!",
   "extra": "",
   "links": [],
   "images": [
@@ -4080,7 +4080,7 @@ window.WORKS = [
   "what": "INTERVIEW",
   "when": "1 JANUARY 2012 – ONGOING",
   "where": "EMAIL",
-  "why": "TO CONDUCT AN INTERVIEW WHOSE LIMIT IS DEATH",
+  "why": "To conduct an interview whose limit is death.",
   "extra": "DECLARATION\nSince 1 January 2012, Jacopo Natoli has been asking questions of Cesare Pietroiusti and Luigi Presicce.\nThe questions are sent as follows: once a week; every Sunday; by email.\nThe two may: answer the questions; not answer the questions.\nThe interview will be archived once a year with a third party.\nThe interview will end when one of the three participants has died.\nThe interview may not be published before that moment.\nThe terms of publication are yet to be defined; they will be defined, after the death, by the two survivors.\nRome, December 2012\nFirst published in nodes, year II, no. 1, 2013, Numero Cromatico Editore, Rome.",
   "links": [
    "http://nodesjournal.com/nodes-1/"
@@ -4112,7 +4112,7 @@ window.WORKS = [
   "what": "JOURNAL OF ART AND NEUROSCIENCE\nI co-founded the journal and was part of its editorial board, working on every aspect of it, from graphic design to distribution. I wrote and translated many articles.",
   "when": "2011–2018",
   "where": "PRINTED MAGAZINE",
-  "why": "TO CREATE AN INDEPENDENT INTERDISCIPLINARY MAGAZINE",
+  "why": "To create an independent interdisciplinary magazine.",
   "extra": "",
   "links": [
    "http://nodesjournal.com/"
@@ -4184,7 +4184,7 @@ window.WORKS = [
   "what": "WORKSHOP FOR UNAUTHORIZED URBAN INTERVENTIONS + FUNDRAISING PARTY",
   "when": "25–29 MARCH 2024",
   "where": "CASA PUNTO CROCE, IUAV, VENICE",
-  "why": "A WORKSHOP TO IMAGINE AND CREATE UNEXPECTED COLLECTIVE URBAN INTERVENTIONS",
+  "why": "A workshop to imagine and create unexpected collective urban interventions.",
   "extra": "",
   "links": [
    "https://www.casapuntocroce.org/panico-a-venezia-crowdfunding-palestina-29-marzo-1830-2230/"
@@ -4231,7 +4231,7 @@ window.WORKS = [
   "what": "DIGITAL FILE + POSTERS\nMy Green Pass was hacked and uploaded to the Steal This Poster website. Someone printed it as a poster and illegally put it up in many public places. Anyone could take a photo of it and use it as if they were me.",
   "when": "NOVEMBER 2021",
   "where": "ONLINE + PUBLIC STREETS, ROME",
-  "why": "STEALING AND GIVING AWAY A USABLE PRIVATE DIGITAL DOCUMENT DURING THE PANDEMIC “EMERGENCY”",
+  "why": "Stealing and giving away a usable private digital document during the pandemic “emergency”.",
   "extra": "",
   "links": [
    "https://stealthisposter.org/poster/"
@@ -4273,7 +4273,7 @@ window.WORKS = [
   "what": "SPRAY",
   "when": "2020 – ONGOING",
   "where": "STREETS",
-  "why": "TO SPRAY 1 SHAPE, THEN 2 DOTS",
+  "why": "To spray 1 shape, then 2 dots.",
   "extra": "",
   "links": [
    "https://www.jacoponatoli.com/1shape2dots"
@@ -4902,7 +4902,7 @@ window.WORKS = [
   "what": "ONLINE FOLDER OF 39 DIGITAL PHOTOS",
   "when": "DECEMBER 2023",
   "where": "MEXICO CITY",
-  "why": "TO WALK AND PHOTOGRAPH THE TREE ROOTS BREAKING THROUGH THE CONCRETE",
+  "why": "To walk and photograph the tree roots breaking through the concrete.",
   "extra": "",
   "links": [
    "https://od.lk/fl/ODhfMTQ4Njc0NF8"
@@ -5114,7 +5114,7 @@ window.WORKS = [
   "what": "AUDIOVISUAL COLLECTIVE PERFORMANCE: AN ONLIFE SIMULATION OF A VIRTUAL FOREST",
   "when": "13 APRIL 2020, 00:00–24:00",
   "where": "ZOOM",
-  "why": "TO BE IN A FOREST FOR 24 HOURS DURING THE FIRST COVID LOCKDOWN",
+  "why": "To be in a forest for 24 hours during the first Covid lockdown.",
   "extra": "",
   "links": [
    "https://www.dapa.biz/fare-foresta/"
@@ -5167,7 +5167,7 @@ window.WORKS = [
   "what": "DEMONSTRATION & LIVE STREAMING",
   "when": "31 MAY 2020, FROM SUNSET TO LATE NIGHT",
   "where": "PARCO DELLA CAFFARELLA, ROME + ZOOM (CAMERA DI ESPANSIONE 20.20)",
-  "why": "TO CLAIM THE NIGHT, AFTER THE FIRST LOCKDOWN",
+  "why": "To claim the night, after the first lockdown.",
   "extra": "",
   "links": [
    "https://www.youtube.com/watch?v=3pknHOSTKcw&t=9s"
@@ -5231,7 +5231,7 @@ window.WORKS = [
   "what": "LIVE-STREAMED CONCERT",
   "when": "11 APRIL 2020",
   "where": "FACEBOOK",
-  "why": "TO PERFORM AND LIVE-STREAM A CONCERT BASED ON TEXTS BY WILLIAM S. BURROUGHS DURING THE FIRST COVID LOCKDOWN",
+  "why": "To perform and live-stream a concert based on texts by William S. Burroughs during the first Covid lockdown.",
   "extra": "",
   "links": [
    "https://youtu.be/dObkY0h8miI"
@@ -5322,7 +5322,7 @@ window.WORKS = [
   "what": "BUSINESS",
   "when": "2020 – ONGOING",
   "where": "ROME",
-  "why": "TO DELIVER EDIBLE ARTWORKS TO PEOPLE’S HOMES",
+  "why": "To deliver edible artworks to people’s homes.",
   "extra": "",
   "links": [
    "https://web.archive.org/web/2023/https://www.eatjustart.it/"
@@ -5409,7 +5409,7 @@ window.WORKS = [
   "what": "VIDEO INTERVIEWS (25 EPISODES)\nRecorded at exhibition openings to document the opinions of art professionals and enthusiasts at shows and events in galleries, museums and fairs, highlighting the trends and weaknesses of the contemporary art system.",
   "when": "2014–2016",
   "where": "ART EVENTS AND OPENINGS",
-  "why": "TO INTERVIEW THE PUBLIC AT ART EVENTS",
+  "why": "To interview the public at art events.",
   "extra": "",
   "links": [
    "https://www.youtube.com/playlist?list=PLTdUv4eHYpVFRjxfdTlwnc_3raPoqIzEZ"
@@ -5453,7 +5453,7 @@ window.WORKS = [
   "what": "FOUND-FOOTAGE VIDEO SERIES\nBased on Mille Plateaux. Capitalisme et schizophrénie (1980) by Gilles Deleuze and Félix Guattari. Each “plateau” of the book is a chapter of the series: an audiovisual collage-décollage of objets trouvés, mostly from the internet. Each chapter lasts 4′33″.",
   "when": "2012–2016",
   "where": "ONLINE",
-  "why": "TO STUDY AND VISUALIZE A THOUSAND PLATEAUS BY GILLES DELEUZE AND FÉLIX GUATTARI THROUGH THE PRACTICE OF FOUND-FOOTAGE FILM",
+  "why": "To study and visualize A Thousand Plateaus by Gilles Deleuze and Félix Guattari through the practice of found-footage film.",
   "extra": "",
   "links": [
    "https://vimeo.com/showcase/2002956"
