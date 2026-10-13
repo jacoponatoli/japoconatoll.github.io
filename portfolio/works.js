@@ -677,7 +677,7 @@ window.WORKS = [
   "what": "PERFORMANCE, AUDIO/VIDEO INSTALLATION",
   "when": "16 MAY 2026",
   "where": "CAFE TWIN, ROME, for the event MECCANICHE IV: CATTURA, part of the project MECCANICHE, curated by GEMMA GULISANO and JACOPO NATOLI",
-  "why": "A performance among the motorbikes of Cafe Twin: Veronica Tundis moves slowly between an armchair and the floor, a light tube taped to her arm, while a camcorder connected to a projector shows her image on a screen.",
+  "why": "A performance between dance, music and multimedia installation, named after buffering: the pause in the digital stream when data is not yet available but still promises to appear. Four devices share the space: an exhausted dancer who slowly changes posture, a neon tube on her left arm and a drone hovering motionless above her; a MiniDV camcorder connected to a projector, showing unedited footage of the same dancer recalling her first choreography in that very space; a zone of smoke and strobe light with generative music derived from a piano sonata, endlessly varying; an LP cover with the words Lady Buffer drawn in neon tubes.",
   "extra": "",
   "links": [
    "https://youtu.be/sVx1XRlPNSs"
@@ -739,6 +739,14 @@ window.WORKS = [
     "w": 1280,
     "h": 720,
     "title": "Lady Buffer"
+   },
+   {
+    "type": "pdf",
+    "src": "media/12-lady-buffer-progetto.pdf",
+    "thumb": "img/12-lady-buffer-progetto-p1.webp",
+    "w": 990,
+    "h": 1400,
+    "title": "Lady Buffer · progetto"
    }
   ]
  },
@@ -845,7 +853,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 OCTOBER 2025",
   "where": "MUSEO DI SCULTURA ANTICA GIOVANNI BARRACCO, ROME, for ROMA DIFFUSA FESTIVAL",
-  "why": "A performer, her head wrapped in a keffiyeh and a gun in her hand, moves and holds poses among the classical statues of the museum, close to the visitors, who decide whether to watch, step aside or film.",
+  "why": "Dancing with the weapon. A choreography of aimed poses between the marble of the statues and the fragility of gazes. A lone body, amid the eternal beauty of the classical, points the atrocious synthesis of the present at us. The gesture remains suspended, uncomfortable, between contemplation and danger. Do you act? Do you dodge, or film? Do you look me in the eyes? A performance that stages reciprocal vision: seeing oneself see, when the moment comes.",
   "extra": "",
   "links": [
    "https://youtu.be/stPrlZQ-Dz0"
@@ -1242,7 +1250,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "19 JANUARY 2025, 21:30–00:30",
   "where": "FANFULLA, ROME, for CESSIAMO",
-  "why": "A speaker in the Fanfulla bathroom, connected to a Bluetooth microphone. I stand at the highest possible point of the club; when people enter the bathroom, I speak to them.",
+  "why": "Pierrotismo lunare: a speaker in the Fanfulla bathroom, connected to a Bluetooth microphone. I stand at the highest possible point of the club; when people enter the bathroom, I speak to them.",
   "extra": "",
   "links": [
    "https://zero.eu/en/news/cessiamo-o-del-bagno-del-fanfulla-come-spazio-darte-cessiamo-cedere-non-essere-amare/"
@@ -1310,7 +1318,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "7 DECEMBER 2024",
   "where": "GAM – GALLERIA D’ARTE MODERNA, ROME",
-  "why": "A revolving scene, like a music box, about time and boredom: a countertenor in military dress singing Baroque arias, two dancers (one in shibari), a pianist, a double bass playing on Giorgio Gaber’s rhythms, and a text that is written but never spoken.",
+  "why": "A revolving scene, like a music box, about time and boredom: a countertenor in military dress singing Baroque arias, two dancers (one in shibari), a pianist, a double bass playing at gabber BPM, and a text that is written but never spoken.",
   "extra": "",
   "links": [
    "https://youtu.be/hgnDHnnJxc0?feature=shared"
