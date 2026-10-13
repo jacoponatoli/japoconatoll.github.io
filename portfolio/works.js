@@ -1683,7 +1683,7 @@ window.WORKS = [
   "what": "PERFORMANCE",
   "when": "27 SEPTEMBER 2024",
   "where": "BIBLIOTECA ELSA MORANTE, ROME",
-  "why": "The closing performance of the workshop La galassia dei buchi neri: a veiled figure, between neon lights, shows the audience one by one, on a tablet, the evidence brought back from the galaxy.",
+  "why": "The closing performance of the workshop La galassia dei buchi neri: three veiled figures, between neon lights, bring the audience evidence from the galaxy. One shows images on a tablet, one lets people listen to voices, one moves through the space carrying a speaker that plays an audio track.",
   "extra": "",
   "links": [
    "https://youtu.be/IVmswTh-N1s"
