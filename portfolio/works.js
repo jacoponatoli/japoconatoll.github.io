@@ -2654,6 +2654,126 @@ window.WORKS = [
  },
  {
   "cat": "WORKSHOPS",
+  "title": "INGRANDIMENTI",
+  "subtitle": "enlargements (Indian gods)",
+  "credit": "",
+  "who": "STUDENTS",
+  "what": "POSTERS",
+  "when": "2026 – 2027",
+  "where": "MIDDLE SCHOOL",
+  "why": "To create large posters of Indian gods: images are projected and enlarged on paper, traced and painted by the students, then hung at school and pasted up in the streets.",
+  "extra": "",
+  "links": [],
+  "images": [
+   {
+    "src": "img/ingrandimenti-01.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-02.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-03.webp",
+    "w": 1400,
+    "h": 1054
+   },
+   {
+    "src": "img/ingrandimenti-04.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-05.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-06.webp",
+    "w": 1400,
+    "h": 1054
+   },
+   {
+    "src": "img/ingrandimenti-07.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-08.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-09.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-10.webp",
+    "w": 1400,
+    "h": 1054
+   },
+   {
+    "src": "img/ingrandimenti-11.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-12.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-13.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-14.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-15.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-16.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-17.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-18.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-19.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-20.webp",
+    "w": 1054,
+    "h": 1400
+   },
+   {
+    "src": "img/ingrandimenti-21.webp",
+    "w": 1054,
+    "h": 1400
+   }
+  ]
+ },
+ {
+  "cat": "WORKSHOPS",
   "title": "GLI INDICIBILI",
   "subtitle": "the unspeakable",
   "credit": "",
