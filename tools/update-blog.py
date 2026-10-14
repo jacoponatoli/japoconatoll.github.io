@@ -15,12 +15,16 @@ def testo(s):
 
 def leggi(src):
     if src.startswith("http"):
-        req = urllib.request.Request(src, headers={"User-Agent": "jacoponatoli.net blog updater"})
+        req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36", "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"})
         return urllib.request.urlopen(req, timeout=30).read()
     return open(src, "rb").read()
 
 def main(src=FEED):
-    root = ET.fromstring(leggi(src))
+    raw = leggi(src)
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError:
+        raise ValueError("il feed non è XML (forse nessun articolo pubblicato ancora): " + raw[:120].decode("utf-8", "replace"))
     ns = {"content": "http://purl.org/rss/1.0/modules/content/"}
     posts = []
     for it in root.iter("item"):
@@ -49,4 +53,8 @@ def main(src=FEED):
         print("nessuna novità")
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    try:
+        main(*sys.argv[1:])
+    except Exception as e:
+        # niente panico: la pagina resta com'è; il messaggio compare come avviso su GitHub
+        print("::warning::Feed Substack non letto: %s: %s" % (type(e).__name__, str(e)[:300]))
