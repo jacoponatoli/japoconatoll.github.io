@@ -1,0 +1,22 @@
+name: Blog da Substack
+# Ogni 3 ore controlla jacoponatoli.substack.com e aggiorna la pagina Blog del sito
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/update-blog.py
+      - run: |
+          if ! git diff --quiet -- blog/posts.js; then
+            git config user.name "blog-bot"
+            git config user.email "blog-bot@users.noreply.github.com"
+            git add blog/posts.js
+            git commit -m "Blog: nuovi articoli da Substack"
+            git push
+          fi

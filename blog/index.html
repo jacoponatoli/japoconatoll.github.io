@@ -53,6 +53,9 @@ li a:focus-visible { outline: none; }
   .meta { white-space: normal; }
 }
 .empty { color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; border-top: 1px solid var(--line); padding: 16px 0; margin: 0; }
+.sub { margin: 28px 0 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.sub a { color: var(--muted); }
+.sub a:hover, .sub a:focus-visible { color: var(--hc, var(--red)); outline: none; }
 .ex { grid-column: 1 / -1; color: var(--muted); max-width: 70ch; }
 </style>
 </head>
@@ -63,17 +66,23 @@ li a:focus-visible { outline: none; }
   <section aria-label="Posts">
     <ul id="posts"></ul>
   </section>
+  <p class="sub"><a href="https://jacoponatoli.substack.com/subscribe" target="_blank" rel="noopener">Subscribe on Substack ↗</a></p>
 </main>
-<script src="posts.js?v=1"></script>
 <script>
+// carica sempre l'elenco più recente degli articoli (lo aggiorna GitHub ogni 3 ore da Substack)
 (function () {
-  var ul = document.getElementById("posts"), P = window.POSTS || [];
-  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  if (!P.length) { ul.outerHTML = '<p class="empty">First post coming soon</p>'; return; }
-  ul.innerHTML = P.map(function (p) {
-    return '<li><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><span class="name disp">' + esc(p.title) + '</span>' +
-           '<span class="meta">' + esc(p.date) + ' ↗</span>' + (p.excerpt ? '<span class="ex">' + esc(p.excerpt) + '</span>' : '') + '</a></li>';
-  }).join("");
+  var sc = document.createElement("script");
+  sc.src = "posts.js?v=" + Date.now();
+  sc.onload = sc.onerror = function () {
+    var ul = document.getElementById("posts"), P = window.POSTS || [];
+    function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    if (!P.length) { ul.outerHTML = '<p class="empty">First post coming soon</p>'; return; }
+    ul.innerHTML = P.map(function (p) {
+      return '<li><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><span class="name disp">' + esc(p.title) + '</span>' +
+             '<span class="meta">' + esc(p.date) + ' ↗</span>' + (p.excerpt ? '<span class="ex">' + esc(p.excerpt) + '</span>' : '') + '</a></li>';
+    }).join("");
+  };
+  document.head.appendChild(sc);
 })();
 </script>
 <script src="../hover.js?v=1791736236"></script>
