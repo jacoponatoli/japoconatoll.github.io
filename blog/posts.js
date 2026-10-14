@@ -1,3 +1,2 @@
-// Articoli del blog, dal più recente. Esempio:
-// { title: "Titolo", date: "14 October 2026", url: "https://…", excerpt: "Prime righe…" }
+// Generato da tools/update-blog.py a partire da https://jacoponatoli.substack.com/feed (non modificare a mano)
 window.POSTS = [];
