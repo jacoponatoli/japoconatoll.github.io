@@ -3714,6 +3714,51 @@ window.WORKS = [
  },
  {
   "cat": "DEVICES",
+  "title": "SBAGLIA MEGLIO",
+  "subtitle": "fail better",
+  "credit": "",
+  "who": "DESIGNED BY DANILO INNOCENTI, GIACOMO ISIDORI AND JACOPO NATOLI",
+  "what": "CLASS ASSIGNMENT (PRINTED WORKSHEETS)",
+  "when": "2022 – ONGOING",
+  "where": "MIDDLE SCHOOLS",
+  "why": "To develop divergent imagination through the sign of subtraction. Students choose a subtraction from a list (SCHOOL – TEACHERS =, EGG – HEN =, FOREST – NATURE =…), draw its two terms and then draw the result: a reasonable error.",
+  "extra": "",
+  "links": [
+   "https://farfarfare.it/sbaglia-meglio/"
+  ],
+  "images": [
+   {
+    "src": "img/sbaglia-meglio-01.webp",
+    "w": 1400,
+    "h": 990
+   },
+   {
+    "src": "img/sbaglia-meglio-02.webp",
+    "w": 990,
+    "h": 1400
+   },
+   {
+    "src": "img/sbaglia-meglio-03.webp",
+    "w": 1400,
+    "h": 985
+   },
+   {
+    "src": "img/sbaglia-meglio-04.webp",
+    "w": 1400,
+    "h": 981
+   },
+   {
+    "type": "pdf",
+    "src": "media/sbaglia-meglio-tavole.pdf",
+    "thumb": "img/sbaglia-meglio-tavole-p1.webp",
+    "w": 1285,
+    "h": 904,
+    "title": "Sbaglia meglio · all the worksheets"
+   }
+  ]
+ },
+ {
+  "cat": "DEVICES",
   "title": "1 MQ",
   "subtitle": "",
   "credit": "",
