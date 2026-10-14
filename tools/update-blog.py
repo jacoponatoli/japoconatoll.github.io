@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Legge il feed RSS di Substack e riscrive blog/posts.js con gli articoli (dal più recente).
 # Lo lancia da solo GitHub (vedi .github/workflows/blog.yml) ogni 3 ore; si può anche lanciare a mano.
-import html, json, re, sys, urllib.request
+import html, json, re, sys, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 
@@ -13,11 +13,32 @@ def testo(s):
     s = re.sub(r"<[^>]+>", " ", s or "")
     return re.sub(r"\s+", " ", html.unescape(s)).strip()
 
+UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"}
+# Substack a volte blocca i server di GitHub: in quel caso si passa da servizi che leggono il feed per noi
+VIE = [
+    lambda u: u,
+    lambda u: "https://api.allorigins.win/raw?url=" + urllib.parse.quote(u, safe=""),
+    lambda u: "https://corsproxy.io/?url=" + urllib.parse.quote(u, safe=""),
+    lambda u: "https://r.jina.ai/" + u,
+]
+
 def leggi(src):
-    if src.startswith("http"):
-        req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36", "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"})
-        return urllib.request.urlopen(req, timeout=30).read()
-    return open(src, "rb").read()
+    if not src.startswith("http"):
+        return open(src, "rb").read()
+    errori = []
+    for via in VIE:
+        url = via(src)
+        try:
+            raw = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30).read()
+            i = raw.find(b"<rss")
+            if i < 0:
+                raise ValueError("risposta senza <rss>")
+            print("feed letto da:", url.split("/")[2])
+            return raw[i:]
+        except Exception as e:
+            errori.append("%s → %s" % (url.split("/")[2], str(e)[:80]))
+    raise IOError("; ".join(errori))
 
 def main(src=FEED):
     raw = leggi(src)
