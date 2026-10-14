@@ -3167,6 +3167,16 @@ window.WORKS = [
   ],
   "images": [
    {
+    "src": "img/44-sticlip-x3.webp",
+    "w": 1400,
+    "h": 795
+   },
+   {
+    "src": "img/44-sticlip-x4.webp",
+    "w": 1400,
+    "h": 795
+   },
+   {
     "src": "img/44-sticlip-01.webp",
     "w": 551,
     "h": 369
@@ -3200,6 +3210,16 @@ window.WORKS = [
     "src": "img/44-sticlip-07.webp",
     "w": 1400,
     "h": 789
+   },
+   {
+    "src": "img/44-sticlip-x1.webp",
+    "w": 1400,
+    "h": 795
+   },
+   {
+    "src": "img/44-sticlip-x2.webp",
+    "w": 1400,
+    "h": 795
    },
    {
     "type": "youtube",
