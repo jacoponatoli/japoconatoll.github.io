@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jacopo Natoli · Blog</title>
+<meta name="description" content="Jacopo Natoli: blog.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Blog: stessa lista della pagina Links. Gli articoli stanno in posts.js (dal più recente) */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --red: #ff1a1a;
+  --muted: #9a9a9a;
+  --line: #2a2a2a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--mono); font-size: 14px; line-height: 1.55;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(56px + env(safe-area-inset-bottom, 0px));
+}
+a { color: var(--fg); }
+.disp { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; line-height: 0.9; }
+.close {
+  position: fixed; z-index: 5; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; text-decoration: none;
+}
+.close:hover, .close:focus-visible { color: var(--hc, var(--red)); outline: none; }
+.wrap { max-width: 1100px; }
+h1 { font-size: clamp(22px, 5.4vw, 72px); margin: 0 0 clamp(28px, 6vw, 72px); padding-right: 1.6em; }
+h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+section + section { margin-top: clamp(36px, 6vw, 64px); }
+ul { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--line); }
+li a {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 6px 24px;
+  border-top: 1px solid var(--line); padding: 16px 0; text-decoration: none;
+}
+.name { font-size: clamp(20px, 3.6vw, 44px); line-height: 1; text-wrap: balance; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; }
+.meta .k { text-transform: uppercase; letter-spacing: 0.12em; }
+li a:hover .name, li a:focus-visible .name, li a:hover .meta, li a:focus-visible .meta { color: var(--hc, var(--red)); }
+li a:focus-visible { outline: none; }
+@media (max-width: 640px) {
+  li a { grid-template-columns: minmax(0, 1fr); }
+  .meta { white-space: normal; }
+}
+.empty { color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; border-top: 1px solid var(--line); padding: 16px 0; margin: 0; }
+.ex { grid-column: 1 / -1; color: var(--muted); max-width: 70ch; }
+</style>
+</head>
+<body>
+<a class="close disp" href="../" aria-label="Back to home">×</a>
+<main class="wrap">
+  <h1 class="disp">Blog</h1>
+  <section aria-label="Posts">
+    <ul id="posts"></ul>
+  </section>
+</main>
+<script src="posts.js?v=1"></script>
+<script>
+(function () {
+  var ul = document.getElementById("posts"), P = window.POSTS || [];
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  if (!P.length) { ul.outerHTML = '<p class="empty">First post coming soon</p>'; return; }
+  ul.innerHTML = P.map(function (p) {
+    return '<li><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><span class="name disp">' + esc(p.title) + '</span>' +
+           '<span class="meta">' + esc(p.date) + ' ↗</span>' + (p.excerpt ? '<span class="ex">' + esc(p.excerpt) + '</span>' : '') + '</a></li>';
+  }).join("");
+})();
+</script>
+<script src="../hover.js?v=1791736236"></script>
+</body>
+</html>
