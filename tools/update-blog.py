@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Legge il feed RSS di Substack e riscrive blog/posts.js con gli articoli (dal più recente).
 # Lo lancia da solo GitHub (vedi .github/workflows/blog.yml) ogni 3 ore; si può anche lanciare a mano.
-import html, json, re, sys, urllib.parse, urllib.request
+import html, json, os, re, sys, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 
@@ -64,6 +64,10 @@ def main(src=FEED):
             ex = testo(it.findtext("content:encoded", namespaces=ns))
             if len(ex) > 220:
                 ex = ex[:220].rsplit(" ", 1)[0] + "…"
+        # se l'articolo ha anche una pagina sul sito (blog/<slug>/index.html), il blog punta a quella
+        slug = urllib.parse.urlparse(url).path.rstrip("/").split("/")[-1]
+        if slug and os.path.exists(os.path.join("blog", slug, "index.html")):
+            url = slug + "/"
         posts.append({"title": title, "date": date, "url": url, "excerpt": ex})
     body = "// Generato da tools/update-blog.py a partire da " + FEED + " (non modificare a mano)\nwindow.POSTS = " + json.dumps(posts, ensure_ascii=False, indent=1) + ";\n"
     old = open(OUT, encoding="utf-8").read() if __import__("os").path.exists(OUT) else ""

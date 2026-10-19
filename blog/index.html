@@ -78,8 +78,10 @@ li a:focus-visible { outline: none; }
     function esc(s) { return String(s || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
     if (!P.length) { ul.outerHTML = '<p class="empty">First post coming soon</p>'; return; }
     ul.innerHTML = P.map(function (p) {
-      return '<li><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><span class="name disp">' + esc(p.title) + '</span>' +
-             '<span class="meta">' + esc(p.date) + ' ↗</span>' + (p.excerpt ? '<span class="ex">' + esc(p.excerpt) + '</span>' : '') + '</a></li>';
+      // articoli con una pagina sul sito: si aprono qui; gli altri su Substack in una nuova scheda
+      var esterno = /^https?:/.test(p.url || "");
+      return '<li><a href="' + esc(p.url) + '"' + (esterno ? ' target="_blank" rel="noopener"' : '') + '><span class="name disp">' + esc(p.title) + '</span>' +
+             '<span class="meta">' + esc(p.date) + (esterno ? ' ↗' : ' →') + '</span>' + (p.excerpt ? '<span class="ex">' + esc(p.excerpt) + '</span>' : '') + '</a></li>';
     }).join("");
   };
   document.head.appendChild(sc);

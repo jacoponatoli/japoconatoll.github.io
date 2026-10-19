@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AURA · Jacopo Natoli</title>
+<meta name="description" content="Soffi contro l’orizzonte tecnofascista. Le battaglie di Aura, Benjamin, i meme e la piazza.">
+<meta name="author" content="Jacopo Natoli">
+<link rel="canonical" href="https://jacoponatoli.net/blog/aura/">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://jacoponatoli.net/blog/aura/">
+<meta property="og:title" content="AURA">
+<meta property="og:description" content="Soffi contro l’orizzonte tecnofascista">
+<meta property="og:image" content="https://jacoponatoli.net/blog/aura/anteprima.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="800">
+<meta property="article:published_time" content="2026-10-19">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://jacoponatoli.net/blog/aura/anteprima.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* Articolo del blog: stesso mondo del sito (nero, bianco, colore al passaggio), testo leggibile in colonna */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --red: #ff1a1a;
+  --muted: #9a9a9a;
+  --line: #2a2a2a;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--mono); font-size: 16px; line-height: 1.7;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(72px + env(safe-area-inset-bottom, 0px));
+}
+a { color: var(--fg); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover, a:focus-visible { color: var(--hc, var(--red)); outline: none; }
+.disp { font-family: var(--display); font-weight: 800; font-stretch: 125%; text-transform: uppercase; line-height: 0.9; }
+.close {
+  position: fixed; z-index: 5; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  font-size: clamp(22px, 5.4vw, 72px); background: var(--bg); padding-left: 8px; text-decoration: none;
+}
+.crumb { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+article { max-width: 68ch; margin: 0 auto; }
+header { margin: clamp(28px, 6vw, 64px) 0 clamp(32px, 6vw, 56px); }
+h1 { font-size: clamp(64px, 18vw, 200px); margin: 12px 0 18px; letter-spacing: -0.01em; }
+.sub { font-size: clamp(16px, 2.4vw, 20px); margin: 0 0 10px; }
+.date { color: var(--muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; margin: 0; }
+p { margin: 0 0 1.15em; }
+em { font-style: italic; }
+.fn { text-decoration: none; padding: 0 1px; }
+.gif { margin: 2.4em 0; }
+.gif img { display: block; width: 100%; height: auto; image-rendering: auto; }
+h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 3em 0 1em; padding-top: 1em; border-top: 1px solid var(--line); }
+.notes { padding-left: 1.6em; margin: 0; font-size: 13px; line-height: 1.6; color: #d6d6d6; }
+.notes li { margin: 0 0 0.9em; scroll-margin-top: 80px; }
+.notes p { margin: 0; }
+.back { text-decoration: none; color: var(--muted); }
+.fn { scroll-margin-top: 80px; }
+.end { margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--line); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.end a { color: var(--muted); }
+</style>
+</head>
+<body>
+<a class="close disp" href="../" aria-label="Torna al blog">×</a>
+<article>
+  <header>
+    <a class="crumb" href="../">Blog</a>
+    <h1 class="disp">Aura</h1>
+    <p class="sub">soffi contro l’orizzonte tecnofascista</p>
+    <p class="date"><time datetime="2026-10-19">19 ottobre 2026</time> · Jacopo Natoli</p>
+  </header>
+<p>Le battaglie di Aura sono un fenomeno di piazza mondiale, emerso nel pieno dell’estate 2026 nelle strade dell’<a href="https://kuwaittimes.com/article/48485/world/aura-battles-move-from-social-media-to-the-streets/">America Latina</a> e approdato in Italia nell’autunno dello stesso anno: dai cortili delle scuole del <a href="https://www.studentville.it/aura-battle-sfida-virale-indonesia-scuola-salo/">Bresciano</a> a <a href="https://www.ilrestodelcarlino.it/cronaca/ilvucumpra-vicenza-3187983e">Vicenza</a>, fino a <a href="https://tg24.sky.it/lifestyle/2026/10/15/aura-battle-cos-e">Roma</a>.<a class="fn" id="r1" href="#n1" aria-label="nota 1">¹</a></p>
+<p>Il fenomeno è esploso, diffondendosi in modo virale, negli stessi mesi in cui la cosiddetta Generazione Z tornava a riempire le piazze: dalle strade di <a href="https://www.balkanweb.com/en/Echoes-of-the-revolt-over-Rama%27s-resignation-Italian-media-Protests-in-Tirana--Belgrade-and-Sarajevo-are-creating-a-new-Balkan-spring/">Tirana</a> ai <a href="https://www.alestiklal.net/en/article/from-declining-education-to-a-test-for-the-state-gen-z-protests-shake-french-democracy">licei francesi</a>, da <a href="https://www.commondreams.org/news/worldwide-protests">Bruxelles</a> ai <a href="https://www.ilpost.it/2026/10/16/studenti-manifestazioni-italia-16-ottobre/">cortei italiani del 16 ottobre</a>.<a class="fn" id="r2" href="#n2" aria-label="nota 2">²</a></p>
+<p>Le battaglie funzionano così: un gruppo di giovani si incontra in uno spazio pubblico e, generalmente, forma un capannello, un assembramento. Al centro dell’arena fatta di corpi, due persone – talvolta con il <a href="https://www.youtube.com/watch?v=Xu3FTEmN-eg">volto dipinto</a> o con maschere surreali – si sfidano in una battaglia di gesti presi dai classici meme o trend di internet: il <a href="https://www.youtube.com/watch?v=JlIGyZ_nxAc">6-7</a>, i palmi rivolti all’insù che salgono e scendono come i piatti di una bilancia; il <a href="https://www.youtube.com/watch?v=wQML0uPREPc">«Siuuu»</a> con cui Cristiano Ronaldo esulta dopo un gol; il <em><a href="https://www.youtube.com/watch?v=6kXkPzyr2Ho">mewing</a></em>, l’indice che percorre in silenzio la linea della mascella; il <em><a href="https://www.youtube.com/watch?v=YSx9NqAj-r4">double biceps</a></em>, il <em><a href="https://www.tecnicadellascuola.it/aura-battle-e-boom-tra-gli-adolescenti-una-scuola-le-vieta-no-ad-assembramenti-nel-cortile-la-circolare">tornado shot</a></em>, la <a href="https://www.youtube.com/shorts/pTPfU2hNIg4">piroetta sulle punte alla Michael Jackson</a>; le mosse prese in prestito da <a href="https://www.youtube.com/watch?v=rN-s_Oh2H2I">Fortnite</a>; e, capostipite di tutti, la danza a prua di <a href="https://www.youtube.com/watch?v=WUYrtLRzNg8">Rayyan Arkan Dikha</a>, il bambino indonesiano diventato nel 2025 l’icona dell’<em>aura farming</em>.<a class="fn" id="r3" href="#n3" aria-label="nota 3">³</a> Alla fine della battaglia il pubblico decreta chi tra gli sfidanti ha più Aura.</p>
+<p>Aura viene dal latino <em>aura</em>, «brezza, soffio d’aria», a sua volta dal greco <em><a href="https://en.wiktionary.com/wiki/aura">αὔρα</a></em>: nell’<em>Odissea</em> è la brezza fredda che sale dal fiume prima dell’alba. È aria che si muove: non si vede, ma la si sente sulla pelle. È sentire il mistero del giorno che viene. Dante la fa tremare di sospiri nel Limbo, Petrarca ci nasconde dentro Laura. La medicina, già con Galeno, chiama aura il soffio che annuncia la crisi epilettica; la parapsicologia, l’alone che avvolgerebbe i corpi. E quindi <em><a href="https://dragonballuniverse.fandom.com/wiki/Aura">Dragon Ball</a></em>: l’aura diventa la fiamma visibile che avvampa intorno ai combattenti quando caricano il <em>ki</em>, cambia colore a ogni trasformazione, fino all’oro del Super Saiyan, e la forza si misura in numeri, letti dallo scouter. È dagli anime che l’aura passa ai meme: Piccolo, immobile sull’orlo di una rupe con il mantello al vento, ne è <a href="https://dailydot.com/news/scrolling-in-the-deep-aura-farming/">un’icona</a>. Oggi, nel gergo delle piattaforme, l’aura si conta: <a href="https://www.elsalvador.com/?p=1288934">+1000 aura, −500 aura</a>, punti che si guadagnano e si perdono come in un videogioco. E <em>farmare</em>, parola presa dal gaming, vuol dire accumularli ripetendo all’infinito le stesse azioni.<a class="fn" id="r4" href="#n4" aria-label="nota 4">⁴</a></p>
+<p>Nel saggio <em>L’opera d’arte nell’epoca della sua riproducibilità tecnica</em> (1936), Walter Benjamin definisce l’aura come «l’apparizione unica di una lontananza, per quanto vicina essa possa essere». E la spiega con un’immagine: seguire, in un pomeriggio d’estate, il profilo di una catena di montagne all’orizzonte, o un ramo che getta la sua ombra su chi riposa, significa respirare l’aura di quei monti, di quel ramo. L’aura è il <em>qui e ora</em> di una cosa, la sua esistenza irripetibile nel luogo in cui si trova. Ed è proprio ciò che, nell’epoca della riproducibilità tecnica, deperisce: la copia avvicina ogni cosa e sostituisce all’esemplare unico la sua serie. Nel cinema l’attore non recita più per un pubblico ma per un apparato, e con lei perde l’aura, che è legata al qui e ora e non si lascia copiare.<a class="fn" id="r5" href="#n5" aria-label="nota 5">⁵</a></p>
+<p>Quasi vent’anni prima, Marcel Duchamp aveva già messo in scena la perdita dell’aura. Nel 1917 compra un orinatoio in un grande magazzino, lo firma «R. Mutt» e lo propone alla mostra della Society of Independent Artists di New York con il titolo <em><a href="https://www.centrepompidou.fr/fr/ressources/oeuvre/cMdzAer">Fontana</a></em>. È il <em>ready-made</em>: l’oggetto di serie diventa opera per una scelta, non per una mano.</p>
+<p>Aura è quindi il recupero dell’evento, dell’essenza, dell’irripetibile, del fuori commercio, del momentum, del quid, del <em>genius loci</em>, del <em>kairòs</em>, del <em>punctum</em>, dell’<em>hapax</em>, del dono, del non so che, del qui e ora.</p>
+<p>È opera di sottrazione dallo scroll continuo e infinito. Il riportare ai corpi, alla piazza, al pubblico i gesti della catena di montaggio algoritmica.</p>
+<p>La riemersione del soffio, dei <em>souffles</em> di Klossowski, spiriti senza corpo che desiderano un corpo per tornare a esistere; dell’<em><a href="https://sapere.virgilio.it/scuola/superiori/letteratura-storia-filosofia/filosofia-del-novecento/evoluzione-creatrice">élan vital</a></em> bergsoniano, lo slancio che inventa forme nuove invece di ripetere le vecchie; del <em>conatus</em> di Spinoza, lo sforzo di perseverare nel proprio essere che per l’<em>Etica</em> è l’essenza attuale di ogni cosa, e che Emanuele Dattilo, in <em><a href="https://www.libreriauniversitaria.it/vita-vive-dattilo-emanuele-neri/libro/9788854524989">La vita che vive</a></em>, legge come la sensazione elementare di essere vivi; dell’<a href="https://situationnisteblog.com/2015/03/28/rapporto-sulla-costruzione-delle-situazioni-1958/">evento situazionista</a>, la situazione costruita contro lo spettacolo.<a class="fn" id="r6" href="#n6" aria-label="nota 6">⁶</a></p>
+<p>Il gesto del meme nasce per essere copiato: è fatto per il remix, per la serie, per lo scroll. I meme sono virus e nel contagio, mutano. Questa mutazione ha ora contagiato i corpi. Nella battaglia, lo stesso gesto passa per un corpo, in un luogo, a un’ora precisa, davanti a qualcuno. Smette di essere un’immagine elettronica e torna a essere un’apparizione.</p>
+<p>Il cerchio è tra le composizioni più antiche che conosciamo. Le battaglie di Aura ereditano i cerchi della breakdance e le sfide del freestyle, ma anche quel giudizio collettivo che Benjamin riconosceva al pubblico dello sport: una folla di esperti a metà, che giudica mentre si diverte.<a class="fn" id="r7" href="#n7" aria-label="nota 7">⁷</a></p>
+<p>Non è tutto solo corpo, certo. Il cerchio è circondato di smartphone e la battaglia torna subito nel feed da cui era uscita; c’è chi la organizza per diventare virale e chi la trasforma in un evento promozionale, con <a href="https://www.ilrestodelcarlino.it/cronaca/ilvucumpra-vicenza-3187983e">vestiti griffati in palio</a>. L’aura del 2026 rischia di somigliare a quella che Benjamin vedeva fabbricata dall’industria del cinema: la «personalità» artificiale della star, l’incanto della merce.<a class="fn" id="r8" href="#n8" aria-label="nota 8">⁸</a> Eppure l’aura messa in gioco nella piazza è un’aura parodica, autoironica, che si conquista accettando di rendersi ridicoli davanti agli altri. Non la si possiede: dura il tempo di un gesto, poi torna al pubblico che l’ha assegnata. È virus, contagio.</p>
+<p>Intanto il potere reagisce. Una scuola del Bresciano <a href="https://www.tecnicadellascuola.it/aura-battle-e-boom-tra-gli-adolescenti-una-scuola-le-vieta-no-ad-assembramenti-nel-cortile-la-circolare">vieta gli assembramenti nel cortile</a> durante la ricreazione; a Castelfranco Veneto cinque pattuglie <a href="https://www.newsistruzione.it/2026/10/15/castelfranco-studenti-piazza-aura-battle-polizia">disperdono duecento studenti</a> prima ancora che la sfida cominci; in Honduras un sindaco <a href="https://www.excelsior.com.mx/internacional/batallas-aura-saltan-tiktok-calles-latinoamerica">le proibisce</a>. Un raduno di ragazzi senza programma, senza capo e senza prodotto da vendere appare, di per sé, sospetto. Nelle stesse settimane, nelle stesse piazze, sfilano i cortei di chi chiede <a href="https://lespresso.it/c/attualita/2026/10/16/proteste-italia-studenti-cortei-citta-dove-video/65351">soldi per la scuola e non per la guerra</a>.</p>
+<p>Questi raduni assomigliano alle <a href="https://www.ilfattoquotidiano.it/2026/10/18/guerriglia-milano-meloni-ordine-pubblico-notizie/8542585/">tecniche di guerriglia</a> che stanno mandando in tilt l’«intelligence» (ahahah, scusate) <a href="https://lasintesi.online/senza-capi-under-18-e-arruolati-su-tiktok-lidentikit-dei-devastatori-che-hanno-messo-sotto-scacco-milano/">italiana</a>: niente leader né sigle, un volantino che gira su TikTok, gruppi che si formano in un attimo e in un attimo si sciolgono. Guerriglia molecolare.</p>
+<p>Che sia cominciata la via di fuga? Che sia una possibilità di gesti capaci di partecipare alla creazione di nuovi immaginari, di nuovi scenari nelle battaglie Z che stanno emergendo? Che l’Aura possa illuminare e unirle queste lotte, dall’Albania alla Francia, dall’Italia al Belgio, e oltre.</p>
+<p>Che l’Aura possa folgorare l’inevitabile ondata tecnofascista che, lugubre, s’aggira all’orizzonte del 2027?<a class="fn" id="r9" href="#n9" aria-label="nota 9">⁹</a>.</p>
+<figure class="gif">
+  <img src="battaglia-di-aura.gif" width="640" height="400" alt="Animazione in stile cartone di carta: in una piazza romana di notte un cerchio di ragazzi carica l’aura, gli agenti in tenuta antisommossa volano via con scudi e manganelli, e compare la scritta TOUT LE MONDE DÉTESTE LA POLICE">
+</figure>
+<h2 id="note">Note</h2>
+<ol class="notes">
+<li id="n1"><p>Il termine <em>aura farming</em> circola su TikTok almeno dal 2024 ed è esploso a metà 2025 con il video di Dikha (<a href="https://www.ewn.co.za/watch-11-year-old-indonesian-boy-goes-viral-for-aura-farming-dance-and-ultimate-swag">EWN</a>). Le sfide dal vivo arrivano un anno dopo, a metà agosto 2026: il 17 a Mar del Plata, in Argentina, dove la prima battaglia cittadina finisce sotto una sassaiola (<a href="https://emisorasunidas.com/viral/2026/08/21/jovenes-atacados-con-piedras-batalla-de-aura/">Emisoras Unidas</a>); il 20 a Città del Messico, dove secondo la CNN si tiene la prima battaglia organizzata (<a href="https://www.greaterbelize.com/?p=116946">Greater Belize</a>). Seguono Costa Rica, Brasile, Bolivia, Paraguay e Perù (<a href="https://www.euronews.com/2026/08/21/mexico-aura-battles-turn-a-viral-meme-into-live-contests">Euronews</a>), poi la Spagna (<a href="https://rtvc.es/las-batallas-de-aura-la-ultima-fiebre-viral-llegan-a-gran-canaria-05-septiembre-2026/">RTVC</a>) e perfino i cortili delle scuole vietnamite (<a href="https://tienphong.vn/aura-battle-vao-truong-hoc-san-truong-hoa-san-dau-ba-khi-cua-gen-alpha-post1878868.tpo">Tiền Phong</a>). In Italia: la sfida nel cortile di un istituto tecnico di Salò, seguita da una circolare di divieto (<a href="https://www.studentville.it/aura-battle-sfida-virale-indonesia-scuola-salo/">Studentville</a>); il raduno di Vicenza di sabato 3 ottobre, lanciato da un tiktoker con vestiti griffati in palio e degenerato in bagarre (<a href="https://www.ilrestodelcarlino.it/cronaca/ilvucumpra-vicenza-3187983e">il Resto del Carlino</a>); la prima battle romana di sabato 10 ottobre, con replica fissata a mezzanotte (<a href="https://tg24.sky.it/lifestyle/2026/10/15/aura-battle-cos-e">Sky TG24</a>); il raduno di Castelfranco Veneto del 15 ottobre, sciolto dalla polizia (<a href="https://www.open.online/2026/10/15/castelfranco-aura-battle-studenti-polizia-cosa-e-video/">Open</a>). <a class="back" href="#r1" aria-label="torna al testo">↩</a></p></li>
+<li id="n2"><p>Dopo l’ondata del 2025 – Nepal, Madagascar, Marocco, Perù (<a href="https://www.quotidiano.net/luce/politica/proteste-gen-z-mondo-nepal-marocco-65d02360">QN – Luce!</a>) – in Albania i giovani sono in piazza da fine maggio 2026, prima contro il progetto di un resort di lusso di Jared Kushner in un’area protetta, poi per chiedere le dimissioni di Edi Rama (<a href="https://www.balkanweb.com/en/Echoes-of-the-revolt-over-Rama%27s-resignation-Italian-media-Protests-in-Tirana--Belgrade-and-Sarajevo-are-creating-a-new-Balkan-spring/">Balkanweb</a>); in Francia la mobilitazione studentesca parte il 17 settembre da Créteil, nella banlieue parigina, contro la carenza di personale e di risorse (<a href="https://www.alestiklal.net/en/article/from-declining-education-to-a-test-for-the-state-gen-z-protests-shake-french-democracy">Al-Estiklal</a>); in Belgio gli studenti manifestano a Bruxelles il 7 ottobre (<a href="https://www.commondreams.org/news/worldwide-protests">Common Dreams</a>); in Italia, il 16 ottobre, migliaia di studenti sfilano in diverse città contro le politiche del governo sulla scuola (<a href="https://www.ilpost.it/2026/10/16/studenti-manifestazioni-italia-16-ottobre/">Il Post</a>), con studenti francesi in Erasmus nei cortei romani (<a href="https://www.quotidiano.net/cronaca/protesta-studenti-francesi-roma-xfamae6b">QN</a>). <a class="back" href="#r2" aria-label="torna al testo">↩</a></p></li>
+<li id="n3"><p>Il 6-7 è stato la parola dell’anno 2025 per Dictionary.com, che ne sottolinea proprio l’assenza di un significato fisso; nella stessa shortlist compariva <em>aura farming</em> (<a href="https://www.cbc.ca/lite/story/9.6960495">CBC</a>). L’espressione è legata al brano <em>Doot Doot</em> del rapper Skrilla (<a href="https://www.wilx.com/2025/10/30/dictionarycom-reveals-2025-word-year/">WILX</a>) e, l’ha eseguita perfino papa Leone. Rayyan Arkan Dikha, undici anni, danzava come <em>togak luan</em> – il ballerino in piedi sulla prua che dà la carica ai rematori – durante il Pacu Jalur, la regata tradizionale di Riau, in Indonesia (<a href="https://www.gdnonline.com/Details/1358082">GDN</a>). Il ragazzo dal volto dipinto della prima battle romana, secondo Sky TG24, richiamava il videoclip di <em>Galvanize</em> dei Chemical Brothers (2005), diretto da Adam Smith: un gruppo di adolescenti truccati da clown entra in una battaglia di danza in un club, finché non fa irruzione la polizia (<a href="https://djmag.com/news/chemical-brothers-galvanize-music-video-has-been-remastered-4k">DJ Mag</a>). <a class="back" href="#r3" aria-label="torna al testo">↩</a></p></li>
+<li id="n4"><p>Il riferimento omerico è <em>Odissea</em> V, 469 (<a href="https://cld.bbaw.de/lemma/grc/%CE%B1%E1%BD%94%CF%81%CE%B1">BBAW</a>). Dante, <em>Inferno</em> IV, 25-27: «Quivi, secondo che per ascoltare, / non avea pianto mai che di sospiri / che l’aura etterna facevan tremare». Petrarca gioca per tutto il <em>Canzoniere</em> sull’omofonia <em>l’aura</em> / <em>Laura</em> (e <em>lauro</em>); cfr. il sonetto CCLXXXVI: «Se quell’aura soave de’ sospiri / ch’i’ odo di colei che qui fu mia donna». L’uso medico di <em>aura</em> per i segnali che precedono l’attacco epilettico è attestato già in Galeno (<a href="https://cld.bbaw.de/lemma/grc/%CE%B1%E1%BD%94%CF%81%CE%B1">BBAW</a>). Sull’origine videoludica di <em>farmare</em>: <a href="https://kuwaittimes.com/article/48485/world/aura-battles-move-from-social-media-to-the-streets/">Kuwait Times / AFP</a>. <a class="back" href="#r4" aria-label="torna al testo">↩</a></p></li>
+<li id="n5"><p>Walter Benjamin, <em>L’opera d’arte nell’epoca della sua riproducibilità tecnica</em> (1936), §§ III e IX; trad. it. di Enrico Filippini, Einaudi 1966; testo tedesco su <a href="https://de.wikisource.org/wiki/Das_Kunstwerk_im_Zeitalter_seiner_technischen_Reproduzierbarkeit_%28Dritte_Fassung%29">Wikisource</a>. La prima traduzione francese del saggio, sempre del 1936, è di Pierre Klossowski. <a class="back" href="#r5" aria-label="torna al testo">↩</a></p></li>
+<li id="n6"><p>Pierre Klossowski, <em>Le Baphomet</em> (1965), ambientato tra i <em>souffles</em>, i soffi incorporei dei Templari morti (cfr. <a href="https://neripozza.it/libro/9788854523340">Godani</a>); Henri Bergson, <em>L’evoluzione creatrice</em> (1907); Guy Debord, <em>Rapporto sulla costruzione delle situazioni</em> (1957), testo preparatorio alla fondazione dell’Internazionale situazionista a Cosio d’Arroscia (<a href="https://situationnisteblog.com/2015/03/28/rapporto-sulla-costruzione-delle-situazioni-1958/">Situationniste Blog</a>). <a class="back" href="#r6" aria-label="torna al testo">↩</a></p></li>
+<li id="n7"><p>Benjamin, §§ X e XV. <a class="back" href="#r7" aria-label="torna al testo">↩</a></p></li>
+<li id="n8"><p>Benjamin, § X. <a class="back" href="#r8" aria-label="torna al testo">↩</a></p></li>
+<li id="n9"><p>Nel 2027 votano Francia (presidenziali ad aprile), Italia (la legislatura scade il 13 ottobre, ma si parla di voto in primavera), Spagna (entro il 22 agosto) e Polonia; in Germania si elegge il presidente federale. <a class="back" href="#r9" aria-label="torna al testo">↩</a></p></li>
+</ol>
+  <p class="end"><a href="../">← Blog</a><a href="https://jacoponatoli.substack.com/p/aura" target="_blank" rel="noopener">Anche su Substack ↗</a></p>
+</article>
+<script src="../../hover.js?v=1791736236"></script>
+</body>
+</html>
