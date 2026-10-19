@@ -65,7 +65,8 @@ h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: 
 .notes p { margin: 0; }
 .back { text-decoration: none; color: var(--muted); }
 .fn { scroll-margin-top: 80px; }
-.tr { margin-top: 18px; font: inherit; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg); background: none; border: 1px solid var(--line); padding: 7px 12px; cursor: pointer; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.tr { font: inherit; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg); background: none; border: 1px solid var(--line); padding: 7px 12px; cursor: pointer; }
 .tr:hover, .tr:focus-visible { color: var(--hc, var(--red)); border-color: currentColor; outline: none; }
 [hidden] { display: none !important; }
 .end { margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--line); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; display: flex; flex-wrap: wrap; gap: 8px 24px; }
@@ -80,7 +81,7 @@ h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: 
     <h1 class="disp">Aura</h1>
     <p class="sub">soffi contro l’orizzonte tecnofascista</p>
     <p class="date"><time datetime="2026-10-19">19 ottobre 2026</time> · Jacopo Natoli</p>
-    <button class="tr" type="button" data-lang="en">Translate · English →</button>
+    <div class="tools"><button class="tr" type="button" data-lang="en">Translate · English →</button><button class="tr" type="button" data-copy="it">Copia testo</button></div>
   </header>
 <p>Le battaglie di Aura sono un fenomeno di piazza mondiale, emerso nel pieno dell’estate 2026 nelle strade dell’<a href="https://kuwaittimes.com/article/48485/world/aura-battles-move-from-social-media-to-the-streets/">America Latina</a> e approdato in Italia nell’autunno dello stesso anno: dai cortili delle scuole del <a href="https://www.studentville.it/aura-battle-sfida-virale-indonesia-scuola-salo/">Bresciano</a> a <a href="https://www.ilrestodelcarlino.it/cronaca/ilvucumpra-vicenza-3187983e">Vicenza</a>, fino a <a href="https://tg24.sky.it/lifestyle/2026/10/15/aura-battle-cos-e">Roma</a>.<a class="fn" id="r1" href="#n1" aria-label="nota 1">¹</a></p>
 <p>Il fenomeno è esploso, diffondendosi in modo virale, negli stessi mesi in cui la cosiddetta Generazione Z tornava a riempire le piazze: dalle strade di <a href="https://www.balkanweb.com/en/Echoes-of-the-revolt-over-Rama%27s-resignation-Italian-media-Protests-in-Tirana--Belgrade-and-Sarajevo-are-creating-a-new-Balkan-spring/">Tirana</a> ai <a href="https://www.alestiklal.net/en/article/from-declining-education-to-a-test-for-the-state-gen-z-protests-shake-french-democracy">licei francesi</a>, da <a href="https://www.commondreams.org/news/worldwide-protests">Bruxelles</a> ai <a href="https://www.ilpost.it/2026/10/16/studenti-manifestazioni-italia-16-ottobre/">cortei italiani del 16 ottobre</a>.<a class="fn" id="r2" href="#n2" aria-label="nota 2">²</a></p>
@@ -121,7 +122,7 @@ h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: 
     <h1 class="disp">Aura</h1>
     <p class="sub">breaths against the techno-fascist horizon</p>
     <p class="date"><time datetime="2026-10-19">19 October 2026</time> · Jacopo Natoli</p>
-    <button class="tr" type="button" data-lang="it">Leggi in italiano →</button>
+    <div class="tools"><button class="tr" type="button" data-lang="it">Leggi in italiano →</button><button class="tr" type="button" data-copy="en">Copy text</button></div>
   </header>
 <p>Aura battles are a worldwide street phenomenon that emerged at the height of summer 2026 on the streets of <a href="https://kuwaittimes.com/article/48485/world/aura-battles-move-from-social-media-to-the-streets/">Latin America</a> and reached Italy in the autumn of the same year: from schoolyards around <a href="https://www.studentville.it/aura-battle-sfida-virale-indonesia-scuola-salo/">Brescia</a> to <a href="https://www.ilrestodelcarlino.it/cronaca/ilvucumpra-vicenza-3187983e">Vicenza</a>, all the way to <a href="https://tg24.sky.it/lifestyle/2026/10/15/aura-battle-cos-e">Rome</a>.<a class="fn" id="e-r1" href="#e-n1" aria-label="note 1">¹</a></p>
 <p>The phenomenon exploded, spreading virally, in the very months when the so-called Generation Z was filling the squares again: from the streets of <a href="https://www.balkanweb.com/en/Echoes-of-the-revolt-over-Rama%27s-resignation-Italian-media-Protests-in-Tirana--Belgrade-and-Sarajevo-are-creating-a-new-Balkan-spring/">Tirana</a> to <a href="https://www.alestiklal.net/en/article/from-declining-education-to-a-test-for-the-state-gen-z-protests-shake-french-democracy">French high schools</a>, from <a href="https://www.commondreams.org/news/worldwide-protests">Brussels</a> to the <a href="https://www.ilpost.it/2026/10/16/studenti-manifestazioni-italia-16-ottobre/">Italian marches of 16 October</a>.<a class="fn" id="e-r2" href="#e-n2" aria-label="note 2">²</a></p>
@@ -175,6 +176,71 @@ h2 { font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: 
   if (q === "en") show("en", false);
   var b = document.querySelectorAll("[data-lang]");
   for (var i = 0; i < b.length; i++) b[i].addEventListener("click", function () { show(this.getAttribute("data-lang"), true); });
+})();
+</script>
+<script>
+// Copia testo: copia l'articolo (titolo, testo, note) con i link, pronto da incollare altrove
+(function () {
+  var LBL = { it: ["Copia testo", "Copiato ✓", "Non riuscito"], en: ["Copy text", "Copied ✓", "Copy failed"] };
+  function clean(el) {
+    var t = String(el.textContent || "").replace(/\s+/g, " ").replace(/\s*↩\s*$/, "").trim();
+    return t;
+  }
+  function build(lang) {
+    var art = document.getElementById(lang).cloneNode(true);
+    ["header", ".end", ".gif", ".back"].forEach(function (q) { var n = art.querySelectorAll(q); for (var i = 0; i < n.length; i++) n[i].parentNode.removeChild(n[i]); });
+    var fn = art.querySelectorAll("a.fn");
+    for (var i = 0; i < fn.length; i++) { var sp = document.createElement("sup"); sp.textContent = fn[i].textContent; fn[i].parentNode.replaceChild(sp, fn[i]); }
+    var a = art.querySelectorAll("a[href]");
+    for (var j = 0; j < a.length; j++) { a[j].setAttribute("href", a[j].href); a[j].removeAttribute("class"); }
+    var head = document.getElementById(lang).querySelector("header");
+    var title = "AURA", sub = clean(head.querySelector(".sub")), date = clean(head.querySelector(".date"));
+    var url = "https://jacoponatoli.net/blog/aura/" + (lang === "en" ? "?lang=en" : "");
+    var html = "<h1>" + title + "</h1><p><em>" + sub + "</em></p><p>" + date + "</p>";
+    var txt = [title, sub, date, ""];
+    var kids = art.children;
+    for (var k = 0; k < kids.length; k++) {
+      var el = kids[k], tag = el.tagName;
+      if (tag === "P") { html += "<p>" + el.innerHTML + "</p>"; txt.push(clean(el), ""); }
+      else if (tag === "H2") { html += "<h2>" + el.innerHTML + "</h2>"; txt.push(clean(el), ""); }
+      else if (tag === "OL") {
+        var li = el.querySelectorAll("li"), items = "";
+        for (var m = 0; m < li.length; m++) { var pp = li[m].querySelector("p"); items += "<li>" + (pp ? pp.innerHTML : li[m].innerHTML) + "</li>"; txt.push((m + 1) + ". " + clean(li[m])); }
+        html += "<ol>" + items + "</ol>"; txt.push("");
+      }
+    }
+    html += '<p><a href="' + url + '">' + url.replace("https://", "") + "</a></p>";
+    txt.push(url);
+    return { html: html, txt: txt.join("\n") };
+  }
+  function fallback(c) {
+    var d = document.createElement("div");
+    d.contentEditable = "true"; d.innerHTML = c.html;
+    d.style.cssText = "position:fixed;left:-9999px;top:0;white-space:pre-wrap";
+    document.body.appendChild(d);
+    var r = document.createRange(); r.selectNodeContents(d);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    var ok = false; try { ok = document.execCommand("copy"); } catch (x) {}
+    s.removeAllRanges(); document.body.removeChild(d);
+    return ok;
+  }
+  function copy(c) {
+    try {
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        return navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([c.html], { type: "text/html" }),
+          "text/plain": new Blob([c.txt], { type: "text/plain" })
+        })]).catch(function () { return fallback(c) || navigator.clipboard.writeText(c.txt); });
+      }
+    } catch (x) {}
+    return fallback(c) ? Promise.resolve() : (navigator.clipboard ? navigator.clipboard.writeText(c.txt) : Promise.reject());
+  }
+  var bs = document.querySelectorAll("[data-copy]");
+  for (var i = 0; i < bs.length; i++) bs[i].addEventListener("click", function () {
+    var btn = this, lang = btn.getAttribute("data-copy"), L = LBL[lang];
+    copy(build(lang)).then(function () { btn.textContent = L[1]; }, function () { btn.textContent = L[2]; })
+      .then(function () { setTimeout(function () { btn.textContent = L[0]; }, 2200); });
+  });
 })();
 </script>
 <script src="../../hover.js?v=1791736236"></script>
