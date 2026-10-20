@@ -30,11 +30,32 @@ window.jnNuovaVisita = window.jnNuovaVisita || function () {
   function paint(el) { el.style.setProperty("--hc", next()); }
   function target(n) { return n && n.closest ? n.closest("a, button, summary") : null; }
 
+  // Finché il cursore resta sopra un link i colori si susseguono, uno dopo l'altro;
+  // al clic il colore di quel momento si ferma (il link diventa "cliccato" e lo tiene).
+  var VELOCE = 150; // millisecondi tra un colore e il successivo
+  var cur = null, timer = 0;
+  function fermo(el) { return el.classList.contains("done") || el.classList.contains("jn-done"); }
+  function stop() { clearInterval(timer); timer = 0; cur = null; }
+  function start(el) {
+    stop();
+    if (fermo(el)) return; // già cliccato: tiene il suo colore
+    cur = el; paint(el);
+    timer = setInterval(function () {
+      if (!cur || !cur.isConnected || fermo(cur)) return stop();
+      paint(cur);
+    }, VELOCE);
+  }
   document.addEventListener("pointerover", function (e) {
     var el = target(e.target);
-    if (!el || el.contains(e.relatedTarget)) return; // ancora dentro lo stesso link: niente cambio
-    paint(el);
+    if (!el || el.contains(e.relatedTarget)) return; // ancora dentro lo stesso link
+    start(el);
   });
+  document.addEventListener("pointerout", function (e) {
+    if (cur && !cur.contains(e.relatedTarget)) stop();
+  });
+  document.addEventListener("pointercancel", stop);
+  // il clic ferma la sequenza subito (prima che altri script leggano il colore)
+  document.addEventListener("pointerdown", function (e) { if (cur && cur.contains(e.target)) stop(); }, true);
   document.addEventListener("focusin", function (e) {
     var el = target(e.target);
     if (el && !el.matches(":hover")) paint(el); // col mouse sopra (clic) il colore resta quello che c'è
@@ -46,7 +67,7 @@ window.jnNuovaVisita = window.jnNuovaVisita || function () {
   jnNuovaVisita();
   try { done = JSON.parse(localStorage.getItem(CK) || "{}") || {}; } catch (e) {}
   var st = document.createElement("style");
-  st.textContent = "a.jn-done,summary.jn-done,summary.jn-done *{color:var(--done)!important}";
+  st.textContent = "a.jn-done,a.jn-done *,summary.jn-done,summary.jn-done *{color:var(--done)!important}";
   document.head.appendChild(st);
   function key(a) { return location.pathname + "|" + (a.getAttribute("href") || a.tagName) + "|" + a.textContent.trim().slice(0, 80); }
   function mark(a, c) { a.style.setProperty("--done", c); a.classList.add("jn-done"); }
