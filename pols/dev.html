@@ -225,8 +225,8 @@ vec3 promptfx(vec2 uv){
   vec2 cuv=vec2((cc.x+.5)*cell,uRes.y-(cc.y+.5)*cell)/uRes;
   float scroll=floor(uTime*(2.+uP.y*28.));
   vec3 ca=AL(cuv,1.),cb=BL(cuv,1.);
-  vec3 ta=mix(ca*.08,ca*1.6+.05,glyph(uPA,ci+scroll,f));
-  vec3 tb=mix(cb*.08,cb*1.6+.05,glyph(uPB,ci+scroll,f));
+  vec3 ta=mix(ca*.22,ca*2.+.12,glyph(uPA,ci+scroll,f));
+  vec3 tb=mix(cb*.22,cb*2.+.12,glyph(uPB,ci+scroll,f));
   float ord=uMode==1?ci/(cols*rows):hash(cc+uSeed);
   if(uT<.35)return ord<uT/.35?ta:A(uv);
   if(uT<.65)return ord<(uT-.35)/.3?tb:ta;
@@ -296,8 +296,9 @@ vec3 mosh(vec2 uv){
   vec2 fl=-It*gr/(dot(gr,gr)+.002)*bs*(2.+uP.x*6.);
   fl+=(hash2(bid+mod(floor(uTime*1.5),97.))-.5)*bs*.6*uP.y;
   fl=clamp(fl,-bs*3.,bs*3.);
-  vec3 pv=texture(uPrev,uv-fl).rgb;
-  float key=step(1.-.012-.3*pow(uT,4.),hash(bid+mod(floor(uTime*10.),113.)));
+  vec2 fp=floor(fl*uRes+.5);
+  vec3 pv=texelFetch(uPrev,ivec2(clamp(floor(uv*uRes-fp),vec2(0.),uRes-1.)),0).rgb;
+  float key=step(1.-.004-.3*pow(uT,4.),hash(bid+mod(floor(uTime*10.),113.)));
   return mix(pv,B(uv),clamp(pow(uT,7.)+key,0.,1.));
 }
 
@@ -310,9 +311,12 @@ vec3 dream(vec2 uv){
   c=mat2(cos(an),-sin(an),sin(an),cos(an))*c*z;
   c+=(vec2(noise(c*3.+uTime*.3+uSeed),noise(c*3.+9.-uTime*.3))-.5)*.008;
   c.x/=ar;
-  vec3 pv=texture(uPrev,c+.5).rgb;
-  pv=mix(pv,pv.gbr,.02+.04*uP.z);
-  pv=mix(vec3(lum(pv)),pv,1.012);
+  vec2 s0=c+.5,e1=1./uRes;
+  vec3 pv=texture(uPrev,s0).rgb;
+  vec3 nb=(texture(uPrev,s0+vec2(e1.x,0.)).rgb+texture(uPrev,s0-vec2(e1.x,0.)).rgb+texture(uPrev,s0+vec2(0.,e1.y)).rgb+texture(uPrev,s0-vec2(0.,e1.y)).rgb)*.25;
+  pv+=(pv-nb)*(.7+uP.w*.9);
+  pv=mix(pv,pv.gbr,.02+.05*uP.z);
+  pv=mix(vec3(lum(pv)),pv,1.04);
   float inj=uT<.5?mix(.25,0.,uT*2.):mix(0.,.2,(uT-.5)*2.);
   vec3 o2=mix(pv,uT<.5?A(uv):B(uv),inj);
   return mix(o2,B(uv),smoothstep(.88,1.,uT));
@@ -484,7 +488,11 @@ function chooseFx(){let f;do{f=1+Math.floor(Math.random()*11)}while(lastFx.inclu
 function startTrans(now){
   Bc=makeClip(readyQ.shift());
   if(!A){fx=1;mode=2;pdur=rnd(2.5,4);}
-  else{fx=chooseFx();mode=Math.floor(Math.random()*3);const d=DUR[fx];pdur=rnd(d[0],d[1]);}
+  else{
+    fx=chooseFx();
+    if(fx===3&&!(A.it.prompt&&Bc.it.prompt)){lastFx.pop();fx=chooseFx();if(fx===3)fx=1;}
+    mode=Math.floor(Math.random()*3);const d=DUR[fx];pdur=rnd(d[0],d[1]);
+  }
   P=[Math.random(),Math.random(),Math.random(),Math.random()];seed=Math.random()*50;
   cell=Math.round(rnd(10,20)*RS);
   phase='trans';pt0=now;prepare();
