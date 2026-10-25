@@ -222,8 +222,8 @@ async function analyzeTick(){
   if(!it)return;
   const id=++fid;fwBusy={id,it,t:performance.now()};
   try{
-    const img=new Image();img.crossOrigin='anonymous';img.src=it.thumb;await img.decode();
-    const bmp=await createImageBitmap(img,{resizeWidth:320,resizeQuality:'medium'});
+    const blob=await (await fetch(it.thumb)).blob();
+    const bmp=await createImageBitmap(blob,{resizeWidth:320,resizeQuality:'medium'});
     if(FW)FW.postMessage({id,bmp},[bmp]);
   }catch(e){it.face={n:0};fwBusy=null;}
 }
