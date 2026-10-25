@@ -119,7 +119,9 @@ async function loadSlot(s){
   if(s.state!=='loading')return;
   if(!ok||!v.videoWidth){v.remove();s.state='failed';return;}
   if(isFinite(v.duration)&&v.duration>14){try{v.currentTime=Math.random()*(v.duration-12)}catch(e){}}
-  try{await v.play()}catch(e){}
+  if(v.readyState<4)await new Promise(r=>{const to=setTimeout(r,8000);v.addEventListener('canplaythrough',()=>{clearTimeout(to);r();},{once:true});});
+  if(s.state!=='loading')return;
+  v.pause();                                       // waits paused: only the shots on screen are decoding
   s.state='ready';
 }
 function anchorItem(){return seq.length?seq[seq.length-1].it:(Bc?Bc.it:A?A.it:null);}
@@ -227,7 +229,7 @@ async function analyzeTick(){
     if(FW)FW.postMessage({id,bmp},[bmp]);
   }catch(e){it.face={n:0};fwBusy=null;}
 }
-setInterval(analyzeTick,450);
+setInterval(()=>{if(!document.hidden&&seq.filter(x=>x.state==='ready').length>=2)analyzeTick();},1500);
 
 /* ---------- NARRATIVE ----------
    The film is made of scenes. Each scene follows one way of linking a shot to the next:
@@ -811,8 +813,9 @@ function disposeClip(cl){
 }
 function upload(cl){
   const v=cl.v;if(v.readyState<2||!v.videoWidth)return;
-  if(cl.ok&&v.currentTime===cl.lt)return;           // only new video frames, so the previous one stays one frame behind
-  cl.lt=v.currentTime;const i=1-cl.cur;
+  const now=performance.now();
+  if(cl.ok&&v.currentTime===cl.lt&&now-cl.ut<120)return;   // new video frames (or a clock), so the previous one stays a frame behind
+  cl.lt=v.currentTime;cl.ut=now;const i=1-cl.cur;
   try{
     gl.bindTexture(gl.TEXTURE_2D,cl.tex[i]);
     if(cl.w[i]!==v.videoWidth||cl.h[i]!==v.videoHeight){
@@ -883,6 +886,13 @@ function render(mode,t,age){
 }
 POLS.render=render;
 
+function watch(cl,t){
+  if(!cl)return;const v=cl.v;
+  if(v.paused)v.play().catch(()=>{});
+  if(v.currentTime!==cl.wt){cl.wt=v.currentTime;cl.wk=t;return;}
+  if(cl.wk===undefined)cl.wk=t;
+  if(t-cl.wk>3500&&cl===A&&phase==='hold')pdur=0;    // stalled: cut to the next shot
+}
 function loop(t){
   frameN++;
   const el=(t-pt0)/1000;
@@ -894,7 +904,7 @@ function loop(t){
     if(Bc&&Bc.bad){disposeClip(Bc);Bc=null;phase=A?'hold':'wait';pt0=t;pdur=0;}
     else{uT=Math.min(1,(t-pt0)/1000/pdur);if(uT>=1){endTrans(t);uT=0;}}
   }
-  if(frameN%30===0)prepare();
+  if(frameN%30===0){prepare();watch(A,t);watch(Bc,t);}
   if(GL){
     if(A)upload(A);if(Bc)upload(Bc);
     if(phase==='trans')setHop(uT);
@@ -910,7 +920,8 @@ requestAnimationFrame(loop);
   await Promise.race([civNew(),sleep(5000)]);
   prepare();
   commons();civDig();
-  setTimeout(startFaces,4000);
+  const cn=navigator.connection;
+  if(!(cn&&(cn.saveData||/(^|-)2g|3g/.test(cn.effectiveType||''))))setTimeout(startFaces,20000);
 })();
 setInterval(civNew,2*60*1000);   // new generations of slop
 setInterval(civDig,5*60*1000);   // dig into the past
