@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SLOPOLS</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}
+  canvas{position:fixed;inset:0;z-index:1;display:block;width:100vw;height:100vh}
+  #v{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  #v video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="v"></div>
+<script>
+/* SLOPOLS — a project by Jacopo Natoli
+
+   Endless montage of AI-generated video (Civitai, Wikimedia Commons).
+   Each clip plays clean for a few seconds, then it is taken back through the inside of a
+   generative model and comes out as the next clip. A transition is a path through the
+   model's own representations:
+
+     pixel · forward-diffusion noise · denoising trajectory · the 4 latent channels · latent as false colour ·
+     patch tokens / embeddings · tensor reshaped with the wrong stride · the prompt ·
+     attention maps · the latent tensor printed as numbers · VQ codebook ·
+     early x0 prediction burnt by guidance · upsampling residue · temporal flicker · batch of variations
+
+   Paths are genomes. A population of 16 genomes evolves every 10 minutes (crossover and
+   mutation, a new species every day, the favoured representations drifting over the days),
+   identically for every viewer from the launch date on; while watching, the population
+   also mutates locally. So the transitions are always new, and they change with time.
+
+   The order of the clips is a narrative too: an endless film made of scenes, each linking
+   shot to shot in one way (colour, contrast, shape, light, shared words, smiles, dialogue,
+   approaching a face, Kuleshov, echo, rupture), with a grammar that drifts and learns. */
+
+const C=document.getElementById('c'),box=document.getElementById('v');
+let gl=null;
+try{gl=C.getContext('webgl2',{alpha:false,antialias:false,depth:false,stencil:false,premultipliedAlpha:false});}catch(e){}
+
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let seen=LS.get('slop_seen',{});
+const RETIRE=14;
+const pool=[],fresh=[],known=new Set();
+function add(it,isFresh){
+  if(known.has(it.key))return;known.add(it.key);index(it);
+  if((seen[it.key]||0)>=RETIRE)return;
+  (isFresh?fresh:pool).push(it);
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+async function getJSON(u,ms){
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms||8000);
+  try{const r=await fetch(u,{signal:ac.signal});if(!r.ok)throw 0;return await r.json();}finally{clearTimeout(to)}
+}
+
+/* ---------- SOURCES ----------
+   CIVITAI — public feed of a generation platform: everything there is AI-made, with its prompt
+             (safe-for-work filter on). Newest = new generations; top-reacted = the archive.
+   COMMONS — Wikimedia's curated category "AI-generated videos". */
+const MIX_CIV=0.88;
+function civSrc(u){return u.replace('/original=true/','/transcode=true,width=720/')}
+async function civitai(params,isFresh,pages){
+  let u='https://civitai.com/api/v1/images?'+new URLSearchParams(Object.assign({limit:'100',nsfw:'None',type:'video',withMeta:'true'},params));
+  for(let k=0;k<pages&&u;k++){
+    try{
+      const j=await getJSON(u,12000);
+      (j.items||[]).forEach(i=>{
+        if(i.type==='video'&&i.nsfwLevel==='None'&&i.url)
+          add({key:'cv:'+i.id,src:civSrc(i.url),alt:i.url,s:'civ',prompt:(i.meta&&i.meta.prompt)||'',bh:i.hash,thumb:i.thumbnail&&i.thumbnail.url},isFresh);
+      });
+      u=j.metadata&&j.metadata.nextPage;
+    }catch(e){break}
+  }
+}
+function civNew(){return civitai({sort:'Newest'},true,2)}
+function civDig(){
+  const periods=['Day','Week','Month','Year','AllTime'],sorts=['Most Reactions','Most Comments','Most Collected'];
+  return civitai({sort:sorts[Math.random()*sorts.length|0],period:periods[Math.random()*periods.length|0]},false,2+(Math.random()*3|0));
+}
+async function commons(){
+  let cont={};
+  for(let k=0;k<4;k++){
+    try{
+      const p=new URLSearchParams(Object.assign({action:'query',prop:'imageinfo',iiprop:'url|mime',format:'json',origin:'*',
+        generator:'categorymembers',gcmtitle:'Category:AI-generated videos',gcmtype:'file',gcmlimit:'200'},cont));
+      const j=await getJSON('https://commons.wikimedia.org/w/api.php?'+p);
+      for(const pg of Object.values((j.query&&j.query.pages)||{})){
+        const ii=pg.imageinfo&&pg.imageinfo[0];
+        if(ii&&/^video\//.test(ii.mime))
+          add({key:'c:'+pg.title,src:ii.url,s:'com',prompt:pg.title.replace(/^File:/,'').replace(/\.\w+$/,'')},false);
+      }
+      if(!j.continue)break;cont=j.continue;
+    }catch(e){break}
+  }
+}
+
+/* ---------- LOADING (as a sequence: each clip is chosen in relation to the one before) ---------- */
+let seq=[];
+const SEQN=3;
+function mkVideo(src){
+  const v=document.createElement('video');
+  v.crossOrigin='anonymous';
+  v.muted=true;v.defaultMuted=true;v.playsInline=true;v.loop=true;v.preload='auto';
+  v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+  box.appendChild(v);v.src=src;return v;
+}
+function waitReady(v,ms){
+  return new Promise(res=>{const to=setTimeout(()=>res(false),ms);
+    v.oncanplay=()=>{clearTimeout(to);res(true)};v.onerror=()=>{clearTimeout(to);res(false)};});
+}
+async function loadSlot(s){
+  const v=mkVideo(s.it.src);s.v=v;
+  let ok=await waitReady(v,12000);
+  if(!ok&&s.it.alt&&s.state==='loading'){v.src=s.it.alt;ok=await waitReady(v,12000);}
+  if(s.state!=='loading')return;
+  if(!ok||!v.videoWidth){v.remove();s.state='failed';return;}
+  if(isFinite(v.duration)&&v.duration>14){try{v.currentTime=Math.random()*(v.duration-12)}catch(e){}}
+  try{await v.play()}catch(e){}
+  s.state='ready';
+}
+function anchorItem(){return seq.length?seq[seq.length-1].it:(Bc?Bc.it:A?A.it:null);}
+function prepare(){
+  seq=seq.filter(s=>s.state!=='failed');
+  const now=performance.now();
+  if(seq[0]&&seq[0].state==='loading'&&now-seq[0].t0>16000){const s=seq.shift();s.state='failed';if(s.v)s.v.remove();}
+  if(seq.length<SEQN&&(pool.length||fresh.length)){          // one new shot per call, so the face reader can keep up
+    const r=nextItem(anchorItem());
+    if(r&&r.it){const s={it:r.it,link:r.link,state:'loading',t0:now};seq.push(s);loadSlot(s);analyzeSoon(r.it);}
+  }
+}
+function headReady(){while(seq[0]&&seq[0].state==='failed')seq.shift();return seq[0]&&seq[0].state==='ready'?seq[0]:null;}
+function wake(){document.querySelectorAll('#v video').forEach(v=>{if(v.paused)v.play().catch(()=>{})});}
+
+/* ---------- WHAT EACH SHOT IS MADE OF ----------
+   colours and layout from the blurhash Civitai gives for every item (no download needed),
+   words from the prompt, faces (smile, open mouth, gaze, scale) read from the thumbnail
+   by a small face model running in a background worker. */
+const B83='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~';
+function d83(s){let v=0;for(const c of s)v=v*83+B83.indexOf(c);return v;}
+function s2l(v){v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);}
+function l2s(v){v=Math.max(0,Math.min(1,v));return v<=.0031308?v*12.92:1.055*Math.pow(v,1/2.4)-.055;}
+function sp(v,e){return Math.sign(v)*Math.pow(Math.abs(v),e);}
+function blurDecode(hash,w,h){
+  const sf=d83(hash[0]),ny=Math.floor(sf/9)+1,nx=sf%9+1,mq=(d83(hash[1])+1)/166;
+  if(hash.length!==4+2*nx*ny)return null;
+  const dc=d83(hash.slice(2,6)),cols=[[s2l(dc>>16),s2l((dc>>8)&255),s2l(dc&255)]];
+  for(let i=1;i<nx*ny;i++){const v=d83(hash.slice(4+i*2,6+i*2));
+    cols.push([sp((Math.floor(v/361)-9)/9,2)*mq,sp((Math.floor(v/19)%19-9)/9,2)*mq,sp((v%19-9)/9,2)*mq]);}
+  const out=new Float32Array(w*h*3);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let r=0,g=0,b=0;
+    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const f=Math.cos(Math.PI*x*i/w)*Math.cos(Math.PI*y*j/h),c=cols[i+j*nx];r+=c[0]*f;g+=c[1]*f;b+=c[2]*f;}
+    const o=(y*w+x)*3;out[o]=l2s(r);out[o+1]=l2s(g);out[o+2]=l2s(b);}
+  return out;
+}
+function featuresFrom(px){
+  const n=px.length/3,lay=new Float32Array(n);let r=0,g=0,b=0,cx=0,cy=0,sl=0,sat=0;
+  for(let i=0;i<n;i++){const R=px[i*3],G=px[i*3+1],B=px[i*3+2],L=.299*R+.587*G+.114*B,mx=Math.max(R,G,B),mn=Math.min(R,G,B);
+    lay[i]=L;r+=R;g+=G;b+=B;sat+=mx?(mx-mn)/mx:0;cx+=(i%6)/5*L;cy+=Math.floor(i/6)/5*L;sl+=L;}
+  r/=n;g/=n;b/=n;
+  const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let hue=0;
+  if(d>1e-4){hue=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;hue=((hue/6)%1+1)%1;}
+  return {rgb:[r,g,b],lum:.299*r+.587*g+.114*b,hue,sat:sat/n,lay,cx:sl?cx/sl:.5,cy:sl?cy/sl:.5};
+}
+function ensureF(it){
+  if(it.F===undefined){it.F=null;if(it.bh){try{const px=blurDecode(it.bh,6,6);if(px)it.F=featuresFrom(px);}catch(e){}}}
+  return it;
+}
+const STOP=new Set(('the and with for from into onto over under this that these those their them they she her his him its are was were has have had not but very more most some any all each other such only own same than too can will just should now then there here when where while who whom which what how out off about above below again further once also been being both few nor yet upon via per like your you our '+
+  'best quality masterpiece highly ultra detail detailed details realistic photorealistic photo photograph photography cinematic cinema lighting light shot scene video image frame camera style render rendered resolution sharp focus film movie full body viewer background foreground subject motion move moving slowly slow fast smooth natural soft warm cool color colors colour lens depth field wide angle close closeup medium long take second seconds audio sound music play plays ambient ambience negative prompt start begin begins continue continues keep keeps make makes made look looks entire whole scene shot appear appears around toward towards across through behind front side left right top bottom center centre slightly gently subtle').split(' '));
+const DF=new Map();let NDOC=0;
+function stem(w){for(const s of ['ing','es','ed','s'])if(w.endsWith(s)&&w.length-s.length>=4)return w.slice(0,-s.length);return w;}
+function words(p){
+  const s=new Set();(p||'').toLowerCase().replace(/[^a-zà-ÿ]+/g,' ').split(' ').forEach(w=>{if(w.length>=4&&!STOP.has(w)&&s.size<60)s.add(stem(w));});
+  return s;
+}
+function index(it){
+  it.W=words(it.prompt);NDOC++;it.W.forEach(w=>DF.set(w,(DF.get(w)||0)+1));
+  it.smileW=/\b(smil|laugh|grin|giggl|cheerful|joyful)/i.test(it.prompt||'');
+  it.talkW=/\b(talk|speak|says?\b|said|convers|dialog|interview|whisper|sing|argu|asks?\b|repl|lip ?sync|voice|shout)/i.test(it.prompt||'');
+}
+const idf=w=>Math.log((NDOC+1)/((DF.get(w)||0)+1));
+
+/* face reader: MediaPipe face landmarker in a worker, so the film never stutters */
+let FW=null,fwReady=false,fwBusy=null,fid=0;const AQ=[];
+function startFaces(){
+  try{
+    const code=`let fl=null;
+(async()=>{try{
+  const src=await (await fetch('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.cjs')).text();
+  const module={exports:{}};new Function('module','exports',src)(module,module.exports);const V=module.exports;
+  const fs=await V.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  fl=await V.FaceLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'CPU'},runningMode:'IMAGE',numFaces:3,outputFaceBlendshapes:true});
+  postMessage({ready:true});
+}catch(e){postMessage({fatal:String(e)})}})();
+onmessage=e=>{const id=e.data.id,bmp=e.data.bmp;try{const r=fl.detect(bmp);bmp.close();let best=null;
+  r.faceLandmarks.forEach((L,i)=>{let x0=1,x1=0,y0=1,y1=0;for(const p of L){if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.y<y0)y0=p.y;if(p.y>y1)y1=p.y;}
+    const b=r.faceBlendshapes[i]?r.faceBlendshapes[i].categories:[];const g=n=>{const c=b.find(c=>c.categoryName===n);return c?c.score:0};
+    const f={n:r.faceLandmarks.length,x:(x0+x1)/2,y:(y0+y1)/2,size:y1-y0,yaw:(L[1].x-(L[234].x+L[454].x)/2)/Math.max(.01,x1-x0),
+      smile:(g('mouthSmileLeft')+g('mouthSmileRight'))/2,jaw:g('jawOpen')};
+    if(!best||f.size>best.size)best=f;});
+  postMessage({id,face:best||{n:0}});
+}catch(err){postMessage({id,face:{n:0}})}};`;
+    FW=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+    FW.onmessage=e=>{const d=e.data;
+      if(d.ready){fwReady=true;return;}
+      if(d.fatal){FW=null;return;}
+      if(fwBusy&&fwBusy.id===d.id){fwBusy.it.face=d.face;fwBusy=null;}};
+    FW.onerror=()=>{FW=null;};
+  }catch(e){FW=null;}
+}
+function analyzeSoon(it){if(it.thumb&&it.face===undefined)AQ.unshift(it);}
+async function analyzeTick(){
+  if(fwBusy&&performance.now()-fwBusy.t>6000){fwBusy.it.face={n:0};fwBusy=null;}
+  if(!FW||!fwReady||fwBusy)return;
+  let it=null;
+  while(AQ.length&&!it){const x=AQ.shift();if(x.face===undefined)it=x;}
+  for(let k=0;k<25&&!it;k++){const src=Math.random()<.4&&fresh.length?fresh:pool;const x=src[Math.floor(Math.random()*src.length)];if(x&&x.thumb&&x.face===undefined)it=x;}
+  if(!it)return;
+  const id=++fid;fwBusy={id,it,t:performance.now()};
+  try{
+    const img=new Image();img.crossOrigin='anonymous';img.src=it.thumb;await img.decode();
+    const bmp=await createImageBitmap(img,{resizeWidth:320,resizeQuality:'medium'});
+    if(FW)FW.postMessage({id,bmp},[bmp]);
+  }catch(e){it.face={n:0};fwBusy=null;}
+}
+setInterval(analyzeTick,450);
+
+/* ---------- NARRATIVE ----------
+   The film is made of scenes. Each scene follows one way of linking a shot to the next:
+   by colour, by complementary colour, by shape (graphic match), by light going towards night
+   or day, by a word the two prompts share (drifting from word to word), by smiles answering
+   smiles, as a dialogue (shot / reverse shot: faces looking at each other, mouths open),
+   by moving closer to a face, as a Kuleshov alternation (face / thing / face), as an echo
+   of something already seen, or as a rupture. Which link comes next is chosen by a grammar
+   that drifts with time (same for everyone) and learns, in each browser, which links the
+   material actually allows: links that find good matches are used more, and so are the
+   scene-to-scene successions that worked. */
+const has=f=>f&&f.n>0;
+const colD=(a,b)=>Math.hypot(a.rgb[0]-b.rgb[0],a.rgb[1]-b.rgb[1],a.rgb[2]-b.rgb[2]);
+const hueD=(a,b)=>{const d=Math.abs(a-b)%1;return Math.min(d,1-d);};
+function layD(a,b){let s=0;for(let i=0;i<36;i++)s+=Math.abs(a.lay[i]-b.lay[i]);return s/36+Math.hypot(a.cx-b.cx,a.cy-b.cy)*.5;}
+function shared(a,b,skip){let s=0,best=null,bv=0;if(!a.W||!b.W)return [0,null];
+  for(const w of b.W)if(a.W.has(w)){const v=idf(w);s+=v;if(w!==skip&&v>bv){bv=v;best=w;}}return [s,best];}
+const RULES={
+  colore:   {len:[3,7],need:(a,c)=>a.F&&c.F,score:(a,c)=>-colD(a.F,c.F)},
+  contrasto:{len:[2,4],need:(a,c)=>a.F&&c.F&&c.F.sat>.12,score:(a,c)=>-Math.abs(hueD(a.F.hue,c.F.hue)-.5)*2+Math.min(a.F.sat,c.F.sat)-Math.abs(a.F.lum-c.F.lum)*.5},
+  analogia: {len:[3,6],need:(a,c)=>a.F&&c.F,score:(a,c)=>-layD(a.F,c.F)},
+  luce:     {len:[5,10],need:(a,c)=>a.F&&c.F,start:s=>{s.dir=Math.random()<.5?-1:1},
+             score:(a,c,s)=>-Math.abs(c.F.lum-a.F.lum-s.dir*.06)*3-colD(a.F,c.F)*.15,
+             after:(a,c,s)=>{if(c.F.lum>.72)s.dir=-1;if(c.F.lum<.14)s.dir=1;}},
+  parola:   {len:[3,8],need:(a,c)=>a.W&&a.W.size&&c.W&&c.W.size,
+             score:(a,c,s)=>{const [v,w]=shared(a,c,s.word);return v>0?v+(w?idf(w)*.5:0):-99},valid:v=>v>0,
+             after:(a,c,s)=>{const w=shared(a,c,s.word)[1];if(w)s.word=w;}},
+  sorriso:  {len:[2,5],face:true,need:(a,c)=>(has(c.face)&&c.face.smile>.35)||c.smileW,
+             score:(a,c)=>(has(c.face)?c.face.smile*2:.8)+(has(a.face)&&a.face.smile>.35?.5:0)-(has(a.face)&&has(c.face)?Math.abs(a.face.size-c.face.size):0)},
+  dialogo:  {len:[4,8],face:true,start:s=>{s.side=Math.random()<.5?1:-1},need:(a,c)=>has(c.face)&&Math.abs(c.face.yaw)>.04&&c.face.size>.12,
+             score:(a,c,s)=>{const ay=has(a.face)?a.face.yaw:-s.side;if(Math.sign(c.face.yaw)===Math.sign(ay))return -99;
+               return 1-Math.abs((has(a.face)?a.face.size:.3)-c.face.size)*2+(c.face.jaw>.12||c.talkW?.6:0)+Math.min(.4,Math.abs(c.face.yaw))},
+             valid:v=>v>-50},
+  avvicinamento:{len:[3,5],face:true,start:s=>{s.dir=Math.random()<.7?1:-1},need:(a,c)=>has(c.face),
+             score:(a,c,s)=>{const as=has(a.face)?a.face.size:(s.dir>0?.1:.6);return -Math.abs(c.face.size-as*(s.dir>0?1.4:.7))*3-(a.F&&c.F?colD(a.F,c.F)*.2:0)}},
+  kuleshov: {len:[4,6],face:true,need:(a,c)=>c.face!==undefined,
+             score:(a,c)=>{if(has(a.face)){if(has(c.face))return -99;return 1-(a.F&&c.F?colD(a.F,c.F)*.5:0)+shared(a,c)[0]*.2;}
+               if(!has(c.face)||c.face.smile>.4)return -99;return 1-Math.abs(c.face.size-.35);},valid:v=>v>-50},
+  eco:      {len:[1,2],need:(a,c)=>c.played>0,score:(a,c)=>-(a.F&&c.F?colD(a.F,c.F):1)+shared(a,c)[0]*.3},
+  rottura:  {len:[1,2],need:()=>true,score:(a,c)=>a.F&&c.F?colD(a.F,c.F)+layD(a.F,c.F):Math.random()},
+};
+const RN=Object.keys(RULES);
+const HOLD={dialogo:[1.8,3.2],sorriso:[2,3.5],avvicinamento:[2,3.5],kuleshov:[2,3.5],analogia:[2,4]};
+const learn=LS.get('slopols_story',{succ:{},M:{}});
+const story={rule:null,prev:null,left:0,s:{},q:[],fails:0,log:[]};
+function baseW(e){return RN.map((n,i)=>.25+vnoise(e/50+i*5.17));}           // the grammar drifts over days, same for everyone
+function newScene(){
+  const bw=baseW(epoch);
+  const w=RN.map((n,i)=>{let x=bw[i]*(.3+(learn.succ[n]??.5))*(1+((learn.M[story.rule]||{})[n]||0));if(n===story.rule)x*=.15;return Math.max(.001,x);});
+  let x=Math.random()*w.reduce((a,b)=>a+b,0),k=0;while(k<w.length-1&&(x-=w[k])>0)k++;
+  story.prev=story.rule;story.rule=RN[k];const L=RULES[story.rule].len;
+  story.left=L[0]+Math.floor(Math.random()*(L[1]-L[0]+1));story.s={};story.q=[];story.fails=0;story.first=true;
+  if(RULES[story.rule].start)RULES[story.rule].start(story.s);
+}
+function endScene(){
+  if(!story.rule||!story.q.length)return;
+  const q=story.q.reduce((a,b)=>a+b,0)/story.q.length,r=story.rule;
+  learn.succ[r]=(learn.succ[r]??.5)*.8+q*.2;
+  if(story.prev){const m=learn.M[story.prev]=learn.M[story.prev]||{};m[r]=Math.max(-.8,Math.min(2,(m[r]||0)+(q-.45)*.5));}
+  LS.set('slopols_story',learn);
+}
+function sample(onlyFresh){
+  const out=fresh.slice(0,80);
+  if(!onlyFresh)for(let k=0;k<220&&pool.length;k++)out.push(pool[Math.floor(Math.random()*pool.length)]);
+  return out.map(ensureF);
+}
+function take(c){let i=pool.indexOf(c);if(i>=0)pool.splice(i,1);else{i=fresh.indexOf(c);if(i>=0)fresh.splice(i,1);}}
+function tryRule(name,a,onlyFresh){
+  const R=RULES[name],sc=[];
+  for(const c of new Set(sample(onlyFresh))){
+    if(c===a||!R.need(a,c))continue;
+    let v;try{v=R.score(a,c,story.s)}catch(e){continue}
+    if(!isFinite(v)||(R.valid&&!R.valid(v)))continue;
+    sc.push([v,c]);
+  }
+  if(sc.length<(onlyFresh?1:R.face?2:4))return null;
+  sc.sort((x,y)=>y[0]-x[0]);
+  const k=Math.random()<.6?0:Math.min(sc.length-1,1+Math.floor(Math.random()*2));
+  const [v,c]=sc[k],lo=sc[sc.length-1][0],md=sc[sc.length>>1][0];
+  const q=sc.length>2?Math.max(0,Math.min(1,(v-md)/(sc[0][0]-lo+1e-6)*2)):.5;
+  if(R.after)R.after(a,c,story.s);
+  take(c);
+  return {it:c,link:{rule:name,q,word:story.s.word||null}};
+}
+function nextItem(a){
+  if(!a){const c=ensureF(fresh.shift()||pool.splice(Math.floor(Math.random()*pool.length),1)[0]);return {it:c,link:{rule:'inizio'}};}
+  ensureF(a);
+  if(story.left<=0){endScene();newScene();}
+  let res=null;
+  if(story.first&&fresh.length&&Math.random()<.35)res=tryRule(story.rule,a,true);   // a new generation opens the scene
+  if(!res)res=tryRule(story.rule,a,false);
+  if(res)story.q.push(res.link.q);
+  else{story.fails++;if(story.fails>1)story.left=0;res=tryRule('rottura',a,false);}
+  story.first=false;story.left--;
+  if(res){story.log.push(res.link.rule+(res.link.word?':'+res.link.word:''));if(story.log.length>30)story.log.shift();}
+  return res;
+}
+function toScreen(fx,fy,at){const as=W/H,s=at>as?[as/at,1]:[1,at/as];return [(fx-.5)/s[0]+.5,1-((fy-.5)/s[1]+.5)];}
+/* the link also shapes the passage: faces open from the face, words pass through the prompt, colours through colour */
+function biasGenome(G,link,B){
+  const r=link&&link.rule;if(!r||!G.nodes||G.nodes.length<3)return;
+  const inter=()=>G.nodes.length-2;
+  if(r==='dialogo'||r==='sorriso'||r==='avvicinamento'||r==='kuleshov'){
+    while(inter()>(r==='dialogo'?1:2)){const i=1+Math.floor(Math.random()*inter());G.nodes.splice(i,1);G.hops.splice(i-1,1);}
+    G.dur=Math.min(G.dur*.5,r==='dialogo'?2.6:4);
+    const f=B.it.face;
+    if(has(f)){const [sx,sy]=toScreen(f.x,f.y,asp(B));G.hops.forEach(h=>{if(Math.random()<.7){h.mask=3;h.mq=[h.mq[0],sx,sy,h.mq[3]];}});}
+  }
+  if(r==='parola'&&!G.nodes.some(n=>n.r===6)){const i=1+Math.floor(Math.random()*inter());G.nodes[i]=mkNode(6,G.nodes[i].c,Math.random);}
+  if(r==='colore'||r==='contrasto'||r==='luce')G.hops.forEach(h=>{if(Math.random()<.5){h.mask=PK(Math.random,[8,4,7,0]);
+    if(h.mask===7){const o=[0,.5,1].sort(()=>Math.random()-.5);h.mq=[h.mq[0],o[0],o[1],o[2]];}}});
+  if(r==='analogia'){G.dur*=.7;G.hops.forEach(h=>{if(Math.random()<.5)h.mask=PK(Math.random,[8,0]);});}
+  fixClips(G);
+}
+
+/* ---------- SHADERS ---------- */
+const VS=`#version 300 es
+in vec2 p;out vec2 vUv;
+void main(){vUv=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
+
+const FS_COPY=`#version 300 es
+precision mediump float;in vec2 vUv;out vec4 o;uniform sampler2D t;
+void main(){o=texture(t,vUv);}`;
+
+const FS=`#version 300 es
+precision highp float;
+in vec2 vUv;out vec4 o;
+uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig;
+uniform vec2 uRes;
+uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
+uniform int uMode,uR0,uC0,uR1,uC1,uMask,uEdge;
+uniform vec4 uQ0,uQ1,uMq;
+uniform vec3 uPal[16];
+
+float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+vec2 hash2(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+vec3 hash3(vec2 p){return vec3(hash(p),hash(p+7.13),hash(p+19.31));}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*noise(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+float gn(vec2 p){return (hash(p)+hash(p+13.1)+hash(p+29.7)+hash(p+41.3)-2.)*1.73;}   // ~N(0,1)
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+float tfr(){return mod(floor(uTime*24.),997.);}
+vec2 cover(vec2 uv,float at){float as=uRes.x/uRes.y;vec2 s=vec2(1.);if(at>as)s.x=as/at;else s.y=at/as;return (uv-.5)*s+.5;}
+vec3 S(int c,vec2 uv,float l){return c==0?textureLod(uA,cover(uv,uAspA),l).rgb:textureLod(uB,cover(uv,uAspB),l).rgb;}
+vec3 So(int c,vec2 uv,float l){return c==0?textureLod(uAo,cover(uv,uAspA),l).rgb:textureLod(uBo,cover(uv,uAspB),l).rgb;}
+
+/* colour maps used by research visualisations */
+vec3 inferno(float t){
+  const vec3 c0=vec3(.0002189,.0016510,-.0194809),c1=vec3(.1065134,.5639564,3.9327124),c2=vec3(11.6024931,-3.9728540,-15.9423941),
+  c3=vec3(-41.7039961,17.4363989,44.3541452),c4=vec3(77.1629357,-33.4023589,-81.8073093),c5=vec3(-71.3194282,32.6260643,73.2095199),
+  c6=vec3(25.1311262,-12.2426690,-23.0703250);
+  return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));}
+vec3 viridis(float t){
+  const vec3 c0=vec3(.2777273,.0054073,.3340998),c1=vec3(.1050930,1.4046135,1.3845902),c2=vec3(-.3308618,.2148476,.0950952),
+  c3=vec3(-4.6342305,-5.7991010,-19.3324410),c4=vec3(6.2282699,14.1799334,56.6905526),c5=vec3(4.7763850,-13.7451454,-65.3530326),
+  c6=vec3(-5.4354559,4.6458526,26.3124353);
+  return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));}
+vec3 cmap(int k,float t){t=clamp(t,0.,1.);
+  if(k==1)return clamp(inferno(t),0.,1.);
+  if(k==2)return clamp(viridis(t),0.,1.);
+  if(k==3)return clamp(vec3(1.5-abs(4.*t-3.),1.5-abs(4.*t-2.),1.5-abs(4.*t-1.)),0.,1.);
+  return vec3(t);}
+
+/* RGB -> 4-channel latent (pseudo-inverse of the Stable Diffusion latent preview matrix) */
+vec4 lat(vec3 rgb){vec3 x=rgb*2.-1.;
+  return x.r*vec4(1.0426,.0828,-1.9601,-.2472)+x.g*vec4(-.3538,2.2725,1.3497,1.0967)+x.b*vec4(.2639,-1.0109,.2878,-1.4966);}
+
+/* ===== REPRESENTATIONS ===== */
+
+/* 1 forward diffusion: x_t = sqrt(a)·x0 + sqrt(1-a)·eps, eps ~ N(0,1) at latent resolution */
+vec3 noiseR(int c,vec4 q,vec2 uv){
+  float nb=max(1.,q.y*uRS);vec2 np=floor(uv*uRes/nb)+tfr()*7.3+uSeed;
+  vec3 n=q.z>.5?vec3(gn(np)):vec3(gn(np),gn(np+51.3),gn(np+97.9));
+  vec3 x=S(c,uv,0.)*2.-1.;
+  return (sqrt(q.x)*x+sqrt(1.-q.x)*n)*.32+.5;
+}
+/* 2 the four latent channels, side by side as in the papers */
+vec3 lat4R(int c,vec4 q,vec2 uv){
+  vec2 n=q.z<.5?vec2(2.):q.z<1.5?vec2(4.,1.):vec2(1.,4.);
+  vec2 cl=floor(uv*n),lu=fract(uv*n);
+  int k=int((n.y-1.-cl.y)*n.x+cl.x);
+  float b=max(2.,q.x*uRS);vec2 qr=uRes/n;
+  vec2 bl=(floor(lu*qr/b)+.5)*b/qr;
+  vec4 l=lat(S(c,bl,log2(b)));
+  vec3 col=cmap(int(q.y),l[k]*q.w+.5);
+  float sep=max(step(lu.x,1.5/qr.x),step(lu.y,1.5/qr.y));
+  return mix(col,vec3(0.),sep);
+}
+/* 3 latent shown raw as false colour */
+vec3 latRGBR(int c,vec4 q,vec2 uv){
+  float b=max(2.,q.x*uRS);vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;
+  vec4 l=lat(S(c,bl,log2(b)));
+  vec2 bi=floor(uv*uRes/b);l+=vec4(gn(bi+uSeed),gn(bi+3.1+uSeed),gn(bi+7.7+uSeed),gn(bi+9.9+uSeed))*q.w;
+  int p=int(q.y);vec3 v=p==0?l.xyz:p==1?l.yzw:p==2?l.wxy:l.zwx;
+  return clamp(v*q.z+.5,0.,1.);
+}
+/* 4 patch tokens: mean embeddings / embedding vectors / patches shuffled in the sequence */
+vec3 tokensR(int c,vec4 q,vec2 uv){
+  float cell=max(4.,q.x*uRS);vec2 px=uv*uRes,grid=ceil(uRes/cell);
+  vec2 cid=floor(px/cell),f=fract(px/cell),cuv=(cid+.5)*cell/uRes;
+  float lod=log2(cell);vec3 c0;
+  if(q.y<.5)c0=S(c,cuv,lod);
+  else if(q.y<1.5){
+    vec3 m=S(c,cuv,lod)*2.-1.;float D=8.,i=floor(f.x*D);
+    vec3 w=normalize(hash3(vec2(i,floor(uSeed)))*2.-1.);
+    float v=.5+.5*sin(dot(m,w)*4.+i*1.7);
+    c0=f.y>.8?m*.5+.5:vec3(v*(.25+.9*lum(m*.5+.5)));
+  }else{
+    vec2 other=floor(hash2(cid+floor(uTime*q.w)+uSeed)*grid);
+    c0=S(c,(other+f)*cell/uRes,0.);
+  }
+  float b=max(step(f.x,1.2/cell),step(f.y,1.2/cell))*q.z;
+  return mix(c0,vec3(1.)-c0*.6,b*.7);
+}
+/* 5 the frame buffer read back with the wrong width: reshape error, raster order exposed */
+vec3 reshapeR(int c,vec4 q,vec2 uv){
+  float b=max(1.,q.x*uRS);vec2 dims=floor(uRes/b);
+  float row=floor((1.-uv.y)*dims.y);
+  float d=q.y+floor(sin(uTime*.6+uSeed)*q.z);
+  vec3 o;
+  for(int k=0;k<3;k++){
+    float wi=max(8.,dims.x+d+(q.w>.5?float(k)*3.:0.));
+    float idx=row*wi+floor(uv.x*wi);
+    float sx=mod(idx,dims.x),sy=mod(floor(idx/dims.x),dims.y);
+    o[k]=S(c,vec2((sx+.5)/dims.x,1.-(sy+.5)/dims.y),log2(b)*.5)[k];
+  }
+  return o;
+}
+/* 6 the prompt written with the image's own colours */
+float glyph(int c,float ci,vec2 f){
+  ci=mod(ci,uG*uG);vec2 g=vec2(mod(ci,uG),floor(ci/uG));f=clamp(f,.03,.97);
+  vec2 t=vec2((g.x+f.x)/uG,(uG-g.y-1.+f.y)/uG);
+  return c==0?texture(uPA,t).r:texture(uPB,t).r;
+}
+vec3 promptR(int c,vec4 q,vec2 uv){
+  float cell=uCell;vec2 pt=vec2(uv.x*uRes.x,(1.-uv.y)*uRes.y);
+  float cols=floor(uRes.x/cell);
+  vec2 cc=floor(pt/cell),ft=fract(pt/cell),f=vec2(ft.x,1.-ft.y);
+  float ci=cc.y*cols+cc.x+floor(uTime*q.x);
+  vec2 cuv=vec2((cc.x+.5)*cell/uRes.x,1.-(cc.y+.5)*cell/uRes.y);
+  vec3 col=S(c,cuv,1.);float g=glyph(c,ci,f);
+  return q.y<.5?mix(col*.18,col*1.8+.1,g):mix(vec3(lum(col))*.25,vec3(1.),g);
+}
+/* 7 attention: heads looking at luminance, edges, one colour, or one moving query token */
+vec3 attnR(int c,vec4 q,vec2 uv){
+  float cell=max(4.,q.x*uRS);vec2 cid=floor(uv*uRes/cell),cuv=(cid+.5)*cell/uRes;
+  float lod=log2(cell);vec3 x=S(c,cuv,lod);float a;int h=int(q.y);
+  if(h==0)a=lum(x);
+  else if(h==1){vec2 e=vec2(cell/uRes.x,0.),e2=vec2(0.,cell/uRes.y);
+    a=length(vec2(lum(S(c,cuv+e,lod))-lum(S(c,cuv-e,lod)),lum(S(c,cuv+e2,lod))-lum(S(c,cuv-e2,lod))))*3.;}
+  else if(h==2){vec3 tc=hash3(vec2(floor(uSeed),3.));a=1.-distance(x,tc)/1.2;a=a*a*a*1.6;}
+  else{vec2 qp=vec2(noise(vec2(uTime*.23,uSeed))*.8+.1,noise(vec2(uSeed,uTime*.19))*.8+.1);
+    vec3 qx=S(c,qp,lod);vec2 ar=vec2(uRes.x/uRes.y,1.);
+    a=exp(-dot(x-qx,x-qx)*8.)*.8+exp(-distance(cuv*ar,qp*ar)*6.)*.4;
+    if(all(equal(cid,floor(qp*uRes/cell))))return vec3(1.);}
+  return mix(vec3(lum(S(c,uv,0.)))*.3,cmap(int(q.z),a),q.w);
+}
+/* 8 the latent tensor printed as numbers */
+vec3 tensorR(int c,vec4 q,vec2 uv){
+  float ch=uCell*1.1,cw=ch*.62,field=6.;
+  vec2 pt=vec2(uv.x*uRes.x,(1.-uv.y)*uRes.y);
+  vec2 cc=floor(vec2(pt.x/cw,pt.y/ch)),ft=fract(vec2(pt.x/cw,pt.y/ch));
+  float fi=floor(cc.x/field),slot=cc.x-fi*field;
+  vec2 cuv=vec2((fi*field+field*.5)*cw/uRes.x,1.-(cc.y+.5)*ch/uRes.y);
+  vec4 l=lat(S(c,cuv,3.));
+  int k=q.y<.5?int(mod(floor(uSeed),4.)):int(mod(floor(uTime*1.5)+fi+cc.y,4.));
+  float v=l[k],a=abs(v);
+  float d0=min(floor(a),9.),d1=floor(fract(a)*10.),d2=floor(fract(a*10.)*10.);
+  float idx=15.;
+  if(slot<.5)idx=v<0.?11.:15.;else if(slot<1.5)idx=d0;else if(slot<2.5)idx=10.;else if(slot<3.5)idx=d1;else if(slot<4.5)idx=d2;
+  float g=texture(uDig,vec2((idx+clamp(ft.x,.04,.96))/16.,1.-ft.y)).r;
+  vec3 col=q.x<.5?vec3(.12+.88*clamp(a/2.,0.,1.)):q.x<1.5?cmap(int(q.z),v*.18+.5):S(c,cuv,2.)*1.5+.1;
+  return col*g+.015;
+}
+/* 9 vector-quantised codebook: every block snapped to one of K learned codes */
+vec3 codeR(int c,vec4 q,vec2 uv){
+  float b=max(2.,q.x*uRS);vec2 cuv=(floor(uv*uRes/b)+.5)*b/uRes;
+  vec3 x=S(c,cuv,log2(b));
+  int K=int(q.y);float bd=1e9;int bi=0;vec3 bc=vec3(0.);
+  for(int i=0;i<16;i++){if(i>=K)break;vec3 pc=S(c,uPal[i].xy,3.);vec3 d=x-pc;float dd=dot(d,d);if(dd<bd){bd=dd;bi=i;bc=pc;}}
+  if(q.z<.5)return bc;
+  float t=float(bi)/float(K-1);
+  return q.z<1.5?vec3(t):cmap(1,t);
+}
+/* 10 early x0 prediction, over-pushed by classifier-free guidance */
+vec3 x0R(int c,vec4 q,vec2 uv){
+  vec3 x=S(c,uv,q.x);x=(x-.5)*q.y+.5;x=mix(vec3(lum(x)),x,q.w);
+  if(q.z>1.5)x=floor(x*q.z+.5)/q.z;
+  return x;
+}
+/* 11 high-frequency residue and the checkerboard of transposed-convolution upsampling */
+vec3 resR(int c,vec4 q,vec2 uv){
+  vec3 d=S(c,uv,0.)-S(c,uv,q.x);vec3 o=.5+d*q.y;
+  vec2 px=uv*uRes;float per=max(1.,q.z*uRS);
+  float cb=mod(floor(px.x/per)+floor(px.y/per),2.)*2.-1.;
+  return o+cb*q.w*.12*(.3+length(d)*4.);
+}
+/* 12 temporal flicker: what changes from one generated frame to the next */
+vec3 tempR(int c,vec4 q,vec2 uv){
+  vec3 d=abs(S(c,uv,1.)-So(c,uv,1.))*q.x;
+  vec3 col=q.z<0.?d:cmap(int(q.z),lum(d));
+  return S(c,uv,0.)*q.y+col;
+}
+
+/* 13 denoising trajectory: the grid of sampler steps from pure noise to image */
+vec3 trajR(int c,vec4 q,vec2 uv){
+  float cols=q.x,rows=max(1.,floor(cols*uRes.y/uRes.x+.5));vec2 g=vec2(cols,rows);
+  vec2 cid=floor(uv*g),lu=fract(uv*g);
+  float i=(g.y-1.-cid.y)*g.x+cid.x,N=g.x*g.y;
+  float s=i/max(1.,N-1.);if(q.w>.5)s=1.-s;
+  float a=pow(s,q.y);
+  vec3 x=S(c,lu,log2(max(cols,rows)))*2.-1.;
+  vec2 np=floor(lu*uRes/g/(2.*uRS))+i*31.7+tfr()*7.3;
+  vec3 y=sqrt(a)*x+sqrt(1.-a)*vec3(gn(np),gn(np+51.3),gn(np+97.9));
+  float sep=max(step(lu.x,1.5*g.x/uRes.x),step(lu.y,1.5*g.y/uRes.y));
+  return mix(y*.32+.5,vec3(0.),sep);
+}
+/* 14 batch of variations: the same generation re-seeded, one of them being picked */
+vec3 batchR(int c,vec4 q,vec2 uv){
+  float n=q.x;vec2 cid=floor(uv*n),lu=fract(uv*n);
+  vec2 h=hash2(cid+floor(uSeed));float k=hash(cid*1.7+floor(uSeed));
+  float z=1.+h.x*q.y;vec2 off=(h-.5)*q.y*.3;
+  vec2 su=(lu-.5)/z+.5+off;if(k>.7)su.x=1.-su.x;
+  vec3 x=S(c,su,0.);
+  x=mix(x,x.brg,clamp((k-.6)*2.,0.,1.)*q.y*.6);
+  x=mix(x,x.gbr,clamp((.4-k)*2.,0.,1.)*q.y*.4);
+  vec2 sc=floor(hash2(vec2(floor(uTime*1.5),uSeed))*n);
+  float bw=2.*uRS*n/uRes.x,bh=2.*uRS*n/uRes.y;
+  float e=max(max(step(lu.x,bw),step(1.-bw,lu.x)),max(step(lu.y,bh),step(1.-bh,lu.y)));
+  return mix(x,all(equal(cid,sc))?vec3(1.):vec3(0.),e);
+}
+
+vec3 rep(int r,int c,vec4 q,vec2 uv){
+  switch(r){
+    case 1:return noiseR(c,q,uv);
+    case 2:return lat4R(c,q,uv);
+    case 3:return latRGBR(c,q,uv);
+    case 4:return tokensR(c,q,uv);
+    case 5:return reshapeR(c,q,uv);
+    case 6:return promptR(c,q,uv);
+    case 7:return attnR(c,q,uv);
+    case 8:return tensorR(c,q,uv);
+    case 9:return codeR(c,q,uv);
+    case 10:return x0R(c,q,uv);
+    case 11:return resR(c,q,uv);
+    case 12:return tempR(c,q,uv);
+    case 13:return trajR(c,q,uv);
+    case 14:return batchR(c,q,uv);
+  }
+  return S(c,uv,0.);
+}
+
+/* ===== ORDER in which the next representation takes over ===== */
+float maskM(vec2 uv){
+  float cell=max(2.,uMq.x*uRS);vec2 cid=floor(uv*uRes/cell),grid=ceil(uRes/cell);
+  vec2 cuv=(cid+.5)*cell/uRes,ar=vec2(uRes.x/uRes.y,1.);
+  if(uMask==1)return hash(cid+uSeed);                                                   // random tokens
+  if(uMask==2)return clamp(((grid.y-1.-cid.y)*grid.x+cid.x)/(grid.x*grid.y),0.,1.);     // autoregressive raster
+  if(uMask==3)return clamp(length((cuv-uMq.yz)*ar)/1.1+(noise(cid*.3+uSeed)-.5)*.15,0.,1.);
+  if(uMask==4){float l=lum(S(uC0,cuv,3.));return uMq.w>.5?l:1.-l;}                     // attention to brightness
+  if(uMask==5)return clamp((fbm(cuv*ar*(2.+uMq.y*6.)+uSeed)-.25)*2.,0.,1.);
+  if(uMask==6){float an=uMq.y*6.2832;return clamp(dot(cuv-.5,vec2(cos(an),sin(an)))*.7+.5+(hash(cid+uSeed)-.5)*uMq.z*.3,0.,1.);}
+  if(uMask==8)return 1.-clamp(length(S(0,cuv,3.)-S(1,cuv,3.))*2.,0.,1.);                 // where the two disagree
+  return .5;
+}
+vec3 edgeC(vec3 a,vec3 b,vec2 uv){
+  if(uEdge==1){vec2 np=floor(uv*uRes/(2.*uRS))+tfr()*3.1;return vec3(gn(np),gn(np+5.1),gn(np+9.7))*.3+.5;}
+  if(uEdge==2)return vec3(1.)-b;
+  return clamp(lat(a).xyz*.25+.5,0.,1.);
+}
+vec3 holdR(vec2 uv){
+  vec3 x=S(0,uv,0.);
+  if(uAge>0.){float b=8.*uRS;vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;x=mix(x,S(0,bl,3.),uAge*.45);}
+  return x;
+}
+
+void main(){
+  vec2 uv=vUv;vec3 c;
+  if(uMode<0)c=noiseR(1,vec4(0.,2.,1.,0.),uv);
+  else if(uMode==0)c=holdR(uv);
+  else{
+    if(uMask==0)c=mix(rep(uR0,uC0,uQ0,uv),rep(uR1,uC1,uQ1,uv),uP);                 // whole frame, step by step
+    else if(uMask==7){vec3 t=clamp((uP-uMq.yzw*.6)/.4,0.,1.);                        // channels arrive one at a time
+      c=mix(rep(uR0,uC0,uQ0,uv),rep(uR1,uC1,uQ1,uv),t);}
+    else{
+      float m=maskM(uv),t=clamp((uP*(1.+uW)-m)/uW,0.,1.);
+      if(t<=0.)c=rep(uR0,uC0,uQ0,uv);
+      else if(t>=1.)c=rep(uR1,uC1,uQ1,uv);
+      else{vec3 a=rep(uR0,uC0,uQ0,uv),b=rep(uR1,uC1,uQ1,uv);c=mix(a,b,t);
+        if(uEdge>0)c=mix(c,edgeC(a,b,uv),.85*(1.-abs(t*2.-1.)));}
+    }
+    if(uFb>0.)c=mix(c,texture(uPrev,(uv-.5)*.994+.5).rgb,uFb);
+  }
+  c+=(hash(uv*uRes+tfr()*1.7)-.5)*(.025+uAge*.06);
+  o=vec4(clamp(c,0.,1.),1.);
+}`;
+
+/* ---------- GL SETUP ---------- */
+let W=0,H=0,RS=1,PR=null,PC=null,U={},BLACK=null,DIG=null,fb=[],ft=[],ping=0,GL=false;
+function compile(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,VS));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
+  gl.bindAttribLocation(p,0,'p');gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
+function mkTex(mips){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,mips?gl.LINEAR_MIPMAP_LINEAR:gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;}
+function mkFbo(){
+  for(let i=0;i<2;i++){
+    if(ft[i])gl.deleteTexture(ft[i]);if(fb[i])gl.deleteFramebuffer(fb[i]);
+    ft[i]=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+    fb[i]=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb[i]);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,ft[i],0);
+    gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+function rs(){
+  const r=Math.min(window.devicePixelRatio||1,1.5,1280/Math.max(innerWidth,innerHeight));
+  W=C.width=Math.max(2,Math.floor(innerWidth*r));H=C.height=Math.max(2,Math.floor(innerHeight*r));RS=r;
+  if(GL)mkFbo();
+}
+function canvasTex(cv){const tx=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);return tx;}
+function digitTex(){
+  const cv=document.createElement('canvas');cv.width=512;cv.height=64;const x=cv.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,512,64);x.fillStyle='#fff';
+  x.font='bold 46px ui-monospace,Menlo,Consolas,monospace';x.textAlign='center';x.textBaseline='middle';
+  const s='0123456789.-+e  ';for(let i=0;i<16;i++)x.fillText(s[i],(i+.5)*32,34);
+  return canvasTex(cv);
+}
+if(gl){
+  try{
+    PR=program(FS);PC=program(FS_COPY);
+    const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
+     'uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+    gl.useProgram(PR);
+    [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7]].forEach(([n,i])=>gl.uniform1i(U[n],i));
+    gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
+    BLACK=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));
+    DIG=digitTex();
+    GL=true;
+  }catch(e){console.error(e);GL=false;}
+}
+if(!GL)C.style.display='none';   // fallback: plain cuts between the raw videos
+rs();addEventListener('resize',rs);
+
+/* prompt atlas: the prompt typed into a grid of glyphs */
+const PG=48;
+function promptTex(text){
+  const S=1024,cs=S/PG;
+  const cv=document.createElement('canvas');cv.width=cv.height=S;const x=cv.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,S,S);x.fillStyle='#fff';
+  x.font='bold '+Math.floor(cs*.9)+'px ui-monospace,Menlo,Consolas,monospace';
+  x.textAlign='center';x.textBaseline='middle';
+  let t=(text||'').replace(/\s+/g,' ').trim();if(!t)t='untitled';t+='   ';
+  let i=0;
+  for(let r=0;r<PG;r++)for(let c=0;c<PG;c++){const ch=t[i++%t.length];if(ch!==' ')x.fillText(ch,(c+.5)*cs,(r+.52)*cs);}
+  return canvasTex(cv);
+}
+
+/* ---------- GENOMES ---------- */
+const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker','trajectory','batch'];
+const NREP=14;
+const MASKN=['steps','random','raster','radial','brightness','cloud','scan','channels','disagreement'];
+const RR=(g,a,b)=>a+g()*(b-a),RI=(g,a,b)=>Math.floor(RR(g,a,b+1)),PK=(g,arr)=>arr[Math.floor(g()*arr.length)];
+function pickW(g,w){let s=0;for(let i=1;i<w.length;i++)s+=w[i];let x=g()*s;for(let i=1;i<w.length;i++){x-=w[i];if(x<=0)return i;}return w.length-1;}
+function repParams(r,g){
+  switch(r){
+    case 1:return [RR(g,0,.5),PK(g,[1,2,4,8]),g()<.3?1:0,0];               // signal left, noise grain, mono
+    case 2:return [PK(g,[4,8,16]),RI(g,0,3),RI(g,0,2),RR(g,.15,.35)];        // block, colormap, layout, gain
+    case 3:return [PK(g,[4,8,8,16]),RI(g,0,3),RR(g,.15,.4),RR(g,0,.5)];      // block, channels, gain, latent texture
+    case 4:return [RR(g,8,64),RI(g,0,2),g(),RR(g,2,20)];                     // patch, style, grid, shuffle rate
+    case 5:return [PK(g,[1,2,2,4]),(g()<.5?-1:1)*RI(g,1,8),RR(g,0,2.5),g()<.35?1:0]; // block, stride error, drift, planar
+    case 6:return [RR(g,0,30),g()<.6?0:1,0,0];                               // scroll, style
+    case 7:return [RR(g,8,40),RI(g,0,3),RI(g,0,3),RR(g,.5,.9)];              // cell, head, colormap, opacity
+    case 8:return [RI(g,0,2),RI(g,0,1),RI(g,0,3),0];                         // colour mode, channel mode, colormap
+    case 9:return [RR(g,4,24),RI(g,4,16),RI(g,0,2),0];                       // block, K, view
+    case 10:return [RR(g,2.5,6),RR(g,1.5,4),g()<.5?0:RI(g,3,8),RR(g,1,2.5)]; // lod, cfg, posterize, saturation
+    case 11:return [RR(g,1,3),RR(g,4,14),PK(g,[2,4,8]),g()];                 // band, gain, checker period, checker
+    case 12:return [RR(g,6,30),RR(g,0,.4),RI(g,-1,3),0];                     // gain, ghost, colormap
+    case 13:return [RI(g,3,6),RR(g,1,3),0,g()<.3?1:0];                       // columns, schedule, -, reversed
+    case 14:return [PK(g,[2,2,3]),RR(g,.3,1),0,0];                           // grid, variation
+  }
+  return [0,0,0,0];
+}
+function palette(g){const p=[];for(let i=0;i<16;i++)p.push(RR(g,.05,.95),RR(g,.05,.95),0);return p;}   // where the codebook samples its codes
+function mkNode(r,c,g){const n={r,c,q:repParams(r,g)};if(r===9)n.pal=palette(g);return n;}
+const MASKW=[1.3,1,1,.8,1,.9,.7,.6,.8];
+function randHop(g){
+  const mask=PK(g,[0,0,1,1,2,2,3,4,4,5,5,6,7,8]);
+  const mq=[RR(g,6,48),g(),g(),g()];
+  if(mask===7){const o=[0,.5,1].sort(()=>g()-.5);mq[1]=o[0];mq[2]=o[1];mq[3]=o[2];}
+  return {mask,mq,steps:g()<.45?0:RI(g,4,30),curve:RR(g,.6,2),w:RR(g,.03,.25),edge:g()<.4?0:RI(g,1,3),dw:RR(g,.6,1.6)};
+}
+function fixClips(G){
+  G.nodes[0].c=0;G.nodes[G.nodes.length-1].c=1;
+  let b=false;for(let i=1;i<G.nodes.length-1;i++){if(G.nodes[i].c===1)b=true;if(b)G.nodes[i].c=1;}
+  return G;
+}
+function randGenome(g,Wt){
+  const m=PK(g,[1,2,2,3,3,3,4]);const inter=[];let prev=0;
+  for(let i=0;i<m;i++){let r;do{r=pickW(g,Wt)}while(r===prev);prev=r;inter.push(r);}
+  const k=RI(g,0,m);
+  const nodes=[{r:0,c:0,q:[0,0,0,0]}];
+  inter.forEach((r,i)=>nodes.push(mkNode(r,i<k?0:1,g)));
+  nodes.push({r:0,c:1,q:[0,0,0,0]});
+  const hops=[];for(let i=0;i<nodes.length-1;i++)hops.push(randHop(g));
+  return fixClips({nodes,hops,fb:g()<.25?RR(g,.15,.55):0,dur:RR(g,4,9.5),born:0});
+}
+const clone=o=>JSON.parse(JSON.stringify(o));
+function mutate(G,g,Wt,strength){
+  const ops=Math.max(1,Math.round(strength*(1+g()*2)));
+  for(let o=0;o<ops;o++){
+    const x=g(),inter=G.nodes.length-2;
+    if(x<.35){const n=G.nodes[1+Math.floor(g()*inter)],nq=repParams(n.r,g),j=Math.floor(g()*4);n.q[j]=nq[j];if(n.r===9&&g()<.3)n.pal=palette(g);}
+    else if(x<.6){const h=G.hops[Math.floor(g()*G.hops.length)],nh=randHop(g),k=PK(g,['mask','steps','curve','w','edge','dw']);h[k]=nh[k];if(k==='mask')h.mq=nh.mq;}
+    else if(x<.75){const i=1+Math.floor(g()*inter);G.nodes[i]=mkNode(pickW(g,Wt),G.nodes[i].c,g);}
+    else if(x<.85&&inter<5){const i=1+Math.floor(g()*(inter+1)),a=G.nodes[i-1],b=G.nodes[i];
+      G.nodes.splice(i,0,mkNode(pickW(g,Wt),a.c===b.c?a.c:(g()<.5?0:1),g));G.hops.splice(i-1,0,randHop(g));}
+    else if(x<.93&&inter>1){const i=1+Math.floor(g()*inter);G.nodes.splice(i,1);G.hops.splice(i-1,1);}
+    else if(x<.97)G.fb=G.fb?0:RR(g,.15,.55);
+    else G.dur=RR(g,4,9.5);
+  }
+  return fixClips(G);
+}
+function cross(a,b,g){
+  const ia=1+Math.floor(g()*(a.nodes.length-1)),ib=1+Math.floor(g()*(b.nodes.length-1));
+  const G={nodes:clone([...a.nodes.slice(0,ia),...b.nodes.slice(ib)]),
+           hops:clone([...a.hops.slice(0,ia-1),b.hops[ib-1],...b.hops.slice(ib)]),
+           fb:g()<.5?a.fb:b.fb,dur:g()<.5?a.dur:b.dur,born:0};
+  while(G.nodes.length>7){const i=1+Math.floor(g()*(G.nodes.length-2));G.nodes.splice(i,1);G.hops.splice(i-1,1);}
+  if(G.nodes.length<3){G.nodes.splice(1,0,mkNode(1,0,g));G.hops.splice(0,0,randHop(g));}
+  return fixClips(G);
+}
+
+/* evolution in time: same for every viewer, from the launch date on */
+const LAUNCH=Date.UTC(2026,9,24,10,0,0),EPOCH=10*60*1000,NPOP=16;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function vnoise(x){const h=n=>{const s=Math.sin(n*127.1)*43758.5453;return s-Math.floor(s)};const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return h(i)*(1-u)+h(i+1)*u;}
+function weightsAt(e){const w=[0];for(let r=1;r<=NREP;r++)w.push(.12+vnoise(e/90+r*7.31));return w;}   // favoured representations drift over ~15 h
+let pop=[],epoch=0;
+(function initPop(){const g=mulberry(1985),Wt=weightsAt(0);for(let i=0;i<NPOP;i++)pop.push(randGenome(g,Wt));})();
+function novelty(Wt){                         // rare representations are favoured, so none dies out for good
+  const cnt=new Array(NREP+1).fill(0);pop.forEach(G=>G.nodes.forEach(n=>cnt[n.r]++));
+  return Wt.map((w,r)=>r?w*(1+3/(1+cnt[r])):0);
+}
+function oldest(g){let k=Math.floor(g()*NPOP);for(let j=0;j<3;j++){const i=Math.floor(g()*NPOP);if(pop[i].born<pop[k].born)k=i;}return k;}
+function evolveTo(E){
+  while(epoch<E){
+    epoch++;const g=mulberry((epoch*2654435761)>>>0),Wt=novelty(weightsAt(epoch));
+    if(epoch%36===0){const n=randGenome(g,Wt);n.born=epoch;pop[oldest(g)]=n;continue;}   // a new species every 6 hours
+    const child=mutate(cross(pop[Math.floor(g()*NPOP)],pop[Math.floor(g()*NPOP)],g),g,Wt,1);
+    child.born=epoch;pop[oldest(g)]=child;
+  }
+}
+const nowEpoch=()=>Math.max(0,Math.floor((Date.now()-LAUNCH)/EPOCH));
+evolveTo(nowEpoch());
+function describe(G){return G.nodes.map(n=>REPN[n.r]+(n.c?'·B':'·A')).join(' → ')+'  |  '+G.hops.map(h=>MASKN[h.mask]+(h.steps?'/'+h.steps:'')).join(', ');}
+const FIRST={nodes:[{r:1,c:1,q:[0,2,0,0]},{r:0,c:1,q:[0,0,0,0]}],hops:[{mask:0,mq:[16,0,0,0],steps:24,curve:1,w:.1,edge:0,dw:1}],fb:0,dur:3};
+
+/* ---------- CLIPS ---------- */
+let zc=1;
+function makeClip(r){
+  const cl={v:r.v,it:r.it,link:r.link,cur:0,ok:false,bad:false,lt:-1,w:[0,0],h:[0,0],age:Math.min(1,(seen[r.it.key]||0)/RETIRE)};
+  if(GL){cl.tex=[mkTex(true),mkTex(true)];cl.ptex=promptTex(r.it.prompt);}
+  else r.v.style.zIndex=++zc;
+  if(r.v.paused)r.v.play().catch(()=>{});
+  return cl;
+}
+function disposeClip(cl){
+  if(GL){gl.deleteTexture(cl.tex[0]);gl.deleteTexture(cl.tex[1]);gl.deleteTexture(cl.ptex);}
+  cl.v.pause();cl.v.removeAttribute('src');try{cl.v.load()}catch(e){}cl.v.remove();
+  seen[cl.it.key]=(seen[cl.it.key]||0)+1;LS.set('slop_seen',seen);cl.it.played=(cl.it.played||0)+1;
+  if(seen[cl.it.key]<RETIRE)pool.push(cl.it);
+}
+function upload(cl){
+  const v=cl.v;if(v.readyState<2||!v.videoWidth)return;
+  if(cl.ok&&v.currentTime===cl.lt)return;           // only new video frames, so the previous one stays one frame behind
+  cl.lt=v.currentTime;const i=1-cl.cur;
+  try{
+    gl.bindTexture(gl.TEXTURE_2D,cl.tex[i]);
+    if(cl.w[i]!==v.videoWidth||cl.h[i]!==v.videoHeight){
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);cl.w[i]=v.videoWidth;cl.h[i]=v.videoHeight;
+    }else gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,gl.RGBA,gl.UNSIGNED_BYTE,v);
+    gl.generateMipmap(gl.TEXTURE_2D);cl.cur=i;cl.ok=true;
+  }catch(e){cl.bad=true;}
+}
+function bindClip(cl,u1,u2){
+  let a=BLACK,b=BLACK;
+  if(cl&&cl.ok){a=cl.tex[cl.cur];b=cl.w[1-cl.cur]?cl.tex[1-cl.cur]:a;}
+  gl.activeTexture(gl.TEXTURE0+u1);gl.bindTexture(gl.TEXTURE_2D,a);
+  gl.activeTexture(gl.TEXTURE0+u2);gl.bindTexture(gl.TEXTURE_2D,b);
+}
+const asp=cl=>cl&&cl.v.videoWidth?cl.v.videoWidth/cl.v.videoHeight:1;
+
+/* ---------- MONTAGE ---------- */
+let A=null,Bc=null,phase='wait',pt0=0,pdur=0,G=null,PLAN=null,seed=0,cell=14,frameN=0;
+const ST={r0:0,c0:0,q0:[0,0,0,0],r1:0,c1:1,q1:[0,0,0,0],mask:0,mq:[16,0,0,0],p:0,edge:0,w:.1,fb:0,pal:null};
+const POLS=window.POLS={get pop(){return pop},get epoch(){return epoch},get last(){return G?describe(G):''},force:null,describe,ST,story,learn,get seq(){return seq}};
+function plan(G){const tot=G.hops.reduce((s,h)=>s+h.dw,0);let acc=0;return G.hops.map(h=>{const s=acc/tot;acc+=h.dw;return [s,acc/tot];});}
+function startTrans(now){
+  Bc=makeClip(seq.shift());
+  evolveTo(nowEpoch());
+  if(!A)G=clone(FIRST);
+  else if(POLS.force)G=clone(POLS.force);
+  else{
+    G=clone(pop[Math.floor(Math.random()*NPOP)]);
+    if(Math.random()<.7)mutate(G,Math.random,novelty(weightsAt(epoch)),.6);           // every performance is a variation
+    if(Math.random()<.3){const ch=clone(G);ch.born=epoch;pop[Math.floor(Math.random()*NPOP)]=ch;}  // local drift
+  }
+  if(A)biasGenome(G,Bc.link,Bc);
+  G.nodes.forEach(n=>{if(n.r===6){const cl=n.c===0?A:Bc;if(!cl||!cl.it.prompt){n.r=8;n.q=repParams(8,Math.random);}}});
+  PLAN=plan(G);pdur=Math.min(12,Math.max(G.dur,1.4*G.hops.length));
+  seed=Math.random()*50;cell=Math.round(rnd(10,20)*RS);
+  phase='trans';pt0=now;prepare();
+}
+function endTrans(now){if(A)disposeClip(A);A=Bc;Bc=null;phase='hold';pt0=now;const h=HOLD[A.link&&A.link.rule]||[2.5,5];pdur=rnd(h[0],h[1]);}
+function setHop(uT){
+  let i=PLAN.findIndex(([s,e])=>uT<e);if(i<0)i=PLAN.length-1;
+  const [s,e]=PLAN[i],h=G.hops[i],n0=G.nodes[i],n1=G.nodes[i+1];
+  let p=Math.min(1,Math.max(0,(uT-s)/Math.max(1e-6,e-s)));p=Math.pow(p,h.curve);
+  if(h.steps)p=Math.floor(p*h.steps+.5)/h.steps;                              // discrete sampler steps
+  Object.assign(ST,{r0:n0.r,c0:n0.c,q0:n0.q,r1:n1.r,c1:n1.c,q1:n1.q,mask:h.mask,mq:h.mq,p,edge:h.edge,w:h.w,fb:G.fb,
+    pal:n1.r===9?n1.pal:n0.r===9?n0.pal:null});
+}
+function render(mode,t,age){
+  gl.useProgram(PR);gl.bindFramebuffer(gl.FRAMEBUFFER,fb[1-ping]);gl.viewport(0,0,W,H);
+  bindClip(A,0,1);bindClip(Bc,2,3);
+  gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,ft[ping]);
+  gl.activeTexture(gl.TEXTURE5);gl.bindTexture(gl.TEXTURE_2D,A?A.ptex:BLACK);
+  gl.activeTexture(gl.TEXTURE6);gl.bindTexture(gl.TEXTURE_2D,Bc?Bc.ptex:BLACK);
+  gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,DIG);
+  gl.uniform2f(U.uRes,W,H);gl.uniform1f(U.uAspA,asp(A));gl.uniform1f(U.uAspB,asp(Bc));
+  gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
+  gl.uniform1f(U.uG,PG);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uRS,RS);
+  gl.uniform1i(U.uMode,mode);
+  gl.uniform1i(U.uR0,ST.r0);gl.uniform1i(U.uC0,ST.c0);gl.uniform4fv(U.uQ0,ST.q0);
+  gl.uniform1i(U.uR1,ST.r1);gl.uniform1i(U.uC1,ST.c1);gl.uniform4fv(U.uQ1,ST.q1);
+  gl.uniform1i(U.uMask,ST.mask);gl.uniform4fv(U.uMq,ST.mq);gl.uniform1f(U.uP,ST.p);
+  gl.uniform1f(U.uW,ST.w);gl.uniform1i(U.uEdge,ST.edge);gl.uniform1f(U.uFb,mode===1?ST.fb:0);
+  if(ST.pal)gl.uniform3fv(U.uPal,ST.pal);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
+  gl.useProgram(PC);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,ft[1-ping]);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  ping=1-ping;
+}
+POLS.render=render;
+
+function loop(t){
+  frameN++;
+  const el=(t-pt0)/1000;
+  if(phase==='wait'&&headReady())startTrans(t);
+  else if(phase==='hold'&&(el>pdur||(A&&A.bad))&&headReady())startTrans(t);
+  if(!GL&&phase==='trans')endTrans(t);                 // fallback: hard cuts
+  let uT=0;
+  if(phase==='trans'){
+    if(Bc&&Bc.bad){disposeClip(Bc);Bc=null;phase=A?'hold':'wait';pt0=t;pdur=0;}
+    else{uT=Math.min(1,(t-pt0)/1000/pdur);if(uT>=1){endTrans(t);uT=0;}}
+  }
+  if(frameN%30===0)prepare();
+  if(GL){
+    if(A)upload(A);if(Bc)upload(Bc);
+    if(phase==='trans')setHop(uT);
+    const age=A?Math.min(1,A.age+(phase==='hold'?Math.max(0,(t-pt0)/1000-pdur)/20:0)):0;
+    render(phase==='wait'?-1:phase==='hold'?0:1,t,age);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------- START ---------- */
+(async()=>{
+  await Promise.race([civNew(),sleep(5000)]);
+  prepare();
+  commons();civDig();
+  setTimeout(startFaces,4000);
+})();
+setInterval(civNew,2*60*1000);   // new generations of slop
+setInterval(civDig,5*60*1000);   // dig into the past
+addEventListener('touchstart',wake,{passive:true});
+addEventListener('click',()=>{wake();const el=document.documentElement;
+  if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});
+  else if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});});
+</script>
+</body>
+</html>
