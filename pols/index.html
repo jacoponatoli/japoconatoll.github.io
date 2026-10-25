@@ -16,13 +16,21 @@
 <div id="v"></div>
 <script>
 /* POLS — a project by Jacopo Natoli
-   Endless fluid montage of AI-generated video.
-   Each clip is shown clean for a few seconds, then it is taken apart by a transition that
-   exposes how it was made: reverse diffusion back to latent noise, token patches, its own
-   prompt, VAE latents, compression motion vectors, feedback hallucination — or simply acid,
-   fire, melting plastic, crumbling. Every transition is drawn with random parameters.
-   Clips that return come back more worn; after enough returns they are gone.
-   New generations are harvested every two minutes. */
+
+   Endless montage of AI-generated video (Civitai, Wikimedia Commons).
+   Each clip plays clean for a few seconds, then it is taken back through the inside of a
+   generative model and comes out as the next clip. A transition is a path through the
+   model's own representations:
+
+     pixel · forward-diffusion noise · denoising trajectory · the 4 latent channels · latent as false colour ·
+     patch tokens / embeddings · tensor reshaped with the wrong stride · the prompt ·
+     attention maps · the latent tensor printed as numbers · VQ codebook ·
+     early x0 prediction burnt by guidance · upsampling residue · temporal flicker · batch of variations
+
+   Paths are genomes. A population of 16 genomes evolves every 10 minutes (crossover and
+   mutation, a new species every day, the favoured representations drifting over the days),
+   identically for every viewer from the launch date on; while watching, the population
+   also mutates locally. So the transitions are always new, and they change with time. */
 
 const C=document.getElementById('c'),box=document.getElementById('v');
 let gl=null;
@@ -142,253 +150,279 @@ void main(){o=texture(t,vUv);}`;
 const FS=`#version 300 es
 precision highp float;
 in vec2 vUv;out vec4 o;
-uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB;
+uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig;
 uniform vec2 uRes;
-uniform float uAspA,uAspB,uT,uTime,uSeed,uAge,uCell,uG;
-uniform int uFx,uMode;
-uniform vec4 uP;
+uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
+uniform int uMode,uR0,uC0,uR1,uC1,uMask,uEdge;
+uniform vec4 uQ0,uQ1,uMq;
+uniform vec3 uPal[16];
 
 float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 vec2 hash2(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.xx+p3.yz)*p3.zy);}
+vec3 hash3(vec2 p){return vec3(hash(p),hash(p+7.13),hash(p+19.31));}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*noise(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
-float g1(vec2 p){return (hash(p)+hash(p+13.1)+hash(p+29.7)-1.5)*1.15;}
-vec3 gauss3(vec2 p){return vec3(g1(p),g1(p+51.3),g1(p+97.9));}
+float gn(vec2 p){return (hash(p)+hash(p+13.1)+hash(p+29.7)+hash(p+41.3)-2.)*1.73;}   // ~N(0,1)
 float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
 float tfr(){return mod(floor(uTime*24.),997.);}
 vec2 cover(vec2 uv,float at){float as=uRes.x/uRes.y;vec2 s=vec2(1.);if(at>as)s.x=as/at;else s.y=at/as;return (uv-.5)*s+.5;}
-vec3 A(vec2 uv){return texture(uA,cover(uv,uAspA)).rgb;}
-vec3 AL(vec2 uv,float l){return textureLod(uA,cover(uv,uAspA),l).rgb;}
-vec3 B(vec2 uv){return texture(uB,cover(uv,uAspB)).rgb;}
-vec3 BL(vec2 uv,float l){return textureLod(uB,cover(uv,uAspB),l).rgb;}
-vec3 BoL(vec2 uv,float l){return textureLod(uBo,cover(uv,uAspB),l).rgb;}
-vec2 TT(vec2 uv){if(uMode==1)return vec2(uv.x,1.-uv.y);if(uMode==2)return uv.yx;return uv;}
+vec3 S(int c,vec2 uv,float l){return c==0?textureLod(uA,cover(uv,uAspA),l).rgb:textureLod(uB,cover(uv,uAspB),l).rgb;}
+vec3 So(int c,vec2 uv,float l){return c==0?textureLod(uAo,cover(uv,uAspA),l).rgb:textureLod(uBo,cover(uv,uAspB),l).rgb;}
 
-/* clean playback, slightly worn by returns */
-vec3 holdfx(vec2 uv){
-  vec2 off=vec2(uAge*.006,0.);
-  return vec3(A(uv+off).r,A(uv).g,A(uv-off).b);
-}
+/* colour maps used by research visualisations */
+vec3 inferno(float t){
+  const vec3 c0=vec3(.0002189,.0016510,-.0194809),c1=vec3(.1065134,.5639564,3.9327124),c2=vec3(11.6024931,-3.9728540,-15.9423941),
+  c3=vec3(-41.7039961,17.4363989,44.3541452),c4=vec3(77.1629357,-33.4023589,-81.8073093),c5=vec3(-71.3194282,32.6260643,73.2095199),
+  c6=vec3(25.1311262,-12.2426690,-23.0703250);
+  return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));}
+vec3 viridis(float t){
+  const vec3 c0=vec3(.2777273,.0054073,.3340998),c1=vec3(.1050930,1.4046135,1.3845902),c2=vec3(-.3308618,.2148476,.0950952),
+  c3=vec3(-4.6342305,-5.7991010,-19.3324410),c4=vec3(6.2282699,14.1799334,56.6905526),c5=vec3(4.7763850,-13.7451454,-65.3530326),
+  c6=vec3(-5.4354559,4.6458526,26.3124353);
+  return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));}
+vec3 cmap(int k,float t){t=clamp(t,0.,1.);
+  if(k==1)return clamp(inferno(t),0.,1.);
+  if(k==2)return clamp(viridis(t),0.,1.);
+  if(k==3)return clamp(vec3(1.5-abs(4.*t-3.),1.5-abs(4.*t-2.),1.5-abs(4.*t-1.)),0.,1.);
+  return vec3(t);}
 
-/* 1 — reverse diffusion: back to latent noise, then the next one denoises in discrete sampler steps */
-vec3 diffusion(vec2 uv){
-  float steps=floor(8.+uP.x*22.);
-  vec2 px=uv*uRes;float lat=8.;
-  float tt=uMode==2?.5+uT*.5:uT;
-  if(tt<.5){
-    float s=floor(tt*2.*steps)/steps;
-    vec3 c=AL(uv,s*5.);
-    vec3 n=gauss3(floor(px/mix(1.,lat,s*s))+tfr()*7.3)*.35+.5;
-    return mix(c,n,smoothstep(0.,.9,s));
-  }
-  float s=floor((tt-.5)*2.*steps)/steps;
-  vec3 c=BL(uv,(1.-s)*6.);
-  vec3 n=gauss3(floor(px/mix(lat,1.,s))+tfr()*7.3)*.35+.5;
-  return mix(c,n,clamp((1.-s)*1.15,0.,1.));
-}
+/* RGB -> 4-channel latent (pseudo-inverse of the Stable Diffusion latent preview matrix) */
+vec4 lat(vec3 rgb){vec3 x=rgb*2.-1.;
+  return x.r*vec4(1.0426,.0828,-1.9601,-.2472)+x.g*vec4(-.3538,2.2725,1.3497,1.0967)+x.b*vec4(.2639,-1.0109,.2878,-1.4966);}
 
-/* 2 — spacetime patches / tokens: shuffled, flattened to embeddings, regenerated token by token */
-vec3 patches(vec2 uv){
-  float n=floor(8.+uP.x*40.);
-  vec2 grid=vec2(n,floor(n*uRes.y/uRes.x)+1.);
-  vec2 cid=floor(uv*grid),f=fract(uv*grid);
-  float ord;
-  if(uMode==0)ord=hash(cid+uSeed);
-  else if(uMode==1)ord=((grid.y-1.-cid.y)*grid.x+cid.x)/(grid.x*grid.y);
-  else ord=clamp(length((cid+.5)/grid-.5)*1.4,0.,1.);
-  float p=clamp((uT-ord*.72)/.28,0.,1.);
-  if(p<=0.)return A(uv);
-  if(p>=1.)return B(uv);
-  vec2 other=floor(hash2(cid+mod(floor(uTime*12.),97.)+uSeed)*grid);
-  vec2 suv=(other+f)/grid;
-  vec3 c=hash(cid+mod(floor(uTime*20.),89.))<p?B(suv):A(suv);
-  if(hash(cid*3.1+mod(floor(uTime*6.),71.))>.55)c=(p>.5?BL((cid+.5)/grid,7.):AL((cid+.5)/grid,7.));
-  float b=max(step(f.x,.05),step(f.y,.05));
-  return mix(c,vec3(1.)-c,b*.7);
-}
+/* ===== REPRESENTATIONS ===== */
 
-/* 3 — the prompt: the image is rewritten by its own prompt, then by the next one's */
-float glyph(sampler2D P,float ci,vec2 f){
-  ci=mod(ci,uG*uG);
-  vec2 g=vec2(mod(ci,uG),floor(ci/uG));
-  f=clamp(f,.03,.97);
-  return texture(P,vec2((g.x+f.x)/uG,(uG-g.y-1.+f.y)/uG)).r;
+/* 1 forward diffusion: x_t = sqrt(a)·x0 + sqrt(1-a)·eps, eps ~ N(0,1) at latent resolution */
+vec3 noiseR(int c,vec4 q,vec2 uv){
+  float nb=max(1.,q.y*uRS);vec2 np=floor(uv*uRes/nb)+tfr()*7.3+uSeed;
+  vec3 n=q.z>.5?vec3(gn(np)):vec3(gn(np),gn(np+51.3),gn(np+97.9));
+  vec3 x=S(c,uv,0.)*2.-1.;
+  return (sqrt(q.x)*x+sqrt(1.-q.x)*n)*.32+.5;
 }
-vec3 promptfx(vec2 uv){
-  vec2 px=uv*uRes;float cell=uCell;
-  float cols=floor(uRes.x/cell),rows=floor(uRes.y/cell)+1.;
-  vec2 pt=vec2(px.x,uRes.y-px.y);
-  vec2 cc=floor(pt/cell),ft=fract(pt/cell);
-  vec2 f=vec2(ft.x,1.-ft.y);
-  float ci=cc.y*cols+cc.x;
-  vec2 cuv=vec2((cc.x+.5)*cell,uRes.y-(cc.y+.5)*cell)/uRes;
-  float scroll=floor(uTime*(2.+uP.y*28.));
-  vec3 ca=AL(cuv,1.),cb=BL(cuv,1.);
-  vec3 ta=mix(ca*.22,ca*2.+.12,glyph(uPA,ci+scroll,f));
-  vec3 tb=mix(cb*.22,cb*2.+.12,glyph(uPB,ci+scroll,f));
-  float ord=uMode==1?ci/(cols*rows):hash(cc+uSeed);
-  if(uT<.35)return ord<uT/.35?ta:A(uv);
-  if(uT<.65)return ord<(uT-.35)/.3?tb:ta;
-  return hash(cc*2.3+uSeed)<(uT-.65)/.35?B(uv):tb;
+/* 2 the four latent channels, side by side as in the papers */
+vec3 lat4R(int c,vec4 q,vec2 uv){
+  vec2 n=q.z<.5?vec2(2.):q.z<1.5?vec2(4.,1.):vec2(1.,4.);
+  vec2 cl=floor(uv*n),lu=fract(uv*n);
+  int k=int((n.y-1.-cl.y)*n.x+cl.x);
+  float b=max(2.,q.x*uRS);vec2 qr=uRes/n;
+  vec2 bl=(floor(lu*qr/b)+.5)*b/qr;
+  vec4 l=lat(S(c,bl,log2(b)));
+  vec3 col=cmap(int(q.y),l[k]*q.w+.5);
+  float sep=max(step(lu.x,1.5/qr.x),step(lu.y,1.5/qr.y));
+  return mix(col,vec3(0.),sep);
 }
-
-/* 4 — acid on paper / 5 — fire on plastic */
-vec3 erode(vec2 uv,bool fire){
-  float sc=2.+uP.x*5.;
-  vec2 q=uv*vec2(uRes.x/uRes.y,1.)*sc;
-  float m=fbm(q+vec2(0.,uTime*.05)+uSeed);
-  if(fire){vec2 dir=vec2(cos(uP.z*6.283),sin(uP.z*6.283));m=m*.55+(dot(uv-.5,dir)+.5)*.6;}
-  float th=mix(-.05,1.1,uT);
-  float d=m-th;
-  if(d<0.)return B(uv);
-  float edge=smoothstep(.12,0.,d);
-  vec2 w=vec2(fbm(q*3.+uTime),fbm(q*3.+7.-uTime))-.5;
-  vec3 c=A(uv+w*edge*(fire?.03:.015)+(fire?vec2(0.,edge*.025):vec2(0.)));
-  if(fire){
-    c=mix(c,c*vec3(.35,.25,.2),smoothstep(.12,.04,d));
-    c=mix(c,vec3(.02),smoothstep(.05,.015,d));
-    vec3 hot=mix(vec3(1.,.92,.6),vec3(1.,.35,.05),smoothstep(0.,.03,d));
-    c+=hot*smoothstep(.03,0.,d)*1.6*(.6+.4*noise(q*20.+uTime*8.));
+/* 3 latent shown raw as false colour */
+vec3 latRGBR(int c,vec4 q,vec2 uv){
+  float b=max(2.,q.x*uRS);vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;
+  vec4 l=lat(S(c,bl,log2(b)));
+  vec2 bi=floor(uv*uRes/b);l+=vec4(gn(bi+uSeed),gn(bi+3.1+uSeed),gn(bi+7.7+uSeed),gn(bi+9.9+uSeed))*q.w;
+  int p=int(q.y);vec3 v=p==0?l.xyz:p==1?l.yzw:p==2?l.wxy:l.zwx;
+  return clamp(v*q.z+.5,0.,1.);
+}
+/* 4 patch tokens: mean embeddings / embedding vectors / patches shuffled in the sequence */
+vec3 tokensR(int c,vec4 q,vec2 uv){
+  float cell=max(4.,q.x*uRS);vec2 px=uv*uRes,grid=ceil(uRes/cell);
+  vec2 cid=floor(px/cell),f=fract(px/cell),cuv=(cid+.5)*cell/uRes;
+  float lod=log2(cell);vec3 c0;
+  if(q.y<.5)c0=S(c,cuv,lod);
+  else if(q.y<1.5){
+    vec3 m=S(c,cuv,lod)*2.-1.;float D=8.,i=floor(f.x*D);
+    vec3 w=normalize(hash3(vec2(i,floor(uSeed)))*2.-1.);
+    float v=.5+.5*sin(dot(m,w)*4.+i*1.7);
+    c0=f.y>.8?m*.5+.5:vec3(v*(.25+.9*lum(m*.5+.5)));
   }else{
-    vec3 ac=uMode==0?vec3(.75,1.,.2):uMode==1?vec3(1.,.2,.85):vec3(.2,.95,1.);
-    float bub=step(.8,noise(q*25.+uTime*3.))*edge;
-    c=mix(c,vec3(lum(c))*vec3(1.,.95,.7),edge*.8);
-    c=mix(c,ac,clamp(smoothstep(.04,0.,d)*.9+bub*.6,0.,1.));
-    c*=1.-smoothstep(.015,0.,d)*.6;
+    vec2 other=floor(hash2(cid+floor(uTime*q.w)+uSeed)*grid);
+    c0=S(c,(other+f)*cell/uRes,0.);
   }
-  return c;
+  float b=max(step(f.x,1.2/cell),step(f.y,1.2/cell))*q.z;
+  return mix(c0,vec3(1.)-c0*.6,b*.7);
 }
-
-/* 6 — melting: the image drips off the screen */
-vec3 melt(vec2 uv){
-  vec2 tu=TT(uv);
-  float fr=4.+uP.x*30.;
-  float off=(noise(vec2(tu.x*fr,uSeed*9.))*.8+.2)*uT*uT*1.8+noise(vec2(tu.x*fr*6.,uSeed))*uT*.15;
-  vec2 su=tu+vec2(0.,off);
-  if(su.y>1.)return B(uv);
-  vec3 c=A(TT(su));
-  c=mix(vec3(lum(c)),c,1.+uT*1.5);
-  c+=pow(max(0.,noise(vec2(tu.x*fr*3.,su.y*40.-uTime))),8.)*uT*.8;
-  return c;
-}
-
-/* 7 — pixel stretch: bright pixels are dragged along a moving cut */
-vec3 stretchfx(vec2 uv){
-  vec2 tu=TT(uv);
-  float front=mix(1.15,-.25,uT)+(noise(vec2(tu.x*(3.+uP.x*40.),uSeed))-.5)*.35;
-  if(tu.y>front)return B(uv);
-  vec3 a=A(uv);
-  float L=(.08+uP.y*.5)*smoothstep(0.,.3,uT);
-  float thr=mix(.85,.15,uP.z);
-  if(tu.y>front-L&&lum(a)>thr*(1.-(front-tu.y)/L))return A(TT(vec2(tu.x,front)));
-  return a;
-}
-
-/* 8 — datamosh: the old image is pushed around by the motion vectors of the new one */
-vec3 mosh(vec2 uv){
-  if(uT<.03)return A(uv);
-  vec2 bs=vec2(16.)/uRes;
-  vec2 bid=floor(uv/bs),bq=(bid+.5)*bs;
-  vec2 ex=vec2(bs.x,0.),ey=vec2(0.,bs.y);
-  float It=lum(BL(bq,2.))-lum(BoL(bq,2.));
-  vec2 gr=vec2(lum(BL(bq+ex,2.))-lum(BL(bq-ex,2.)),lum(BL(bq+ey,2.))-lum(BL(bq-ey,2.)));
-  vec2 fl=-It*gr/(dot(gr,gr)+.002)*bs*(2.+uP.x*6.);
-  fl+=(hash2(bid+mod(floor(uTime*1.5),97.))-.5)*bs*.6*uP.y;
-  fl=clamp(fl,-bs*3.,bs*3.);
-  vec2 fp=floor(fl*uRes+.5);
-  vec3 pv=texelFetch(uPrev,ivec2(clamp(floor(uv*uRes-fp),vec2(0.),uRes-1.)),0).rgb;
-  float key=step(1.-.004-.3*pow(uT,4.),hash(bid+mod(floor(uTime*10.),113.)));
-  return mix(pv,B(uv),clamp(pow(uT,7.)+key,0.,1.));
-}
-
-/* 9 — feedback hallucination: the frame keeps re-dreaming itself until the next clip surfaces */
-vec3 dream(vec2 uv){
-  float ar=uRes.x/uRes.y;
-  vec2 c=uv-.5;c.x*=ar;
-  float z=1.-(.006+.012*uP.x)*(uMode==1?-1.:1.);
-  float an=(uP.y-.5)*.04;
-  c=mat2(cos(an),-sin(an),sin(an),cos(an))*c*z;
-  c+=(vec2(noise(c*3.+uTime*.3+uSeed),noise(c*3.+9.-uTime*.3))-.5)*.008;
-  c.x/=ar;
-  vec2 s0=c+.5,e1=1./uRes;
-  vec3 pv=texture(uPrev,s0).rgb;
-  vec3 nb=(texture(uPrev,s0+vec2(e1.x,0.)).rgb+texture(uPrev,s0-vec2(e1.x,0.)).rgb+texture(uPrev,s0+vec2(0.,e1.y)).rgb+texture(uPrev,s0-vec2(0.,e1.y)).rgb)*.25;
-  pv+=(pv-nb)*(.7+uP.w*.9);
-  pv=mix(pv,pv.gbr,.02+.05*uP.z);
-  pv=mix(vec3(lum(pv)),pv,1.04);
-  float inj=uT<.5?mix(.25,0.,uT*2.):mix(0.,.2,(uT-.5)*2.);
-  vec3 o2=mix(pv,uT<.5?A(uv):B(uv),inj);
-  return mix(o2,B(uv),smoothstep(.88,1.,uT));
-}
-
-/* 10 — crumbling: cracks, then pieces fall away */
-vec3 crumble(vec2 uv){
-  vec2 asp=vec2(uRes.x/uRes.y,1.);
-  float cs=(24.+uP.x*90.)/uRes.y;
-  vec2 q=uv*asp;
-  vec2 cid=floor(q/cs);
-  for(int k=0;k<14;k++){
-    vec2 id=vec2(cid.x,cid.y+float(k));
-    float o1=uMode==0?hash(id+uSeed):uMode==1?clamp(id.y*cs,0.,1.):1.-clamp(abs((id.x+.5)*cs/asp.x-.5)*2.,0.,1.);
-    float ts=o1*.6+hash(id*1.3+uSeed)*.15;
-    float tt=max(0.,uT-ts);
-    float dy=tt*tt*(2.+hash(id*2.1)*3.);
-    float y0=id.y*cs-dy;
-    if(q.y>=y0&&q.y<y0+cs){
-      vec2 f=vec2(fract(q.x/cs),(q.y-y0)/cs);
-      vec3 c=A((q+vec2(0.,dy))/asp);
-      float e=min(min(f.x,1.-f.x),min(f.y,1.-f.y));
-      float pre=smoothstep(ts-.15,ts,uT);
-      float cr=smoothstep(.07*pre+.001,0.,e+(noise(q*90.)-.5)*.04);
-      c*=1.-cr*.9*pre;
-      if(tt>0.)c*=.85;
-      return c;
-    }
+/* 5 the frame buffer read back with the wrong width: reshape error, raster order exposed */
+vec3 reshapeR(int c,vec4 q,vec2 uv){
+  float b=max(1.,q.x*uRS);vec2 dims=floor(uRes/b);
+  float row=floor((1.-uv.y)*dims.y);
+  float d=q.y+floor(sin(uTime*.6+uSeed)*q.z);
+  vec3 o;
+  for(int k=0;k<3;k++){
+    float wi=max(8.,dims.x+d+(q.w>.5?float(k)*3.:0.));
+    float idx=row*wi+floor(uv.x*wi);
+    float sx=mod(idx,dims.x),sy=mod(floor(idx/dims.x),dims.y);
+    o[k]=S(c,vec2((sx+.5)/dims.x,1.-(sy+.5)/dims.y),log2(b)*.5)[k];
   }
-  return B(uv);
+  return o;
+}
+/* 6 the prompt written with the image's own colours */
+float glyph(int c,float ci,vec2 f){
+  ci=mod(ci,uG*uG);vec2 g=vec2(mod(ci,uG),floor(ci/uG));f=clamp(f,.03,.97);
+  vec2 t=vec2((g.x+f.x)/uG,(uG-g.y-1.+f.y)/uG);
+  return c==0?texture(uPA,t).r:texture(uPB,t).r;
+}
+vec3 promptR(int c,vec4 q,vec2 uv){
+  float cell=uCell;vec2 pt=vec2(uv.x*uRes.x,(1.-uv.y)*uRes.y);
+  float cols=floor(uRes.x/cell);
+  vec2 cc=floor(pt/cell),ft=fract(pt/cell),f=vec2(ft.x,1.-ft.y);
+  float ci=cc.y*cols+cc.x+floor(uTime*q.x);
+  vec2 cuv=vec2((cc.x+.5)*cell/uRes.x,1.-(cc.y+.5)*cell/uRes.y);
+  vec3 col=S(c,cuv,1.);float g=glyph(c,ci,f);
+  return q.y<.5?mix(col*.18,col*1.8+.1,g):mix(vec3(lum(col))*.25,vec3(1.),g);
+}
+/* 7 attention: heads looking at luminance, edges, one colour, or one moving query token */
+vec3 attnR(int c,vec4 q,vec2 uv){
+  float cell=max(4.,q.x*uRS);vec2 cid=floor(uv*uRes/cell),cuv=(cid+.5)*cell/uRes;
+  float lod=log2(cell);vec3 x=S(c,cuv,lod);float a;int h=int(q.y);
+  if(h==0)a=lum(x);
+  else if(h==1){vec2 e=vec2(cell/uRes.x,0.),e2=vec2(0.,cell/uRes.y);
+    a=length(vec2(lum(S(c,cuv+e,lod))-lum(S(c,cuv-e,lod)),lum(S(c,cuv+e2,lod))-lum(S(c,cuv-e2,lod))))*3.;}
+  else if(h==2){vec3 tc=hash3(vec2(floor(uSeed),3.));a=1.-distance(x,tc)/1.2;a=a*a*a*1.6;}
+  else{vec2 qp=vec2(noise(vec2(uTime*.23,uSeed))*.8+.1,noise(vec2(uSeed,uTime*.19))*.8+.1);
+    vec3 qx=S(c,qp,lod);vec2 ar=vec2(uRes.x/uRes.y,1.);
+    a=exp(-dot(x-qx,x-qx)*8.)*.8+exp(-distance(cuv*ar,qp*ar)*6.)*.4;
+    if(all(equal(cid,floor(qp*uRes/cell))))return vec3(1.);}
+  return mix(vec3(lum(S(c,uv,0.)))*.3,cmap(int(q.z),a),q.w);
+}
+/* 8 the latent tensor printed as numbers */
+vec3 tensorR(int c,vec4 q,vec2 uv){
+  float ch=uCell*1.1,cw=ch*.62,field=6.;
+  vec2 pt=vec2(uv.x*uRes.x,(1.-uv.y)*uRes.y);
+  vec2 cc=floor(vec2(pt.x/cw,pt.y/ch)),ft=fract(vec2(pt.x/cw,pt.y/ch));
+  float fi=floor(cc.x/field),slot=cc.x-fi*field;
+  vec2 cuv=vec2((fi*field+field*.5)*cw/uRes.x,1.-(cc.y+.5)*ch/uRes.y);
+  vec4 l=lat(S(c,cuv,3.));
+  int k=q.y<.5?int(mod(floor(uSeed),4.)):int(mod(floor(uTime*1.5)+fi+cc.y,4.));
+  float v=l[k],a=abs(v);
+  float d0=min(floor(a),9.),d1=floor(fract(a)*10.),d2=floor(fract(a*10.)*10.);
+  float idx=15.;
+  if(slot<.5)idx=v<0.?11.:15.;else if(slot<1.5)idx=d0;else if(slot<2.5)idx=10.;else if(slot<3.5)idx=d1;else if(slot<4.5)idx=d2;
+  float g=texture(uDig,vec2((idx+clamp(ft.x,.04,.96))/16.,1.-ft.y)).r;
+  vec3 col=q.x<.5?vec3(.12+.88*clamp(a/2.,0.,1.)):q.x<1.5?cmap(int(q.z),v*.18+.5):S(c,cuv,2.)*1.5+.1;
+  return col*g+.015;
+}
+/* 9 vector-quantised codebook: every block snapped to one of K learned codes */
+vec3 codeR(int c,vec4 q,vec2 uv){
+  float b=max(2.,q.x*uRS);vec2 cuv=(floor(uv*uRes/b)+.5)*b/uRes;
+  vec3 x=S(c,cuv,log2(b));
+  int K=int(q.y);float bd=1e9;int bi=0;vec3 bc=vec3(0.);
+  for(int i=0;i<16;i++){if(i>=K)break;vec3 pc=S(c,uPal[i].xy,3.);vec3 d=x-pc;float dd=dot(d,d);if(dd<bd){bd=dd;bi=i;bc=pc;}}
+  if(q.z<.5)return bc;
+  float t=float(bi)/float(K-1);
+  return q.z<1.5?vec3(t):cmap(1,t);
+}
+/* 10 early x0 prediction, over-pushed by classifier-free guidance */
+vec3 x0R(int c,vec4 q,vec2 uv){
+  vec3 x=S(c,uv,q.x);x=(x-.5)*q.y+.5;x=mix(vec3(lum(x)),x,q.w);
+  if(q.z>1.5)x=floor(x*q.z+.5)/q.z;
+  return x;
+}
+/* 11 high-frequency residue and the checkerboard of transposed-convolution upsampling */
+vec3 resR(int c,vec4 q,vec2 uv){
+  vec3 d=S(c,uv,0.)-S(c,uv,q.x);vec3 o=.5+d*q.y;
+  vec2 px=uv*uRes;float per=max(1.,q.z*uRS);
+  float cb=mod(floor(px.x/per)+floor(px.y/per),2.)*2.-1.;
+  return o+cb*q.w*.12*(.3+length(d)*4.);
+}
+/* 12 temporal flicker: what changes from one generated frame to the next */
+vec3 tempR(int c,vec4 q,vec2 uv){
+  vec3 d=abs(S(c,uv,1.)-So(c,uv,1.))*q.x;
+  vec3 col=q.z<0.?d:cmap(int(q.z),lum(d));
+  return S(c,uv,0.)*q.y+col;
 }
 
-/* 11 — VAE latents: the image is encoded into false-colour blocks, interpolated, decoded */
-vec3 latent(vec2 uv){
-  float b=8.*(1.+floor(uP.x*3.));
-  vec2 bs=vec2(b)/uRes;
-  vec2 bid=floor(uv/bs),bq=(bid+.5)*bs,f=fract(uv/bs);
-  vec3 la=AL(bq,3.),lb=BL(bq,3.);
-  mat3 M=mat3(.2,-.9,.6,.9,.3,-.5,-.4,.6,.8);
-  float k=1.5+uP.y*2.;
-  vec3 za=fract(M*la*k+uSeed*.1),zb=fract(M*lb*k+uSeed*.1);
-  float ord=uMode==1?1.-bq.y:uMode==2?clamp(length(bq-.5)*1.4,0.,1.):hash(bid+uSeed);
-  float gl1=max(step(f.x,.08),step(f.y,.08));
-  vec3 c;bool lat=true;
-  if(uT<.3){if(ord<uT/.3)c=za;else{c=A(uv);lat=false;}}
-  else if(uT<.6){c=mix(za,zb,smoothstep(ord*.6,ord*.6+.4,(uT-.3)/.3));}
-  else{if(ord<(uT-.6)/.4){c=B(uv);lat=false;}else c=zb;}
-  if(lat)c=mix(c,c*.5+.3,gl1*.6);
-  return c;
+/* 13 denoising trajectory: the grid of sampler steps from pure noise to image */
+vec3 trajR(int c,vec4 q,vec2 uv){
+  float cols=q.x,rows=max(1.,floor(cols*uRes.y/uRes.x+.5));vec2 g=vec2(cols,rows);
+  vec2 cid=floor(uv*g),lu=fract(uv*g);
+  float i=(g.y-1.-cid.y)*g.x+cid.x,N=g.x*g.y;
+  float s=i/max(1.,N-1.);if(q.w>.5)s=1.-s;
+  float a=pow(s,q.y);
+  vec3 x=S(c,lu,log2(max(cols,rows)))*2.-1.;
+  vec2 np=floor(lu*uRes/g/(2.*uRS))+i*31.7+tfr()*7.3;
+  vec3 y=sqrt(a)*x+sqrt(1.-a)*vec3(gn(np),gn(np+51.3),gn(np+97.9));
+  float sep=max(step(lu.x,1.5*g.x/uRes.x),step(lu.y,1.5*g.y/uRes.y));
+  return mix(y*.32+.5,vec3(0.),sep);
+}
+/* 14 batch of variations: the same generation re-seeded, one of them being picked */
+vec3 batchR(int c,vec4 q,vec2 uv){
+  float n=q.x;vec2 cid=floor(uv*n),lu=fract(uv*n);
+  vec2 h=hash2(cid+floor(uSeed));float k=hash(cid*1.7+floor(uSeed));
+  float z=1.+h.x*q.y;vec2 off=(h-.5)*q.y*.3;
+  vec2 su=(lu-.5)/z+.5+off;if(k>.7)su.x=1.-su.x;
+  vec3 x=S(c,su,0.);
+  x=mix(x,x.brg,clamp((k-.6)*2.,0.,1.)*q.y*.6);
+  x=mix(x,x.gbr,clamp((.4-k)*2.,0.,1.)*q.y*.4);
+  vec2 sc=floor(hash2(vec2(floor(uTime*1.5),uSeed))*n);
+  float bw=2.*uRS*n/uRes.x,bh=2.*uRS*n/uRes.y;
+  float e=max(max(step(lu.x,bw),step(1.-bw,lu.x)),max(step(lu.y,bh),step(1.-bh,lu.y)));
+  return mix(x,all(equal(cid,sc))?vec3(1.):vec3(0.),e);
+}
+
+vec3 rep(int r,int c,vec4 q,vec2 uv){
+  switch(r){
+    case 1:return noiseR(c,q,uv);
+    case 2:return lat4R(c,q,uv);
+    case 3:return latRGBR(c,q,uv);
+    case 4:return tokensR(c,q,uv);
+    case 5:return reshapeR(c,q,uv);
+    case 6:return promptR(c,q,uv);
+    case 7:return attnR(c,q,uv);
+    case 8:return tensorR(c,q,uv);
+    case 9:return codeR(c,q,uv);
+    case 10:return x0R(c,q,uv);
+    case 11:return resR(c,q,uv);
+    case 12:return tempR(c,q,uv);
+    case 13:return trajR(c,q,uv);
+    case 14:return batchR(c,q,uv);
+  }
+  return S(c,uv,0.);
+}
+
+/* ===== ORDER in which the next representation takes over ===== */
+float maskM(vec2 uv){
+  float cell=max(2.,uMq.x*uRS);vec2 cid=floor(uv*uRes/cell),grid=ceil(uRes/cell);
+  vec2 cuv=(cid+.5)*cell/uRes,ar=vec2(uRes.x/uRes.y,1.);
+  if(uMask==1)return hash(cid+uSeed);                                                   // random tokens
+  if(uMask==2)return clamp(((grid.y-1.-cid.y)*grid.x+cid.x)/(grid.x*grid.y),0.,1.);     // autoregressive raster
+  if(uMask==3)return clamp(length((cuv-uMq.yz)*ar)/1.1+(noise(cid*.3+uSeed)-.5)*.15,0.,1.);
+  if(uMask==4){float l=lum(S(uC0,cuv,3.));return uMq.w>.5?l:1.-l;}                     // attention to brightness
+  if(uMask==5)return clamp((fbm(cuv*ar*(2.+uMq.y*6.)+uSeed)-.25)*2.,0.,1.);
+  if(uMask==6){float an=uMq.y*6.2832;return clamp(dot(cuv-.5,vec2(cos(an),sin(an)))*.7+.5+(hash(cid+uSeed)-.5)*uMq.z*.3,0.,1.);}
+  if(uMask==8)return 1.-clamp(length(S(0,cuv,3.)-S(1,cuv,3.))*2.,0.,1.);                 // where the two disagree
+  return .5;
+}
+vec3 edgeC(vec3 a,vec3 b,vec2 uv){
+  if(uEdge==1){vec2 np=floor(uv*uRes/(2.*uRS))+tfr()*3.1;return vec3(gn(np),gn(np+5.1),gn(np+9.7))*.3+.5;}
+  if(uEdge==2)return vec3(1.)-b;
+  return clamp(lat(a).xyz*.25+.5,0.,1.);
+}
+vec3 holdR(vec2 uv){
+  vec3 x=S(0,uv,0.);
+  if(uAge>0.){float b=8.*uRS;vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;x=mix(x,S(0,bl,3.),uAge*.45);}
+  return x;
 }
 
 void main(){
   vec2 uv=vUv;vec3 c;
-  if(uFx<0)c=gauss3(floor(uv*uRes/3.)+tfr()*7.3)*.3+.5;
-  else if(uFx==0)c=holdfx(uv);
-  else if(uFx==1)c=diffusion(uv);
-  else if(uFx==2)c=patches(uv);
-  else if(uFx==3)c=promptfx(uv);
-  else if(uFx==4)c=erode(uv,false);
-  else if(uFx==5)c=erode(uv,true);
-  else if(uFx==6)c=melt(uv);
-  else if(uFx==7)c=stretchfx(uv);
-  else if(uFx==8)c=mosh(uv);
-  else if(uFx==9)c=dream(uv);
-  else if(uFx==10)c=crumble(uv);
-  else c=latent(uv);
-  c+=(hash(uv*uRes+tfr()*1.7)-.5)*(.03+uAge*.08);
+  if(uMode<0)c=noiseR(1,vec4(0.,2.,1.,0.),uv);
+  else if(uMode==0)c=holdR(uv);
+  else{
+    if(uMask==0)c=mix(rep(uR0,uC0,uQ0,uv),rep(uR1,uC1,uQ1,uv),uP);                 // whole frame, step by step
+    else if(uMask==7){vec3 t=clamp((uP-uMq.yzw*.6)/.4,0.,1.);                        // channels arrive one at a time
+      c=mix(rep(uR0,uC0,uQ0,uv),rep(uR1,uC1,uQ1,uv),t);}
+    else{
+      float m=maskM(uv),t=clamp((uP*(1.+uW)-m)/uW,0.,1.);
+      if(t<=0.)c=rep(uR0,uC0,uQ0,uv);
+      else if(t>=1.)c=rep(uR1,uC1,uQ1,uv);
+      else{vec3 a=rep(uR0,uC0,uQ0,uv),b=rep(uR1,uC1,uQ1,uv);c=mix(a,b,t);
+        if(uEdge>0)c=mix(c,edgeC(a,b,uv),.85*(1.-abs(t*2.-1.)));}
+    }
+    if(uFb>0.)c=mix(c,texture(uPrev,(uv-.5)*.994+.5).rgb,uFb);
+  }
+  c+=(hash(uv*uRes+tfr()*1.7)-.5)*(.025+uAge*.06);
   o=vec4(clamp(c,0.,1.),1.);
 }`;
 
 /* ---------- GL SETUP ---------- */
-let W=0,H=0,RS=1,PR=null,PC=null,U={},BLACK=null,fb=[],ft=[],ping=0,GL=false;
+let W=0,H=0,RS=1,PR=null,PC=null,U={},BLACK=null,DIG=null,fb=[],ft=[],ping=0,GL=false;
 function compile(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
   if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
 function program(fs){const p=gl.createProgram();gl.attachShader(p,compile(gl.VERTEX_SHADER,VS));gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
@@ -413,6 +447,14 @@ function rs(){
   W=C.width=Math.max(2,Math.floor(innerWidth*r));H=C.height=Math.max(2,Math.floor(innerHeight*r));RS=r;
   if(GL)mkFbo();
 }
+function canvasTex(cv){const tx=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);return tx;}
+function digitTex(){
+  const cv=document.createElement('canvas');cv.width=512;cv.height=64;const x=cv.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,512,64);x.fillStyle='#fff';
+  x.font='bold 46px ui-monospace,Menlo,Consolas,monospace';x.textAlign='center';x.textBaseline='middle';
+  const s='0123456789.-+e  ';for(let i=0;i<16;i++)x.fillText(s[i],(i+.5)*32,34);
+  return canvasTex(cv);
+}
 if(gl){
   try{
     PR=program(FS);PC=program(FS_COPY);
@@ -420,12 +462,13 @@ if(gl){
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
-    ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uRes','uAspA','uAspB','uT','uTime','uSeed','uAge','uCell','uG','uFx','uMode','uP']
-      .forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+    ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
+     'uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
-    [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6]].forEach(([n,i])=>gl.uniform1i(U[n],i));
+    [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
     BLACK=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));
+    DIG=digitTex();
     GL=true;
   }catch(e){console.error(e);GL=false;}
 }
@@ -443,13 +486,113 @@ function promptTex(text){
   let t=(text||'').replace(/\s+/g,' ').trim();if(!t)t='untitled';t+='   ';
   let i=0;
   for(let r=0;r<PG;r++)for(let c=0;c<PG;c++){const ch=t[i++%t.length];if(ch!==' ')x.fillText(ch,(c+.5)*cs,(r+.52)*cs);}
-  const tx=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);return tx;
+  return canvasTex(cv);
 }
+
+/* ---------- GENOMES ---------- */
+const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker','trajectory','batch'];
+const NREP=14;
+const MASKN=['steps','random','raster','radial','brightness','cloud','scan','channels','disagreement'];
+const RR=(g,a,b)=>a+g()*(b-a),RI=(g,a,b)=>Math.floor(RR(g,a,b+1)),PK=(g,arr)=>arr[Math.floor(g()*arr.length)];
+function pickW(g,w){let s=0;for(let i=1;i<w.length;i++)s+=w[i];let x=g()*s;for(let i=1;i<w.length;i++){x-=w[i];if(x<=0)return i;}return w.length-1;}
+function repParams(r,g){
+  switch(r){
+    case 1:return [RR(g,0,.5),PK(g,[1,2,4,8]),g()<.3?1:0,0];               // signal left, noise grain, mono
+    case 2:return [PK(g,[4,8,16]),RI(g,0,3),RI(g,0,2),RR(g,.15,.35)];        // block, colormap, layout, gain
+    case 3:return [PK(g,[4,8,8,16]),RI(g,0,3),RR(g,.15,.4),RR(g,0,.5)];      // block, channels, gain, latent texture
+    case 4:return [RR(g,8,64),RI(g,0,2),g(),RR(g,2,20)];                     // patch, style, grid, shuffle rate
+    case 5:return [PK(g,[1,2,2,4]),(g()<.5?-1:1)*RI(g,1,8),RR(g,0,2.5),g()<.35?1:0]; // block, stride error, drift, planar
+    case 6:return [RR(g,0,30),g()<.6?0:1,0,0];                               // scroll, style
+    case 7:return [RR(g,8,40),RI(g,0,3),RI(g,0,3),RR(g,.5,.9)];              // cell, head, colormap, opacity
+    case 8:return [RI(g,0,2),RI(g,0,1),RI(g,0,3),0];                         // colour mode, channel mode, colormap
+    case 9:return [RR(g,4,24),RI(g,4,16),RI(g,0,2),0];                       // block, K, view
+    case 10:return [RR(g,2.5,6),RR(g,1.5,4),g()<.5?0:RI(g,3,8),RR(g,1,2.5)]; // lod, cfg, posterize, saturation
+    case 11:return [RR(g,1,3),RR(g,4,14),PK(g,[2,4,8]),g()];                 // band, gain, checker period, checker
+    case 12:return [RR(g,6,30),RR(g,0,.4),RI(g,-1,3),0];                     // gain, ghost, colormap
+    case 13:return [RI(g,3,6),RR(g,1,3),0,g()<.3?1:0];                       // columns, schedule, -, reversed
+    case 14:return [PK(g,[2,2,3]),RR(g,.3,1),0,0];                           // grid, variation
+  }
+  return [0,0,0,0];
+}
+function palette(g){const p=[];for(let i=0;i<16;i++)p.push(RR(g,.05,.95),RR(g,.05,.95),0);return p;}   // where the codebook samples its codes
+function mkNode(r,c,g){const n={r,c,q:repParams(r,g)};if(r===9)n.pal=palette(g);return n;}
+const MASKW=[1.3,1,1,.8,1,.9,.7,.6,.8];
+function randHop(g){
+  const mask=PK(g,[0,0,1,1,2,2,3,4,4,5,5,6,7,8]);
+  const mq=[RR(g,6,48),g(),g(),g()];
+  if(mask===7){const o=[0,.5,1].sort(()=>g()-.5);mq[1]=o[0];mq[2]=o[1];mq[3]=o[2];}
+  return {mask,mq,steps:g()<.45?0:RI(g,4,30),curve:RR(g,.6,2),w:RR(g,.03,.25),edge:g()<.4?0:RI(g,1,3),dw:RR(g,.6,1.6)};
+}
+function fixClips(G){
+  G.nodes[0].c=0;G.nodes[G.nodes.length-1].c=1;
+  let b=false;for(let i=1;i<G.nodes.length-1;i++){if(G.nodes[i].c===1)b=true;if(b)G.nodes[i].c=1;}
+  return G;
+}
+function randGenome(g,Wt){
+  const m=PK(g,[1,2,2,3,3,3,4]);const inter=[];let prev=0;
+  for(let i=0;i<m;i++){let r;do{r=pickW(g,Wt)}while(r===prev);prev=r;inter.push(r);}
+  const k=RI(g,0,m);
+  const nodes=[{r:0,c:0,q:[0,0,0,0]}];
+  inter.forEach((r,i)=>nodes.push(mkNode(r,i<k?0:1,g)));
+  nodes.push({r:0,c:1,q:[0,0,0,0]});
+  const hops=[];for(let i=0;i<nodes.length-1;i++)hops.push(randHop(g));
+  return fixClips({nodes,hops,fb:g()<.25?RR(g,.15,.55):0,dur:RR(g,4,9.5),born:0});
+}
+const clone=o=>JSON.parse(JSON.stringify(o));
+function mutate(G,g,Wt,strength){
+  const ops=Math.max(1,Math.round(strength*(1+g()*2)));
+  for(let o=0;o<ops;o++){
+    const x=g(),inter=G.nodes.length-2;
+    if(x<.35){const n=G.nodes[1+Math.floor(g()*inter)],nq=repParams(n.r,g),j=Math.floor(g()*4);n.q[j]=nq[j];if(n.r===9&&g()<.3)n.pal=palette(g);}
+    else if(x<.6){const h=G.hops[Math.floor(g()*G.hops.length)],nh=randHop(g),k=PK(g,['mask','steps','curve','w','edge','dw']);h[k]=nh[k];if(k==='mask')h.mq=nh.mq;}
+    else if(x<.75){const i=1+Math.floor(g()*inter);G.nodes[i]=mkNode(pickW(g,Wt),G.nodes[i].c,g);}
+    else if(x<.85&&inter<5){const i=1+Math.floor(g()*(inter+1)),a=G.nodes[i-1],b=G.nodes[i];
+      G.nodes.splice(i,0,mkNode(pickW(g,Wt),a.c===b.c?a.c:(g()<.5?0:1),g));G.hops.splice(i-1,0,randHop(g));}
+    else if(x<.93&&inter>1){const i=1+Math.floor(g()*inter);G.nodes.splice(i,1);G.hops.splice(i-1,1);}
+    else if(x<.97)G.fb=G.fb?0:RR(g,.15,.55);
+    else G.dur=RR(g,4,9.5);
+  }
+  return fixClips(G);
+}
+function cross(a,b,g){
+  const ia=1+Math.floor(g()*(a.nodes.length-1)),ib=1+Math.floor(g()*(b.nodes.length-1));
+  const G={nodes:clone([...a.nodes.slice(0,ia),...b.nodes.slice(ib)]),
+           hops:clone([...a.hops.slice(0,ia-1),b.hops[ib-1],...b.hops.slice(ib)]),
+           fb:g()<.5?a.fb:b.fb,dur:g()<.5?a.dur:b.dur,born:0};
+  while(G.nodes.length>7){const i=1+Math.floor(g()*(G.nodes.length-2));G.nodes.splice(i,1);G.hops.splice(i-1,1);}
+  if(G.nodes.length<3){G.nodes.splice(1,0,mkNode(1,0,g));G.hops.splice(0,0,randHop(g));}
+  return fixClips(G);
+}
+
+/* evolution in time: same for every viewer, from the launch date on */
+const LAUNCH=Date.UTC(2026,9,24,10,0,0),EPOCH=10*60*1000,NPOP=16;
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function vnoise(x){const h=n=>{const s=Math.sin(n*127.1)*43758.5453;return s-Math.floor(s)};const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return h(i)*(1-u)+h(i+1)*u;}
+function weightsAt(e){const w=[0];for(let r=1;r<=NREP;r++)w.push(.12+vnoise(e/90+r*7.31));return w;}   // favoured representations drift over ~15 h
+let pop=[],epoch=0;
+(function initPop(){const g=mulberry(1985),Wt=weightsAt(0);for(let i=0;i<NPOP;i++)pop.push(randGenome(g,Wt));})();
+function novelty(Wt){                         // rare representations are favoured, so none dies out for good
+  const cnt=new Array(NREP+1).fill(0);pop.forEach(G=>G.nodes.forEach(n=>cnt[n.r]++));
+  return Wt.map((w,r)=>r?w*(1+3/(1+cnt[r])):0);
+}
+function oldest(g){let k=Math.floor(g()*NPOP);for(let j=0;j<3;j++){const i=Math.floor(g()*NPOP);if(pop[i].born<pop[k].born)k=i;}return k;}
+function evolveTo(E){
+  while(epoch<E){
+    epoch++;const g=mulberry((epoch*2654435761)>>>0),Wt=novelty(weightsAt(epoch));
+    if(epoch%36===0){const n=randGenome(g,Wt);n.born=epoch;pop[oldest(g)]=n;continue;}   // a new species every 6 hours
+    const child=mutate(cross(pop[Math.floor(g()*NPOP)],pop[Math.floor(g()*NPOP)],g),g,Wt,1);
+    child.born=epoch;pop[oldest(g)]=child;
+  }
+}
+const nowEpoch=()=>Math.max(0,Math.floor((Date.now()-LAUNCH)/EPOCH));
+evolveTo(nowEpoch());
+function describe(G){return G.nodes.map(n=>REPN[n.r]+(n.c?'·B':'·A')).join(' → ')+'  |  '+G.hops.map(h=>MASKN[h.mask]+(h.steps?'/'+h.steps:'')).join(', ');}
+const FIRST={nodes:[{r:1,c:1,q:[0,2,0,0]},{r:0,c:1,q:[0,0,0,0]}],hops:[{mask:0,mq:[16,0,0,0],steps:24,curve:1,w:.1,edge:0,dw:1}],fb:0,dur:3};
 
 /* ---------- CLIPS ---------- */
 let zc=1;
 function makeClip(r){
-  const cl={v:r.v,it:r.it,cur:0,ok:false,bad:false,w:[0,0],h:[0,0],age:Math.min(1,(seen[r.it.key]||0)/RETIRE)};
+  const cl={v:r.v,it:r.it,cur:0,ok:false,bad:false,lt:-1,w:[0,0],h:[0,0],age:Math.min(1,(seen[r.it.key]||0)/RETIRE)};
   if(GL){cl.tex=[mkTex(true),mkTex(true)];cl.ptex=promptTex(r.it.prompt);}
   else r.v.style.zIndex=++zc;
   if(r.v.paused)r.v.play().catch(()=>{});
@@ -463,7 +606,8 @@ function disposeClip(cl){
 }
 function upload(cl){
   const v=cl.v;if(v.readyState<2||!v.videoWidth)return;
-  const i=1-cl.cur;
+  if(cl.ok&&v.currentTime===cl.lt)return;           // only new video frames, so the previous one stays one frame behind
+  cl.lt=v.currentTime;const i=1-cl.cur;
   try{
     gl.bindTexture(gl.TEXTURE_2D,cl.tex[i]);
     if(cl.w[i]!==v.videoWidth||cl.h[i]!==v.videoHeight){
@@ -481,47 +625,64 @@ function bindClip(cl,u1,u2){
 const asp=cl=>cl&&cl.v.videoWidth?cl.v.videoWidth/cl.v.videoHeight:1;
 
 /* ---------- MONTAGE ---------- */
-// 1 diffusion · 2 patches · 3 prompt · 4 acid · 5 fire · 6 melt · 7 stretch · 8 datamosh · 9 dream · 10 crumble · 11 latent
-const DUR={1:[3.5,6],2:[2.5,5],3:[5,8],4:[3,6],5:[3,6],6:[2.5,5],7:[2,4],8:[3,6],9:[4,7],10:[3,5],11:[3,6]};
-let A=null,Bc=null,phase='wait',pt0=0,pdur=0,fx=-1,mode=0,P=[0,0,0,0],seed=0,cell=14,lastFx=[],frameN=0;
-function chooseFx(){let f;do{f=1+Math.floor(Math.random()*11)}while(lastFx.includes(f));lastFx.push(f);if(lastFx.length>4)lastFx.shift();return f;}
+let A=null,Bc=null,phase='wait',pt0=0,pdur=0,G=null,PLAN=null,seed=0,cell=14,frameN=0;
+const ST={r0:0,c0:0,q0:[0,0,0,0],r1:0,c1:1,q1:[0,0,0,0],mask:0,mq:[16,0,0,0],p:0,edge:0,w:.1,fb:0,pal:null};
+const POLS=window.POLS={get pop(){return pop},get epoch(){return epoch},get last(){return G?describe(G):''},force:null,describe,ST};
+function plan(G){const tot=G.hops.reduce((s,h)=>s+h.dw,0);let acc=0;return G.hops.map(h=>{const s=acc/tot;acc+=h.dw;return [s,acc/tot];});}
 function startTrans(now){
   Bc=makeClip(readyQ.shift());
-  if(!A){fx=1;mode=2;pdur=rnd(2.5,4);}
+  evolveTo(nowEpoch());
+  if(!A)G=clone(FIRST);
+  else if(POLS.force)G=clone(POLS.force);
   else{
-    fx=chooseFx();
-    if(fx===3&&!(A.it.prompt&&Bc.it.prompt)){lastFx.pop();fx=chooseFx();if(fx===3)fx=1;}
-    mode=Math.floor(Math.random()*3);const d=DUR[fx];pdur=rnd(d[0],d[1]);
+    G=clone(pop[Math.floor(Math.random()*NPOP)]);
+    if(Math.random()<.7)mutate(G,Math.random,novelty(weightsAt(epoch)),.6);           // every performance is a variation
+    if(Math.random()<.3){const ch=clone(G);ch.born=epoch;pop[Math.floor(Math.random()*NPOP)]=ch;}  // local drift
   }
-  P=[Math.random(),Math.random(),Math.random(),Math.random()];seed=Math.random()*50;
-  cell=Math.round(rnd(10,20)*RS);
+  G.nodes.forEach(n=>{if(n.r===6){const cl=n.c===0?A:Bc;if(!cl||!cl.it.prompt){n.r=8;n.q=repParams(8,Math.random);}}});
+  PLAN=plan(G);pdur=Math.min(12,Math.max(G.dur,1.4*G.hops.length));
+  seed=Math.random()*50;cell=Math.round(rnd(10,20)*RS);
   phase='trans';pt0=now;prepare();
 }
 function endTrans(now){if(A)disposeClip(A);A=Bc;Bc=null;phase='hold';pt0=now;pdur=rnd(2.5,5);}
-
-function render(f,uT,t,age){
+function setHop(uT){
+  let i=PLAN.findIndex(([s,e])=>uT<e);if(i<0)i=PLAN.length-1;
+  const [s,e]=PLAN[i],h=G.hops[i],n0=G.nodes[i],n1=G.nodes[i+1];
+  let p=Math.min(1,Math.max(0,(uT-s)/Math.max(1e-6,e-s)));p=Math.pow(p,h.curve);
+  if(h.steps)p=Math.floor(p*h.steps+.5)/h.steps;                              // discrete sampler steps
+  Object.assign(ST,{r0:n0.r,c0:n0.c,q0:n0.q,r1:n1.r,c1:n1.c,q1:n1.q,mask:h.mask,mq:h.mq,p,edge:h.edge,w:h.w,fb:G.fb,
+    pal:n1.r===9?n1.pal:n0.r===9?n0.pal:null});
+}
+function render(mode,t,age){
   gl.useProgram(PR);gl.bindFramebuffer(gl.FRAMEBUFFER,fb[1-ping]);gl.viewport(0,0,W,H);
   bindClip(A,0,1);bindClip(Bc,2,3);
   gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,ft[ping]);
   gl.activeTexture(gl.TEXTURE5);gl.bindTexture(gl.TEXTURE_2D,A?A.ptex:BLACK);
   gl.activeTexture(gl.TEXTURE6);gl.bindTexture(gl.TEXTURE_2D,Bc?Bc.ptex:BLACK);
+  gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,DIG);
   gl.uniform2f(U.uRes,W,H);gl.uniform1f(U.uAspA,asp(A));gl.uniform1f(U.uAspB,asp(Bc));
-  gl.uniform1f(U.uT,uT);gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);
-  gl.uniform1f(U.uAge,age);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uG,PG);
-  gl.uniform1i(U.uFx,f);gl.uniform1i(U.uMode,mode);gl.uniform4f(U.uP,P[0],P[1],P[2],P[3]);
+  gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
+  gl.uniform1f(U.uG,PG);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uRS,RS);
+  gl.uniform1i(U.uMode,mode);
+  gl.uniform1i(U.uR0,ST.r0);gl.uniform1i(U.uC0,ST.c0);gl.uniform4fv(U.uQ0,ST.q0);
+  gl.uniform1i(U.uR1,ST.r1);gl.uniform1i(U.uC1,ST.c1);gl.uniform4fv(U.uQ1,ST.q1);
+  gl.uniform1i(U.uMask,ST.mask);gl.uniform4fv(U.uMq,ST.mq);gl.uniform1f(U.uP,ST.p);
+  gl.uniform1f(U.uW,ST.w);gl.uniform1i(U.uEdge,ST.edge);gl.uniform1f(U.uFb,mode===1?ST.fb:0);
+  if(ST.pal)gl.uniform3fv(U.uPal,ST.pal);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
   gl.useProgram(PC);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,ft[1-ping]);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   ping=1-ping;
 }
+POLS.render=render;
 
 function loop(t){
   frameN++;
   const el=(t-pt0)/1000;
   if(phase==='wait'&&readyQ.length)startTrans(t);
   else if(phase==='hold'&&(el>pdur||(A&&A.bad))&&readyQ.length)startTrans(t);
-  if(!GL&&phase==='trans'){endTrans(t);}            // fallback: hard cuts
+  if(!GL&&phase==='trans')endTrans(t);                 // fallback: hard cuts
   let uT=0;
   if(phase==='trans'){
     if(Bc&&Bc.bad){disposeClip(Bc);Bc=null;phase=A?'hold':'wait';pt0=t;pdur=0;}
@@ -530,8 +691,9 @@ function loop(t){
   if(frameN%30===0)prepare();
   if(GL){
     if(A)upload(A);if(Bc)upload(Bc);
+    if(phase==='trans')setHop(uT);
     const age=A?Math.min(1,A.age+(phase==='hold'?Math.max(0,(t-pt0)/1000-pdur)/20:0)):0;
-    render(phase==='wait'?-1:phase==='hold'?0:fx,uT,t,age);
+    render(phase==='wait'?-1:phase==='hold'?0:1,t,age);
   }
   requestAnimationFrame(loop);
 }
