@@ -22,10 +22,10 @@
    generative model and comes out as the next clip. A transition is a path through the
    model's own representations:
 
-     pixel · forward-diffusion noise · the 4 latent channels · latent as false colour ·
+     pixel · forward-diffusion noise · denoising trajectory · the 4 latent channels · latent as false colour ·
      patch tokens / embeddings · tensor reshaped with the wrong stride · the prompt ·
      attention maps · the latent tensor printed as numbers · VQ codebook ·
-     early x0 prediction burnt by guidance · upsampling residue · temporal flicker
+     early x0 prediction burnt by guidance · upsampling residue · temporal flicker · batch of variations
 
    Paths are genomes. A population of 16 genomes evolves every 10 minutes (crossover and
    mutation, a new species every day, the favoured representations drifting over the days),
@@ -216,6 +216,7 @@ vec3 lat4R(int c,vec4 q,vec2 uv){
 vec3 latRGBR(int c,vec4 q,vec2 uv){
   float b=max(2.,q.x*uRS);vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;
   vec4 l=lat(S(c,bl,log2(b)));
+  vec2 bi=floor(uv*uRes/b);l+=vec4(gn(bi+uSeed),gn(bi+3.1+uSeed),gn(bi+7.7+uSeed),gn(bi+9.9+uSeed))*q.w;
   int p=int(q.y);vec3 v=p==0?l.xyz:p==1?l.yzw:p==2?l.wxy:l.zwx;
   return clamp(v*q.z+.5,0.,1.);
 }
@@ -229,7 +230,7 @@ vec3 tokensR(int c,vec4 q,vec2 uv){
     vec3 m=S(c,cuv,lod)*2.-1.;float D=8.,i=floor(f.x*D);
     vec3 w=normalize(hash3(vec2(i,floor(uSeed)))*2.-1.);
     float v=.5+.5*sin(dot(m,w)*4.+i*1.7);
-    c0=f.y>.8?m*.5+.5:vec3(v);
+    c0=f.y>.8?m*.5+.5:vec3(v*(.25+.9*lum(m*.5+.5)));
   }else{
     vec2 other=floor(hash2(cid+floor(uTime*q.w)+uSeed)*grid);
     c0=S(c,(other+f)*cell/uRes,0.);
@@ -276,7 +277,8 @@ vec3 attnR(int c,vec4 q,vec2 uv){
   else if(h==2){vec3 tc=hash3(vec2(floor(uSeed),3.));a=1.-distance(x,tc)/1.2;a=a*a*a*1.6;}
   else{vec2 qp=vec2(noise(vec2(uTime*.23,uSeed))*.8+.1,noise(vec2(uSeed,uTime*.19))*.8+.1);
     vec3 qx=S(c,qp,lod);vec2 ar=vec2(uRes.x/uRes.y,1.);
-    a=exp(-dot(x-qx,x-qx)*8.)*.8+exp(-distance(cuv*ar,qp*ar)*6.)*.4;}
+    a=exp(-dot(x-qx,x-qx)*8.)*.8+exp(-distance(cuv*ar,qp*ar)*6.)*.4;
+    if(all(equal(cid,floor(qp*uRes/cell))))return vec3(1.);}
   return mix(vec3(lum(S(c,uv,0.)))*.3,cmap(int(q.z),a),q.w);
 }
 /* 8 the latent tensor printed as numbers */
@@ -287,22 +289,22 @@ vec3 tensorR(int c,vec4 q,vec2 uv){
   float fi=floor(cc.x/field),slot=cc.x-fi*field;
   vec2 cuv=vec2((fi*field+field*.5)*cw/uRes.x,1.-(cc.y+.5)*ch/uRes.y);
   vec4 l=lat(S(c,cuv,3.));
-  int k=q.y<.5?int(mod(fi+cc.y,4.)):int(mod(floor(uTime*2.)+fi,4.));
+  int k=q.y<.5?int(mod(floor(uSeed),4.)):int(mod(floor(uTime*1.5)+fi+cc.y,4.));
   float v=l[k],a=abs(v);
   float d0=min(floor(a),9.),d1=floor(fract(a)*10.),d2=floor(fract(a*10.)*10.);
   float idx=15.;
   if(slot<.5)idx=v<0.?11.:15.;else if(slot<1.5)idx=d0;else if(slot<2.5)idx=10.;else if(slot<3.5)idx=d1;else if(slot<4.5)idx=d2;
   float g=texture(uDig,vec2((idx+clamp(ft.x,.04,.96))/16.,1.-ft.y)).r;
-  vec3 col=q.x<.5?vec3(.25+.75*clamp(a/2.5,0.,1.)):q.x<1.5?cmap(int(q.z),v*.18+.5):S(c,cuv,2.)*1.5+.1;
+  vec3 col=q.x<.5?vec3(.12+.88*clamp(a/2.,0.,1.)):q.x<1.5?cmap(int(q.z),v*.18+.5):S(c,cuv,2.)*1.5+.1;
   return col*g+.015;
 }
 /* 9 vector-quantised codebook: every block snapped to one of K learned codes */
 vec3 codeR(int c,vec4 q,vec2 uv){
   float b=max(2.,q.x*uRS);vec2 cuv=(floor(uv*uRes/b)+.5)*b/uRes;
   vec3 x=S(c,cuv,log2(b));
-  int K=int(q.y);float bd=1e9;int bi=0;
-  for(int i=0;i<16;i++){if(i>=K)break;vec3 d=x-uPal[i];float dd=dot(d,d);if(dd<bd){bd=dd;bi=i;}}
-  if(q.z<.5)return uPal[bi];
+  int K=int(q.y);float bd=1e9;int bi=0;vec3 bc=vec3(0.);
+  for(int i=0;i<16;i++){if(i>=K)break;vec3 pc=S(c,uPal[i].xy,3.);vec3 d=x-pc;float dd=dot(d,d);if(dd<bd){bd=dd;bi=i;bc=pc;}}
+  if(q.z<.5)return bc;
   float t=float(bi)/float(K-1);
   return q.z<1.5?vec3(t):cmap(1,t);
 }
@@ -326,6 +328,34 @@ vec3 tempR(int c,vec4 q,vec2 uv){
   return S(c,uv,0.)*q.y+col;
 }
 
+/* 13 denoising trajectory: the grid of sampler steps from pure noise to image */
+vec3 trajR(int c,vec4 q,vec2 uv){
+  float cols=q.x,rows=max(1.,floor(cols*uRes.y/uRes.x+.5));vec2 g=vec2(cols,rows);
+  vec2 cid=floor(uv*g),lu=fract(uv*g);
+  float i=(g.y-1.-cid.y)*g.x+cid.x,N=g.x*g.y;
+  float s=i/max(1.,N-1.);if(q.w>.5)s=1.-s;
+  float a=pow(s,q.y);
+  vec3 x=S(c,lu,log2(max(cols,rows)))*2.-1.;
+  vec2 np=floor(lu*uRes/g/(2.*uRS))+i*31.7+tfr()*7.3;
+  vec3 y=sqrt(a)*x+sqrt(1.-a)*vec3(gn(np),gn(np+51.3),gn(np+97.9));
+  float sep=max(step(lu.x,1.5*g.x/uRes.x),step(lu.y,1.5*g.y/uRes.y));
+  return mix(y*.32+.5,vec3(0.),sep);
+}
+/* 14 batch of variations: the same generation re-seeded, one of them being picked */
+vec3 batchR(int c,vec4 q,vec2 uv){
+  float n=q.x;vec2 cid=floor(uv*n),lu=fract(uv*n);
+  vec2 h=hash2(cid+floor(uSeed));float k=hash(cid*1.7+floor(uSeed));
+  float z=1.+h.x*q.y;vec2 off=(h-.5)*q.y*.3;
+  vec2 su=(lu-.5)/z+.5+off;if(k>.7)su.x=1.-su.x;
+  vec3 x=S(c,su,0.);
+  x=mix(x,x.brg,clamp((k-.6)*2.,0.,1.)*q.y*.6);
+  x=mix(x,x.gbr,clamp((.4-k)*2.,0.,1.)*q.y*.4);
+  vec2 sc=floor(hash2(vec2(floor(uTime*1.5),uSeed))*n);
+  float bw=2.*uRS*n/uRes.x,bh=2.*uRS*n/uRes.y;
+  float e=max(max(step(lu.x,bw),step(1.-bw,lu.x)),max(step(lu.y,bh),step(1.-bh,lu.y)));
+  return mix(x,all(equal(cid,sc))?vec3(1.):vec3(0.),e);
+}
+
 vec3 rep(int r,int c,vec4 q,vec2 uv){
   switch(r){
     case 1:return noiseR(c,q,uv);
@@ -340,6 +370,8 @@ vec3 rep(int r,int c,vec4 q,vec2 uv){
     case 10:return x0R(c,q,uv);
     case 11:return resR(c,q,uv);
     case 12:return tempR(c,q,uv);
+    case 13:return trajR(c,q,uv);
+    case 14:return batchR(c,q,uv);
   }
   return S(c,uv,0.);
 }
@@ -458,7 +490,8 @@ function promptTex(text){
 }
 
 /* ---------- GENOMES ---------- */
-const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker'];
+const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker','trajectory','batch'];
+const NREP=14;
 const MASKN=['steps','random','raster','radial','brightness','cloud','scan','channels','disagreement'];
 const RR=(g,a,b)=>a+g()*(b-a),RI=(g,a,b)=>Math.floor(RR(g,a,b+1)),PK=(g,arr)=>arr[Math.floor(g()*arr.length)];
 function pickW(g,w){let s=0;for(let i=1;i<w.length;i++)s+=w[i];let x=g()*s;for(let i=1;i<w.length;i++){x-=w[i];if(x<=0)return i;}return w.length-1;}
@@ -466,9 +499,9 @@ function repParams(r,g){
   switch(r){
     case 1:return [RR(g,0,.5),PK(g,[1,2,4,8]),g()<.3?1:0,0];               // signal left, noise grain, mono
     case 2:return [PK(g,[4,8,16]),RI(g,0,3),RI(g,0,2),RR(g,.15,.35)];        // block, colormap, layout, gain
-    case 3:return [PK(g,[4,8,8,16]),RI(g,0,3),RR(g,.15,.4),0];               // block, channels, gain
+    case 3:return [PK(g,[4,8,8,16]),RI(g,0,3),RR(g,.15,.4),RR(g,0,.5)];      // block, channels, gain, latent texture
     case 4:return [RR(g,8,64),RI(g,0,2),g(),RR(g,2,20)];                     // patch, style, grid, shuffle rate
-    case 5:return [PK(g,[1,2,4,8]),(g()<.5?-1:1)*RI(g,1,40),RR(g,0,6),g()<.4?1:0]; // block, stride error, drift, planar
+    case 5:return [PK(g,[1,2,2,4]),(g()<.5?-1:1)*RI(g,1,8),RR(g,0,2.5),g()<.35?1:0]; // block, stride error, drift, planar
     case 6:return [RR(g,0,30),g()<.6?0:1,0,0];                               // scroll, style
     case 7:return [RR(g,8,40),RI(g,0,3),RI(g,0,3),RR(g,.5,.9)];              // cell, head, colormap, opacity
     case 8:return [RI(g,0,2),RI(g,0,1),RI(g,0,3),0];                         // colour mode, channel mode, colormap
@@ -476,14 +509,12 @@ function repParams(r,g){
     case 10:return [RR(g,2.5,6),RR(g,1.5,4),g()<.5?0:RI(g,3,8),RR(g,1,2.5)]; // lod, cfg, posterize, saturation
     case 11:return [RR(g,1,3),RR(g,4,14),PK(g,[2,4,8]),g()];                 // band, gain, checker period, checker
     case 12:return [RR(g,6,30),RR(g,0,.4),RI(g,-1,3),0];                     // gain, ghost, colormap
+    case 13:return [RI(g,3,6),RR(g,1,3),0,g()<.3?1:0];                       // columns, schedule, -, reversed
+    case 14:return [PK(g,[2,2,3]),RR(g,.3,1),0,0];                           // grid, variation
   }
   return [0,0,0,0];
 }
-function palette(g){const p=[];const mode=g();const h0=g();
-  for(let i=0;i<16;i++){
-    if(mode<.5)p.push(g(),g(),g());
-    else{const h=(h0+i*RR(g,.03,.2))%1,l=i/15;p.push(.5+.5*Math.cos(6.283*(h)),.5+.5*Math.cos(6.283*(h+.33)),.5+.5*Math.cos(6.283*(h+.67)));p[p.length-1]*=l;p[p.length-2]*=l;p[p.length-3]*=l;}
-  }return p;}
+function palette(g){const p=[];for(let i=0;i<16;i++)p.push(RR(g,.05,.95),RR(g,.05,.95),0);return p;}   // where the codebook samples its codes
 function mkNode(r,c,g){const n={r,c,q:repParams(r,g)};if(r===9)n.pal=palette(g);return n;}
 const MASKW=[1.3,1,1,.8,1,.9,.7,.6,.8];
 function randHop(g){
@@ -537,11 +568,11 @@ function cross(a,b,g){
 const LAUNCH=Date.UTC(2026,9,24,10,0,0),EPOCH=10*60*1000,NPOP=16;
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function vnoise(x){const h=n=>{const s=Math.sin(n*127.1)*43758.5453;return s-Math.floor(s)};const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return h(i)*(1-u)+h(i+1)*u;}
-function weightsAt(e){const w=[0];for(let r=1;r<=12;r++)w.push(.12+vnoise(e/90+r*7.31));return w;}   // favoured representations drift over ~15 h
+function weightsAt(e){const w=[0];for(let r=1;r<=NREP;r++)w.push(.12+vnoise(e/90+r*7.31));return w;}   // favoured representations drift over ~15 h
 let pop=[],epoch=0;
 (function initPop(){const g=mulberry(1985),Wt=weightsAt(0);for(let i=0;i<NPOP;i++)pop.push(randGenome(g,Wt));})();
 function novelty(Wt){                         // rare representations are favoured, so none dies out for good
-  const cnt=new Array(13).fill(0);pop.forEach(G=>G.nodes.forEach(n=>cnt[n.r]++));
+  const cnt=new Array(NREP+1).fill(0);pop.forEach(G=>G.nodes.forEach(n=>cnt[n.r]++));
   return Wt.map((w,r)=>r?w*(1+3/(1+cnt[r])):0);
 }
 function oldest(g){let k=Math.floor(g()*NPOP);for(let j=0;j<3;j++){const i=Math.floor(g()*NPOP);if(pop[i].born<pop[k].born)k=i;}return k;}
