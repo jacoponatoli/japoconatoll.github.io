@@ -45,8 +45,12 @@ const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==nul
 let seen=LS.get('slop_seen',{});
 const RETIRE=14;
 const pool=[],fresh=[],known=new Set();
+const stills=new Set(LS.get('slopols_still',[]));
+const STILLP=/idle animation|stays? (still|in place)|subtle (idle|breath|motion|movement|animation)|minimal (motion|movement)|cinemagraph|barely mov|almost still|still image|living portrait|static image/i;
 function add(it,isFresh){
-  if(known.has(it.key))return;known.add(it.key);index(it);
+  if(known.has(it.key))return;known.add(it.key);
+  if(stills.has(it.key)||STILLP.test(it.prompt||''))return;          // only moving pictures
+  index(it);
   if((seen[it.key]||0)>=RETIRE)return;
   (isFresh?fresh:pool).push(it);
 }
@@ -121,8 +125,29 @@ async function loadSlot(s){
   if(isFinite(v.duration)&&v.duration>14){try{v.currentTime=Math.random()*(v.duration-12)}catch(e){}}
   if(v.readyState<4)await new Promise(r=>{const to=setTimeout(r,8000);v.addEventListener('canplaythrough',()=>{clearTimeout(to);r();},{once:true});});
   if(s.state!=='loading')return;
+  const m=await motionOf(v);
+  if(s.state!=='loading')return;
+  if(m&&m.far<.045&&m.step<.1){                 // a still picture pretending to be a video: out, for good
+    stills.add(s.it.key);LS.set('slopols_still',[...stills].slice(-3000));
+    v.removeAttribute('src');v.remove();s.state='failed';return;
+  }
   v.pause();                                       // waits paused: only the shots on screen are decoding
   s.state='ready';
+}
+const MC=document.createElement('canvas');MC.width=48;MC.height=27;
+const MX=MC.getContext('2d',{willReadFrequently:true});
+function grabM(v){MX.drawImage(v,0,0,48,27);return MX.getImageData(0,0,48,27).data;}
+function dfM(a,b){let s=0;for(let i=0;i<a.length;i+=4)s+=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2]);return s/(48*27*3*255);}
+function seekTo(v,t){return new Promise(r=>{const to=setTimeout(()=>r(false),2500);v.onseeked=()=>{clearTimeout(to);r(true)};v.currentTime=t;});}
+async function motionOf(v){                       // how much the picture really changes across the clip
+  try{
+    const d=v.duration,b=v.currentTime||0;if(!isFinite(d)||d<=.5)return null;
+    const span=Math.min(d-b,8),fr=[];
+    for(const f of [.02,1/3,2/3,1]){if(!await seekTo(v,Math.max(0,b+span*f-(f===1?.15:0))))return null;fr.push(grabM(v));}
+    let step=0;for(let k=1;k<fr.length;k++)step=Math.max(step,dfM(fr[k],fr[k-1]));
+    await seekTo(v,b);
+    return {far:dfM(fr[0],fr[3]),step};
+  }catch(e){return null;}
 }
 function anchorItem(){return seq.length?seq[seq.length-1].it:(Bc?Bc.it:A?A.it:null);}
 function prepare(){
