@@ -20,12 +20,32 @@
   #optBtn:hover{opacity:1}
   body.idle #optBtn{opacity:0}
   #panel{bottom:44px}
+  #shot{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:5;font-size:12px;letter-spacing:.12em}
+  #shot[hidden]{display:none}
+  #shotWrap{position:relative;width:min(70vh,80vw);aspect-ratio:1}
+  #shotWrap canvas,#shotWrap svg{position:absolute;inset:0;width:100%;height:100%}
+  #shotCount{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;color:#fff;pointer-events:none}
+  #shotFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .5s}
+  #shot button{background:none;color:#fff;border:1px solid #777;padding:6px 14px;font:inherit;letter-spacing:.12em;cursor:pointer;margin:0 4px}
+  #shot button:hover{border-color:#fff}
+  #shot .k{max-width:min(70vh,80vw);text-align:center;line-height:1.6}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="status">loading faces…</div>
 <video id="v" playsinline muted style="display:none"></video>
+
+<div id="shot" hidden>
+  <div id="shotMsg">center your face</div>
+  <div id="shotWrap">
+    <canvas id="shotCv" width="640" height="640"></canvas>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="50" rx="27" ry="36" fill="none" stroke="#fff" stroke-width=".35" stroke-dasharray="1.2 1.2" opacity=".8"/></svg>
+    <div id="shotCount"></div><div id="shotFlash"></div>
+  </div>
+  <div><button id="shotGo" type="button">take photo</button><button id="shotNo" type="button">cancel</button></div>
+  <div class="k">Your photo joins PERSONA's archive of real faces and will reappear, at random, in the flow of faces that do not exist.</div>
+</div>
 
 <button id="optBtn" type="button">option</button>
 <div id="panel" class="hide">
@@ -34,8 +54,9 @@
   <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
   <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
   <button id="camBtn">camera on</button>
+  <button id="photoBtn">photo</button>
   <button id="fsBtn">fullscreen</button>
-  <div class="k">F fullscreen · C camera · O option</div>
+  <div class="k">F or double click fullscreen · C camera · P photo · O option</div>
   <div class="k" id="poolInfo"></div>
 </div>
 
@@ -107,8 +128,12 @@ function frame(t){
 
   const W = cv.width, H = cv.height, S = Math.min(W,H), x = (W-S)/2, y = (H-S)/2;
 
-  if (pool.length){
-    const img = pool[Math.floor(Math.random()*pool.length)];
+  const now = performance.now();
+  let img = null;
+  if (spotlight && now < spotlight.until && Math.random() < 0.35) img = spotlight.img;      // la foto appena fatta resta presente
+  else if (real.length && Math.random() < REAL_P) img = real[Math.floor(Math.random()*real.length)];
+  else if (pool.length) img = pool[Math.floor(Math.random()*pool.length)];
+  if (img){
     ctx.globalAlpha = $('alpha').value/100;
     ctx.drawImage(img, x, y, S, S);
   }
@@ -122,7 +147,7 @@ function frame(t){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded}`;
+  $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded} · real ${real.length}`;
 }
 requestAnimationFrame(frame);
 
@@ -142,12 +167,98 @@ let rampOn = true, rampStart = null;
   if (k < 1) requestAnimationFrame(ramp);
 })(performance.now());
 
+// --- volti reali: foto dei visitatori ---
+// Restano nel browser di questo computer (IndexedDB), così l'installazione accumula il suo archivio.
+// Se SUPA_URL e SUPA_KEY sono compilati, vanno anche nell'archivio condiviso online (Supabase Storage, bucket "persona-real").
+const SUPA_URL = '';   // es. 'https://xxxx.supabase.co'
+const SUPA_KEY = '';   // chiave "anon public"
+const BUCKET = 'persona-real';
+const REAL_P = 0.12;   // probabilità che il prossimo volto sia una persona reale
+let real = [], spotlight = null;
+
+function addReal(src){ const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => real.push(im); im.src = src; return im; }
+
+// archivio locale
+let db = null;
+try {
+  const rq = indexedDB.open('persona', 1);
+  rq.onupgradeneeded = () => rq.result.createObjectStore('real', { autoIncrement: true });
+  rq.onsuccess = () => { db = rq.result;
+    const cur = db.transaction('real').objectStore('real').openCursor();
+    cur.onsuccess = e => { const c = e.target.result; if (c){ addReal(URL.createObjectURL(c.value.blob)); c.continue(); } };
+  };
+} catch(e){}
+function saveLocal(blob){ try { db && db.transaction('real','readwrite').objectStore('real').add({ blob, t: Date.now() }); } catch(e){} }
+
+// archivio condiviso
+if (SUPA_URL && SUPA_KEY){
+  fetch(`${SUPA_URL}/storage/v1/object/list/${BUCKET}`, { method:'POST',
+    headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ prefix:'', limit:1000, sortBy:{ column:'created_at', order:'desc' } }) })
+  .then(r => r.json()).then(l => l.filter(o => /\.jpg$/.test(o.name)).forEach(o => addReal(`${SUPA_URL}/storage/v1/object/public/${BUCKET}/${o.name}`)))
+  .catch(()=>{});
+}
+function saveShared(blob){
+  if (!SUPA_URL || !SUPA_KEY) return;
+  const name = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+  fetch(`${SUPA_URL}/storage/v1/object/${BUCKET}/${name}`, { method:'POST',
+    headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'image/jpeg' }, body: blob }).catch(()=>{});
+}
+
+// scatto
+let shotOpen = false, camWasOn = false, counting = false;
+const shotCv = $('shotCv'), sctx = shotCv.getContext('2d');
+function camCrop(){ const vw = video.videoWidth, vh = video.videoHeight, s = Math.min(vw,vh) * $('camZoom').value/100;
+  return [ (vw - s)/2, (vh - s)/2 - s*0.04, s ]; }
+function drawPreview(){
+  if (!shotOpen) return; requestAnimationFrame(drawPreview);
+  if (video.readyState < 2) return;
+  const [sx,sy,s] = camCrop();
+  sctx.save(); sctx.translate(640,0); sctx.scale(-1,1); sctx.drawImage(video, sx,sy,s,s, 0,0,640,640); sctx.restore();
+}
+async function openShot(){
+  if (shotOpen) return;
+  camWasOn = camOn;
+  if (!camOn) await toggleCam();
+  if (!camOn) return;
+  shotOpen = true; $('shot').hidden = false; panel.classList.add('hide'); drawPreview();
+}
+function closeShot(){
+  shotOpen = false; $('shot').hidden = true; $('shotCount').textContent = '';
+  if (!camWasOn && camOn) toggleCam();
+}
+async function takeShot(){
+  if (counting) return; counting = true;
+  for (const n of ['3','2','1']) { $('shotCount').textContent = n; await new Promise(r => setTimeout(r, 800)); }
+  $('shotCount').textContent = '';
+  const out = document.createElement('canvas'); out.width = out.height = 640;
+  const o = out.getContext('2d'), [sx,sy,s] = camCrop();
+  o.translate(640,0); o.scale(-1,1); o.drawImage(video, sx,sy,s,s, 0,0,640,640);
+  $('shotFlash').style.transition = 'none'; $('shotFlash').style.opacity = 1;
+  requestAnimationFrame(() => { $('shotFlash').style.transition = 'opacity .6s'; $('shotFlash').style.opacity = 0; });
+  out.toBlob(blob => {
+    const im = addReal(URL.createObjectURL(blob));
+    im.onload = () => {
+      real.push(im);
+      // appare intera sullo schermo, poi si scioglie nel flusso restando presente per un po'
+      const W = cv.width, H = cv.height, S = Math.min(W,H);
+      ctx.globalAlpha = 1; ctx.drawImage(im, (W-S)/2, (H-S)/2, S, S);
+      spotlight = { img: im, until: performance.now() + 25000 };
+    };
+    saveLocal(blob); saveShared(blob);
+    counting = false;
+    setTimeout(closeShot, 700);
+  }, 'image/jpeg', 0.85);
+}
+$('photoBtn').onclick = openShot; $('shotGo').onclick = takeShot; $('shotNo').onclick = closeShot;
+
 // --- interfaccia ---
 function fs(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 $('camBtn').onclick = toggleCam; $('fsBtn').onclick = fs;
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k==='f') fs(); if (k==='c') toggleCam(); if (k==='h' || k==='o') panel.classList.toggle('hide');
+  if (k==='escape' && shotOpen) closeShot(); if (shotOpen) { if (k===' '||k==='enter') takeShot(); return; }
+  if (k==='f') fs(); if (k==='c') toggleCam(); if (k==='p') openShot(); if (k==='h' || k==='o') panel.classList.toggle('hide');
 });
 let idleT;
 addEventListener('mousemove', () => {
@@ -156,6 +267,7 @@ addEventListener('mousemove', () => {
 });
 idleT = setTimeout(()=>{ document.body.classList.add('idle'); }, 3000);
 $('optBtn').onclick = () => panel.classList.toggle('hide');
+addEventListener('dblclick', e => { if (!e.target.closest('#panel, #optBtn, #shot')) fs(); });
 </script>
 </body>
 </html>
