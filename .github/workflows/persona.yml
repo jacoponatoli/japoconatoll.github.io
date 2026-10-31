@@ -1,7 +1,7 @@
 name: PERSONA volti
 # Ogni ora scarica 40 volti nuovi da thispersondoesnotexist.com.
 # 1) gli ultimi 400 (ridotti) stanno nel ramo "persona-faces": la pagina persona/ li legge da lì
-# 2) TUTTI i volti, a piena risoluzione, finiscono nell'ARCHIVIO: le Release del repository,
+# 2) TUTTI i volti (1024 px), finiscono nell'ARCHIVIO: le Release del repository,
 #    una per mese (persona-AAAA-MM), con uno zip per ogni ora. Non appesantiscono il sito.
 on:
   schedule:
@@ -36,7 +36,7 @@ jobs:
             f="$(date +%s%N).jpg"
             if curl -sSfL -A "$UA" -o tmp.jpg --max-time 20 "https://thispersondoesnotexist.com/random-person.jpeg?$i$RANDOM" \
                && [ "$(file -b --mime-type tmp.jpg)" = "image/jpeg" ]; then
-              python3 -c "from PIL import Image;im=Image.open('tmp.jpg').convert('RGB');im.thumbnail((640,640));im.save('$f',quality=82)" && cp tmp.jpg "../originali/$f" && ok=$((ok+1))
+              python3 -c "from PIL import Image;im=Image.open('tmp.jpg').convert('RGB');im.thumbnail((640,640));im.save('$f',quality=82)" && python3 -c "from PIL import Image;im=Image.open('tmp.jpg').convert('RGB');print(im.size) if $ok==0 else None;im.thumbnail((1024,1024));im.save('../originali/$f',quality=88)" && ok=$((ok+1))
             else
               [ $i -le 2 ] && { echo "tentativo $i: $(file -b --mime-type tmp.jpg 2>&1)"; head -c 300 tmp.jpg 2>/dev/null; echo; }
             fi
