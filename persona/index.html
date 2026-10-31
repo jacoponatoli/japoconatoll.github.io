@@ -12,6 +12,7 @@
   #panel.hide{opacity:0;pointer-events:none}
   #panel label{display:flex;gap:10px;align-items:center;justify-content:space-between}
   #panel input[type=range]{width:140px}
+  #panel select{width:140px;background:#111;color:#ddd;border:1px solid #555;font:inherit;padding:2px}
   #panel button{background:#111;color:#ddd;border:1px solid #555;padding:4px 10px;font:inherit;cursor:pointer;margin-top:6px}
   #panel button.on{background:#ddd;color:#000}
   .k{opacity:.5}
@@ -53,6 +54,8 @@
   <label>overlay <input id="alpha" type="range" min="2" max="60" value="30"></label>
   <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
   <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
+  <label>photo under <select id="baseSel"><option value="">none</option></select></label>
+  <label>photo opacity <input id="baseAlpha" type="range" min="0" max="100" value="35"></label>
   <button id="camBtn">camera on</button>
   <button id="photoBtn">photo</button>
   <button id="fsBtn">fullscreen</button>
@@ -66,14 +69,15 @@ const POOL_MAX = 80;      // volti tenuti in memoria
 const FETCH_EVERY = 400;  // ms tra una richiesta e l'altra
 const PARALLEL = 3;
 
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const cv = document.getElementById('c'), dctx = cv.getContext('2d');
+const acc = document.createElement('canvas'), ctx = acc.getContext('2d');   // il flusso si accumula qui, poi va sullo schermo
 const statusEl = document.getElementById('status'), panel = document.getElementById('panel');
 const video = document.getElementById('v');
 const $ = id => document.getElementById(id);
 
 let pool = [], inflight = 0, fails = 0, loaded = 0, camOn = false;
 
-function resize(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio;
+function resize(){ acc.width = cv.width = innerWidth * devicePixelRatio; acc.height = cv.height = innerHeight * devicePixelRatio;
   ctx.fillStyle='#000'; ctx.fillRect(0,0,cv.width,cv.height); }
 addEventListener('resize', resize); resize();
 
@@ -147,9 +151,35 @@ function frame(t){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
+  compose();
   $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded} · real ${real.length}`;
 }
 requestAnimationFrame(frame);
+
+// --- foto fissa "sotto": una foto scattata resta sempre presente, con la sua trasparenza ---
+let base = null;
+function compose(){
+  dctx.globalAlpha = 1; dctx.drawImage(acc, 0, 0);
+  if (base && base.complete){
+    const W = cv.width, H = cv.height, S = Math.min(W,H);
+    dctx.globalAlpha = $('baseAlpha').value/100;
+    dctx.drawImage(base, (W-S)/2, (H-S)/2, S, S);
+    dctx.globalAlpha = 1;
+  }
+}
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+                set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+function refreshBaseMenu(){
+  const sel = $('baseSel'), cur = sel.value || store.get('persona-base') || '';
+  const items = real.filter(im => im.dataset.key).sort((a,b) => b.dataset.key.localeCompare(a.dataset.key));
+  sel.innerHTML = '<option value="">none</option>' + items.map((im,i) =>
+    `<option value="${im.dataset.key}">${i===0 ? 'last photo' : 'photo ' + (items.length - i)}</option>`).join('');
+  sel.value = items.some(im => im.dataset.key === cur) ? cur : '';
+  base = items.find(im => im.dataset.key === sel.value) || null;
+}
+$('baseSel').onchange = () => { store.set('persona-base', $('baseSel').value); refreshBaseMenu(); compose(); };
+$('baseAlpha').oninput = () => { store.set('persona-baseAlpha', $('baseAlpha').value); compose(); };
+if (store.get('persona-baseAlpha')) $('baseAlpha').value = store.get('persona-baseAlpha');
 
 // --- crescendo: parte lento, volti singoli e nitidi; in ~50 s accelera e si fonde in un volto unico ---
 // (si ferma se tocchi i cursori in option)
@@ -176,7 +206,8 @@ const BUCKET = 'persona-real';
 const REAL_P = 0.12;   // probabilità che il prossimo volto sia una persona reale
 let real = [], spotlight = null;
 
-function addReal(src){ const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => real.push(im); im.src = src; return im; }
+function addReal(src, key){ const im = new Image(); im.crossOrigin = 'anonymous'; if (key) im.dataset.key = key;
+  im.onload = () => { real.push(im); refreshBaseMenu(); }; im.src = src; return im; }
 
 // archivio locale
 let db = null;
@@ -185,17 +216,17 @@ try {
   rq.onupgradeneeded = () => rq.result.createObjectStore('real', { autoIncrement: true });
   rq.onsuccess = () => { db = rq.result;
     const cur = db.transaction('real').objectStore('real').openCursor();
-    cur.onsuccess = e => { const c = e.target.result; if (c){ addReal(URL.createObjectURL(c.value.blob)); c.continue(); } };
+    cur.onsuccess = e => { const c = e.target.result; if (c){ addReal(URL.createObjectURL(c.value.blob), 'L' + String(c.value.t).padStart(15,'0')); c.continue(); } };
   };
 } catch(e){}
-function saveLocal(blob){ try { db && db.transaction('real','readwrite').objectStore('real').add({ blob, t: Date.now() }); } catch(e){} }
+function saveLocal(blob, t){ try { db && db.transaction('real','readwrite').objectStore('real').add({ blob, t }); } catch(e){} }
 
 // archivio condiviso
 if (SUPA_URL && SUPA_KEY){
   fetch(`${SUPA_URL}/storage/v1/object/list/${BUCKET}`, { method:'POST',
     headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json' },
     body: JSON.stringify({ prefix:'', limit:1000, sortBy:{ column:'created_at', order:'desc' } }) })
-  .then(r => r.json()).then(l => l.filter(o => /\.jpg$/.test(o.name)).forEach(o => addReal(`${SUPA_URL}/storage/v1/object/public/${BUCKET}/${o.name}`)))
+  .then(r => r.json()).then(l => l.filter(o => /\.jpg$/.test(o.name)).forEach(o => addReal(`${SUPA_URL}/storage/v1/object/public/${BUCKET}/${o.name}`, 'S' + o.name)))
   .catch(()=>{});
 }
 function saveShared(blob){
@@ -237,15 +268,16 @@ async function takeShot(){
   $('shotFlash').style.transition = 'none'; $('shotFlash').style.opacity = 1;
   requestAnimationFrame(() => { $('shotFlash').style.transition = 'opacity .6s'; $('shotFlash').style.opacity = 0; });
   out.toBlob(blob => {
-    const im = addReal(URL.createObjectURL(blob));
+    const t = Date.now();
+    const im = addReal(URL.createObjectURL(blob), 'L' + String(t).padStart(15,'0'));
     im.onload = () => {
-      real.push(im);
+      real.push(im); refreshBaseMenu();
       // appare intera sullo schermo, poi si scioglie nel flusso restando presente per un po'
       const W = cv.width, H = cv.height, S = Math.min(W,H);
-      ctx.globalAlpha = 1; ctx.drawImage(im, (W-S)/2, (H-S)/2, S, S);
+      ctx.globalAlpha = 1; ctx.drawImage(im, (W-S)/2, (H-S)/2, S, S); compose();
       spotlight = { img: im, until: performance.now() + 25000 };
     };
-    saveLocal(blob); saveShared(blob);
+    saveLocal(blob, t); saveShared(blob);
     counting = false;
     setTimeout(closeShot, 700);
   }, 'image/jpeg', 0.85);
