@@ -1,10 +1,11 @@
 name: PERSONA volti
-# Ogni 2 ore scarica nuovi volti da thispersondoesnotexist.com.
-# Li tiene nel ramo "persona-faces" (sempre un solo commit, così il sito non si appesantisce).
-# La pagina persona/ li legge da lì.
+# Ogni ora scarica 40 volti nuovi da thispersondoesnotexist.com.
+# 1) gli ultimi 400 (ridotti) stanno nel ramo "persona-faces": la pagina persona/ li legge da lì
+# 2) TUTTI i volti, a piena risoluzione, finiscono nell'ARCHIVIO: le Release del repository,
+#    una per mese (persona-AAAA-MM), con uno zip per ogni ora. Non appesantiscono il sito.
 on:
   schedule:
-    - cron: "41 */2 * * *"
+    - cron: "41 * * * *"
   workflow_dispatch:
   push:
     branches: [main, master]
@@ -29,12 +30,13 @@ jobs:
           cd faces
           rm -f log.txt
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          mkdir -p ../originali
           ok=0
           for i in $(seq 1 40); do
             f="$(date +%s%N).jpg"
             if curl -sSfL -A "$UA" -o tmp.jpg --max-time 20 "https://thispersondoesnotexist.com/random-person.jpeg?$i$RANDOM" \
                && [ "$(file -b --mime-type tmp.jpg)" = "image/jpeg" ]; then
-              python3 -c "from PIL import Image;im=Image.open('tmp.jpg').convert('RGB');im.thumbnail((640,640));im.save('$f',quality=82)" && ok=$((ok+1))
+              python3 -c "from PIL import Image;im=Image.open('tmp.jpg').convert('RGB');im.thumbnail((640,640));im.save('$f',quality=82)" && cp tmp.jpg "../originali/$f" && ok=$((ok+1))
             else
               [ $i -le 2 ] && { echo "tentativo $i: $(file -b --mime-type tmp.jpg 2>&1)"; head -c 300 tmp.jpg 2>/dev/null; echo; }
             fi
@@ -46,6 +48,21 @@ jobs:
           ls -1 *.jpg | sort | head -n -400 | xargs -r rm -f
           ls -1 *.jpg | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" > list.json
           echo "totale: $(ls *.jpg | wc -l)"
+      - name: Archivio
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          n=$(ls originali/*.jpg 2>/dev/null | wc -l)
+          [ "$n" -gt 0 ] || exit 0
+          TAG="persona-$(date -u +%Y-%m)"
+          ZIP="volti-$(date -u +%F_%H%M).zip"
+          zip -qj "$ZIP" originali/*.jpg
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "${{ github.sha }}" \
+            --title "PERSONA archivio $(date -u +%Y-%m)" \
+            --notes "Volti generati da thispersondoesnotexist.com e raccolti ogni ora per PERSONA di Jacopo Natoli. Uno zip per ogni ora."
+          gh release upload "$TAG" "$ZIP"
+          echo "archiviati $n volti in $TAG/$ZIP"
       - name: Pubblica
         run: |
           cd faces
