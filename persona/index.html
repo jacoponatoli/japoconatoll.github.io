@@ -29,8 +29,8 @@
 
 <button id="optBtn" type="button">option</button>
 <div id="panel" class="hide">
-  <label>speed <input id="speed" type="range" min="0" max="385" value="385"></label>
-  <label>overlay <input id="alpha" type="range" min="2" max="60" value="2"></label>
+  <label>speed <input id="speed" type="range" min="0" max="385" value="0"></label>
+  <label>overlay <input id="alpha" type="range" min="2" max="60" value="30"></label>
   <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
   <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
   <button id="camBtn">camera on</button>
@@ -125,6 +125,22 @@ function frame(t){
   $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded}`;
 }
 requestAnimationFrame(frame);
+
+// --- crescendo: parte lento, volti singoli e nitidi; in ~50 s accelera e si fonde in un volto unico ---
+// (si ferma se tocchi i cursori in option)
+const RAMP = { secs: 50, speed: [0, 355], alpha: [30, 5] };   // speed 355 = un volto ogni 45 ms
+let rampOn = true, rampStart = null;
+['speed','alpha'].forEach(id => $(id).addEventListener('input', () => rampOn = false));
+(function ramp(t){
+  if (!rampOn) return;
+  if (pool.length < 2) { requestAnimationFrame(ramp); return; }   // aspetta i primi volti
+  if (rampStart === null) rampStart = t;
+  const k = Math.min(1, (t - rampStart) / (RAMP.secs*1000));
+  const e = k*k*(3-2*k);                                           // morbido all'inizio e alla fine
+  $('speed').value = RAMP.speed[0] + (RAMP.speed[1]-RAMP.speed[0])*e;
+  $('alpha').value = RAMP.alpha[0] + (RAMP.alpha[1]-RAMP.alpha[0])*e;
+  if (k < 1) requestAnimationFrame(ramp);
+})(performance.now());
 
 // --- interfaccia ---
 function fs(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
