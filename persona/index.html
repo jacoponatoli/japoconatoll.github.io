@@ -16,6 +16,10 @@
   #panel button.on{background:#ddd;color:#000}
   .k{opacity:.5}
   body.idle{cursor:none}
+  #optBtn{position:fixed;left:16px;bottom:14px;background:none;border:0;color:#fff;opacity:.55;font:12px ui-monospace,Menlo,monospace;letter-spacing:.15em;cursor:pointer;padding:4px;z-index:2;transition:opacity .4s}
+  #optBtn:hover{opacity:1}
+  body.idle #optBtn{opacity:0}
+  #panel{bottom:44px}
 </style>
 </head>
 <body>
@@ -23,14 +27,15 @@
 <div id="status">loading faces…</div>
 <video id="v" playsinline muted style="display:none"></video>
 
-<div id="panel">
-  <label>speed <input id="speed" type="range" min="15" max="400" value="60"></label>
-  <label>overlay <input id="alpha" type="range" min="2" max="60" value="16"></label>
+<button id="optBtn" type="button">option</button>
+<div id="panel" class="hide">
+  <label>speed <input id="speed" type="range" min="0" max="385" value="385"></label>
+  <label>overlay <input id="alpha" type="range" min="2" max="60" value="60"></label>
   <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
   <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
   <button id="camBtn">camera on</button>
   <button id="fsBtn">fullscreen</button>
-  <div class="k">F fullscreen · C camera · H panel</div>
+  <div class="k">F fullscreen · C camera · O option</div>
   <div class="k" id="poolInfo"></div>
 </div>
 
@@ -94,7 +99,7 @@ async function toggleCam(){
 let last = 0;
 function frame(t){
   requestAnimationFrame(frame);
-  const interval = +$('speed').value;
+  const interval = 400 - $('speed').value;   // a destra = più veloce
   if (t - last < interval) return;
   last = t;
   if (pool.length < 2 && !camOn) return;
@@ -126,14 +131,15 @@ function fs(){ document.fullscreenElement ? document.exitFullscreen() : document
 $('camBtn').onclick = toggleCam; $('fsBtn').onclick = fs;
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k==='f') fs(); if (k==='c') toggleCam(); if (k==='h') panel.classList.toggle('hide');
+  if (k==='f') fs(); if (k==='c') toggleCam(); if (k==='h' || k==='o') panel.classList.toggle('hide');
 });
 let idleT;
 addEventListener('mousemove', () => {
-  document.body.classList.remove('idle'); panel.classList.remove('hide');
-  clearTimeout(idleT); idleT = setTimeout(()=>{ document.body.classList.add('idle'); panel.classList.add('hide'); }, 3000);
+  document.body.classList.remove('idle');
+  clearTimeout(idleT); idleT = setTimeout(()=>{ if (panel.classList.contains('hide')) document.body.classList.add('idle'); }, 3000);
 });
-idleT = setTimeout(()=>{ document.body.classList.add('idle'); panel.classList.add('hide'); }, 4000);
+idleT = setTimeout(()=>{ document.body.classList.add('idle'); }, 3000);
+$('optBtn').onclick = () => panel.classList.toggle('hide');
 </script>
 </body>
 </html>
