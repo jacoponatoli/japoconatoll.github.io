@@ -7,7 +7,16 @@ from email.utils import parsedate_to_datetime
 
 FEED = "https://jacoponatoli.substack.com/feed"
 OUT = "blog/posts.js"
+LOCALI = "blog/locali.json"
 MESI = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+def quando(p):
+    # "19 October 2026" -> (2026, 10, 19), per mettere gli articoli dal più recente
+    try:
+        g, m, a = p.get("date", "").split()
+        return (int(a), MESI.index(m) + 1, int(g))
+    except Exception:
+        return (0, 0, 0)
 
 def testo(s):
     s = re.sub(r"<[^>]+>", " ", s or "")
@@ -69,6 +78,14 @@ def main(src=FEED):
         if slug and os.path.exists(os.path.join("blog", slug, "index.html")):
             url = slug + "/"
         posts.append({"title": title, "date": date, "url": url, "excerpt": ex})
+    # articoli pubblicati solo sul sito (non su Substack): stanno in blog/locali.json
+    # se poi lo stesso articolo esce anche su Substack con lo stesso slug, resta una voce sola
+    if os.path.exists(LOCALI):
+        presenti = {p["url"] for p in posts}
+        for p in json.load(open(LOCALI, encoding="utf-8")):
+            if p.get("url") not in presenti:
+                posts.append({"title": p["title"], "date": p.get("date", ""), "url": p["url"], "excerpt": p.get("excerpt", "")})
+    posts.sort(key=quando, reverse=True)
     body = "// Generato da tools/update-blog.py a partire da " + FEED + " (non modificare a mano)\nwindow.POSTS = " + json.dumps(posts, ensure_ascii=False, indent=1) + ";\n"
     old = open(OUT, encoding="utf-8").read() if __import__("os").path.exists(OUT) else ""
     if old != body:
