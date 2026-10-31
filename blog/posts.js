@@ -1,6 +1,12 @@
 // Generato da tools/update-blog.py a partire da https://jacoponatoli.substack.com/feed (non modificare a mano)
 window.POSTS = [
  {
+  "title": "LA PIAZZA DEL 30",
+  "date": "31 October 2026",
+  "url": "la-piazza-del-30/",
+  "excerpt": "La piazza del 30 è partita lenta, ha fatto un giro strano, giro-giro-tondo, faceva caldo, faceva freddo, faceva caldo-freddo… Testo e 17 registrazioni dalla piazza, da ascoltare e scaricare."
+ },
+ {
   "title": "KETAMINA",
   "date": "31 October 2026",
   "url": "ketamina/",
