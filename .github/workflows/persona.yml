@@ -44,7 +44,6 @@ jobs:
             sleep 1.5
           done
           echo "nuovi volti: $ok" | tee log.txt
-          mkdir -p ../new && cp $(ls -1t *.jpg | head -n $ok) ../new/ 2>/dev/null || true
           # tiene solo gli ultimi 400
           ls -1 *.jpg | sort | head -n -400 | xargs -r rm -f
           ls -1 *.jpg | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" > list.json
@@ -64,15 +63,6 @@ jobs:
             --notes "Volti generati da thispersondoesnotexist.com e raccolti ogni ora per PERSONA di Jacopo Natoli. Uno zip per ogni ora."
           gh release upload "$TAG" "$ZIP"
           echo "archiviati $n volti in $TAG/$ZIP"
-      - name: Archivio permanente (una release al giorno)
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          ls new/*.jpg >/dev/null 2>&1 || exit 0
-          TAG="persona-$(date -u +%F)"
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "PERSONA — volti del $(date -u +%F)" --notes "Volti generati da thispersondoesnotexist.com e raccolti da PERSONA (jacoponatoli.net/persona/)." --latest=false
-          gh release upload "$TAG" new/*.jpg
       - name: Pubblica
         run: |
           cd faces
