@@ -38,10 +38,13 @@
 <video id="v" playsinline muted style="display:none"></video>
 
 <div id="shot" hidden>
-  <div id="shotMsg">center your face</div>
+  <div id="shotMsg">put your eyes in the circles</div>
   <div id="shotWrap">
     <canvas id="shotCv" width="640" height="640"></canvas>
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="50" rx="27" ry="36" fill="none" stroke="#fff" stroke-width=".35" stroke-dasharray="1.2 1.2" opacity=".8"/></svg>
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="50" rx="27" ry="36" fill="none" stroke="#fff" stroke-width=".35" stroke-dasharray="1.2 1.2" opacity=".8"/>
+      <!-- occhi: stessa posizione media degli occhi nei volti del flusso (misurata su 200 volti) -->
+      <g fill="none" stroke="#fff" stroke-width=".35" opacity=".95"><circle cx="37.4" cy="46.5" r="3.6"/><circle cx="62.6" cy="46.5" r="3.6"/></g>
+      <g fill="#fff"><circle cx="37.4" cy="46.5" r=".45"/><circle cx="62.6" cy="46.5" r=".45"/></g></svg>
     <div id="shotCount"></div><div id="shotFlash"></div>
   </div>
   <div><button id="shotGo" type="button">take photo</button><button id="shotNo" type="button">cancel</button></div>
