@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PERSONA</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:ui-monospace,Menlo,monospace;color:#ddd}
+  canvas{display:block;width:100vw;height:100vh}
+  #status{position:fixed;top:50%;left:0;right:0;text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none}
+  #panel{position:fixed;left:16px;bottom:16px;background:rgba(0,0,0,.75);border:1px solid #333;padding:12px 14px;font-size:12px;line-height:1.9;transition:opacity .6s}
+  #panel.hide{opacity:0;pointer-events:none}
+  #panel label{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  #panel input[type=range]{width:140px}
+  #panel button{background:#111;color:#ddd;border:1px solid #555;padding:4px 10px;font:inherit;cursor:pointer;margin-top:6px}
+  #panel button.on{background:#ddd;color:#000}
+  .k{opacity:.5}
+  body.idle{cursor:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="status">loading faces…</div>
+<video id="v" playsinline muted style="display:none"></video>
+
+<div id="panel">
+  <label>speed <input id="speed" type="range" min="15" max="400" value="60"></label>
+  <label>overlay <input id="alpha" type="range" min="2" max="60" value="16"></label>
+  <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
+  <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
+  <button id="camBtn">camera on</button>
+  <button id="fsBtn">fullscreen</button>
+  <div class="k">F fullscreen · C camera · H panel</div>
+  <div class="k" id="poolInfo"></div>
+</div>
+
+<script>
+const SRC = 'https://thispersondoesnotexist.com/';
+const POOL_MAX = 80;      // volti tenuti in memoria
+const FETCH_EVERY = 900;  // ms tra una richiesta e l'altra
+const PARALLEL = 3;
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const statusEl = document.getElementById('status'), panel = document.getElementById('panel');
+const video = document.getElementById('v');
+const $ = id => document.getElementById(id);
+
+let pool = [], inflight = 0, fails = 0, loaded = 0, camOn = false;
+
+function resize(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio;
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,cv.width,cv.height); }
+addEventListener('resize', resize); resize();
+
+// --- flusso di volti nuovi ---
+function fetchFace(){
+  if (inflight >= PARALLEL) return;
+  inflight++;
+  const img = new Image();
+  img.onload = () => { inflight--; loaded++; fails = 0;
+    pool.push(img); if (pool.length > POOL_MAX) pool.shift(); };
+  img.onerror = () => { inflight--; fails++;
+    if (fails > 8 && !pool.length) statusEl.textContent = 'cannot reach thispersondoesnotexist.com'; };
+  img.src = SRC + '?' + Date.now() + Math.random().toString(36).slice(2);
+}
+for (let i=0;i<PARALLEL;i++) fetchFace();
+setInterval(fetchFace, FETCH_EVERY);
+
+// --- camera (solo su richiesta) ---
+async function toggleCam(){
+  if (camOn){ video.srcObject?.getTracks().forEach(t=>t.stop()); video.srcObject=null; camOn=false; }
+  else {
+    try{
+      const s = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720,facingMode:'user'},audio:false});
+      video.srcObject = s; await video.play(); camOn = true;
+    }catch(e){ alert('Camera not available: ' + e.message); }
+  }
+  $('camBtn').classList.toggle('on', camOn);
+  $('camBtn').textContent = camOn ? 'camera off' : 'camera on';
+}
+
+// --- disegno: ogni passo un nuovo volto si deposita sugli altri ---
+let last = 0;
+function frame(t){
+  requestAnimationFrame(frame);
+  const interval = +$('speed').value;
+  if (t - last < interval) return;
+  last = t;
+  if (pool.length < 2 && !camOn) return;
+  statusEl.style.display = 'none';
+
+  const W = cv.width, H = cv.height, S = Math.min(W,H), x = (W-S)/2, y = (H-S)/2;
+
+  if (pool.length){
+    const img = pool[Math.floor(Math.random()*pool.length)];
+    ctx.globalAlpha = $('alpha').value/100;
+    ctx.drawImage(img, x, y, S, S);
+  }
+  if (camOn && video.readyState >= 2){
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const s = Math.min(vw,vh) * $('camZoom').value/100;
+    const sx = (vw - s)/2, sy = (vh - s)/2 - s*0.04;
+    ctx.save(); ctx.globalAlpha = $('camAlpha').value/100;
+    ctx.translate(x+S, y); ctx.scale(-1,1);           // specchio
+    ctx.drawImage(video, sx, sy, s, s, 0, 0, S, S);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded}`;
+}
+requestAnimationFrame(frame);
+
+// --- interfaccia ---
+function fs(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+$('camBtn').onclick = toggleCam; $('fsBtn').onclick = fs;
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k==='f') fs(); if (k==='c') toggleCam(); if (k==='h') panel.classList.toggle('hide');
+});
+let idleT;
+addEventListener('mousemove', () => {
+  document.body.classList.remove('idle'); panel.classList.remove('hide');
+  clearTimeout(idleT); idleT = setTimeout(()=>{ document.body.classList.add('idle'); panel.classList.add('hide'); }, 3000);
+});
+idleT = setTimeout(()=>{ document.body.classList.add('idle'); panel.classList.add('hide'); }, 4000);
+</script>
+</body>
+</html>
