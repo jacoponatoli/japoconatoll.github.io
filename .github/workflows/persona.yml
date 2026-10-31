@@ -1,0 +1,53 @@
+name: PERSONA volti
+# Ogni 2 ore scarica nuovi volti da thispersondoesnotexist.com.
+# Li tiene nel ramo "persona-faces" (sempre un solo commit, così il sito non si appesantisce).
+# La pagina persona/ li legge da lì.
+on:
+  schedule:
+    - cron: "41 */2 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths: [".github/workflows/persona.yml"]
+permissions:
+  contents: write
+concurrency: persona-faces
+jobs:
+  faces:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Volti già raccolti
+        run: |
+          mkdir faces && cd faces
+          git init -q
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q --depth 1 origin persona-faces && git checkout -q FETCH_HEAD -- . || true
+          ls *.jpg 2>/dev/null | wc -l
+      - name: Nuovi volti
+        run: |
+          cd faces
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          ok=0
+          for i in $(seq 1 40); do
+            f="$(date +%s%N).jpg"
+            if curl -sSfL -A "$UA" -o tmp.jpg --max-time 20 "https://thispersondoesnotexist.com/" \
+               && [ "$(file -b --mime-type tmp.jpg)" = "image/jpeg" ]; then
+              convert tmp.jpg -resize 640x640 -quality 82 "$f" && ok=$((ok+1))
+            fi
+            rm -f tmp.jpg
+            sleep 1.5
+          done
+          echo "nuovi volti: $ok"
+          # tiene solo gli ultimi 400
+          ls -1 *.jpg | sort | head -n -400 | xargs -r rm -f
+          ls -1 *.jpg | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" > list.json
+          echo "totale: $(ls *.jpg | wc -l)"
+      - name: Pubblica
+        run: |
+          cd faces
+          git config user.name "persona-bot"
+          git config user.email "persona-bot@users.noreply.github.com"
+          git checkout -q --orphan new
+          git add -A
+          git commit -qm "volti $(date -u +%F_%H%M)"
+          git push -qf origin new:persona-faces

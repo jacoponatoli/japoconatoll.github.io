@@ -37,7 +37,7 @@
 <script>
 const SRC = 'https://thispersondoesnotexist.com/';
 const POOL_MAX = 80;      // volti tenuti in memoria
-const FETCH_EVERY = 900;  // ms tra una richiesta e l'altra
+const FETCH_EVERY = 400;  // ms tra una richiesta e l'altra
 const PARALLEL = 3;
 
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
@@ -52,15 +52,27 @@ function resize(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHe
 addEventListener('resize', resize); resize();
 
 // --- flusso di volti nuovi ---
+// archivio: volti scaricati ogni 2 ore da GitHub (ramo persona-faces)
+const ARCHIVE = 'https://raw.githubusercontent.com/jacoponatoli/japoconatoll.github.io/persona-faces/';
+let archive = [], liveOK = true, liveFails = 0;
+fetch(ARCHIVE + 'list.json?' + Date.now()).then(r => r.json()).then(l => { archive = l; }).catch(()=>{});
+
 function fetchFace(){
   if (inflight >= PARALLEL) return;
+  // prova il sito dal vivo; se non risponde usa l'archivio
+  const useLive = liveOK && (Math.random() < 0.5 || !archive.length);
+  if (!useLive && !archive.length) return;
   inflight++;
   const img = new Image();
-  img.onload = () => { inflight--; loaded++; fails = 0;
+  img.referrerPolicy = 'no-referrer';
+  img.onload = () => { inflight--; loaded++; fails = 0; if (useLive) liveFails = 0;
     pool.push(img); if (pool.length > POOL_MAX) pool.shift(); };
   img.onerror = () => { inflight--; fails++;
-    if (fails > 8 && !pool.length) statusEl.textContent = 'cannot reach thispersondoesnotexist.com'; };
-  img.src = SRC + '?' + Date.now() + Math.random().toString(36).slice(2);
+    if (useLive && ++liveFails >= 3) liveOK = false;
+    if (fails > 12 && !pool.length) statusEl.textContent = 'no faces yet'; };
+  img.src = useLive
+    ? SRC + '?' + Date.now() + Math.random().toString(36).slice(2)
+    : ARCHIVE + archive[Math.floor(Math.random()*archive.length)];
 }
 for (let i=0;i<PARALLEL;i++) fetchFace();
 setInterval(fetchFace, FETCH_EVERY);
