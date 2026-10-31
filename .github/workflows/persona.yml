@@ -28,6 +28,8 @@ jobs:
           cd faces
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
           ok=0
+          { echo "== $(date -u)"; curl -sS -A "$UA" -o /tmp/probe -w "tpdne %{http_code} %{content_type} %{size_download}\n" --max-time 20 "https://thispersondoesnotexist.com/" 2>&1; head -c 400 /tmp/probe | strings | head -5;
+            curl -sS -A "$UA" -o /dev/null -w "tpdne2 %{http_code} %{content_type}\n" --max-time 20 "https://this-person-does-not-exist.com/new?gender=all&age=all&etnic=all" 2>&1; } > log.txt
           for i in $(seq 1 40); do
             f="$(date +%s%N).jpg"
             if curl -sSfL -A "$UA" -o tmp.jpg --max-time 20 "https://thispersondoesnotexist.com/" \
