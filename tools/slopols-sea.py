@@ -37,7 +37,11 @@ NEG = ["a portrait of a person", "a person dancing", "people inside a room", "a 
        "an animal on grass", "food on a table", "a cartoon character", "a forest", "a desert", "a blue sky with clouds",
        "snowy mountains", "text and a logo", "a fantasy monster", "a video game scene", "fire and flames",
        "outer space with stars", "a woman posing for the camera", "a man talking to the camera", "a robot",
-       "a building", "a bedroom", "a toy", "a glass of drink on a table", "a fish tank in a room"]
+       "a building", "a bedroom", "a toy", "a glass of drink on a table", "a fish tank in a room",
+       "a close-up portrait of a face", "a person in a uniform", "a cartoon animal character", "an anime girl",
+       "a clown", "a close-up of an eye", "hands painting on a canvas", "a spiral pattern",
+       "a product on a plain background", "a plant or a flower", "a person riding a bicycle", "a costume character"]
+CRIT = 2   # version of the criteria: when it changes, the whole archive is judged again
 LABELS = POS_SEA + POS_WATER + NEG
 NS, NW = len(POS_SEA), len(POS_WATER)
 SEA_WORDS = re.compile(r"\b(seas?|ocean|oceans|waves|surf|tide|tsunami|seashore|shore|underwater|undersea|reef|"
@@ -79,6 +83,12 @@ state = load("state.json", {"cursors": {}, "seen": [], "runs": 0})
 sea = load("sea.json", [])
 seen = set(state["seen"]) | {e["id"] for e in sea}
 cand = []
+if state.get("crit") != CRIT and sea:          # new criteria: the archive goes back under CLIP's eye
+    cand = [{"id": e["id"], "url": e["alt"], "thumbnail": {"url": e["th"]}, "meta": {"prompt": e.get("p", "")},
+             "hash": e.get("bh"), "baseModel": e.get("m"), "createdAt": e.get("t", "")} for e in sea]
+    print("archivio da rivedere con i criteri", CRIT, ":", len(cand))
+    sea = []
+MAX_CAND += len(cand)
 
 
 def collect(j):
@@ -159,12 +169,14 @@ with ThreadPoolExecutor(16) as ex:
             ps, pw = sum(pr[:NS]), sum(pr[NS:NS + NW])
             prompt = ((i.get("meta") or {}).get("prompt") or "").strip()
             bonus = .15 if SEA_WORDS.search(prompt) else 0
-            top = max(range(NS + NW), key=lambda k: pr[k])
+            top = max(range(len(LABELS)), key=lambda k: pr[k])
+            strong = top < NS + NW          # the best description of the frame must be sea or water
             entry = {"id": i["id"], "src": i["url"].replace("/original=true/", "/transcode=true,width=720/"),
                      "alt": i["url"], "p": prompt[:600], "bh": i.get("hash"), "th": i["thumbnail"]["url"],
                      "k": "mare" if ps >= pw else "acqua", "s": round(ps + pw, 3), "l": LABELS[top],
+                     "ps": round(ps, 3),
                      "m": i.get("baseModel"), "t": (i.get("createdAt") or "")[:10]}
-            if ps + bonus >= .5 or ps + pw + bonus >= .62:
+            if strong and (ps + bonus >= .55 or (pw >= .7 and ps + pw >= .78)):
                 found.append(entry)
             elif ps + pw >= .3:
                 near.append(entry)
@@ -177,7 +189,14 @@ print("SCARTATI PER POCO", len(near))
 for e in sorted(near, key=lambda e: -e["s"])[:10]:
     print(f"  {e['s']:.2f} {e['k']:5} {e['l'][:34]:34} {e['p'][:60]!r}")
 
-sea = sorted(sea + found, key=lambda e: -e["id"])[:KEEP]
+hashes, merged = set(), []
+for e in sorted(sea + found, key=lambda e: -e["id"]):      # the same picture posted twice counts once
+    if e.get("bh") and e["bh"] in hashes:
+        continue
+    hashes.add(e.get("bh"))
+    merged.append(e)
+sea = merged[:KEEP]
+state["crit"] = CRIT
 state["seen"] = sorted(seen)[-80000:]
 state["runs"] = r + 1
 state["last"] = time.strftime("%Y-%m-%d %H:%M", time.gmtime())
