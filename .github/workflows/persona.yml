@@ -1,11 +1,11 @@
 name: PERSONA volti
-# Ogni ora scarica 40 volti nuovi da thispersondoesnotexist.com.
-# 1) gli ultimi 400 (ridotti) stanno nel ramo "persona-faces": la pagina persona/ li legge da lì
+# Ogni 20 minuti (GitHub spesso li ritarda) scarica 100 volti nuovi da thispersondoesnotexist.com.
+# 1) gli ultimi 600 (ridotti) stanno nel ramo "persona-faces": la pagina persona/ li legge da lì
 # 2) TUTTI i volti (1024 px), finiscono nell'ARCHIVIO: le Release del repository,
-#    una per mese (persona-AAAA-MM), con uno zip per ogni ora. Non appesantiscono il sito.
+#    una per mese (persona-AAAA-MM), con uno zip per ogni raccolta. Non appesantiscono il sito.
 on:
   schedule:
-    - cron: "41 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
   push:
     branches: [main, master]
@@ -32,7 +32,7 @@ jobs:
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
           mkdir -p ../originali
           ok=0
-          for i in $(seq 1 40); do
+          for i in $(seq 1 100); do
             f="$(date +%s%N).jpg"
             if curl -sSfL -A "$UA" -o tmp.jpg --max-time 20 "https://thispersondoesnotexist.com/random-person.jpeg?$i$RANDOM" \
                && [ "$(file -b --mime-type tmp.jpg)" = "image/jpeg" ]; then
@@ -41,11 +41,11 @@ jobs:
               [ $i -le 2 ] && { echo "tentativo $i: $(file -b --mime-type tmp.jpg 2>&1)"; head -c 300 tmp.jpg 2>/dev/null; echo; }
             fi
             rm -f tmp.jpg
-            sleep 1.5
+            sleep 1.2
           done
           echo "nuovi volti: $ok" | tee log.txt
-          # tiene solo gli ultimi 400
-          ls -1 *.jpg | sort | head -n -400 | xargs -r rm -f
+          # tiene solo gli ultimi 600
+          ls -1 *.jpg | sort | head -n -600 | xargs -r rm -f
           ls -1 *.jpg | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" > list.json
           echo "totale: $(ls *.jpg | wc -l)"
       - name: Archivio
