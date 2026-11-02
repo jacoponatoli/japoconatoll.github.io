@@ -21,6 +21,10 @@
   #optBtn:hover{opacity:1}
   body.idle #optBtn{opacity:0}
   #panel{bottom:44px}
+  #panel .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  #autoOpts{border-top:1px solid #333;margin-top:4px;padding-top:4px}
+  #autoOpts[hidden]{display:none}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4}
   #shot{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:5;font-size:12px;letter-spacing:.12em}
   #shot[hidden]{display:none}
   #shotWrap{position:relative;width:min(70vh,80vw);aspect-ratio:1}
@@ -52,7 +56,16 @@
 </div>
 
 <button id="optBtn" type="button">option</button>
+<div id="flash"></div>
 <div id="panel" class="hide">
+  <label>mode <select id="modeSel"><option value="manual">manual</option><option value="auto">automatic (museum)</option></select></label>
+  <div id="autoOpts" hidden>
+    <label>precision <input id="autoPrec" type="range" min="1" max="10" value="4"></label>
+    <label>presence <input id="autoPres" type="range" min="0" max="100" value="85"></label>
+    <label>fade (s) <input id="autoFade" type="range" min="2" max="40" value="12"></label>
+    <label class="row">show eyes <input id="autoEyes" type="checkbox"></label>
+    <div class="k" id="autoInfo">automatic: loading…</div>
+  </div>
   <label>speed <input id="speed" type="range" min="0" max="385" value="0"></label>
   <label>overlay <input id="alpha" type="range" min="2" max="60" value="30"></label>
   <label>you <input id="camAlpha" type="range" min="0" max="60" value="14"></label>
@@ -127,10 +140,12 @@ async function toggleCam(){
 let last = 0;
 function frame(t){
   requestAnimationFrame(frame);
+  if (mode === 'auto') autoStep(t);
   const interval = 400 - $('speed').value;   // a destra = più veloce
-  if (t - last < interval) return;
-  last = t;
-  if (pool.length < 2 && !camOn) return;
+  if (t - last >= interval && (pool.length >= 2 || camOn)) { last = t; step(); }
+  compose(t);
+}
+function step(){
   statusEl.style.display = 'none';
 
   const W = cv.width, H = cv.height, S = Math.min(W,H), x = (W-S)/2, y = (H-S)/2;
@@ -144,7 +159,7 @@ function frame(t){
     ctx.globalAlpha = $('alpha').value/100;
     ctx.drawImage(img, x, y, S, S);
   }
-  if (camOn && video.readyState >= 2){
+  if (camOn && mode === 'manual' && video.readyState >= 2){
     const vw = video.videoWidth, vh = video.videoHeight;
     const s = Math.min(vw,vh) * $('camZoom').value/100;
     const sx = (vw - s)/2, sy = (vh - s)/2 - s*0.04;
@@ -154,14 +169,14 @@ function frame(t){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  compose();
   $('poolInfo').textContent = `faces ${pool.length} · seen ${loaded} · real ${real.length}`;
 }
 requestAnimationFrame(frame);
 
 // --- foto fissa "sotto": una foto scattata resta sempre presente, con la sua trasparenza ---
 let base = null;
-function compose(){
+function compose(t){
+  t = t || performance.now();
   dctx.globalAlpha = 1; dctx.drawImage(acc, 0, 0);
   if (base && base.complete){
     const W = cv.width, H = cv.height, S = Math.min(W,H);
@@ -169,6 +184,7 @@ function compose(){
     dctx.drawImage(base, (W-S)/2, (H-S)/2, S, S);
     dctx.globalAlpha = 1;
   }
+  if (mode === 'auto') composeAuto(t);
 }
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
                 set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
@@ -261,31 +277,136 @@ function closeShot(){
   shotOpen = false; $('shot').hidden = true; $('shotCount').textContent = '';
   if (!camWasOn && camOn) toggleCam();
 }
+// scatta dal quadrato della camera, salva (locale + condiviso), aggiunge ai volti reali
+function captureBlob(done){
+  const out = document.createElement('canvas'); out.width = out.height = 640;
+  const o = out.getContext('2d'), [sx,sy,s] = camCrop();
+  o.translate(640,0); o.scale(-1,1); o.drawImage(video, sx,sy,s,s, 0,0,640,640);
+  out.toBlob(blob => {
+    const t = Date.now();
+    const im = new Image(); im.dataset.key = 'L' + String(t).padStart(15,'0');
+    im.onload = () => { real.push(im); refreshBaseMenu(); done && done(blob, im); };
+    im.src = URL.createObjectURL(blob);
+    saveLocal(blob, t); saveShared(blob);
+  }, 'image/jpeg', 0.88);
+}
 async function takeShot(){
   if (counting) return; counting = true;
   for (const n of ['3','2','1']) { $('shotCount').textContent = n; await new Promise(r => setTimeout(r, 800)); }
   $('shotCount').textContent = '';
-  const out = document.createElement('canvas'); out.width = out.height = 640;
-  const o = out.getContext('2d'), [sx,sy,s] = camCrop();
-  o.translate(640,0); o.scale(-1,1); o.drawImage(video, sx,sy,s,s, 0,0,640,640);
   $('shotFlash').style.transition = 'none'; $('shotFlash').style.opacity = 1;
   requestAnimationFrame(() => { $('shotFlash').style.transition = 'opacity .6s'; $('shotFlash').style.opacity = 0; });
-  out.toBlob(blob => {
-    const t = Date.now();
-    const im = addReal(URL.createObjectURL(blob), 'L' + String(t).padStart(15,'0'));
-    im.onload = () => {
-      real.push(im); refreshBaseMenu();
-      // appare intera sullo schermo, poi si scioglie nel flusso restando presente per un po'
-      const W = cv.width, H = cv.height, S = Math.min(W,H);
-      ctx.globalAlpha = 1; ctx.drawImage(im, (W-S)/2, (H-S)/2, S, S); compose();
-      spotlight = { img: im, until: performance.now() + 25000 };
-    };
-    saveLocal(blob, t); saveShared(blob);
-    counting = false;
-    setTimeout(closeShot, 700);
-  }, 'image/jpeg', 0.85);
+  captureBlob((blob, im) => {
+    // appare intera sullo schermo, poi si scioglie nel flusso restando presente per un po'
+    const W = cv.width, H = cv.height, S = Math.min(W,H);
+    ctx.globalAlpha = 1; ctx.drawImage(im, (W-S)/2, (H-S)/2, S, S);
+    spotlight = { img: im, until: performance.now() + 25000 };
+  });
+  counting = false;
+  setTimeout(closeShot, 700);
 }
 $('photoBtn').onclick = openShot; $('shotGo').onclick = takeShot; $('shotNo').onclick = closeShot;
+
+// ================= AUTOMATIC (museo) =================
+// La camera è sempre accesa. Quando un volto si ferma davanti allo schermo diventa visibile
+// tanto più quanto i suoi occhi coincidono con quelli del flusso. A occhi centrati: flash,
+// la foto resta in primo piano, poi si dissolve e entra per sempre nel flusso.
+const EYE_L = [0.374, 0.465], EYE_R = [0.626, 0.465];   // occhi medi dei volti del flusso
+let mode = 'manual', landmarker = null, mpLoading = null, lastDet = 0;
+let face = null, alignS = 0, holdStart = 0, imprint = null, cooldownUntil = 0, lastFaceSeen = 0, needLeave = false;
+
+async function loadLandmarker(){
+  if (landmarker || mpLoading) return mpLoading;
+  $('autoInfo').textContent = 'automatic: loading face tracking…';
+  mpLoading = (async () => {
+    const mp = await import('./mp/vision_bundle.mjs');
+    const files = await mp.FilesetResolver.forVisionTasks(new URL('./mp/wasm', location.href).href);
+    const opts = d => ({ baseOptions:{ modelAssetPath: new URL('./mp/face_landmarker.task', location.href).href, delegate:d },
+                         runningMode:'VIDEO', numFaces:1 });
+    try { landmarker = await mp.FaceLandmarker.createFromOptions(files, opts('GPU')); }
+    catch(e){ landmarker = await mp.FaceLandmarker.createFromOptions(files, opts('CPU')); }
+  })().catch(e => { $('autoInfo').textContent = 'automatic: face tracking not available (' + e.message + ')'; mpLoading = null; });
+  return mpLoading;
+}
+async function setMode(m){
+  mode = m; store.set('persona-mode', m);
+  $('modeSel').value = m; $('autoOpts').hidden = m !== 'auto';
+  if (m === 'auto'){ if (!camOn) await toggleCam(); loadLandmarker(); }
+  else { face = null; alignS = 0; imprint = null; }
+}
+$('modeSel').onchange = () => setMode($('modeSel').value);
+['autoPrec','autoPres','autoFade'].forEach(id => {
+  const v = store.get('persona-' + id); if (v) $(id).value = v;
+  $(id).addEventListener('input', () => store.set('persona-' + id, $(id).value));
+});
+$('autoEyes').checked = store.get('persona-autoEyes') === '1';
+$('autoEyes').onchange = () => store.set('persona-autoEyes', $('autoEyes').checked ? '1' : '0');
+
+function toCrop(pt){   // landmark (0-1 sul video) -> coordinate 0-1 nel quadrato mostrato, specchiato
+  const [sx,sy,s] = camCrop();
+  return [ 1 - (pt.x*video.videoWidth - sx)/s, (pt.y*video.videoHeight - sy)/s ];
+}
+const dist = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
+
+function autoStep(t){
+  if (!landmarker || !camOn || video.readyState < 2 || t - lastDet < 60) return;
+  lastDet = t;
+  let r; try { r = landmarker.detectForVideo(video, t); } catch(e){ return; }
+  const lm = r && r.faceLandmarks && r.faceLandmarks[0];
+  if (!lm){ face = null; }
+  else {
+    const a = toCrop(lm[468]), b = toCrop(lm[473]), nose = toCrop(lm[1]);
+    const [eL, eR] = a[0] < b[0] ? [a,b] : [b,a];
+    const err = (dist(eL,EYE_L) + dist(eR,EYE_R))/2 + 0.5*Math.abs(nose[0]-0.5);
+    face = { eL, eR, nose, err };
+    lastFaceSeen = t;
+  }
+  if (needLeave && t - lastFaceSeen > 2000) needLeave = false;   // la persona se n'è andata: si può scattare di nuovo
+  const thr = $('autoPrec').value / 100;                           // precision 4 = errore medio sotto il 4% dello schermo
+  const align = face ? Math.max(0, Math.min(1, 1 - (face.err - thr)/0.12)) : 0;   // pieno quando è centrato
+  alignS += (align - alignS) * (face ? 0.3 : 0.15);
+  const ready = !needLeave && t > cooldownUntil;
+  if (face && ready && face.err < thr){ if (!holdStart) holdStart = t; if (t - holdStart > 450) autoCapture(t); }
+  else holdStart = 0;
+  $('autoInfo').textContent = !landmarker ? 'automatic: loading…'
+    : !face ? 'automatic: waiting for a face'
+    : !ready ? 'automatic: captured · waiting for someone new'
+    : `automatic: face · aligned ${Math.round(align*100)}%`;
+}
+function autoCapture(t){
+  holdStart = 0; needLeave = true; cooldownUntil = t + 8000;
+  captureBlob((blob, im) => {
+    imprint = { img: im, t0: performance.now() };
+    spotlight = { img: im, until: performance.now() + $('autoFade').value*1000 + 20000 };
+  });
+  const f = $('flash'); f.style.transition = 'none'; f.style.opacity = 1;
+  requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity 1.2s'; f.style.opacity = 0; }));
+}
+function composeAuto(t){
+  const W = cv.width, H = cv.height, S = Math.min(W,H), x = (W-S)/2, y = (H-S)/2;
+  // il visitatore dal vivo: più è centrato, più emerge dal flusso
+  let live = $('autoPres').value/100 * Math.pow(alignS, 1.5);
+  if (imprint) live *= 0.25;
+  if (camOn && live > 0.01 && video.readyState >= 2){
+    const [sx,sy,s] = camCrop();
+    dctx.save(); dctx.globalAlpha = live; dctx.translate(x+S, y); dctx.scale(-1,1);
+    dctx.drawImage(video, sx,sy,s,s, 0,0,S,S); dctx.restore();
+  }
+  // la foto scattata: in primo piano, poi si dissolve nel flusso
+  if (imprint && imprint.img.complete){
+    const k = (t - imprint.t0) / ($('autoFade').value*1000);
+    if (k >= 1) imprint = null;
+    else { dctx.globalAlpha = Math.pow(1 - k, 1.6); dctx.drawImage(imprint.img, x, y, S, S); }
+  }
+  dctx.globalAlpha = 1;
+  if ($('autoEyes').checked){
+    dctx.lineWidth = Math.max(1, S/400);
+    dctx.strokeStyle = 'rgba(255,255,255,.8)';
+    [EYE_L, EYE_R].forEach(e => { dctx.beginPath(); dctx.arc(x+e[0]*S, y+e[1]*S, S*0.036, 0, 7); dctx.stroke(); });
+    if (face){ dctx.fillStyle = face.err < $('autoPrec').value/100 ? '#fff' : '#f33';
+      [face.eL, face.eR, face.nose].forEach(e => { dctx.beginPath(); dctx.arc(x+e[0]*S, y+e[1]*S, S*0.006, 0, 7); dctx.fill(); }); }
+  }
+}
 
 // --- interfaccia ---
 function fs(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
@@ -302,6 +423,7 @@ addEventListener('mousemove', () => {
 });
 idleT = setTimeout(()=>{ document.body.classList.add('idle'); }, 3000);
 $('optBtn').onclick = () => panel.classList.toggle('hide');
+setMode(store.get('persona-mode') === 'auto' ? 'auto' : 'manual');
 addEventListener('dblclick', e => { if (!e.target.closest('#panel, #optBtn, #shot')) fs(); });
 </script>
 </body>
