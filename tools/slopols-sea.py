@@ -141,10 +141,7 @@ def thumb(i):
 torch.set_num_threads(os.cpu_count() or 2)
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").eval()
 proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-with torch.no_grad():
-    t = proc(text=["a frame from a video of " + l for l in LABELS], return_tensors="pt", padding=True)
-    T = model.get_text_features(**t)
-    T = T / T.norm(dim=-1, keepdim=True)
+TXT = proc(text=["a frame from a video of " + l for l in LABELS], return_tensors="pt", padding=True)
 
 found, near = [], []
 with ThreadPoolExecutor(16) as ex:
@@ -156,9 +153,8 @@ with ThreadPoolExecutor(16) as ex:
             continue
         with torch.no_grad():
             x = proc(images=[im for _, im in ok], return_tensors="pt")
-            I = model.get_image_features(**x)
-            I = I / I.norm(dim=-1, keepdim=True)
-            P = (100 * I @ T.T).softmax(dim=-1)
+            out = model(input_ids=TXT["input_ids"], attention_mask=TXT["attention_mask"], pixel_values=x["pixel_values"])
+            P = out.logits_per_image.softmax(dim=-1)
         for (i, _), pr in zip(ok, P.tolist()):
             ps, pw = sum(pr[:NS]), sum(pr[NS:NS + NW])
             prompt = ((i.get("meta") or {}).get("prompt") or "").strip()
