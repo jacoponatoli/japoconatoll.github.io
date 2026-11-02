@@ -1,0 +1,27 @@
+name: PERSONA mediapipe (una volta)
+# Copia nel sito il riconoscimento del volto (MediaPipe Face Landmarker), così PERSONA non dipende da CDN esterni.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/persona-mediapipe.yml"]
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set -e
+          mkdir -p persona/mp/wasm /tmp/p && cd /tmp/p
+          npm pack @mediapipe/tasks-vision@0.10.14 >/dev/null && tar xzf mediapipe-tasks-vision-0.10.14.tgz
+          cd -
+          cp /tmp/p/package/vision_bundle.mjs persona/mp/
+          cp /tmp/p/package/wasm/vision_wasm_internal.js /tmp/p/package/wasm/vision_wasm_internal.wasm \
+             /tmp/p/package/wasm/vision_wasm_nosimd_internal.js /tmp/p/package/wasm/vision_wasm_nosimd_internal.wasm persona/mp/wasm/
+          curl -sSfL -o persona/mp/face_landmarker.task \
+            https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+          ls -la persona/mp persona/mp/wasm
+          git config user.name "persona-bot"; git config user.email "persona-bot@users.noreply.github.com"
+          git add persona/mp && git commit -m "PERSONA: MediaPipe Face Landmarker nel sito" && git push
