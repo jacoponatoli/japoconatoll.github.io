@@ -1,0 +1,45 @@
+name: SLOPOLS mare
+# Ogni ora scorre i video di Civitai, guarda le anteprime con CLIP e tiene solo quelli in cui si vede
+# il mare (o acqua, liquido). L'elenco sta nel ramo "slopols-sea" (sea.json): la pagina slopols/ lo legge da lì.
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/slopols-sea.yml", "tools/slopols-sea.py"]
+permissions:
+  contents: write
+concurrency: slopols-sea
+jobs:
+  sea:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archivio già raccolto
+        run: |
+          mkdir data && cd data
+          git init -q
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q --depth 1 origin slopols-sea && git checkout -q FETCH_HEAD -- . || true
+          ls -la
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-clip-vit-b32
+      - name: CLIP
+        run: |
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q transformers pillow
+      - name: Guarda i nuovi video
+        run: python3 tools/slopols-sea.py data
+      - name: Salva
+        run: |
+          cd data
+          git config user.name "slopols-bot"
+          git config user.email "slopols-bot@users.noreply.github.com"
+          git checkout -q -B slopols-sea
+          git add -A
+          git commit -q -m "SLOPOLS: il mare $(date -u '+%F %H:%M')" || exit 0
+          git push -q -f origin slopols-sea
