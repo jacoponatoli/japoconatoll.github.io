@@ -41,7 +41,7 @@ NEG = ["a portrait of a person", "a person dancing", "people inside a room", "a 
        "a close-up portrait of a face", "a person in a uniform", "a cartoon animal character", "an anime girl",
        "a clown", "a close-up of an eye", "hands painting on a canvas", "a spiral pattern",
        "a product on a plain background", "a plant or a flower", "a person riding a bicycle", "a costume character"]
-CRIT = 2   # version of the criteria: when it changes, the whole archive is judged again
+CRIT = 3   # version of the criteria: when it changes, the whole archive is judged again
 LABELS = POS_SEA + POS_WATER + NEG
 NS, NW = len(POS_SEA), len(POS_WATER)
 SEA_WORDS = re.compile(r"\b(seas?|ocean|oceans|waves|surf|tide|tsunami|seashore|shore|underwater|undersea|reef|"
@@ -153,6 +153,32 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").eval()
 proc = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 TXT = proc(text=["a frame from a video of " + l for l in LABELS], return_tensors="pt", padding=True)
 
+
+
+def water_window(im):
+    """Where is the sea in the frame? CLIP looks at 18 crops and the most watery one is where the page zooms."""
+    W, H = im.size
+    boxes = []
+    for f, n in ((.5, 3), (1 / 3, 3)):
+        for gy in range(n):
+            for gx in range(n):
+                cx = f / 2 + gx * (1 - f) / (n - 1)
+                cy = f / 2 + gy * (1 - f) / (n - 1)
+                boxes.append((cx, cy, f))
+    crops = [im.crop((int((cx - f / 2) * W), int((cy - f / 2) * H), int((cx + f / 2) * W), int((cy + f / 2) * H)))
+             for cx, cy, f in boxes]
+    with torch.no_grad():
+        x = proc(images=crops, return_tensors="pt")
+        out = model(input_ids=TXT["input_ids"], attention_mask=TXT["attention_mask"], pixel_values=x["pixel_values"])
+        P = out.logits_per_image.softmax(dim=-1).tolist()
+    sc = [sum(p[:NS + NW]) for p in P]
+    k = max(range(len(sc)), key=lambda i: sc[i] + (.04 if boxes[i][2] > .4 else 0))
+    if sc[k] < .5:
+        return [.5, .5, 1]
+    cx, cy, f = boxes[k]
+    return [round(cx, 3), round(cy, 3), round(min(2.6, 1 / f), 2)]
+
+
 found, near = [], []
 with ThreadPoolExecutor(16) as ex:
     for b in range(0, len(cand), 32):
@@ -165,7 +191,7 @@ with ThreadPoolExecutor(16) as ex:
             x = proc(images=[im for _, im in ok], return_tensors="pt")
             out = model(input_ids=TXT["input_ids"], attention_mask=TXT["attention_mask"], pixel_values=x["pixel_values"])
             P = out.logits_per_image.softmax(dim=-1)
-        for (i, _), pr in zip(ok, P.tolist()):
+        for (i, im), pr in zip(ok, P.tolist()):
             ps, pw = sum(pr[:NS]), sum(pr[NS:NS + NW])
             prompt = ((i.get("meta") or {}).get("prompt") or "").strip()
             bonus = .15 if SEA_WORDS.search(prompt) else 0
@@ -177,6 +203,7 @@ with ThreadPoolExecutor(16) as ex:
                      "ps": round(ps, 3),
                      "m": i.get("baseModel"), "t": (i.get("createdAt") or "")[:10]}
             if strong and (ps + bonus >= .55 or (pw >= .7 and ps + pw >= .78)):
+                entry["z"] = water_window(im)
                 found.append(entry)
             elif ps + pw >= .3:
                 near.append(entry)

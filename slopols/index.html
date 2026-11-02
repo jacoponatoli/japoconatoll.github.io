@@ -75,7 +75,7 @@ async function seaArchive(first){
     if(!Array.isArray(j)||!j.length)return 0;
     let n=0;
     j.forEach((e,i)=>{const key='cv:'+e.id;if(known.has(key))return;n++;
-      add({key,src:e.src,alt:e.alt,s:'civ',prompt:e.p||'',bh:e.bh,thumb:e.th,k:e.k,sea:e.s},first?i<40:true);});   // new tides enter first
+      add({key,src:e.src,alt:e.alt,s:'civ',prompt:e.p||'',bh:e.bh,thumb:e.th,k:e.k,sea:e.s,z:e.z},first?i<40:true);});   // new tides enter first
     seaN=j.length;return n;
   }catch(e){return 0;}
 }
@@ -384,6 +384,7 @@ in vec2 vUv;out vec4 o;
 uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig;
 uniform vec2 uRes;
 uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
+uniform vec3 uZA,uZB;   // where the sea is in each clip: centre and zoom
 uniform int uMode,uR0,uC0,uR1,uC1,uMask,uEdge;
 uniform vec4 uQ0,uQ1,uMq;
 uniform vec3 uPal[16];
@@ -398,8 +399,9 @@ float gn(vec2 p){return (hash(p)+hash(p+13.1)+hash(p+29.7)+hash(p+41.3)-2.)*1.73
 float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
 float tfr(){return mod(floor(uTime*24.),997.);}
 vec2 cover(vec2 uv,float at){float as=uRes.x/uRes.y;vec2 s=vec2(1.);if(at>as)s.x=as/at;else s.y=at/as;return (uv-.5)*s+.5;}
-vec3 S(int c,vec2 uv,float l){return c==0?textureLod(uA,cover(uv,uAspA),l).rgb:textureLod(uB,cover(uv,uAspB),l).rgb;}
-vec3 So(int c,vec2 uv,float l){return c==0?textureLod(uAo,cover(uv,uAspA),l).rgb:textureLod(uBo,cover(uv,uAspB),l).rgb;}
+vec2 zm(vec2 t,vec3 z){return z.xy+(t-.5)/z.z;}
+vec3 S(int c,vec2 uv,float l){return c==0?textureLod(uA,zm(cover(uv,uAspA),uZA),l).rgb:textureLod(uB,zm(cover(uv,uAspB),uZB),l).rgb;}
+vec3 So(int c,vec2 uv,float l){return c==0?textureLod(uAo,zm(cover(uv,uAspA),uZA),l).rgb:textureLod(uBo,zm(cover(uv,uAspB),uZB),l).rgb;}
 
 /* colour maps used by research visualisations */
 vec3 inferno(float t){
@@ -694,7 +696,7 @@ if(gl){
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
-     'uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+     'uZA','uZB','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
     [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
@@ -822,10 +824,26 @@ const FIRST={nodes:[{r:1,c:1,q:[0,2,0,0]},{r:0,c:1,q:[0,0,0,0]}],hops:[{mask:0,m
 
 /* ---------- CLIPS ---------- */
 let zc=1;
+/* the sea, slowed and stuttering: lower playback rate, frames held like a step-printed film.
+   How slow and how jerky drifts over the days, like the rest of the grammar. */
+function slow(cl){
+  const d=vnoise(epoch/40+3.3),e=vnoise(epoch/55+9.1);
+  try{cl.v.playbackRate=.3+.45*d*Math.random()+.1;}catch(x){}
+  cl.st0=60+e*190*(.5+Math.random());cl.step=cl.st0;cl.ut=0;
+  cl.zp=Math.random()*100;
+}
+/* zoom on the water: centre and scale found by CLIP on the server, with a slow drift and breathing */
+function zoomOf(cl,t){
+  if(!cl||!cl.it.z)return [.5,.5,1.12];
+  const [x,y,z0]=cl.it.z,ts=t/1000+cl.zp,z=Math.max(1.12,z0*(1+.08*Math.sin(ts*.21)));
+  const h=.5/z,cx=Math.min(1-h,Math.max(h,x+Math.sin(ts*.13)*.05/z)),cy=Math.min(1-h,Math.max(h,1-y+Math.cos(ts*.11)*.05/z));
+  return [cx,cy,z];
+}
 function makeClip(r){
   const cl={v:r.v,it:r.it,link:r.link,cur:0,ok:false,bad:false,lt:-1,w:[0,0],h:[0,0],age:Math.min(1,(seen[r.it.key]||0)/RETIRE)};
   if(GL){cl.tex=[mkTex(true),mkTex(true)];cl.ptex=promptTex(r.it.prompt);}
   else r.v.style.zIndex=++zc;
+  slow(cl);
   if(r.v.paused)r.v.play().catch(()=>{});
   return cl;
 }
@@ -838,7 +856,8 @@ function disposeClip(cl){
 function upload(cl){
   const v=cl.v;if(v.readyState<2||!v.videoWidth)return;
   const now=performance.now();
-  if(cl.ok&&v.currentTime===cl.lt&&now-cl.ut<120)return;   // new video frames (or a clock), so the previous one stays a frame behind
+  if(cl.ok&&now-cl.ut<cl.step)return;                     // step printing: each frame is held, for an irregular time
+  if(cl.ok)cl.step=cl.st0*(.5+Math.random()*Math.random()*2.2);   // new video frames (or a clock), so the previous one stays a frame behind
   cl.lt=v.currentTime;cl.ut=now;const i=1-cl.cur;
   try{
     gl.bindTexture(gl.TEXTURE_2D,cl.tex[i]);
@@ -894,6 +913,7 @@ function render(mode,t,age){
   gl.activeTexture(gl.TEXTURE6);gl.bindTexture(gl.TEXTURE_2D,Bc?Bc.ptex:BLACK);
   gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,DIG);
   gl.uniform2f(U.uRes,W,H);gl.uniform1f(U.uAspA,asp(A));gl.uniform1f(U.uAspB,asp(Bc));
+  gl.uniform3fv(U.uZA,zoomOf(A,t));gl.uniform3fv(U.uZB,zoomOf(Bc,t));
   gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
   gl.uniform1f(U.uG,PG);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uRS,RS);
   gl.uniform1i(U.uMode,mode);
