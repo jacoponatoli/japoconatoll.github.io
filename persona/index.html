@@ -60,7 +60,7 @@
 <div id="panel" class="hide">
   <label>mode <select id="modeSel"><option value="manual">manual</option><option value="auto">automatic (museum)</option></select></label>
   <div id="autoOpts" hidden>
-    <label>precision <input id="autoPrec" type="range" min="1" max="10" value="4"></label>
+    <label>precision <input id="autoPrec" type="range" min="1" max="12" value="6"></label>
     <label>presence <input id="autoPres" type="range" min="0" max="100" value="85"></label>
     <label>fade (s) <input id="autoFade" type="range" min="2" max="40" value="12"></label>
     <label class="row">loop <input id="autoLoop" type="checkbox" checked></label>
@@ -329,7 +329,7 @@ $('photoBtn').onclick = openShot; $('shotGo').onclick = takeShot; $('shotNo').on
 // la foto resta in primo piano, poi si dissolve e entra per sempre nel flusso.
 const EYE_L = [0.374, 0.465], EYE_R = [0.626, 0.465];   // occhi medi dei volti del flusso
 let mode = 'manual', landmarker = null, mpLoading = null, lastDet = 0;
-let face = null, alignS = 0, holdStart = 0, imprint = null, cooldownUntil = 0, lastFaceSeen = 0, needLeave = false;
+let guideS = 0, face = null, alignS = 0, holdStart = 0, imprint = null, cooldownUntil = 0, lastFaceSeen = 0, needLeave = false;
 
 async function loadLandmarker(){
   if (landmarker || mpLoading) return mpLoading;
@@ -381,7 +381,7 @@ function autoStep(t){
   }
   if (needLeave && t - lastFaceSeen > 2000) needLeave = false;   // la persona se n'è andata: si può scattare di nuovo
   const thr = $('autoPrec').value / 100;                           // precision 4 = errore medio sotto il 4% dello schermo
-  const align = face ? Math.max(0, Math.min(1, 1 - (face.err - thr)/0.12)) : 0;   // pieno quando è centrato
+  const align = face ? Math.max(0, Math.min(1, 1 - (face.err - thr)/0.2)) : 0;   // pieno quando è centrato
   alignS += (align - alignS) * (face ? 0.3 : 0.15);
   const ready = !needLeave && t > cooldownUntil && !imprint;
   if (face && ready && face.err < thr){ if (!holdStart) holdStart = t; if (t - holdStart > 450) autoCapture(t); }
@@ -421,6 +421,31 @@ function composeAuto(t){
     else { dctx.globalAlpha = Math.pow(1 - k, 1.6); dctx.drawImage(imprint.img, x, y, S, S); }
   }
   dctx.globalAlpha = 1;
+
+  // guida per il visitatore: due pallini rossi all'altezza degli occhi del flusso.
+  // Compaiono quando un volto si avvicina e diventano più rossi e più grandi man mano che gli occhi si allineano;
+  // due puntini bianchi mostrano dove sono ora gli occhi del visitatore, con una linea sottile verso il bersaglio.
+  const thrG = $('autoPrec').value/100;
+  const near = face && !imprint ? Math.max(0, Math.min(1, 1 - (face.err - thrG)/0.35)) : 0;
+  guideS += (near - guideS) * 0.2;
+  if (guideS > 0.02){
+    const ok = face && face.err < thrG;
+    if (face && !ok){
+      dctx.strokeStyle = `rgba(255,255,255,${0.35*guideS*(1-guideS*0.6)})`; dctx.lineWidth = Math.max(1, S/700);
+      dctx.fillStyle = `rgba(255,255,255,${0.7*guideS})`;
+      [[face.eL,EYE_L],[face.eR,EYE_R]].forEach(([e,g]) => {
+        dctx.beginPath(); dctx.moveTo(x+e[0]*S, y+e[1]*S); dctx.lineTo(x+g[0]*S, y+g[1]*S); dctx.stroke();
+        dctx.beginPath(); dctx.arc(x+e[0]*S, y+e[1]*S, S*0.006, 0, 7); dctx.fill(); });
+    }
+    const r = S*(0.009 + 0.014*guideS), red = ok ? 1 : guideS;
+    [EYE_L, EYE_R].forEach(g => {
+      dctx.fillStyle = `rgba(255,${Math.round(60*(1-red))},${Math.round(60*(1-red))},${0.25 + 0.75*guideS})`;
+      dctx.beginPath(); dctx.arc(x+g[0]*S, y+g[1]*S, r, 0, 7); dctx.fill();
+      if (ok){ dctx.strokeStyle = 'rgba(255,40,40,.8)'; dctx.lineWidth = Math.max(1, S/500);
+        dctx.beginPath(); dctx.arc(x+g[0]*S, y+g[1]*S, r*2.2, 0, 7); dctx.stroke(); }
+    });
+  }
+
   if ($('autoEyes').checked){
     dctx.lineWidth = Math.max(1, S/400);
     dctx.strokeStyle = 'rgba(255,255,255,.8)';
