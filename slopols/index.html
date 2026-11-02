@@ -17,7 +17,8 @@
 <script>
 /* SLOPOLS — a project by Jacopo Natoli
 
-   Endless montage of AI-generated video (Civitai, Wikimedia Commons).
+   Endless montage of AI-generated video of the sea — sea, water, liquid — from Civitai,
+   chosen hourly by CLIP on the site's server (see SOURCES).
    Each clip plays clean for a few seconds, then it is taken back through the inside of a
    generative model and comes out as the next clip. A transition is a path through the
    model's own representations:
@@ -61,45 +62,43 @@ async function getJSON(u,ms){
   try{const r=await fetch(u,{signal:ac.signal});if(!r.ok)throw 0;return await r.json();}finally{clearTimeout(to)}
 }
 
-/* ---------- SOURCES ----------
-   CIVITAI — public feed of a generation platform: everything there is AI-made, with its prompt
-             (safe-for-work filter on). Newest = new generations; top-reacted = the archive.
-   COMMONS — Wikimedia's curated category "AI-generated videos". */
-const MIX_CIV=0.88;
+/* ---------- SOURCES: THE SEA ----------
+   Every hour a job on the site's server (.github/workflows/slopols-sea.yml) goes through the
+   videos published on Civitai, looks at each preview with CLIP and keeps only those in which
+   the sea can be seen, or at least water, liquid. The archive grows: sea.json, branch slopols-sea.
+   If the archive cannot be read, the page falls back to Civitai prompts that name the sea. */
+const SEA_URL='https://raw.githubusercontent.com/jacoponatoli/japoconatoll.github.io/slopols-sea/sea.json';
+let seaN=0;
+async function seaArchive(first){
+  try{
+    const j=await getJSON(SEA_URL+'?t='+Math.floor(Date.now()/60000),15000);
+    if(!Array.isArray(j)||!j.length)return 0;
+    let n=0;
+    j.forEach((e,i)=>{const key='cv:'+e.id;if(known.has(key))return;n++;
+      add({key,src:e.src,alt:e.alt,s:'civ',prompt:e.p||'',bh:e.bh,thumb:e.th,k:e.k,sea:e.s},first?i<40:true);});   // new tides enter first
+    seaN=j.length;return n;
+  }catch(e){return 0;}
+}
+const SEAP=/\b(seas?|ocean|oceans|waves|surf|tides?|tsunami|seashore|shore|underwater|undersea|reef|coral|sailing|ship|shipwreck|whales?|mare|oceano|onde)\b|海|浪/i;
+const NOTSEA=/wav(e|es|ing) (her|his|their|a|the)? ?hands?|waves? (hello|goodbye|at)|water ?colou?r/i;
 function civSrc(u){return u.replace('/original=true/','/transcode=true,width=720/')}
 async function civitai(params,isFresh,pages){
   let u='https://civitai.com/api/v1/images?'+new URLSearchParams(Object.assign({limit:'100',nsfw:'None',type:'video',withMeta:'true'},params));
   for(let k=0;k<pages&&u;k++){
     try{
       const j=await getJSON(u,12000);
-      (j.items||[]).forEach(i=>{
-        if(i.type==='video'&&i.nsfwLevel==='None'&&i.url)
-          add({key:'cv:'+i.id,src:civSrc(i.url),alt:i.url,s:'civ',prompt:(i.meta&&i.meta.prompt)||'',bh:i.hash,thumb:i.thumbnail&&i.thumbnail.url},isFresh);
+      (j.items||[]).forEach(i=>{const p=(i.meta&&i.meta.prompt)||'';
+        if(i.type==='video'&&i.nsfwLevel==='None'&&i.url&&SEAP.test(p)&&!NOTSEA.test(p))
+          add({key:'cv:'+i.id,src:civSrc(i.url),alt:i.url,s:'civ',prompt:p,bh:i.hash,thumb:i.thumbnail&&i.thumbnail.url,k:'mare'},isFresh);
       });
       u=j.metadata&&j.metadata.nextPage;
     }catch(e){break}
   }
 }
-function civNew(){return civitai({sort:'Newest'},true,2)}
+function civNew(){return civitai({sort:'Newest'},true,6)}
 function civDig(){
   const periods=['Day','Week','Month','Year','AllTime'],sorts=['Most Reactions','Most Comments','Most Collected'];
-  return civitai({sort:sorts[Math.random()*sorts.length|0],period:periods[Math.random()*periods.length|0]},false,2+(Math.random()*3|0));
-}
-async function commons(){
-  let cont={};
-  for(let k=0;k<4;k++){
-    try{
-      const p=new URLSearchParams(Object.assign({action:'query',prop:'imageinfo',iiprop:'url|mime',format:'json',origin:'*',
-        generator:'categorymembers',gcmtitle:'Category:AI-generated videos',gcmtype:'file',gcmlimit:'200'},cont));
-      const j=await getJSON('https://commons.wikimedia.org/w/api.php?'+p);
-      for(const pg of Object.values((j.query&&j.query.pages)||{})){
-        const ii=pg.imageinfo&&pg.imageinfo[0];
-        if(ii&&/^video\//.test(ii.mime))
-          add({key:'c:'+pg.title,src:ii.url,s:'com',prompt:pg.title.replace(/^File:/,'').replace(/\.\w+$/,'')},false);
-      }
-      if(!j.continue)break;cont=j.continue;
-    }catch(e){break}
-  }
+  return civitai({sort:sorts[Math.random()*sorts.length|0],period:periods[Math.random()*periods.length|0]},false,6);
 }
 
 /* ---------- LOADING (as a sequence: each clip is chosen in relation to the one before) ---------- */
@@ -197,11 +196,11 @@ function ensureF(it){
   return it;
 }
 const STOP=new Set(('the and with for from into onto over under this that these those their them they she her his him its are was were has have had not but very more most some any all each other such only own same than too can will just should now then there here when where while who whom which what how out off about above below again further once also been being both few nor yet upon via per like your you our '+
-  'best quality masterpiece highly ultra detail detailed details realistic photorealistic photo photograph photography cinematic cinema lighting light shot scene video image frame camera style render rendered resolution sharp focus film movie full body viewer background foreground subject motion move moving slowly slow fast smooth natural soft warm cool color colors colour lens depth field wide angle close closeup medium long take second seconds audio sound music play plays ambient ambience negative prompt start begin begins continue continues keep keeps make makes made look looks entire whole scene shot appear appears around toward towards across through behind front side left right top bottom center centre slightly gently subtle').split(' '));
+  'best quality masterpiece highly ultra detail detailed details realistic photorealistic photo photograph photography cinematic cinema lighting light shot scene video image frame camera style render rendered resolution sharp focus film movie full body viewer background foreground subject motion move moving slowly slow fast smooth natural soft warm cool color colors colour lens depth field wide angle close closeup medium long take second seconds audio sound music play plays ambient ambience negative prompt start begin begins continue continues keep keeps make makes made look looks entire whole scene shot appear appears around toward towards across through behind front side left right top bottom center centre slightly gently subtle ocean water wave beach underwater shore coast liquid').split(' '));
 const DF=new Map();let NDOC=0;
 function stem(w){for(const s of ['ing','es','ed','s'])if(w.endsWith(s)&&w.length-s.length>=4)return w.slice(0,-s.length);return w;}
 function words(p){
-  const s=new Set();(p||'').toLowerCase().replace(/[^a-zà-ÿ]+/g,' ').split(' ').forEach(w=>{if(w.length>=4&&!STOP.has(w)&&s.size<60)s.add(stem(w));});
+  const s=new Set();(p||'').toLowerCase().replace(/[^a-zà-ÿ]+/g,' ').split(' ').forEach(w=>{{const st=stem(w);if(w.length>=4&&!STOP.has(w)&&!STOP.has(st)&&s.size<60)s.add(st);}});
   return s;
 }
 function index(it){
@@ -319,7 +318,7 @@ function endScene(){
 function sample(onlyFresh){
   const out=fresh.slice(0,80);
   if(!onlyFresh)for(let k=0;k<220&&pool.length;k++)out.push(pool[Math.floor(Math.random()*pool.length)]);
-  return out.map(ensureF);
+  return out.filter(c=>c.k!=='acqua'||Math.random()<.55).map(ensureF);   // the sea first, water and liquids after
 }
 function take(c){let i=pool.indexOf(c);if(i>=0)pool.splice(i,1);else{i=fresh.indexOf(c);if(i>=0)fresh.splice(i,1);}}
 function tryRule(name,a,onlyFresh){
@@ -942,14 +941,14 @@ requestAnimationFrame(loop);
 
 /* ---------- START ---------- */
 (async()=>{
-  await Promise.race([civNew(),sleep(5000)]);
+  if(!await seaArchive(true)){await Promise.race([civNew(),sleep(6000)]);civDig();}
   prepare();
-  commons();civDig();
   const cn=navigator.connection;
   if(!(cn&&(cn.saveData||/(^|-)2g|3g/.test(cn.effectiveType||''))))setTimeout(startFaces,20000);
 })();
-setInterval(civNew,2*60*1000);   // new generations of slop
-setInterval(civDig,5*60*1000);   // dig into the past
+setInterval(()=>seaArchive(false),10*60*1000);              // new tides from the hourly harvest
+setInterval(()=>{if(!seaN)civNew();},2*60*1000);             // fallback only
+setInterval(()=>{if(!seaN)civDig();},5*60*1000);
 addEventListener('touchstart',wake,{passive:true});
 addEventListener('click',()=>{wake();const el=document.documentElement;
   if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});
