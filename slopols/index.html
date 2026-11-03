@@ -23,7 +23,7 @@
    generative model and comes out as the next clip. A transition is a path through the
    model's own representations:
 
-     pixel · forward-diffusion noise · denoising trajectory · the 4 latent channels · latent as false colour ·
+     pixel · fluid pixel · refraction · tides of pixels · forward-diffusion noise · denoising trajectory · the 4 latent channels · latent as false colour ·
      patch tokens / embeddings · tensor reshaped with the wrong stride · the prompt ·
      attention maps · the latent tensor printed as numbers · VQ codebook ·
      early x0 prediction burnt by guidance · upsampling residue · temporal flicker · batch of variations
@@ -384,7 +384,8 @@ in vec2 vUv;out vec4 o;
 uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig;
 uniform vec2 uRes;
 uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
-uniform vec3 uZA,uZB;   // where the sea is in each clip: centre and zoom
+uniform vec4 uZA,uZB;   // where the sea is in each clip: centre, zoom, how much its pixels show
+uniform vec4 uHL;       // the liquid veil while a clip is on screen: mode, amount, scale, speed
 uniform int uMode,uR0,uC0,uR1,uC1,uMask,uEdge;
 uniform vec4 uQ0,uQ1,uMq;
 uniform vec3 uPal[16];
@@ -399,9 +400,12 @@ float gn(vec2 p){return (hash(p)+hash(p+13.1)+hash(p+29.7)+hash(p+41.3)-2.)*1.73
 float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
 float tfr(){return mod(floor(uTime*24.),997.);}
 vec2 cover(vec2 uv,float at){float as=uRes.x/uRes.y;vec2 s=vec2(1.);if(at>as)s.x=as/at;else s.y=at/as;return (uv-.5)*s+.5;}
-vec2 zm(vec2 t,vec3 z){return z.xy+(t-.5)/z.z;}
-vec3 S(int c,vec2 uv,float l){return c==0?textureLod(uA,zm(cover(uv,uAspA),uZA),l).rgb:textureLod(uB,zm(cover(uv,uAspB),uZB),l).rgb;}
-vec3 So(int c,vec2 uv,float l){return c==0?textureLod(uAo,zm(cover(uv,uAspA),uZA),l).rgb:textureLod(uBo,zm(cover(uv,uAspB),uZB),l).rgb;}
+vec2 TC(int c,vec2 uv){                 // zoom into the water; at deep zoom the video's own pixels appear as squares
+  vec4 z=c==0?uZA:uZB;vec2 t=z.xy+(cover(uv,c==0?uAspA:uAspB)-.5)/z.z;
+  if(z.w>0.){vec2 ts=vec2(c==0?textureSize(uA,0):textureSize(uB,0));t=mix(t,(floor(t*ts)+.5)/ts,z.w);}
+  return t;}
+vec3 S(int c,vec2 uv,float l){vec2 t=TC(c,uv);return c==0?textureLod(uA,t,l).rgb:textureLod(uB,t,l).rgb;}
+vec3 So(int c,vec2 uv,float l){vec2 t=TC(c,uv);return c==0?textureLod(uAo,t,l).rgb:textureLod(uBo,t,l).rgb;}
 
 /* colour maps used by research visualisations */
 vec3 inferno(float t){
@@ -589,6 +593,31 @@ vec3 batchR(int c,vec4 q,vec2 uv){
   return mix(x,all(equal(cid,sc))?vec3(1.):vec3(0.),e);
 }
 
+/* 15 fluid pixel: the frame becomes a mosaic whose tiles are carried by currents */
+vec3 pflowR(int c,vec4 q,vec2 uv){
+  float cell=max(2.,q.x*uRS);vec2 ar=vec2(uRes.x/uRes.y,1.);
+  vec2 cid=floor(uv*uRes/cell),cuv=(cid+.5)*cell/uRes,p=cuv*ar*q.y;float t=uTime*q.z;
+  vec2 off=vec2(fbm(p+vec2(t,0.))-.5,fbm(p+vec2(5.2,t*.7))-.5)*q.w;
+  return S(c,cuv+off,log2(cell)*.5);
+}
+/* 16 refraction: the picture seen through a moving water surface, with caustics */
+float wv(int c,vec2 uv,vec4 q){vec2 ar=vec2(uRes.x/uRes.y,1.);
+  return fbm(uv*ar*q.y+vec2(uTime*q.z,uTime*q.z*.6))+lum(S(c,uv,4.))*q.w;}
+vec3 refrR(int c,vec4 q,vec2 uv){
+  vec2 e=vec2(3./uRes.x,0.),f=vec2(0.,3./uRes.y);
+  float h=wv(c,uv,q);vec2 n=vec2(wv(c,uv+e,q)-h,wv(c,uv+f,q)-h);
+  vec3 col=S(c,uv+n*q.x,0.);
+  return col+pow(clamp(1.-length(n)*28.,0.,1.),6.)*.25*q.x*30.;
+}
+/* 17 tides of pixels: rows of pixel blocks pulled sideways by waves, dark pixels dragged into streaks */
+vec3 tideR(int c,vec4 q,vec2 uv){
+  float b=max(1.,q.x*uRS);vec2 cid=floor(uv*uRes/b),cuv=(cid+.5)*b/uRes;
+  float sh=sin(cid.y*q.y+uTime*q.z)*q.w+sin(cid.y*q.y*.37-uTime*q.z*1.3)*q.w*.5;
+  vec2 su=vec2(cuv.x+sh,cuv.y);vec3 col=S(c,su,log2(b)*.5);
+  if(lum(col)<.35)col=S(c,vec2(su.x-q.w*.6,su.y),2.);
+  return col;
+}
+
 vec3 rep(int r,int c,vec4 q,vec2 uv){
   switch(r){
     case 1:return noiseR(c,q,uv);
@@ -605,6 +634,9 @@ vec3 rep(int r,int c,vec4 q,vec2 uv){
     case 12:return tempR(c,q,uv);
     case 13:return trajR(c,q,uv);
     case 14:return batchR(c,q,uv);
+    case 15:return pflowR(c,q,uv);
+    case 16:return refrR(c,q,uv);
+    case 17:return tideR(c,q,uv);
   }
   return S(c,uv,0.);
 }
@@ -628,7 +660,10 @@ vec3 edgeC(vec3 a,vec3 b,vec2 uv){
   return clamp(lat(a).xyz*.25+.5,0.,1.);
 }
 vec3 holdR(vec2 uv){
-  vec3 x=S(0,uv,0.);
+  vec3 x;
+  if(uHL.x>1.5)x=pflowR(0,vec4(mix(2.,9.,uHL.y),uHL.z,uHL.w,uHL.y*.08),uv);
+  else if(uHL.x>.5)x=refrR(0,vec4(uHL.y*.03,uHL.z,uHL.w,.5),uv);
+  else x=S(0,uv,0.);
   if(uAge>0.){float b=8.*uRS;vec2 bl=(floor(uv*uRes/b)+.5)*b/uRes;x=mix(x,S(0,bl,3.),uAge*.45);}
   return x;
 }
@@ -696,7 +731,7 @@ if(gl){
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
-     'uZA','uZB','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+     'uZA','uZB','uHL','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
     [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
@@ -723,8 +758,8 @@ function promptTex(text){
 }
 
 /* ---------- GENOMES ---------- */
-const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker','trajectory','batch'];
-const NREP=14;
+const REPN=['pixel','noise','latent×4','latent','tokens','reshape','prompt','attention','tensor','codebook','x0','residual','flicker','trajectory','batch','fluid pixel','refraction','tides'];
+const NREP=17;
 const MASKN=['steps','random','raster','radial','brightness','cloud','scan','channels','disagreement'];
 const RR=(g,a,b)=>a+g()*(b-a),RI=(g,a,b)=>Math.floor(RR(g,a,b+1)),PK=(g,arr)=>arr[Math.floor(g()*arr.length)];
 function pickW(g,w){let s=0;for(let i=1;i<w.length;i++)s+=w[i];let x=g()*s;for(let i=1;i<w.length;i++){x-=w[i];if(x<=0)return i;}return w.length-1;}
@@ -744,6 +779,9 @@ function repParams(r,g){
     case 12:return [RR(g,6,30),RR(g,0,.4),RI(g,-1,3),0];                     // gain, ghost, colormap
     case 13:return [RI(g,3,6),RR(g,1,3),0,g()<.3?1:0];                       // columns, schedule, -, reversed
     case 14:return [PK(g,[2,2,3]),RR(g,.3,1),0,0];                           // grid, variation
+    case 15:return [RR(g,3,24),RR(g,1,4),RR(g,.1,.6),RR(g,.02,.16)];         // tile, current scale, speed, drift
+    case 16:return [RR(g,.01,.05),RR(g,1.5,6),RR(g,.05,.4),RR(g,0,1.5)];     // depth, wave scale, speed, image as height
+    case 17:return [PK(g,[1,2,4,8]),RR(g,.02,.2),RR(g,.3,2.5),RR(g,.01,.12)]; // block, wavelength, speed, pull
   }
   return [0,0,0,0];
 }
@@ -761,6 +799,10 @@ function fixClips(G){
   let b=false;for(let i=1;i<G.nodes.length-1;i++){if(G.nodes[i].c===1)b=true;if(b)G.nodes[i].c=1;}
   return G;
 }
+/* how the camera sinks into the water: still and breathing, diving in, surfacing, drifting, or the abyss
+   (so deep that the video's pixels become a sea of squares). Part of the genome, so it evolves too. */
+const ZM=['fermo','tuffo','risalita','deriva','abisso'];
+function randZoom(g){return {m:PK(g,['fermo','fermo','tuffo','tuffo','risalita','deriva','deriva','abisso']),k:g(),px:g()<.22?1:0};}
 function randGenome(g,Wt){
   const m=PK(g,[1,2,2,3,3,3,4]);const inter=[];let prev=0;
   for(let i=0;i<m;i++){let r;do{r=pickW(g,Wt)}while(r===prev);prev=r;inter.push(r);}
@@ -769,7 +811,7 @@ function randGenome(g,Wt){
   inter.forEach((r,i)=>nodes.push(mkNode(r,i<k?0:1,g)));
   nodes.push({r:0,c:1,q:[0,0,0,0]});
   const hops=[];for(let i=0;i<nodes.length-1;i++)hops.push(randHop(g));
-  return fixClips({nodes,hops,fb:g()<.25?RR(g,.15,.55):0,dur:RR(g,4,9.5),born:0});
+  return fixClips({nodes,hops,fb:g()<.25?RR(g,.15,.55):0,dur:RR(g,4,9.5),born:0,zs:randZoom(g)});
 }
 const clone=o=>JSON.parse(JSON.stringify(o));
 function mutate(G,g,Wt,strength){
@@ -782,8 +824,9 @@ function mutate(G,g,Wt,strength){
     else if(x<.85&&inter<5){const i=1+Math.floor(g()*(inter+1)),a=G.nodes[i-1],b=G.nodes[i];
       G.nodes.splice(i,0,mkNode(pickW(g,Wt),a.c===b.c?a.c:(g()<.5?0:1),g));G.hops.splice(i-1,0,randHop(g));}
     else if(x<.93&&inter>1){const i=1+Math.floor(g()*inter);G.nodes.splice(i,1);G.hops.splice(i-1,1);}
-    else if(x<.97)G.fb=G.fb?0:RR(g,.15,.55);
-    else G.dur=RR(g,4,9.5);
+    else if(x<.94)G.fb=G.fb?0:RR(g,.15,.55);
+    else if(g()<.5)G.dur=RR(g,4,9.5);
+    else G.zs=randZoom(g);
   }
   return fixClips(G);
 }
@@ -791,7 +834,7 @@ function cross(a,b,g){
   const ia=1+Math.floor(g()*(a.nodes.length-1)),ib=1+Math.floor(g()*(b.nodes.length-1));
   const G={nodes:clone([...a.nodes.slice(0,ia),...b.nodes.slice(ib)]),
            hops:clone([...a.hops.slice(0,ia-1),b.hops[ib-1],...b.hops.slice(ib)]),
-           fb:g()<.5?a.fb:b.fb,dur:g()<.5?a.dur:b.dur,born:0};
+           fb:g()<.5?a.fb:b.fb,dur:g()<.5?a.dur:b.dur,born:0,zs:clone((g()<.5?a.zs:b.zs)||randZoom(g))};
   while(G.nodes.length>7){const i=1+Math.floor(g()*(G.nodes.length-2));G.nodes.splice(i,1);G.hops.splice(i-1,1);}
   if(G.nodes.length<3){G.nodes.splice(1,0,mkNode(1,0,g));G.hops.splice(0,0,randHop(g));}
   return fixClips(G);
@@ -801,7 +844,7 @@ function cross(a,b,g){
 const LAUNCH=Date.UTC(2026,9,24,10,0,0),EPOCH=10*60*1000,NPOP=16;
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function vnoise(x){const h=n=>{const s=Math.sin(n*127.1)*43758.5453;return s-Math.floor(s)};const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return h(i)*(1-u)+h(i+1)*u;}
-function weightsAt(e){const w=[0];for(let r=1;r<=NREP;r++)w.push(.12+vnoise(e/90+r*7.31));return w;}   // favoured representations drift over ~15 h
+function weightsAt(e){const w=[0];for(let r=1;r<=NREP;r++)w.push((.12+vnoise(e/90+r*7.31))*(r>=15?1.8:1));return w;}   // the marine ones come up more   // favoured representations drift over ~15 h
 let pop=[],epoch=0;
 (function initPop(){const g=mulberry(1985),Wt=weightsAt(0);for(let i=0;i<NPOP;i++)pop.push(randGenome(g,Wt));})();
 function novelty(Wt){                         // rare representations are favoured, so none dies out for good
@@ -830,14 +873,28 @@ function slow(cl){
   const d=vnoise(epoch/40+3.3),e=vnoise(epoch/55+9.1);
   try{cl.v.playbackRate=.3+.45*d*Math.random()+.1;}catch(x){}
   cl.st0=60+e*190*(.5+Math.random());cl.step=cl.st0;cl.ut=0;
-  cl.zp=Math.random()*100;
+  cl.zp=Math.random()*100;cl.zt0=performance.now();cl.zs=randZoom(Math.random);liquid(cl);
 }
 /* zoom on the water: centre and scale found by CLIP on the server, with a slow drift and breathing */
 function zoomOf(cl,t){
-  if(!cl||!cl.it.z)return [.5,.5,1.12];
-  const [x,y,z0]=cl.it.z,ts=t/1000+cl.zp,z=Math.max(1.12,z0*(1+.08*Math.sin(ts*.21)));
-  const h=.5/z,cx=Math.min(1-h,Math.max(h,x+Math.sin(ts*.13)*.05/z)),cy=Math.min(1-h,Math.max(h,1-y+Math.cos(ts*.11)*.05/z));
-  return [cx,cy,z];
+  if(!cl)return [.5,.5,1,0];
+  const [x,y]=cl.it.z||[.5,.5],zs=cl.zs||{m:'fermo',k:.3,px:0},ts=t/1000+cl.zp;
+  const zmax=3+6*vnoise(epoch/30+1.7);                       // how deep the sea can go drifts over the days
+  let z=1.2*Math.exp(zs.k*Math.log(zmax/1.2)),dr=.05;
+  if(zs.m==='abisso')z=Math.max(z,zmax)*1.5;
+  const u=Math.min(1,Math.max(0,(t-(cl.zt0||t))/11000)),e=u*u*(3-2*u);
+  if(zs.m==='tuffo')z=z/2.6+(z-z/2.6)*e;
+  else if(zs.m==='risalita')z=z-(z-z/2.6)*e;
+  else if(zs.m==='deriva')dr=.28;
+  z=Math.max(1.05,z*(1+.07*Math.sin(ts*.21)));
+  const px=zs.px?Math.min(1,z/2.2):Math.min(1,Math.max(0,(z-3.5)/2.5));
+  const h=.5/z,cx=Math.min(1-h,Math.max(h,x+Math.sin(ts*.13)*dr/z)),cy=Math.min(1-h,Math.max(h,1-y+Math.cos(ts*.11)*dr/z));
+  return [cx,cy,z,px];
+}
+/* the liquid veil on the clip while it plays: clean, seen through water, or flowing pixels */
+function liquid(cl){
+  const v=vnoise(epoch/25+4.4),r=Math.random();
+  cl.hl=r<.45-.25*v?[0,0,0,0]:[r<.7?1:2,RR(Math.random,.2,.6+.4*v),RR(Math.random,1.5,5),RR(Math.random,.05,.35)];
 }
 function makeClip(r){
   const cl={v:r.v,it:r.it,link:r.link,cur:0,ok:false,bad:false,lt:-1,w:[0,0],h:[0,0],age:Math.min(1,(seen[r.it.key]||0)/RETIRE)};
@@ -891,6 +948,7 @@ function startTrans(now){
     if(Math.random()<.3){const ch=clone(G);ch.born=epoch;pop[Math.floor(Math.random()*NPOP)]=ch;}  // local drift
   }
   if(A)biasGenome(G,Bc.link,Bc);
+  if(G.zs){Bc.zs=clone(G.zs);if(Math.random()<.3)Bc.zs.k=Math.random();}
   G.nodes.forEach(n=>{if(n.r===6){const cl=n.c===0?A:Bc;if(!cl||!cl.it.prompt){n.r=8;n.q=repParams(8,Math.random);}}});
   PLAN=plan(G);pdur=Math.min(12,Math.max(G.dur,1.4*G.hops.length));
   seed=Math.random()*50;cell=Math.round(rnd(10,20)*RS);
@@ -913,7 +971,7 @@ function render(mode,t,age){
   gl.activeTexture(gl.TEXTURE6);gl.bindTexture(gl.TEXTURE_2D,Bc?Bc.ptex:BLACK);
   gl.activeTexture(gl.TEXTURE7);gl.bindTexture(gl.TEXTURE_2D,DIG);
   gl.uniform2f(U.uRes,W,H);gl.uniform1f(U.uAspA,asp(A));gl.uniform1f(U.uAspB,asp(Bc));
-  gl.uniform3fv(U.uZA,zoomOf(A,t));gl.uniform3fv(U.uZB,zoomOf(Bc,t));
+  gl.uniform4fv(U.uZA,zoomOf(A,t));gl.uniform4fv(U.uZB,zoomOf(Bc,t));gl.uniform4fv(U.uHL,A&&A.hl?A.hl:[0,0,0,0]);
   gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
   gl.uniform1f(U.uG,PG);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uRS,RS);
   gl.uniform1i(U.uMode,mode);
