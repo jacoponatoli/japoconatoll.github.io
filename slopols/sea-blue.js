@@ -5,10 +5,11 @@
    Gli episodi arrivano a caso, durano a caso, cambiano modo di fondersi con l'immagine,
    e ogni tanto scattano veloci, come il mare a scatti. Nelle transizioni del video a volte cambia. */
 (() => {
+function layer(Z, OFF, P) {   // più livelli indipendenti di colore, ognuno con i suoi episodi
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const d = document.createElement('div');
-  Object.assign(d.style, { position: 'fixed', inset: 0, zIndex: 2, pointerEvents: 'none', opacity: 0 });
+  Object.assign(d.style, { position: 'fixed', inset: 0, zIndex: Z, pointerEvents: 'none', opacity: 0 });
   document.body.appendChild(d);
 
   // modi di fusione con il video, ognuno con il suo intervallo di intensità
@@ -19,10 +20,12 @@
     ['soft-light', .3, .85],   // velo
     ['overlay', .2, .6],
     ['screen', .1, .35],       // luce d'acqua
-    ['luminosity', .15, .35]   // a volte il blu porta solo la luce
+    ['luminosity', .15, .35],  // a volte il blu porta solo la luce
+    ['exclusion', .08, .25],   // il mare in negativo, appena
+    ['difference', .06, .2]
   ];
   // blu del mare: dal ciano dell'acqua bassa al blu notte dell'abisso
-  const blue = () => { const h = rnd(186, 232), s = rnd(45, 100), l = rnd(14, 55); return [h, s, l]; };
+  const blue = () => { const h = Math.random() < .25 ? rnd(160, 186) : rnd(186, 232), s = rnd(45, 100), l = rnd(14, 55); return [h, s, l]; };
   const hsl = ([h, s, l], dl = 0) => `hsl(${h.toFixed(0)} ${s.toFixed(0)}% ${Math.max(3, l + dl).toFixed(0)}%)`;
 
   let mode = 'soft-light', timer = 0, drift = 0;
@@ -39,7 +42,7 @@
 
   function episode() {
     clearTimeout(timer); clearInterval(drift);
-    if (Math.random() < .45) {                             // spesso niente filtro: "ogni tanto"
+    if (Math.random() < OFF) {                             // spesso niente filtro: "ogni tanto"
       set(0, rnd(3, 10));
       timer = setTimeout(episode, rnd(15, 60) * 1000);
       return;
@@ -62,5 +65,9 @@
     timer = setTimeout(episode, (quick ? rnd(1.5, 6) : rnd(12, 50)) * 1000);
   }
   timer = setTimeout(episode, rnd(10, 30) * 1000);
-  addEventListener('slopols:trans', () => { if (Math.random() < .25) episode(); });
+  addEventListener('slopols:trans', () => { if (Math.random() < P) episode(); });
+}
+layer(2, .35, .25);
+layer(3, .55, .35);
+layer(4, .75, .2);
 })();
