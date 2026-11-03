@@ -1,0 +1,42 @@
+name: SLOPOLS suoni del mare
+# Ogni 6 ore raccoglie nuove registrazioni di mare e acqua da archivi aperti
+# (Wikimedia Commons, Internet Archive; Freesound se c'è il secret FREESOUND_KEY).
+# L'archivio sta nel ramo "slopols-sound" (list.json + mp3): la pagina slopols/ lo legge da lì.
+on:
+  schedule:
+    - cron: "13 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/slopols-sound.yml", "tools/slopols-sound.py"]
+permissions:
+  contents: write
+concurrency: slopols-sound
+jobs:
+  sound:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archivio già raccolto
+        run: |
+          mkdir data && cd data
+          git init -q
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q --depth 1 origin slopols-sound && git checkout -q FETCH_HEAD -- . || true
+          ls | wc -l
+      - name: ffmpeg
+        run: which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+      - name: Nuovi suoni
+        env:
+          FREESOUND_KEY: ${{ secrets.FREESOUND_KEY }}
+        run: python3 tools/slopols-sound.py data
+      - name: Salva
+        run: |
+          cd data
+          git config user.name "slopols-bot"
+          git config user.email "slopols-bot@users.noreply.github.com"
+          git checkout -q --orphan new
+          git add -A
+          git commit -q -m "SLOPOLS: suoni del mare $(date -u '+%F %H:%M')" || exit 0
+          git push -q -f origin new:slopols-sound
