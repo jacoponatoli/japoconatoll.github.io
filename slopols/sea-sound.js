@@ -91,7 +91,7 @@
   async function tide() {
     if (!list.length) { setTimeout(tide, 20000); return; }
     let b, item;
-    try { item = pick(list); b = await buffer(item); } catch (e) { setTimeout(tide, 3000); return; }
+    try { item = pick(list); b = await buffer(item); } catch (e) { console.log('[slopols sound] tide', e.message); setTimeout(tide, 3000); return; }
     const now = ctx.currentTime, life = rnd(25, 70), fadeIn = rnd(4, 12), fadeOut = rnd(6, 14);
     const s = ctx.createBufferSource(); s.buffer = b; s.loop = true;
     s.loopStart = rnd(0, b.duration * .5); s.loopEnd = Math.min(b.duration, s.loopStart + rnd(8, b.duration));
@@ -195,6 +195,7 @@
     voices.forEach(v => v.s.playbackRate.setTargetAtTime(v.rate, now, 1.5));
   });
 
+  window.SLOPOLS_SOUND = { get ctx(){return ctx}, get voices(){return [...voices].map(v=>({file:v.item.file,gain:v.g.gain.value,rate:v.rate,f:v.f.frequency.value}))}, get list(){return list.length}, get cached(){return cache.size} };
   // --- comandi ---
   ['pointerdown', 'keydown', 'touchstart'].forEach(ev => addEventListener(ev, e => {
     if (ev === 'keydown' && e.key.toLowerCase() === 'm' && ctx) {
