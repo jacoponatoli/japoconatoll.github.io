@@ -18,6 +18,14 @@ UA = 'SLOPOLS/1.0 (art project; https://jacoponatoli.net/slopols/)'
 QUERIES = ['sea waves', 'ocean waves', 'surf', 'waves beach', 'underwater', 'hydrophone', 'sea shore',
            'ocean ambience', 'waves rocks', 'harbour water', 'bubbles water', 'water drops', 'tide',
            'mare onde', 'mer vagues', 'Meeresrauschen', 'stream water', 'boat water splash']
+# solo registrazioni d'acqua: il titolo deve parlare di mare/acqua, e niente musica, voci, toni di prova
+GOOD = re.compile(r'\b(sea|seas|ocean|oceans|waves|surf|underwater|hydrophone|beach|shore|seashore|coast|tide|tides|harbou?r|'
+                  r'splash\w*|bubbl\w*|water|stream|river|creek|brook|lake|rain|mare|onde|acqua|spiaggia|mer|vagues|eau|'
+                  r'meer|wasser|wellen|olas|agua|marina|marine|porto|scogli\w*|rocks)\b', re.I)
+BAD = re.compile(r'(podcast|episode|edition|weekly|interview|news|music|song|melody|loop|sine|sitar|chill|album|track|'
+                 r'remix|\bmix\b|#\s?\d|lecture|sermon|talk|audiobook|chapter|cast\b|radio show|meditation|relax|'
+                 r'piano|guitar|ambient music|isrc|feat\.|ft\.)', re.I)
+def relevant(title): return bool(GOOD.search(title or '')) and not BAD.search(title or '')
 OK_LIC = re.compile(r'(cc[- ]?0|cc[- ]?by|creativecommons|public ?domain|publicdomain|pd)', re.I)
 
 def get(url, as_json=True, timeout=40):
@@ -46,7 +54,7 @@ def commons(q):
 
 def archive(q):
     url = 'https://archive.org/advancedsearch.php?' + urllib.parse.urlencode({
-        'q': f'({q}) AND mediatype:audio AND licenseurl:*', 'fl[]': ['identifier', 'title', 'licenseurl', 'creator'],
+        'q': f'title:({q}) AND mediatype:audio AND licenseurl:*', 'fl[]': ['identifier', 'title', 'licenseurl', 'creator'],
         'rows': 60, 'page': random.randint(1, 3), 'output': 'json'}, doseq=True)
     out = []
     for d in get(url).get('response', {}).get('docs', []):
@@ -99,16 +107,20 @@ def main():
     lp, sp = os.path.join(OUT, 'list.json'), os.path.join(OUT, 'seen.json')
     items = json.load(open(lp)) if os.path.exists(lp) else []
     seen = set(json.load(open(sp))) if os.path.exists(sp) else set()
-    want = NEW if items else 24
+    for old in [c for c in items if not relevant(c['title'])]:   # via quello che non è acqua
+        try: os.remove(os.path.join(OUT, old['file']))
+        except OSError: pass
+    items = [c for c in items if relevant(c['title'])]
+    want = NEW if len(items) >= 30 else 24
     key = os.environ.get('FREESOUND_KEY', '')
 
     cands = []
-    for q in random.sample(QUERIES, 8):
+    for q in random.sample(QUERIES, 12):
         for fn in (commons, archive) + ((lambda q: freesound(q, key)),) * bool(key):
             try: cands += fn(q)
             except Exception as e: print('search', q, e)
             time.sleep(0.5)
-    cands = [c for c in {c['id']: c for c in cands}.values() if c['id'] not in seen]
+    cands = [c for c in {c['id']: c for c in cands}.values() if c['id'] not in seen and relevant(c['title'])]
     random.shuffle(cands)
     print('candidati nuovi:', len(cands))
 

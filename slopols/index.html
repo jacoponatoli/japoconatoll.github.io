@@ -953,8 +953,9 @@ function startTrans(now){
   PLAN=plan(G);pdur=Math.min(12,Math.max(G.dur,1.4*G.hops.length));
   seed=Math.random()*50;cell=Math.round(rnd(10,20)*RS);
   phase='trans';pt0=now;prepare();
+  dispatchEvent(new CustomEvent('slopols:trans',{detail:{dur:pdur}}));   // per il suono e i filtri blu
 }
-function endTrans(now){if(A)disposeClip(A);A=Bc;Bc=null;phase='hold';pt0=now;const h=HOLD[A.link&&A.link.rule]||[2.5,5];pdur=rnd(h[0],h[1]);}
+function endTrans(now){if(A)disposeClip(A);A=Bc;Bc=null;phase='hold';pt0=now;const h=HOLD[A.link&&A.link.rule]||[2.5,5];pdur=rnd(h[0],h[1]);dispatchEvent(new CustomEvent('slopols:hold'));}
 function setHop(uT){
   let i=PLAN.findIndex(([s,e])=>uT<e);if(i<0)i=PLAN.length-1;
   const [s,e]=PLAN[i],h=G.hops[i],n0=G.nodes[i],n1=G.nodes[i+1];
@@ -1032,5 +1033,7 @@ addEventListener('click',()=>{wake();const el=document.documentElement;
   if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen().catch(()=>{});
   else if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});});
 </script>
+<script src="sea-blue.js"></script>
+<script src="sea-sound.js"></script>
 </body>
 </html>
