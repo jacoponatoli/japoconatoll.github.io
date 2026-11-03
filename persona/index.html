@@ -73,6 +73,15 @@
   <label>camera zoom <input id="camZoom" type="range" min="30" max="100" value="62"></label>
   <label>photo under <select id="baseSel"><option value="">none</option></select></label>
   <label>photo opacity <input id="baseAlpha" type="range" min="0" max="100" value="35"></label>
+  <div id="dmxOpts" style="border-top:1px solid #333;margin-top:4px;padding-top:4px">
+    <label>strobe <select id="dmxType"><option value="pro">Enttec DMX USB Pro</option><option value="open">Open DMX / FTDI cable</option></select></label>
+    <label>DMX address <input id="dmxAddr" type="number" min="1" max="511" value="1" style="width:60px;background:#111;color:#ddd;border:1px solid #555;font:inherit"></label>
+    <label>flash power <input id="dmxPow" type="range" min="0" max="255" value="255"></label>
+    <label>flash speed <input id="dmxSpeed" type="range" min="0" max="230" value="200"></label>
+    <label>flash length (ms) <input id="dmxLen" type="range" min="40" max="3000" value="350"></label>
+    <button id="dmxBtn" type="button">connect strobe</button> <button id="dmxTest" type="button">test flash</button>
+    <div class="k" id="dmxInfo">strobe: not connected</div>
+  </div>
   <button id="camBtn">camera on</button>
   <button id="photoBtn">photo</button>
   <button id="fsBtn">fullscreen</button>
@@ -310,6 +319,7 @@ async function takeShot(){
   if (counting) return; counting = true;
   for (const n of ['3','2','1']) { $('shotCount').textContent = n; await new Promise(r => setTimeout(r, 800)); }
   $('shotCount').textContent = '';
+  strobeFlash();
   $('shotFlash').style.transition = 'none'; $('shotFlash').style.opacity = 1;
   requestAnimationFrame(() => { $('shotFlash').style.transition = 'opacity .6s'; $('shotFlash').style.opacity = 0; });
   captureBlob((blob, im) => {
@@ -397,6 +407,7 @@ function autoCapture(t){
   // senza loop: aspetta che la persona se ne vada.
   if ($('autoLoop').checked) cooldownUntil = t + $('autoFade').value*1000 + 1500;
   else { needLeave = true; cooldownUntil = t + 8000; }
+  strobeFlash();
   captureBlob((blob, im) => {
     imprint = { img: im, t0: performance.now() };
     spotlight = { img: im, until: performance.now() + $('autoFade').value*1000 + 20000 };
@@ -454,6 +465,65 @@ function composeAuto(t){
       [face.eL, face.eR, face.nose].forEach(e => { dctx.beginPath(); dctx.arc(x+e[0]*S, y+e[1]*S, S*0.006, 0, 7); dctx.fill(); }); }
   }
 }
+
+// ================= STROBO DMX =================
+// Ayra Flash 60 LED: canale 1 = dimmer, canale 2 = velocità (in cima c'è il controllo sonoro: non lo usiamo).
+// La pagina parla via USB con l'interfaccia DMX (Web Serial di Chrome).
+const dmx = { port: null, writer: null, frame: new Uint8Array(513), type: 'pro', loop: false, offAt: 0 };
+['dmxType','dmxAddr','dmxPow','dmxSpeed','dmxLen'].forEach(id => {
+  const v = store.get('persona-' + id); if (v) $(id).value = v;
+  $(id).addEventListener('input', () => store.set('persona-' + id, $(id).value));
+});
+function dmxSet(on){
+  const a = Math.max(1, Math.min(511, +$('dmxAddr').value || 1));
+  dmx.frame.fill(0);
+  if (on){ dmx.frame[a] = +$('dmxPow').value; dmx.frame[a+1] = +$('dmxSpeed').value; }
+  if (dmx.type === 'pro') dmxSendPro();
+}
+async function dmxSendPro(){                     // pacchetto Enttec "Output Only Send DMX" (label 6)
+  if (!dmx.writer) return;
+  const n = dmx.frame.length, pkt = new Uint8Array(n + 5);
+  pkt[0] = 0x7E; pkt[1] = 6; pkt[2] = n & 255; pkt[3] = n >> 8; pkt.set(dmx.frame, 4); pkt[n+4] = 0xE7;
+  try { await dmx.writer.write(pkt); } catch(e){ dmxLost(e); }
+}
+async function dmxOpenLoop(){                    // Open DMX: il computer genera il segnale, ~30 volte al secondo
+  dmx.loop = true;
+  while (dmx.loop && dmx.writer){
+    try {
+      await dmx.port.setSignals({ break: true }); await new Promise(r => setTimeout(r, 1));
+      await dmx.port.setSignals({ break: false });
+      await dmx.writer.write(dmx.frame);
+    } catch(e){ dmxLost(e); break; }
+    await new Promise(r => setTimeout(r, 30));
+  }
+}
+function dmxLost(e){ dmx.loop = false; dmx.writer = null; dmx.port = null; $('dmxInfo').textContent = 'strobe: disconnected'; $('dmxBtn').textContent = 'connect strobe'; }
+async function dmxOpen(port){
+  dmx.type = $('dmxType').value;
+  const opts = dmx.type === 'pro' ? { baudRate: 57600 } : { baudRate: 250000, dataBits: 8, stopBits: 2, parity: 'none' };
+  try { await port.open(opts); } catch(e){ if (!/already open/i.test(e.message)) { $('dmxInfo').textContent = 'strobe: ' + e.message; return; } }
+  dmx.port = port; dmx.writer = port.writable.getWriter();
+  dmxSet(false); if (dmx.type === 'open') dmxOpenLoop();
+  $('dmxInfo').textContent = 'strobe: connected (' + (dmx.type === 'pro' ? 'DMX USB Pro' : 'Open DMX') + ')';
+  $('dmxBtn').textContent = 'disconnect strobe';
+}
+async function dmxToggle(){
+  if (!('serial' in navigator)){ $('dmxInfo').textContent = 'strobe: use Chrome or Edge on a computer'; return; }
+  if (dmx.port){ dmx.loop = false; try { dmxSet(false); await new Promise(r => setTimeout(r, 60)); dmx.writer.releaseLock(); await dmx.port.close(); } catch(e){} dmxLost(); return; }
+  try { const port = await navigator.serial.requestPort(); store.set('persona-dmxOn', '1'); dmxOpen(port); }
+  catch(e){ $('dmxInfo').textContent = 'strobe: no device chosen'; }
+}
+function strobeFlash(){
+  if (!dmx.writer) return;
+  dmxSet(true);
+  clearTimeout(dmx.offT); dmx.offT = setTimeout(() => dmxSet(false), +$('dmxLen').value);
+}
+$('dmxBtn').onclick = dmxToggle; $('dmxTest').onclick = strobeFlash;
+// in museo: se l'interfaccia era già stata scelta, si ricollega da sola all'avvio
+if ('serial' in navigator && store.get('persona-dmxOn') === '1')
+  navigator.serial.getPorts().then(ps => { if (ps[0]) dmxOpen(ps[0]); });
+if ('serial' in navigator) navigator.serial.addEventListener('connect', e => { if (!dmx.port && store.get('persona-dmxOn') === '1') dmxOpen(e.target); });
+addEventListener('beforeunload', () => { try { dmxSet(false); } catch(e){} });
 
 // --- interfaccia ---
 function fs(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
