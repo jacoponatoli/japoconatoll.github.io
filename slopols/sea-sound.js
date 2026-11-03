@@ -63,7 +63,6 @@
       o.detune.value = rnd(-12, 12); gg.gain.value = g * .08; o.connect(gg); gg.connect(humGain); o.start();
       setInterval(() => o.detune.setTargetAtTime(rnd(-25, 25), ctx.currentTime, 3), 7000 + Math.random() * 6000);
     });
-    humF._f = humF;
     setInterval(() => humF.frequency.setTargetAtTime(rnd(90, 900), ctx.currentTime, 4), 5000);
 
     try { list = await (await fetch(RAW + 'list.json?' + Date.now())).json(); } catch (e) { list = []; }
@@ -91,7 +90,9 @@
   async function tide() {
     if (!list.length) { setTimeout(tide, 20000); return; }
     let b, item;
-    try { item = pick(list); b = await buffer(item); } catch (e) { console.log('[slopols sound] tide', e.message); setTimeout(tide, 3000); return; }
+    const playing = new Set([...voices].map(v => v.item.file));
+    const choices = list.filter(c => !playing.has(c.file));
+    try { item = pick(choices.length ? choices : list); b = await buffer(item); } catch (e) { console.log('[slopols sound] tide', e.message); setTimeout(tide, 3000); return; }
     const now = ctx.currentTime, life = rnd(25, 70), fadeIn = rnd(4, 12), fadeOut = rnd(6, 14);
     const s = ctx.createBufferSource(); s.buffer = b; s.loop = true;
     s.loopStart = rnd(0, b.duration * .5); s.loopEnd = Math.min(b.duration, s.loopStart + rnd(8, b.duration));
@@ -101,7 +102,7 @@
     const p = ctx.createStereoPanner(); p.pan.value = rnd(-.6, .6);
     const g = ctx.createGain(); g.gain.value = 0;
     s.connect(f); f.connect(p); p.connect(g); g.connect(seaBus);
-    g.gain.setTargetAtTime(rnd(.45, .9), now, fadeIn / 3);
+    g.gain.setTargetAtTime(rnd(.6, 1), now, fadeIn / 3);
     s.start(now, s.loopStart);
     const v = { s, f, p, g, rate, b, item }; voices.add(v);
     const drift = setInterval(() => {                              // il mare si muove: filtro, spazio, velocità

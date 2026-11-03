@@ -24,7 +24,8 @@ GOOD = re.compile(r'\b(sea|seas|ocean|oceans|waves|surf|underwater|hydrophone|be
                   r'meer|wasser|wellen|olas|agua|marina|marine|porto|scogli\w*|rocks)\b', re.I)
 BAD = re.compile(r'(podcast|episode|edition|weekly|interview|news|music|song|melody|loop|sine|sitar|chill|album|track|'
                  r'remix|\bmix\b|#\s?\d|lecture|sermon|talk|audiobook|chapter|cast\b|radio show|meditation|relax|'
-                 r'piano|guitar|ambient music|isrc|feat\.|ft\.)', re.I)
+                 r'piano|guitar|ambient music|isrc|feat\.|ft\.|conversation|session|party|\bdub\b|\(with|baptism|church|show|'
+                 r'concert|band|lyrics|vocal|singing|choir|story|reading|poem)', re.I)
 def relevant(title): return bool(GOOD.search(title or '')) and not BAD.search(title or '')
 OK_LIC = re.compile(r'(cc[- ]?0|cc[- ]?by|creativecommons|public ?domain|publicdomain|pd)', re.I)
 
