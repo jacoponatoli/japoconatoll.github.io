@@ -34,7 +34,7 @@
     master.connect(comp); comp.connect(ctx.destination);
     master.gain.setTargetAtTime(0.9, ctx.currentTime, 4);      // entra piano
 
-    seaBus = ctx.createGain(); seaBus.gain.value = 1.3; seaBus.connect(master);
+    seaBus = ctx.createGain(); seaBus.connect(master);
     // bitcrusher: il mare a pochi bit e con pochi campioni
     const src = `class Crush extends AudioWorkletProcessor{
       static get parameterDescriptors(){return[{name:'bits',defaultValue:8,minValue:1,maxValue:16},{name:'down',defaultValue:6,minValue:1,maxValue:80}]}
@@ -58,13 +58,12 @@
     const humF = ctx.createBiquadFilter(); humF.type = 'bandpass'; humF.Q.value = 3; humF.frequency.value = 220;
     humGain.connect(humF); humF.connect(master); humF.connect(crushIn);
     const base = pick([43, 50, 55, 60, 73]);
-    // meno robotico: solo onde morbide, molto basse — un mormorio lontano, non un motore
-    [[1, 'sine', .5], [2.01, 'triangle', .12], [0.5, 'sine', .6]].forEach(([m, type, g]) => {
+    [[1, 'square', .5], [2.01, 'sawtooth', .3], [3.5, 'square', .15], [0.5, 'triangle', .6]].forEach(([m, type, g]) => {
       const o = ctx.createOscillator(), gg = ctx.createGain(); o.type = type; o.frequency.value = base * m;
       o.detune.value = rnd(-12, 12); gg.gain.value = g * .08; o.connect(gg); gg.connect(humGain); o.start();
       setInterval(() => o.detune.setTargetAtTime(rnd(-25, 25), ctx.currentTime, 3), 7000 + Math.random() * 6000);
     });
-    setInterval(() => humF.frequency.setTargetAtTime(rnd(80, 320), ctx.currentTime, 6), 7000);
+    setInterval(() => humF.frequency.setTargetAtTime(rnd(90, 900), ctx.currentTime, 4), 5000);
 
     try { list = await (await fetch(RAW + 'list.json?' + Date.now())).json(); } catch (e) { list = []; }
     setInterval(async () => { try { list = await (await fetch(RAW + 'list.json?' + Date.now())).json(); } catch (e) {} }, 30 * 60e3);
@@ -149,11 +148,11 @@
       x[i] = Math.round(h * q) / q * (1 - i / n);
     }
     const s = ctx.createBufferSource(); s.buffer = b; const g = ctx.createGain(); const p = ctx.createStereoPanner();
-    g.gain.value = rnd(.01, .04) * (force ? 1.4 : 1); p.pan.value = rnd(-1, 1);
+    g.gain.value = rnd(.03, .12) * (force ? 1.6 : 1); p.pan.value = rnd(-1, 1);
     s.connect(g); g.connect(p); p.connect(master); s.start(now);
   }
   function grains() {
-    const dens = ((noise(age() / 45 + 11) * .8 + .1) * grow() + trans * .4) * .2;   // granelli rari
+    const dens = ((noise(age() / 45 + 11) * .8 + .1) * grow() + trans * .9) * .7;   // un po' meno granelli
     if (!muted && Math.random() < dens) { grain(trans > 0); if (Math.random() < dens * .5) setTimeout(() => grain(trans > 0), rnd(20, 120)); }
     setTimeout(grains, rnd(60, 900) / Math.max(.3, dens * 3));
   }
@@ -161,15 +160,15 @@
   // --- deriva lenta di tutto: nessun minuto uguale a un altro ---
   function evolve() {
     const t = age(), now = ctx.currentTime, gr = grow();
-    const crushAmt = (.03 + .22 * noise(t / 80 + 1)) * gr;   // il gracchiare resta, più leggero
+    const crushAmt = (.05 + .45 * noise(t / 80 + 1)) * gr;
     if (!trans) {
       crushWet.gain.setTargetAtTime(crushAmt, now, 3);
       if (crush.parameters) {
-        crush.parameters.get('bits').setTargetAtTime(6 + 7 * noise(t / 50 + 5), now, 3);
+        crush.parameters.get('bits').setTargetAtTime(4 + 8 * noise(t / 50 + 5), now, 3);
         crush.parameters.get('down').setTargetAtTime(2 + 30 * noise(t / 70 + 9), now, 3);
       }
-      humGain.gain.setTargetAtTime((.1 + .5 * noise(t / 120 + 21)) * gr * .12, now, 8);
-      seaBus.gain.setTargetAtTime(1.3 - crushAmt * .4, now, 3);
+      humGain.gain.setTargetAtTime((.15 + .85 * noise(t / 120 + 21)) * gr * .5, now, 5);
+      seaBus.gain.setTargetAtTime(.9 - crushAmt * .5, now, 3);
     }
     setTimeout(evolve, 2000);
   }
@@ -179,21 +178,21 @@
     if (!ctx || muted) return;
     const dur = Math.max(1, (e.detail && e.detail.dur) || 4), now = ctx.currentTime, k = rnd(.5, 1);
     trans = 1;
-    crushWet.gain.setTargetAtTime(.2 + .2 * k, now, dur * .3);
+    crushWet.gain.setTargetAtTime(.5 + .4 * k, now, dur * .15);
     if (crush.parameters) {
-      crush.parameters.get('bits').setTargetAtTime(rnd(4, 7), now, dur * .3);
-      crush.parameters.get('down').setTargetAtTime(rnd(6, 25), now, dur * .3);
+      crush.parameters.get('bits').setTargetAtTime(rnd(2, 5), now, dur * .2);
+      crush.parameters.get('down').setTargetAtTime(rnd(15, 70), now, dur * .2);
     }
-    seaBus.gain.setTargetAtTime(.9, now, dur * .3);
-    humGain.gain.setTargetAtTime(.06, now, dur * .4);
+    seaBus.gain.setTargetAtTime(.35, now, dur * .2);
+    humGain.gain.setTargetAtTime(.55, now, dur * .2);
     voices.forEach(v => v.s.playbackRate.setTargetAtTime(v.rate * rnd(.45, .8), now, dur * .3));
-    if (Math.random() < .4) stutter(true);
+    if (Math.random() < .7) stutter(true);
     setTimeout(() => { if (Math.random() < .5) stutter(true); }, dur * 500);
   });
   addEventListener('slopols:hold', () => {
     if (!ctx) return; trans = 0;
     const now = ctx.currentTime;
-    seaBus.gain.setTargetAtTime(1.3, now, 1.5);
+    seaBus.gain.setTargetAtTime(.9, now, 1.5);
     voices.forEach(v => v.s.playbackRate.setTargetAtTime(v.rate, now, 1.5));
   });
 
