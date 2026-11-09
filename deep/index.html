@@ -385,6 +385,7 @@ uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig,uGh;
 uniform vec2 uRes;
 uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
 uniform vec4 uZA,uZB;   // where the sea is in each clip: centre, zoom, how much its pixels show
+uniform vec4 uMoon,uMoon2;   // moonlight on the water: amount, path centre, width, scale | speed, angle, density, tint
 uniform vec4 uZG,uGhA,uZA2,uSelf;   // transparencies: another sea fading out, and the same sea at another zoom
 uniform float uAspG;
 uniform vec4 uHL;       // the liquid veil while a clip is on screen: mode, amount, scale, speed
@@ -672,6 +673,25 @@ vec3 blendM(vec3 a,vec3 b,float m){
   if(m<3.5)return abs(a-b)*1.4;                      // difference
   if(m<4.5)return max(a,b);                          // lighten
   return a+b*.55;}                                   // add
+/* moonlight on moving water: a path of silver glints that tremble, stretched like reflections on waves */
+vec3 moonR(vec3 c,vec2 uv){
+  vec2 ar=vec2(uRes.x/uRes.y,1.),p=(uv-.5)*ar;
+  float an=uMoon2.y;p=mat2(cos(an),-sin(an),sin(an),cos(an))*p;
+  float w=uMoon.z*(1.+(.5-p.y)*1.4);                                  // the path widens towards the viewer
+  float band=exp(-pow((p.x-(uMoon.y-.5)*ar.x)/max(.02,w),2.));
+  float t=uTime*uMoon2.x,s=0.;
+  for(int k=0;k<3;k++){
+    float sc=uMoon.w*(1.+float(k)*.9);
+    vec2 q=vec2(p.x*sc*.45,p.y*sc*2.2+sin(p.x*sc*.3+t*.7+float(k))*.6);
+    vec2 id=floor(q),f=fract(q);float h=hash(id+float(k)*17.);
+    float tw=pow(.5+.5*sin(t*6.+h*60.),3.);
+    float d=length((f-.5)*vec2(.8,4.));
+    s+=step(1.-uMoon2.z,h)*tw*smoothstep(.45,0.,d);
+  }
+  vec3 mc=mix(vec3(.88,.92,1.),vec3(.62,.82,1.),uMoon2.w);
+  float lit=.8+lum(c);
+  return c+mc*(s*band*3.2*lit+band*.13)*uMoon.x;
+}
 vec3 holdR(vec2 uv){
   vec3 x;
   if(uHL.x>1.5)x=pflowR(0,vec4(mix(2.,9.,uHL.y),uHL.z,uHL.w,uHL.y*.08),uv);
@@ -700,6 +720,7 @@ void main(){
   }
   if(uMode>=0){
     if(uSelf.x>0.)c=mix(c,blendM(c,SAMP(uA,uv,uAspA,uZA2),uSelf.y),uSelf.x);
+    if(uMoon.x>0.)c=moonR(c,uv);
     if(uGhA.x>0.)c=mix(c,blendM(c,SAMP(uGh,uv,uAspG,uZG),uGhA.y),uGhA.x);
   }
   c+=(hash(uv*uRes+tfr()*1.7)-.5)*(.025+uAge*.06);
@@ -748,7 +769,7 @@ if(gl){
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
-     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMoon','uMoon2','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
     [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7],['uGh',8]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
@@ -977,6 +998,17 @@ function startTrans(now){
 /* the sea that leaves does not vanish at once: sometimes it stays over the next one as a transparency,
    at another zoom, fading for a while */
 let Gh=null;
+/* moonlight episodes: now and then a path of moon glints trembles on the water, then goes */
+let moon=null,moonNext=performance.now()+RR(Math.random,15000,45000);
+function moonAt(t){
+  if(!moon&&t>moonNext){const r=Math.random;
+    moon={t0:t,dur:RR(r,8000,26000),a:RR(r,.5,1.1),cx:RR(r,.25,.75),w:RR(r,.06,.28),sc:RR(r,14,40),sp:RR(r,.5,1.6),an:RR(r,-.25,.25),de:RR(r,.15,.38),ti:r(),dx:RR(r,-.04,.04)};}
+  if(!moon)return [[0,0,0,0],[0,0,0,0]];
+  const u=(t-moon.t0)/moon.dur;
+  if(u>=1){moon=null;moonNext=t+RR(Math.random,20000,80000)*(1.2-vnoise(epoch/30+8.8)*.6);return [[0,0,0,0],[0,0,0,0]];}
+  const env=Math.sin(Math.PI*u)**.7;
+  return [[moon.a*env,moon.cx+moon.dx*u,moon.w,moon.sc],[moon.sp,moon.an,moon.de,moon.ti]];
+}
 function ghostOf(cl,now){
   if(Gh)disposeClip(Gh);
   Gh=cl;Gh.gt0=now;Gh.gdur=RR(Math.random,5,18);Gh.ga=RR(Math.random,.25,.6);Gh.gm=PK(Math.random,[0,0,1,1,2,3,4,5]);
@@ -1003,6 +1035,7 @@ function render(mode,t,age){
   gl.uniform4fv(U.uZA2,A&&A.self?zoomOf(A,t,A.self):[.5,.5,1,0]);gl.uniform4fv(U.uSelf,A&&A.self?[A.self.a*(.75+.25*Math.sin(t/3100+A.self.zp)),A.self.m,0,0]:[0,0,0,0]);
   let ga=0;if(Gh){const u=(t-Gh.gt0)/1000/Gh.gdur;ga=Gh.ga*Math.max(0,1-u);if(u>=1){disposeClip(Gh);Gh=null;}}
   gl.activeTexture(gl.TEXTURE8);gl.bindTexture(gl.TEXTURE_2D,Gh&&Gh.ok?Gh.tex[Gh.cur]:BLACK);
+  const mo=moonAt(t);gl.uniform4fv(U.uMoon,mo[0]);gl.uniform4fv(U.uMoon2,mo[1]);
   gl.uniform4fv(U.uZG,Gh?zoomOf(Gh,t):[.5,.5,1,0]);gl.uniform1f(U.uAspG,asp(Gh));gl.uniform4fv(U.uGhA,Gh?[ga,Gh.gm,0,0]:[0,0,0,0]);
   gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
   gl.uniform1f(U.uG,PG);gl.uniform1f(U.uCell,cell);gl.uniform1f(U.uRS,RS);

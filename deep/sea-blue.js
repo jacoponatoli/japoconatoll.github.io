@@ -25,18 +25,21 @@ function layer(Z, OFF, P) {   // più livelli indipendenti di colore, ognuno con
     ['difference', .06, .2]
   ];
   // blu del mare: dal ciano dell'acqua bassa al blu notte dell'abisso
-  const blue = () => { const h = Math.random() < .25 ? rnd(160, 186) : rnd(186, 232), s = rnd(45, 100), l = rnd(14, 55); return [h, s, l]; };
+  // gamma più ampia: dal verde acqua al blu oltremare e al viola dell'abisso, dal quasi nero all'azzurro chiaro
+  const blue = () => { const r = Math.random(), h = r < .2 ? rnd(165, 188) : r < .85 ? rnd(188, 235) : rnd(235, 252), s = rnd(30, 100), l = rnd(8, 72); return [h, s, l]; };
   const hsl = ([h, s, l], dl = 0) => `hsl(${h.toFixed(0)} ${s.toFixed(0)}% ${Math.max(3, l + dl).toFixed(0)}%)`;
 
   let mode = 'soft-light', timer = 0, drift = 0;
   function background(c) {
     const r = Math.random();
-    if (r < .45) return hsl(c);
-    if (r < .8) {                                          // gradiente: verso il fondo più scuro, come la profondità
-      const c2 = [c[0] + rnd(-18, 18), c[1], c[2]];
-      return `linear-gradient(${rnd(150, 210).toFixed(0)}deg, ${hsl(c, rnd(5, 20))}, ${hsl(c2, -rnd(10, 30))})`;
-    }
-    return `radial-gradient(ellipse at ${rnd(20, 80).toFixed(0)}% ${rnd(10, 60).toFixed(0)}%, ${hsl(c, 15)}, ${hsl(c, -25)})`;
+    if (r < .3) return hsl(c);
+    const stops = n => Array.from({ length: n }, (_, i) => {   // più passaggi: dall'azzurro di superficie al blu del fondo
+      const k = i / (n - 1), cc = [c[0] + rnd(-22, 22), Math.min(100, Math.max(25, c[1] + rnd(-25, 20))), c[2]];
+      return `${hsl(cc, 22 - k * 50 + rnd(-6, 6))} ${(k * 100 + (i && i < n - 1 ? rnd(-8, 8) : 0)).toFixed(0)}%`; }).join(', ');
+    if (r < .72) return `linear-gradient(${rnd(140, 220).toFixed(0)}deg, ${stops(Math.floor(rnd(3, 6)))})`;
+    if (r < .88) return `radial-gradient(ellipse at ${rnd(15, 85).toFixed(0)}% ${rnd(5, 60).toFixed(0)}%, ${stops(Math.floor(rnd(3, 5)))})`;
+    return `radial-gradient(ellipse at ${rnd(10, 90).toFixed(0)}% ${rnd(0, 40).toFixed(0)}%, ${hsl([c[0] + 15, c[1], c[2]], 25)} 0%, transparent 55%), ` +
+           `linear-gradient(${rnd(160, 200).toFixed(0)}deg, ${stops(4)})`;     // una luce d'acqua sopra la profondità
   }
   function set(opacity, secs) { d.style.transition = `opacity ${secs}s ease-in-out, background ${Math.max(secs, 3)}s ease`; d.style.opacity = opacity; }
 
