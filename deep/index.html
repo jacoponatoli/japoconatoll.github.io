@@ -381,10 +381,12 @@ void main(){o=texture(t,vUv);}`;
 const FS=`#version 300 es
 precision highp float;
 in vec2 vUv;out vec4 o;
-uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig,uGh;
+uniform sampler2D uA,uAo,uB,uBo,uPrev,uPA,uPB,uDig,uGh,uL1,uL2;
 uniform vec2 uRes;
 uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
 uniform vec4 uZA,uZB;   // where the sea is in each clip: centre, zoom, how much its pixels show
+uniform vec4 uZL1,uZL2,uL1a,uL2a;   // parallel seas flowing over the main one: zoom | alpha, blend, mirrored, ripple
+uniform float uAspL1,uAspL2;
 uniform vec4 uMoon,uMoon2;   // moonlight on the water: amount, path centre, width, scale | speed, angle, density, tint
 uniform vec4 uZG,uGhA,uZA2,uSelf;   // transparencies: another sea fading out, and the same sea at another zoom
 uniform float uAspG;
@@ -692,6 +694,10 @@ vec3 moonR(vec3 c,vec2 uv){
   float lit=.8+lum(c);
   return c+mc*(s*band*3.2*lit+band*.13)*uMoon.x;
 }
+vec3 layerS(sampler2D s,vec2 uv,float asp,vec4 z,vec4 a){     // a.z: seen as a reflection, upside down and rippling
+  vec2 u=uv;
+  if(a.z>.5){u.y=1.-u.y;u.x+=sin(u.y*55.+uTime*1.7)*.005*a.w;u.y+=sin(u.x*38.+uTime*1.1)*.004*a.w;}
+  return SAMP(s,u,asp,z);}
 vec3 holdR(vec2 uv){
   vec3 x;
   if(uHL.x>1.5)x=pflowR(0,vec4(mix(2.,9.,uHL.y),uHL.z,uHL.w,uHL.y*.08),uv);
@@ -720,6 +726,8 @@ void main(){
   }
   if(uMode>=0){
     if(uSelf.x>0.)c=mix(c,blendM(c,SAMP(uA,uv,uAspA,uZA2),uSelf.y),uSelf.x);
+    if(uL1a.x>0.)c=mix(c,blendM(c,layerS(uL1,uv,uAspL1,uZL1,uL1a),uL1a.y),uL1a.x);
+    if(uL2a.x>0.)c=mix(c,blendM(c,layerS(uL2,uv,uAspL2,uZL2,uL2a),uL2a.y),uL2a.x);
     if(uMoon.x>0.)c=moonR(c,uv);
     if(uGhA.x>0.)c=mix(c,blendM(c,SAMP(uGh,uv,uAspG,uZG),uGhA.y),uGhA.x);
   }
@@ -769,9 +777,9 @@ if(gl){
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
-     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMoon','uMoon2','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMoon','uMoon2','uL1','uL2','uZL1','uZL2','uL1a','uL2a','uAspL1','uAspL2','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
-    [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7],['uGh',8]].forEach(([n,i])=>gl.uniform1i(U[n],i));
+    [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7],['uGh',8],['uL1',9],['uL2',10]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
     BLACK=mkTex(false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));
     DIG=digitTex();
@@ -998,6 +1006,26 @@ function startTrans(now){
 /* the sea that leaves does not vanish at once: sometimes it stays over the next one as a transparency,
    at another zoom, fading for a while */
 let Gh=null;
+/* parallel seas: one, sometimes two more clips flow over the main one, each with its own zoom and transparency,
+   sometimes upside down and rippling like a reflection on the water. On phones only one, to spare them. */
+const LY=[null,null],layerNext=[performance.now()+RR(Math.random,8000,25000),performance.now()+RR(Math.random,30000,70000)],layerBusy=[false,false];
+const NLAY=(innerWidth<700||/Mobi/i.test(navigator.userAgent))?1:2;
+async function layerTick(t){
+  for(let i=0;i<NLAY;i++){
+    if(LY[i]||layerBusy[i]||t<layerNext[i]||phase==='wait')continue;
+    if(i===1&&!LY[0]){layerNext[1]=t+RR(Math.random,5000,20000);continue;}      // the third sea only over the second
+    const cand=[...fresh,...pool].filter(x=>x.k!=='acqua'||Math.random()<.3);if(!cand.length)continue;
+    const it=cand[Math.floor(Math.random()*cand.length)];take(it);layerBusy[i]=true;
+    const v=mkVideo(it.src);let ok=await waitReady(v,12000);
+    if(!ok&&it.alt){v.src=it.alt;ok=await waitReady(v,12000);}
+    layerBusy[i]=false;
+    if(!ok||!v.videoWidth){v.remove();pool.push(it);layerNext[i]=performance.now()+5000;continue;}
+    const L=makeClip({v,it,link:{rule:'strato'}});
+    Object.assign(L,{t0:performance.now(),dur:RR(Math.random,10000,35000),la:RR(Math.random,.2,.5)*(i?.8:1),
+      lm:PK(Math.random,[0,0,1,1,2,4,5]),mir:Math.random()<.3?1:0,rip:RR(Math.random,.5,2)});
+    LY[i]=L;
+  }
+}
 /* moonlight episodes: now and then a path of moon glints trembles on the water, then goes */
 let moon=null,moonNext=performance.now()+RR(Math.random,15000,45000);
 function moonAt(t){
@@ -1035,6 +1063,11 @@ function render(mode,t,age){
   gl.uniform4fv(U.uZA2,A&&A.self?zoomOf(A,t,A.self):[.5,.5,1,0]);gl.uniform4fv(U.uSelf,A&&A.self?[A.self.a*(.75+.25*Math.sin(t/3100+A.self.zp)),A.self.m,0,0]:[0,0,0,0]);
   let ga=0;if(Gh){const u=(t-Gh.gt0)/1000/Gh.gdur;ga=Gh.ga*Math.max(0,1-u);if(u>=1){disposeClip(Gh);Gh=null;}}
   gl.activeTexture(gl.TEXTURE8);gl.bindTexture(gl.TEXTURE_2D,Gh&&Gh.ok?Gh.tex[Gh.cur]:BLACK);
+  for(let i=0;i<2;i++){const L=LY[i],u=i?'2':'1';let a=[0,0,0,0];
+    if(L&&L.ok){const k=(t-L.t0)/L.dur;if(k>=1){disposeClip(L);LY[i]=null;layerNext[i]=t+RR(Math.random,6000,40000);}
+      else a=[L.la*Math.pow(Math.sin(Math.PI*k),.6),L.lm,L.mir,L.rip];}
+    gl.activeTexture(gl.TEXTURE9+i);gl.bindTexture(gl.TEXTURE_2D,LY[i]&&LY[i].ok?LY[i].tex[LY[i].cur]:BLACK);
+    gl.uniform4fv(U['uZL'+u],LY[i]?zoomOf(LY[i],t):[.5,.5,1,0]);gl.uniform1f(U['uAspL'+u],asp(LY[i]));gl.uniform4fv(U['uL'+u+'a'],a);}
   const mo=moonAt(t);gl.uniform4fv(U.uMoon,mo[0]);gl.uniform4fv(U.uMoon2,mo[1]);
   gl.uniform4fv(U.uZG,Gh?zoomOf(Gh,t):[.5,.5,1,0]);gl.uniform1f(U.uAspG,asp(Gh));gl.uniform4fv(U.uGhA,Gh?[ga,Gh.gm,0,0]:[0,0,0,0]);
   gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
@@ -1071,9 +1104,9 @@ function loop(t){
     if(Bc&&Bc.bad){disposeClip(Bc);Bc=null;phase=A?'hold':'wait';pt0=t;pdur=0;}
     else{uT=Math.min(1,(t-pt0)/1000/pdur);if(uT>=1){endTrans(t);uT=0;}}
   }
-  if(frameN%30===0){prepare();watch(A,t);watch(Bc,t);if(Gh&&Gh.v.paused)Gh.v.play().catch(()=>{});}
+  if(frameN%30===0){prepare();watch(A,t);watch(Bc,t);if(Gh&&Gh.v.paused)Gh.v.play().catch(()=>{});layerTick(t);LY.forEach(L=>{if(L&&L.v.paused)L.v.play().catch(()=>{});});}
   if(GL){
-    if(A)upload(A);if(Bc)upload(Bc);if(Gh)upload(Gh);
+    if(A)upload(A);if(Bc)upload(Bc);if(Gh)upload(Gh);if(LY[0])upload(LY[0]);if(LY[1])upload(LY[1]);
     if(phase==='trans')setHop(uT);
     const age=A?Math.min(1,A.age+(phase==='hold'?Math.max(0,(t-pt0)/1000-pdur)/20:0)):0;
     render(phase==='wait'?-1:phase==='hold'?0:1,t,age);
