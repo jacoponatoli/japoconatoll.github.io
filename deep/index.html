@@ -387,6 +387,7 @@ uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
 uniform vec4 uZA,uZB;   // where the sea is in each clip: centre, zoom, how much its pixels show
 uniform vec4 uZL1,uZL2,uL1a,uL2a;   // parallel seas flowing over the main one: zoom | alpha, blend, mirrored, ripple
 uniform float uAspL1,uAspL2;
+uniform vec4 uRa[3],uRp[3],uRq[3];   // water reflections: type, alpha, seed, blend | scale, speed, angle, width | x, y, tint, shape
 uniform vec4 uMoon,uMoon2,uMoon3;   // ... | wave frequency, wave height, glint length, path curvature   // moonlight on the water: amount, path centre, width, scale | speed, angle, density, tint
 uniform vec4 uZG,uGhA,uZA2,uSelf;   // transparencies: another sea fading out, and the same sea at another zoom
 uniform float uAspG;
@@ -698,6 +699,53 @@ vec3 layerS(sampler2D s,vec2 uv,float asp,vec4 z,vec4 a){     // a.z: seen as a 
   vec2 u=uv;
   if(a.z>.5){u.y=1.-u.y;u.x+=sin(u.y*55.+uTime*1.7)*.005*a.w;u.y+=sin(u.x*38.+uTime*1.1)*.004*a.w;}
   return SAMP(s,u,asp,z);}
+/* ===== WATER REFLECTIONS: lakes, rivers, rain, lights — each one a genome ===== */
+mat2 rot2(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
+vec3 tintC(float k){return mix(mix(vec3(.75,.95,1.),vec3(.45,.75,1.),k),vec3(1.,.85,.6),step(.85,k));}
+vec3 refl(vec3 c,vec2 uv,int ty,vec4 a,vec4 p,vec4 q){
+  vec2 ar=vec2(uRes.x/uRes.y,1.);float t=uTime*p.y,al=a.y;vec3 tc=tintC(q.z);
+  if(ty==1){                                   // caustics: the light net on a shallow bottom
+    vec2 z=rot2(p.z)*(uv*ar*p.x*.35)+a.z;vec2 pp=mod(z*6.28318,6.28318)-250.,i=pp;float cc=1.;
+    for(int n=0;n<4;n++){float tt=t*(1.-3.5/float(n+1))+23.;i=pp+vec2(cos(tt-i.x)+sin(tt+i.y),sin(tt-i.y)+cos(tt+i.x));
+      cc+=1./length(vec2(pp.x/(sin(i.x+tt)/.005),pp.y/(cos(i.y+tt)/.005)));}
+    cc/=4.;cc=1.17-pow(cc,1.4);float l=clamp(pow(abs(cc),7.+q.w*4.),0.,1.);
+    return c+tc*l*al*.8;
+  }
+  if(ty==2){                                   // a lake mirrors the frame: the image folded on a horizon, rippling
+    float h=q.y;bool vert=q.w>.5;float d=vert?uv.x-h:h-uv.y;
+    if(d<0.)return c;
+    vec2 m=vert?vec2(2.*h-uv.x,uv.y):vec2(uv.x,2.*h-uv.y);
+    m+=vec2(sin(uv.y*p.x*9.+t*2.)*.006+noise(uv*p.x*3.+t)*.01,sin(uv.x*p.x*7.-t*1.6)*.004)*p.w*6.;
+    vec3 r=S(0,clamp(m,0.,1.),1.)*mix(vec3(.55,.7,.85),tc,.4);
+    return mix(c,blendM(c,r,a.w),al*smoothstep(0.,.08,d)*(1.-d*.6));
+  }
+  if(ty==3){                                   // a river: light carried by the current in long streaks
+    vec2 z=rot2(p.z)*(uv*ar);z=vec2(z.x*p.x*.25-t,z.y*p.x*3.);
+    float n=noise(z+a.z)*.6+noise(z*2.1+a.z*3.)*.4;
+    float l=smoothstep(.62-p.w*.2,.95,n);
+    return c+tc*l*al*(.5+lum(c));
+  }
+  if(ty==4){                                   // rain on a pond: rings that open and bend the picture
+    vec2 off=vec2(0.);float hl=0.;
+    for(int j=0;j<4;j++){float tp=t*.35+float(j)*.29+a.z,cy=floor(tp),ph=fract(tp);
+      vec2 ct=hash2(vec2(cy,float(j)+a.z*7.));vec2 dv=(uv-ct)*ar;float r=length(dv),rr=ph*(.3+p.w);
+      float w=sin((r-rr)*p.x*6.)*exp(-abs(r-rr)*14.)*(1.-ph);off+=normalize(dv+1e-4)*w;hl+=max(0.,w);}
+    vec3 col=S(0,uv+off*.012,0.)+tc*hl*.35;
+    return mix(c,col,al);
+  }
+  if(ty==5){                                   // slow sheen: broad soft highlights rolling over still water
+    vec2 z=rot2(p.z)*(uv*ar);
+    float b=pow(.5+.5*sin(z.y*p.x*2.+noise(z*2.+a.z)*3.*p.w-t),4.+q.w*10.);
+    return c+tc*b*al*.4;
+  }
+  // 6: lights on the water at night, stretched and wobbling
+  vec2 z=uv*ar*vec2(p.x*1.5+3.,1.);float wob=sin(uv.y*40.*p.w+t*2.)*.15;
+  vec2 id=floor(vec2(z.x+wob,0.)),f=fract(vec2(z.x+wob,uv.y*p.x*.2));
+  float h=hash(id+a.z),on=step(.3,h);
+  vec3 lc=mix(tc,.5+.5*cos(6.283*(h+vec3(0.,.33,.67))),.35);
+  float g=exp(-pow((f.x-.5)*6.,2.))*smoothstep(q.y-.2,q.y+.4,1.-uv.y)*(.6+.4*noise(vec2(id.x,uv.y*30.-t*2.)));
+  return c+lc*g*on*al*.7;
+}
 vec3 holdR(vec2 uv){
   vec3 x;
   if(uHL.x>1.5)x=pflowR(0,vec4(mix(2.,9.,uHL.y),uHL.z,uHL.w,uHL.y*.08),uv);
@@ -728,6 +776,7 @@ void main(){
     if(uSelf.x>0.)c=mix(c,blendM(c,SAMP(uA,uv,uAspA,uZA2),uSelf.y),uSelf.x);
     if(uL1a.x>0.)c=mix(c,blendM(c,layerS(uL1,uv,uAspL1,uZL1,uL1a),uL1a.y),uL1a.x);
     if(uL2a.x>0.)c=mix(c,blendM(c,layerS(uL2,uv,uAspL2,uZL2,uL2a),uL2a.y),uL2a.x);
+    for(int i=0;i<3;i++){if(uRa[i].y>0.)c=refl(c,uv,int(uRa[i].x),uRa[i],uRp[i],uRq[i]);}
     if(uMoon.x>0.)c=moonR(c,uv);
     if(uGhA.x>0.)c=mix(c,blendM(c,SAMP(uGh,uv,uAspG,uZG),uGhA.y),uGhA.x);
   }
@@ -777,7 +826,7 @@ if(gl){
     gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     ['uA','uAo','uB','uBo','uPrev','uPA','uPB','uDig','uRes','uAspA','uAspB','uTime','uSeed','uAge','uG','uP','uW','uFb','uCell','uRS',
-     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMoon','uMoon2','uMoon3','uL1','uL2','uZL1','uZL2','uL1a','uL2a','uAspL1','uAspL2','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
+     'uZA','uZB','uHL','uGh','uZG','uGhA','uZA2','uSelf','uAspG','uMoon','uMoon2','uMoon3','uRa','uRp','uRq','uL1','uL2','uZL1','uZL2','uL1a','uL2a','uAspL1','uAspL2','uMode','uR0','uC0','uR1','uC1','uMask','uEdge','uQ0','uQ1','uMq','uPal'].forEach(n=>U[n]=gl.getUniformLocation(PR,n));
     gl.useProgram(PR);
     [['uA',0],['uAo',1],['uB',2],['uBo',3],['uPrev',4],['uPA',5],['uPB',6],['uDig',7],['uGh',8],['uL1',9],['uL2',10]].forEach(([n,i])=>gl.uniform1i(U[n],i));
     gl.useProgram(PC);gl.uniform1i(gl.getUniformLocation(PC,'t'),0);
@@ -1029,6 +1078,38 @@ async function layerTick(t){
 /* moonlight episodes: now and then a path of moon glints trembles on the water, then goes */
 /* the moon is rare (every few minutes) and never the same: each apparition is born by mutating the last one,
    so its zoom, waves, glints and path keep drifting — generative like the transitions */
+/* water reflections are genomes too: a small population that crosses and mutates; up to three live at once,
+   overlapping and intertwining, fading in and out, never the same. Types: 1 caustics, 2 lake mirror,
+   3 river streaks, 4 rain rings, 5 slow sheen, 6 lights on the water. */
+const RFR={sc:[.6,9],sp:[.05,1.4],an:[-1.6,1.6],w:[.05,1],x:[0,1],y:[.25,.85],ti:[0,1],sh:[0,1],al:[.15,.75],dur:[12000,45000]};
+const RFTW={1:1,2:1.3,3:1.1,4:1,5:.9,6:.7};
+function rfRand(){const g={ty:+pickW(Math.random,[0,...Object.values(RFTW)]),bl:PK(Math.random,[0,1,4,5]),seed:Math.random()*50};
+  for(const k in RFR)g[k]=RR(Math.random,...RFR[k]);return g;}
+const RFP=Array.from({length:8},rfRand);
+function rfChild(){
+  const r=Math.random,a=RFP[Math.floor(r()*RFP.length)],b=RFP[Math.floor(r()*RFP.length)],c={};
+  for(const k in a)c[k]=r()<.5?a[k]:b[k];                               // crossover: the two parents intertwine
+  for(const k in RFR)if(r()<.4){const [lo,hi]=RFR[k];c[k]=r()<.12?RR(r,lo,hi):Math.min(hi,Math.max(lo,c[k]+(r()-.5)*(hi-lo)*.4));}
+  if(r()<.12)c.ty=+pickW(r,[0,...Object.values(RFTW)]);
+  if(r()<.2)c.bl=PK(r,[0,1,4,5]);c.seed=r()*50;
+  RFP[Math.floor(r()*RFP.length)]=JSON.parse(JSON.stringify(c));       // the child joins the population
+  return c;
+}
+const RS3=[null,null,null],rfNext=[performance.now()+RR(Math.random,3000,9000),performance.now()+RR(Math.random,15000,40000),performance.now()+RR(Math.random,40000,90000)];
+function reflAt(t){
+  const A4=new Float32Array(12),P4=new Float32Array(12),Q4=new Float32Array(12);
+  const dens=.5+.5*vnoise(epoch/20+5.5);                                 // how crowded the water is drifts over time
+  for(let i=0;i<3;i++){
+    let g=RS3[i];
+    if(!g&&t>rfNext[i]){g=RS3[i]=Object.assign(rfChild(),{t0:t});}
+    if(!g)continue;
+    const u=(t-g.t0)/g.dur;
+    if(u>=1){RS3[i]=null;rfNext[i]=t+RR(Math.random,1000,[6000,30000,70000][i])/dens;continue;}
+    const env=Math.pow(Math.sin(Math.PI*u),.8);
+    A4.set([g.ty,g.al*env,g.seed,g.bl],i*4);P4.set([g.sc,g.sp,g.an+.3*Math.sin(u*2.7),g.w],i*4);Q4.set([g.x,g.y,g.ti,g.sh],i*4);
+  }
+  return [A4,P4,Q4];
+}
 const MOONR={a:[.45,1.1],cx:[.15,.85],w:[.04,.4],sc:[5,80],sp:[.25,2.2],an:[-.6,.6],de:[.1,.42],ti:[0,1],wf:[.3,3.5],wa:[0,2.2],gl:[.4,3.5],cu:[-1.2,1.2],dur:[7000,30000]};
 let moonG=null,moon=null,moonNext=performance.now()+RR(Math.random,90000,180000);
 function moonGene(){
@@ -1078,6 +1159,7 @@ function render(mode,t,age){
       else a=[L.la*Math.pow(Math.sin(Math.PI*k),.6),L.lm,L.mir,L.rip];}
     gl.activeTexture(gl.TEXTURE9+i);gl.bindTexture(gl.TEXTURE_2D,LY[i]&&LY[i].ok?LY[i].tex[LY[i].cur]:BLACK);
     gl.uniform4fv(U['uZL'+u],LY[i]?zoomOf(LY[i],t):[.5,.5,1,0]);gl.uniform1f(U['uAspL'+u],asp(LY[i]));gl.uniform4fv(U['uL'+u+'a'],a);}
+  const rf=reflAt(t);gl.uniform4fv(U.uRa,rf[0]);gl.uniform4fv(U.uRp,rf[1]);gl.uniform4fv(U.uRq,rf[2]);
   const mo=moonAt(t);gl.uniform4fv(U.uMoon,mo[0]);gl.uniform4fv(U.uMoon2,mo[1]);gl.uniform4fv(U.uMoon3,mo[2]);
   gl.uniform4fv(U.uZG,Gh?zoomOf(Gh,t):[.5,.5,1,0]);gl.uniform1f(U.uAspG,asp(Gh));gl.uniform4fv(U.uGhA,Gh?[ga,Gh.gm,0,0]:[0,0,0,0]);
   gl.uniform1f(U.uTime,(t/1000)%1000);gl.uniform1f(U.uSeed,seed);gl.uniform1f(U.uAge,age);
