@@ -387,7 +387,7 @@ uniform float uAspA,uAspB,uTime,uSeed,uAge,uG,uP,uW,uFb,uCell,uRS;
 uniform vec4 uZA,uZB;   // where the sea is in each clip: centre, zoom, how much its pixels show
 uniform vec4 uZL1,uZL2,uL1a,uL2a;   // parallel seas flowing over the main one: zoom | alpha, blend, mirrored, ripple
 uniform float uAspL1,uAspL2;
-uniform vec4 uRa[3],uRp[3],uRq[3];   // water reflections: type, alpha, seed, blend | scale, speed, angle, width | x, y, tint, shape
+uniform vec4 uRa[4],uRp[4],uRq[4];   // water reflections: type, alpha, seed, blend | scale, speed, angle, width | x, y, tint, shape
 uniform vec4 uMoon,uMoon2,uMoon3;   // ... | wave frequency, wave height, glint length, path curvature   // moonlight on the water: amount, path centre, width, scale | speed, angle, density, tint
 uniform vec4 uZG,uGhA,uZA2,uSelf;   // transparencies: another sea fading out, and the same sea at another zoom
 uniform float uAspG;
@@ -738,6 +738,19 @@ vec3 refl(vec3 c,vec2 uv,int ty,vec4 a,vec4 p,vec4 q){
     float b=pow(.5+.5*sin(z.y*p.x*2.+noise(z*2.+a.z)*3.*p.w-t),4.+q.w*10.);
     return c+tc*b*al*.4;
   }
+  if(ty==7){                                   // a sea drawn by hand: a small patch of boiling ink waves, barely there
+    vec2 z=(uv-q.xy)*ar;float m=smoothstep(p.w,p.w*.3,length(z*vec2(1.,1.5)));
+    if(m<=0.)return c;
+    float st=floor(uTime*(5.+q.w*8.));                                  // drawn on few frames: the line boils
+    z=rot2(p.z*.4)*(z+(hash2(vec2(st,a.z))-.5)*.004)*p.x*7.;
+    float row=floor(z.y),yy=fract(z.y),ph=hash(vec2(row,a.z))*6.28;
+    float wv=.32*sin(z.x*(.8+hash(vec2(row,3.)))+ph+t)+.12*sin(z.x*3.1-t*1.3+ph)+.06*sin(z.x*7.+st);
+    float d=abs(yy-.5-wv),th=.025+.035*hash(vec2(row,st));
+    float ln=smoothstep(th,th*.3,d)*step(.3,hash(vec2(floor(z.x*.6+row*1.7),row+a.z)));
+    float curl=smoothstep(.06,.02,abs(length(fract(z*vec2(.5,1.))-.5)-.22))*step(.82,hash(floor(z*vec2(.5,1.))+a.z))*.7;
+    vec3 ink=a.w>2.5?vec3(.05,.12,.25):mix(vec3(1.),tc,.45);
+    return mix(c,ink,clamp(ln+curl,0.,1.)*al*m);
+  }
   // 6: lights on the water at night, stretched and wobbling
   vec2 z=uv*ar*vec2(p.x*1.5+3.,1.);float wob=sin(uv.y*40.*p.w+t*2.)*.15;
   vec2 id=floor(vec2(z.x+wob,0.)),f=fract(vec2(z.x+wob,uv.y*p.x*.2));
@@ -776,7 +789,7 @@ void main(){
     if(uSelf.x>0.)c=mix(c,blendM(c,SAMP(uA,uv,uAspA,uZA2),uSelf.y),uSelf.x);
     if(uL1a.x>0.)c=mix(c,blendM(c,layerS(uL1,uv,uAspL1,uZL1,uL1a),uL1a.y),uL1a.x);
     if(uL2a.x>0.)c=mix(c,blendM(c,layerS(uL2,uv,uAspL2,uZL2,uL2a),uL2a.y),uL2a.x);
-    for(int i=0;i<3;i++){if(uRa[i].y>0.)c=refl(c,uv,int(uRa[i].x),uRa[i],uRp[i],uRq[i]);}
+    for(int i=0;i<4;i++){if(uRa[i].y>0.)c=refl(c,uv,int(uRa[i].x),uRa[i],uRp[i],uRq[i]);}
     if(uMoon.x>0.)c=moonR(c,uv);
     if(uGhA.x>0.)c=mix(c,blendM(c,SAMP(uGh,uv,uAspG,uZG),uGhA.y),uGhA.x);
   }
@@ -1081,32 +1094,43 @@ async function layerTick(t){
 /* water reflections are genomes too: a small population that crosses and mutates; up to three live at once,
    overlapping and intertwining, fading in and out, never the same. Types: 1 caustics, 2 lake mirror,
    3 river streaks, 4 rain rings, 5 slow sheen, 6 lights on the water. */
-const RFR={sc:[.6,9],sp:[.05,1.4],an:[-1.6,1.6],w:[.05,1],x:[0,1],y:[.25,.85],ti:[0,1],sh:[0,1],al:[.15,.75],dur:[12000,45000]};
-const RFTW={1:1,2:1.3,3:1.1,4:1,5:.9,6:.7};
+const RFR={sc:[.6,9],sp:[.05,1.4],an:[-1.6,1.6],w:[.05,1],x:[0,1],y:[.25,.85],ti:[0,1],sh:[0,1],al:[.08,.45],dur:[12000,45000]};   // more transparent
+const RFTW={1:1,2:1.2,3:1.1,4:.45,5:.9,6:.7};
+/* the drawn sea: tiny, faint, short-lived, many — its own genes */
+const DRR={sc:[.6,3.5],sp:[.2,1.6],an:[-1,1],w:[.06,.3],x:[.08,.92],y:[.1,.9],ti:[0,1],sh:[0,1],al:[.08,.32],dur:[5000,18000]};
+const DRP=Array.from({length:8},()=>{const g={ty:7,bl:Math.random()<.2?3:0,seed:Math.random()*50};for(const k in DRR)g[k]=RR(Math.random,...DRR[k]);return g;});
+let rfRecent=[];
 function rfRand(){const g={ty:+pickW(Math.random,[0,...Object.values(RFTW)]),bl:PK(Math.random,[0,1,4,5]),seed:Math.random()*50};
   for(const k in RFR)g[k]=RR(Math.random,...RFR[k]);return g;}
 const RFP=Array.from({length:8},rfRand);
-function rfChild(){
-  const r=Math.random,a=RFP[Math.floor(r()*RFP.length)],b=RFP[Math.floor(r()*RFP.length)],c={};
+function rfChild(drawn){
+  const r=Math.random,P=drawn?DRP:RFP,RG=drawn?DRR:RFR,a=P[Math.floor(r()*P.length)],b=P[Math.floor(r()*P.length)],c={};
   for(const k in a)c[k]=r()<.5?a[k]:b[k];                               // crossover: the two parents intertwine
-  for(const k in RFR)if(r()<.4){const [lo,hi]=RFR[k];c[k]=r()<.12?RR(r,lo,hi):Math.min(hi,Math.max(lo,c[k]+(r()-.5)*(hi-lo)*.4));}
-  if(r()<.12)c.ty=+pickW(r,[0,...Object.values(RFTW)]);
-  if(r()<.2)c.bl=PK(r,[0,1,4,5]);c.seed=r()*50;
-  RFP[Math.floor(r()*RFP.length)]=JSON.parse(JSON.stringify(c));       // the child joins the population
+  for(const k in RG)if(r()<.5){const [lo,hi]=RG[k];c[k]=r()<.2?RR(r,lo,hi):Math.min(hi,Math.max(lo,c[k]+(r()-.5)*(hi-lo)*.5));}
+  if(!drawn){
+    // never the same kind twice in a row, nor two of a kind at once: the least recent kinds are favoured
+    const busy=RS3.filter(Boolean).map(g=>g.ty),w=[0,...Object.entries(RFTW).map(([t,v])=>
+      busy.includes(+t)?0:v*(rfRecent.includes(+t)?.08+.25*rfRecent.indexOf(+t)/4:1))];
+    if(r()<.15||busy.includes(c.ty)||rfRecent.slice(-3).includes(c.ty))c.ty=+pickW(r,w);
+    rfRecent.push(c.ty);if(rfRecent.length>4)rfRecent.shift();
+    if(r()<.25)c.bl=PK(r,[0,1,4,5]);
+  }else c.bl=r()<.2?3:0;
+  c.seed=r()*50;
+  P[Math.floor(r()*P.length)]=JSON.parse(JSON.stringify(c));            // the child joins the population
   return c;
 }
-const RS3=[null,null,null],rfNext=[performance.now()+RR(Math.random,3000,9000),performance.now()+RR(Math.random,15000,40000),performance.now()+RR(Math.random,40000,90000)];
+const RS3=[null,null,null,null],rfNext=[performance.now()+RR(Math.random,3000,9000),performance.now()+RR(Math.random,15000,40000),performance.now()+RR(Math.random,40000,90000),performance.now()+RR(Math.random,2000,8000)];
 function reflAt(t){
-  const A4=new Float32Array(12),P4=new Float32Array(12),Q4=new Float32Array(12);
+  const A4=new Float32Array(16),P4=new Float32Array(16),Q4=new Float32Array(16);
   const dens=.5+.5*vnoise(epoch/20+5.5);                                 // how crowded the water is drifts over time
-  for(let i=0;i<3;i++){
+  for(let i=0;i<4;i++){
     let g=RS3[i];
-    if(!g&&t>rfNext[i]){g=RS3[i]=Object.assign(rfChild(),{t0:t});}
+    if(!g&&t>rfNext[i]){g=RS3[i]=Object.assign(rfChild(i===3),{t0:t,dx:RR(Math.random,-.06,.06),dy:RR(Math.random,-.04,.04)});}
     if(!g)continue;
     const u=(t-g.t0)/g.dur;
-    if(u>=1){RS3[i]=null;rfNext[i]=t+RR(Math.random,1000,[6000,30000,70000][i])/dens;continue;}
+    if(u>=1){RS3[i]=null;rfNext[i]=t+RR(Math.random,i===3?500:1000,[6000,30000,70000,9000][i])/dens;continue;}
     const env=Math.pow(Math.sin(Math.PI*u),.8);
-    A4.set([g.ty,g.al*env,g.seed,g.bl],i*4);P4.set([g.sc,g.sp,g.an+.3*Math.sin(u*2.7),g.w],i*4);Q4.set([g.x,g.y,g.ti,g.sh],i*4);
+    A4.set([g.ty,g.al*env,g.seed,g.bl],i*4);P4.set([g.sc,g.sp,g.an+.3*Math.sin(u*2.7),g.w],i*4);Q4.set([g.x+(g.dx||0)*u,g.y+(g.dy||0)*u,g.ti,g.sh],i*4);
   }
   return [A4,P4,Q4];
 }
