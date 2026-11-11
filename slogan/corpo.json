@@ -1,11 +1,86 @@
 {
-  "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati dopo aver letto quelli veri del momento. 'letti' sono gli slogan veri letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai.",
+  "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
   "aggiornato": "2026-11-11",
   "parole": {
-    "good": ["sanità:fs", "scuola:fs", "salario:ms", "pensione:fs", "pace:fs", "welfare:ms", "gessetti:mp", "diserzione:fs", "obiezione:fs", "ricchezza:fs", "condivisione:fs", "tenebre:fp"],
-    "bad": ["riarmo:ms", "manovra:fs", "finanziaria:fs", "carovita:ms", "re:mp", "droni:mp", "data center:mp", "precarietà:fs", "austerità:fs", "bollette:fp", "sfratti:mp", "armi:fp", "frontiere:fp", "repressione:fs", "decreti:mp", "zone rosse:fp", "manganelli:mp", "lacrimogeni:mp", "chatbot:mp", "prompt:mp", "oligarchi:mp", "dazi:mp", "troni:mp", "corone:fp", "tagli:mp", "spese militari:fp", "intelligenza artificiale:fs"],
-    "subj": ["liceali:mp", "renitenti:mp", "obiettori:mp", "infermiere:fp", "maestre:fp", "disertori:mp", "nipoti:mp", "fuorisede:mp"],
-    "place": ["licei:mp", "caserme:fp", "data center:mp", "porti:mp", "binari:mp", "chat:fp", "tangenziali:fp"]
+    "good": [
+      "sanità:fs",
+      "scuola:fs",
+      "salario:ms",
+      "pensione:fs",
+      "pace:fs",
+      "welfare:ms",
+      "gessetti:mp",
+      "diserzione:fs",
+      "obiezione:fs",
+      "ricchezza:fs",
+      "condivisione:fs",
+      "tenebre:fp",
+      "spiragli:mp",
+      "autogestione:fs",
+      "frigorifero:ms",
+      "wifi:ms"
+    ],
+    "bad": [
+      "riarmo:ms",
+      "manovra:fs",
+      "finanziaria:fs",
+      "carovita:ms",
+      "re:mp",
+      "droni:mp",
+      "data center:mp",
+      "precarietà:fs",
+      "austerità:fs",
+      "bollette:fp",
+      "sfratti:mp",
+      "armi:fp",
+      "frontiere:fp",
+      "repressione:fs",
+      "decreti:mp",
+      "zone rosse:fp",
+      "manganelli:mp",
+      "lacrimogeni:mp",
+      "chatbot:mp",
+      "prompt:mp",
+      "oligarchi:mp",
+      "dazi:mp",
+      "troni:mp",
+      "corone:fp",
+      "tagli:mp",
+      "spese militari:fp",
+      "intelligenza artificiale:fs",
+      "hacker:mp",
+      "tagli alla sanità:mp",
+      "indicizzazione:fs",
+      "test psicoattitudinali:mp",
+      "allerta:fs",
+      "cassa integrazione:fs",
+      "calciomercato:ms",
+      "impeachment:ms",
+      "regia:fs"
+    ],
+    "subj": [
+      "liceali:mp",
+      "renitenti:mp",
+      "obiettori:mp",
+      "infermiere:fp",
+      "maestre:fp",
+      "disertori:mp",
+      "nipoti:mp",
+      "fuorisede:mp",
+      "medici:mp",
+      "pensionati:mp",
+      "frigoriferi:mp",
+      "magistrati:mp"
+    ],
+    "place": [
+      "licei:mp",
+      "caserme:fp",
+      "data center:mp",
+      "porti:mp",
+      "binari:mp",
+      "chat:fp",
+      "tangenziali:fp"
+    ]
   },
   "slogan": [
     {
@@ -62,6 +137,55 @@
         "La nuit n'est pas à vendre",
         "On est trop nombreux pour se taire"
       ]
+    },
+    {
+      "d": "2026-11-11",
+      "di": "Jacopo Natoli",
+      "tipo": "deturnamento",
+      "t": [
+        "Bismillah c'est les ténèbres 2.0"
+      ]
+    },
+    {
+      "d": "2026-11-11",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Forze disarmate a difesa della nostra libertà",
+        "Blocchiamo la città inutilmente",
+        "Non c'è un'unica regia, c'è il corteo",
+        "Abbiamo la volontà di destabilizzare il lunedì",
+        "Rivoluzione solo a marzo? No, adesso",
+        "Test psicoattitudinale per gli algoritmi",
+        "Hanno hackerato il frigo: adesso sciopera anche lui",
+        "Frigoriferi di tutto il mondo, apritevi",
+        "Le nostre password sono pubbliche, i loro bilanci no",
+        "Rinviate anche il lunedì al 2027",
+        "Siamo rimasti bloccati nel traffico: era il corteo",
+        "Calciomercato di gennaio: compriamo un futuro",
+        "Allerta rossa: è la piazza",
+        "Cassa integrazione per i padroni",
+        "Le banche piangono sette miliardi: prestiamogli un fazzoletto",
+        "Il 5 dicembre anche la febbre sciopera",
+        "Spalancate gli spiragli",
+        "Campo largo, letto largo",
+        "Attacco ibrido alla noia",
+        "Preservare una domenica domenicale",
+        "Sciopero bianco, notte in bianco, scheda bianca",
+        "Indicizzate i sogni all'inflazione",
+        "Il futuro è adesso, il passato è in manovra",
+        "Archiviate anche il lunedì: non c'è patto",
+        "Vietato vietare 2.0",
+        "L'immaginazione al potere 3.0 (beta)",
+        "Proletari di tutto il mondo, aggiornatevi",
+        "Una risata vi seppellirà: aggiornamento in corso",
+        "Fate l'amore non la guerra: nuova stagione",
+        "Pane e rose, versione premium rifiutata",
+        "Sous les pavés, le wifi",
+        "Il est interdit d'interdire, sauf le lundi",
+        "The revolution will not be updated",
+        "Hack the fridge, not the vote",
+        "Stuck in traffic: the traffic was us"
+      ]
     }
   ],
   "letti": [
@@ -82,6 +206,27 @@
         "Democracy not monarchy",
         "Whose streets? Our streets!",
         "People united, won't be divided"
+      ]
+    },
+    {
+      "d": "2026-11-11",
+      "tipo": "notizie e claim",
+      "t": [
+        "Bismillah c'est le tenebre (messaggio attribuito alla polizia, diventato slogan nei cortei di Parigi)",
+        "Forze Armate a difesa della nostra libertà (claim del 4 novembre)",
+        "Scandalo per una città bloccata inutilmente",
+        "Non c'è un'unica regia, ma volontà di destabilizzare",
+        "Rivalutazioni solo a marzo per 3,6 milioni di pensioni",
+        "Al debutto i test psicoattitudinali per i futuri magistrati",
+        "Home appliances could be next after fridge hacks",
+        "Le password salvate sul computer finiscono sui siti pubblici",
+        "Diesel Euro 5, divieto rinviato al primo ottobre 2027",
+        "Siamo rimasti bloccati nel traffico",
+        "Le banche contestano sette miliardi di nuove tasse",
+        "Sciopero di medici e infermieri il 5 dicembre per i tagli alla sanità",
+        "Spiragli di pace dai colloqui di Abu Dhabi",
+        "Allerta rossa e gialla in diverse regioni",
+        "Preservare una Francia francese"
       ]
     }
   ]
