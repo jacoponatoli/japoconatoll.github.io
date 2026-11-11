@@ -7,15 +7,27 @@
 <meta name="description" content="SLOGAN — generatore di slogan politici. Un lavoro di Jacopo Natoli.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&family=Bangers&family=Fredoka:wght@700&family=Permanent+Marker&family=Rubik+Spray+Paint&family=Sedgwick+Ave+Display&family=Stardos+Stencil:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; cursor: none; }
-  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; -webkit-user-select: none; user-select: none; }
-  canvas.flash { filter: invert(1); }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; }
+  html.flash { filter: invert(1); }
+  body { display: flex; align-items: center; justify-content: center; cursor: none; }
+  #s {
+    color: #fff;
+    font-family: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    font-stretch: 125%;
+    text-align: center;
+    line-height: 1;
+    max-width: 92vw;
+    margin: 0;
+    -webkit-user-select: none; user-select: none;
+  }
+  #s span { white-space: nowrap; }
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<p id="s" aria-live="off"></p>
 <script>
 /* SLOGAN — un lavoro di Jacopo Natoli. Generatore di slogan politici.
 
@@ -26,8 +38,8 @@
    2. CORPO — corpo.json, che cresce nel tempo: slogan nuovi inventati dopo aver letto
       quelli delle piazze di questi giorni, e parole nuove che entrano nella grammatica.
    Nessuno slogan si ripete nella stessa visita.
-   3. PITTORE — ogni slogan viene scritto in un modo diverso, scelto a caso: colori
-      complementari e simbolici, 3D, fumetto, muri, palazzi del potere, montagne, cielo.
+   3. COLORE — il lettering è sempre lo stesso; ogni slogan ha una gamma di colori
+      costruita con una regola d'armonia (vedi COLORE più sotto), mai a caso.
 
    Ctrl+F (o Cmd+F): salva la foto dello slogan. Sul telefono: basta toccare lo schermo.
    Doppio clic: schermo intero. */
@@ -228,475 +240,136 @@ function make() {
   return make();
 }
 
-/* ---------- PITTORE ----------
-   Ogni slogan sceglie a caso un modo di essere scritto: colore puro (complementari,
-   colori simbolici, fasce), 3D, lettere tonde, fumetto, muro, palazzo del potere,
-   montagna, cielo, cartello. Tutto è disegnato dal codice, niente immagini. */
-const cv = document.getElementById('c'), X = cv.getContext('2d');
-let W = 0, H = 0, DPR = 1, U = 1, T = '', current = '', seed = 1, styleName = '', R = Math.random;
-function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-const rr = (a, b) => a + (b - a) * R(), ri = (a, b) => Math.floor(rr(a, b + 1)), rp = a => a[Math.floor(R() * a.length)], ch = p => R() < p;
-function lum(c) { c = c.replace('#', ''); if (c.length === 3) c = c.replace(/./g, '$&$&'); const n = parseInt(c, 16); return (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; }
-function shade(c, f) { c = c.replace('#', ''); if (c.length === 3) c = c.replace(/./g, '$&$&'); const n = parseInt(c, 16), k = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${k(n >> 16)},${k(n >> 8 & 255)},${k(n & 255)})`; }
-function onTop(c, pal) { const ok = pal.filter(p => Math.abs(lum(p) - lum(c)) > .42); return ok.length ? rp(ok) : (lum(c) > .5 ? '#000000' : '#ffffff'); }
-
-const FONTS = {
-  arch: s => `800 extra-expanded ${s}px Archivo, "Arial Black", Arial, sans-serif`,
-  round: s => `700 ${s}px Fredoka, "Arial Rounded MT Bold", Arial, sans-serif`,
-  comic: s => `${s}px Bangers, Impact, "Arial Black", sans-serif`,
-  marker: s => `${s}px "Permanent Marker", "Comic Sans MS", cursive`,
-  spray: s => `${s}px "Rubik Spray Paint", Impact, "Arial Black", sans-serif`,
-  tag: s => `${s}px "Sedgwick Ave Display", "Permanent Marker", cursive`,
-  stencil: s => `700 ${s}px "Stardos Stencil", Impact, serif`,
-};
-const font = (k, s) => FONTS[k](Math.max(1, s));
-
-// impagina: la dimensione più grande che entra nel riquadro
-function lay(fk, bw, bh, lh) {
-  lh = lh || 1;
-  const words = T.split(' ');
-  let lo = 6, hi = Math.max(8, Math.min(bh, 900)), best = null;
-  while (hi - lo > 1) {
-    const s = (lo + hi) >> 1; X.font = font(fk, s);
-    const sp = X.measureText(' ').width;
-    let lines = [], cur = '', cw = 0, ok = true;
-    for (const w of words) {
-      const ww = X.measureText(w).width;
-      if (ww > bw) { ok = false; break; }
-      if (cur && cw + sp + ww > bw) { lines.push([cur, cw]); cur = w; cw = ww; }
-      else if (cur) { cur += ' ' + w; cw += sp + ww; } else { cur = w; cw = ww; }
-    }
-    if (ok) { lines.push([cur, cw]); if (lines.length * s * lh > bh) ok = false; }
-    if (ok) { lo = s; best = { s, lh, fk, lines: lines.map(l => l[0]), ws: lines.map(l => l[1]), w: Math.max.apply(null, lines.map(l => l[1])) }; } else hi = s;
-  }
-  best = best || { s: 6, lh, fk, lines: [T], ws: [bw], w: bw };
-  best.h = best.lines.length * best.s * lh;
-  return best;
+/* ---------- COLORE ----------
+   Il lettering è sempre lo stesso; cambia solo il colore, e mai a caso.
+   Ogni slogan parte da una tinta estratta a sorte sulla ruota dei pittori (rosso-giallo-blu,
+   dove i complementari sono giallo/viola, rosso/verde, blu/arancio) e costruisce la sua
+   gamma con una regola d'armonia: le regole della ruota cromatica (complementari,
+   monocromatico, sfumature, analoghi, triade, complementari divergenti, tetrade, quadrato,
+   composto) e i contrasti di Itten (qualità, simultaneità, caldo-freddo, chiaro-scuro,
+   colori puri, quantità). Per la quantità vale la proporzione di Goethe: il colore più
+   luminoso prende la superficie più piccola, cioè la scritta. */
+const RYB = [[0, 0], [60, 30], [120, 58], [180, 130], [240, 222], [300, 278], [360, 360]];   // angolo dei pittori -> tinta dello schermo
+const NAT = [[0, 49], [60, 52], [120, 52], [180, 38], [240, 46], [300, 40], [360, 49]];       // luminosità "naturale" del colore puro
+function interp(T, a) { a = ((a % 360) + 360) % 360; for (let i = 0; i < 6; i++) { const p = T[i], q = T[i + 1]; if (a <= q[0]) return p[1] + (q[1] - p[1]) * (a - p[0]) / (q[0] - p[0]); } return T[0][1]; }
+const rnd = (a, b) => a + (b - a) * Math.random();
+const C = (a, s, l) => ({ a, s, l });
+const vivid = a => C(a, rnd(90, 100), interp(NAT, a) + rnd(-2, 3));     // puro, alla massima brillantezza
+const deep = a => C(a, rnd(65, 90), interp(NAT, a) * rnd(.3, .5));       // lo stesso colore, scuro
+const pale = a => C(a, rnd(70, 95), rnd(82, 90));                        // lo stesso colore, chiaro
+const grey = (a, l) => C(a, rnd(8, 22), l);                              // lo stesso colore, spento
+const css = c => `hsl(${interp(RYB, c.a).toFixed(1)},${c.s.toFixed(1)}%,${c.l.toFixed(1)}%)`;
+function rgb(c) {
+  const h = interp(RYB, c.a) / 360, s = c.s / 100, l = c.l / 100, q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+  const f = t => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+  return [f(h + 1 / 3), f(h), f(h - 1 / 3)];
 }
-function text(L, cx, cy, fn) {
-  X.font = font(L.fk, L.s); X.textAlign = 'center'; X.textBaseline = 'middle';
-  L.lines.forEach((ln, i) => fn(ln, cx, cy + (i - (L.lines.length - 1) / 2) * L.s * L.lh, i));
+function lumi(c) { const k = rgb(c).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * k[0] + .7152 * k[1] + .0722 * k[2]; }
+const ratio = (x, y) => { const a = lumi(x), b = lumi(y); return (Math.max(a, b) + .05) / (Math.min(a, b) + .05); };
+// leggibilità: se la scritta non stacca abbastanza dal fondo, si sposta di chiarezza (stessa tinta)
+function legible(t, bg, min) {
+  t = C(t.a, t.s, t.l); const lb = lumi(bg), dir = (1.05 / (lb + .05)) >= ((lb + .05) / .05) ? 1 : -1;
+  for (let i = 0; i < 40 && ratio(t, bg) < (min || 3.2); i++) t.l = Math.max(2, Math.min(98, t.l + dir * 2.5));
+  return t;
 }
-// la scritta come griglia di punti (per colature, nuvole)
-function maskOf(L, scale) {
-  const m = document.createElement('canvas');
-  m.width = Math.ceil(L.w * scale) + 12; m.height = Math.ceil((L.h + L.s * .5) * scale) + 4;
-  const g = m.getContext('2d');
-  g.font = font(L.fk, L.s * scale); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
-  L.lines.forEach((ln, i) => g.fillText(ln, m.width / 2, m.height / 2 + (i - (L.lines.length - 1) / 2) * L.s * L.lh * scale));
-  return { d: g.getImageData(0, 0, m.width, m.height).data, w: m.width, h: m.height, scale };
-}
-const on = (M, x, y) => x >= 0 && y >= 0 && x < M.w && y < M.h && M.d[(y * M.w + x) * 4 + 3] > 120;
-function speckle(n, cols, a0, a1, s0, s1, x0, y0, w, h) {
-  x0 = x0 || 0; y0 = y0 || 0; w = w || W; h = h || H;
-  for (let i = 0; i < n; i++) { X.globalAlpha = rr(a0, a1); X.fillStyle = rp(cols); const s = rr(s0, s1); X.fillRect(x0 + R() * w, y0 + R() * h, s, s); }
-  X.globalAlpha = 1;
-}
-function blotch(n, cols, a, r0, r1) {
-  for (let i = 0; i < n; i++) {
-    const x = R() * W, y = R() * H, r = rr(r0, r1), g = X.createRadialGradient(x, y, 0, x, y, r), c = rp(cols);
-    g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)');
-    X.globalAlpha = a * rr(.5, 1); X.fillStyle = g; X.beginPath(); X.arc(x, y, r, 0, 7); X.fill();
-  }
-  X.globalAlpha = 1;
-}
-function vignette(a) {
-  const g = X.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .35, W / 2, H / 2, Math.hypot(W, H) * .62);
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${a})`);
-  X.fillStyle = g; X.fillRect(0, 0, W, H);
-}
-function vgrad(y0, y1, stops) { const g = X.createLinearGradient(0, y0, 0, y1); stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c)); return g; }
-
-/* ---- colori ---- */
-const COMP = [['#FFD500', '#6A1B9A'], ['#E30613', '#00963F'], ['#0047BB', '#FF6A00'], ['#FFD500', '#0047BB'], ['#E30613', '#FFD500'], ['#000000', '#FFD500'], ['#ffffff', '#E30613'], ['#FF4FA3', '#00A651'], ['#6A1B9A', '#B6F000'], ['#00B5E2', '#E30613']];
-const SYMB = [
-  ['#000000', '#FFFFFF', '#009736', '#EE2A35'],                         // Palestina
-  ['#000000', '#FFFFFF', '#009736', '#EE2A35'],
-  ['#E30613', '#000000'],                                               // rosso e nero
-  ['#E6007E', '#5F2A85', '#FFFFFF'],                                    // fucsia femminista
-  ['#5B2C83', '#FFFFFF', '#2E8B57'],                                    // suffragette
-  ['#E40303', '#FF8C00', '#FFED00', '#008026', '#24408E', '#732982'],   // arcobaleno
-  ['#5BCEFA', '#F5A9B8', '#FFFFFF'],                                    // trans
-  ['#F2FF00', '#000000', '#C8C8C8'],                                    // gilet
-  ['#00A651', '#000000', '#FFFFFF'],                                    // clima
+const HARMONY = [
+  ['complementari', 14, a => { const x = vivid(a), y = vivid(a + 180), hi = lumi(x) > lumi(y) ? x : y, lo = hi === x ? y : x; return Math.random() < .8 ? { bg: lo, t: [hi] } : { bg: hi, t: [lo] }; }],
+  ['complementari in toni', 8, a => ({ bg: deep(a), t: [vivid(a + 180), pale(a + 180)] })],
+  ['monocromatico', 10, a => Math.random() < .6 ? { bg: C(a, rnd(70, 95), rnd(9, 20)), t: [vivid(a), pale(a), C(a, rnd(60, 90), 68)] } : { bg: pale(a), t: [deep(a), vivid(a)] }],
+  ['sfumature', 10, a => { const dark = Math.random() < .65, s = rnd(75, 98); return { bg: C(a, s, dark ? rnd(6, 13) : rnd(90, 95)), t: [0, 1, 2, 3, 4, 5].map(i => C(a, s, dark ? 92 - i * 11 : 14 + i * 9)), grad: true }; }],
+  ['analoghi', 10, a => ({ bg: Math.random() < .7 ? deep(a) : pale(a), t: [vivid(a - 30), vivid(a), vivid(a + 30)] })],
+  ['analoghi su puro', 5, a => ({ bg: vivid(a), t: [pale(a + 30), pale(a - 30)] })],
+  ['triade', 9, a => ({ bg: Math.random() < .5 ? vivid(a) : deep(a), t: [vivid(a + 120), vivid(a + 240)] })],
+  ['complementari divergenti', 8, a => ({ bg: Math.random() < .5 ? vivid(a) : deep(a), t: [vivid(a + 150), vivid(a + 210)] })],
+  ['tetrade', 6, a => ({ bg: deep(a), t: [vivid(a + 60), vivid(a + 180), vivid(a + 240)] })],
+  ['quadrato', 6, a => ({ bg: deep(a), t: [vivid(a + 90), vivid(a + 180), vivid(a + 270)] })],
+  ['composto', 5, a => ({ bg: deep(a), t: [vivid(a + 30), vivid(a + 150), vivid(a + 180)] })],
+  ['qualità', 7, a => Math.random() < .6 ? { bg: grey(a, rnd(22, 38)), t: [vivid(a)] } : { bg: vivid(a), t: [grey(a, rnd(86, 93))] }],
+  ['simultaneità', 5, a => ({ bg: C(a, 0, Math.random() < .5 ? rnd(18, 30) : rnd(78, 86)), t: [vivid(a)] })],
+  ['caldo-freddo', 8, a => { const w = rnd(0, 115), c = rnd(185, 290); return Math.random() < .5 ? { bg: deep(c), t: [vivid(w), vivid(w + 25)] } : { bg: vivid(w), t: [deep(c)] }; }],
+  ['chiaro-scuro', 6, a => Math.random() < .5 ? { bg: C(a, rnd(60, 90), rnd(4, 9)), t: [pale(a + (Math.random() < .5 ? 0 : 180))] } : { bg: pale(a), t: [C(a + (Math.random() < .5 ? 0 : 180), rnd(70, 95), rnd(8, 16))] }],
+  ['colori puri', 8, () => { const P = [vivid(0), vivid(120), vivid(240), C(0, 0, 4), C(0, 0, 98)], i = Math.floor(Math.random() * 5); return { bg: P[i], t: P.filter((_, j) => j !== i) }; }],
+  ['bianco e nero', 3, () => ({ bg: C(0, 0, 0), t: [C(0, 0, 100)] })],
 ];
-const TRIAD = [['#FFD500', '#E30613', '#000000'], ['#0047BB', '#ffffff', '#E30613'], ['#000000', '#FFD500', '#E30613'], ['#E30613', '#ffffff', '#000000'], ['#ffffff', '#0047BB', '#FFD500'], ['#6A1B9A', '#FFD500', '#000000'], ['#00963F', '#ffffff', '#000000'], ['#FF6A00', '#ffffff', '#0047BB'], ['#000000', '#ffffff', '#009736']];
+let lastH = '';
+function palette() {
+  let tot = 0; HARMONY.forEach(h => tot += h[1]);
+  let h; do { let r = Math.random() * tot; h = HARMONY.find(x => (r -= x[1]) < 0); } while (h[0] === lastH);
+  lastH = h[0];
+  const p = h[2](Math.random() * 360);
+  let t = p.t.map(c => legible(c, p.bg));
+  if (!p.grad) { t = t.filter((c, i) => t.findIndex(d => Math.abs(d.l - c.l) < 4 && Math.abs(((d.a - c.a) % 360 + 360) % 360) < 8) === i); t.sort(() => Math.random() - .5); }
+  // come si distribuiscono i colori: tutta la scritta, riga per riga, parola per parola
+  const mode = p.grad ? 'grad' : t.length < 2 ? 'solid' : ['line', 'word', 'word', 'solid'][Math.floor(Math.random() * 4)];
+  return { name: h[0], bg: css(p.bg), t: t.map(css), mode };
+}
 
-/* ---- STILI ---- */
-function sPlain() {
-  X.fillStyle = '#000'; X.fillRect(0, 0, W, H);
-  const L = lay('arch', W * .92, H * .86); X.fillStyle = '#fff';
-  text(L, W / 2, H / 2, (l, x, y) => X.fillText(l, x, y));
-}
-function sFlat() {
-  const m = ri(0, 3), fk = ch(.75) ? 'arch' : 'round';
-  if (m === 0) {                                   // due complementari
-    const p = rp(COMP), k = ri(0, 1);
-    X.fillStyle = p[k]; X.fillRect(0, 0, W, H);
-    const L = lay(fk, W * .92, H * .86); X.fillStyle = p[1 - k];
-    text(L, W / 2, H / 2, (l, x, y) => X.fillText(l, x, y));
-  } else if (m === 1) {                            // dentro un colore, fuori il complementare
-    const p = rp(COMP), k = ri(0, 1), bg = rp(['#000000', '#ffffff', '#000000']);
-    X.fillStyle = bg; X.fillRect(0, 0, W, H);
-    const L = lay(fk, W * .86, H * .8, 1.06);
-    X.lineJoin = 'round'; X.lineWidth = L.s * rr(.07, .14); X.strokeStyle = p[1 - k]; X.fillStyle = p[k];
-    text(L, W / 2, H / 2, (l, x, y) => { X.strokeText(l, x, y); });
-    text(L, W / 2, H / 2, (l, x, y) => { X.fillText(l, x, y); });
-  } else if (m === 2) {                            // colori simbolici, parola per parola
-    const pal = rp(SYMB), bg = rp(['#000000', '#ffffff']);
-    X.fillStyle = bg; X.fillRect(0, 0, W, H);
-    const cols = pal.filter(c => Math.abs(lum(c) - lum(bg)) > .25);
-    const L = lay(fk, W * .92, H * .86); let n = ri(0, 9);
-    X.font = font(fk, L.s); X.textBaseline = 'middle'; X.textAlign = 'left';
-    const sp = X.measureText(' ').width;
-    L.lines.forEach((ln, i) => {
-      let x = W / 2 - L.ws[i] / 2; const y = H / 2 + (i - (L.lines.length - 1) / 2) * L.s;
-      ln.split(' ').forEach(w => { X.fillStyle = cols[n++ % cols.length]; X.fillText(w, x, y); x += X.measureText(w).width + sp; });
-    });
-  } else {                                         // solo contorno
-    const p = rp(COMP.filter(c => Math.abs(lum(c[0]) - lum(c[1])) > .35)), k = ri(0, 1);
-    X.fillStyle = p[k]; X.fillRect(0, 0, W, H);
-    const L = lay(fk, W * .9, H * .84, 1.04);
-    X.lineJoin = 'round'; X.lineWidth = Math.max(2.5, L.s * .05); X.strokeStyle = p[1 - k];
-    text(L, W / 2, H / 2, (l, x, y) => X.strokeText(l, x, y));
+/* ---------- SCRITTA ---------- */
+const el = document.getElementById('s');
+let size = 40, current = '', PAL = null;
+function fit() {
+  const W = innerWidth * 0.92, H = innerHeight * 0.86;
+  let lo = 12, hi = 600;
+  while (hi - lo > 1) {
+    const m = (lo + hi) >> 1;
+    el.style.fontSize = m + 'px';
+    (el.scrollWidth <= W + 1 && el.offsetHeight <= H) ? lo = m : hi = m;
   }
+  size = lo;
+  el.style.fontSize = lo + 'px';
+  paint();
 }
-function sBands() {                                // ogni riga una fascia di colore
-  const pal = ch(.6) ? rp(SYMB) : rp(TRIAD), pales = pal.length === 4 && pal[2] === '#009736';
-  const tri = pales && ch(.6) ? Math.min(W * .26, H * .5) : 0;
-  const L = lay('arch', (W - tri) * .94, H * .9), n = L.lines.length, bh = H / n, off = ri(0, 5);
-  const bands = pales ? ['#000000', '#FFFFFF', '#009736'] : pal;
-  L.lines.forEach((ln, i) => {
-    const bg = bands[(i + off) % bands.length];
-    X.fillStyle = bg; X.fillRect(0, i * bh, W, bh + 1);
-    let lo = 6, hi = bh * .95;
-    while (hi - lo > 1) { const s = (lo + hi) / 2; X.font = font('arch', s); (X.measureText(ln).width <= (W - tri) * .94) ? lo = s : hi = s; }
-    X.font = font('arch', lo); X.textAlign = 'center'; X.textBaseline = 'middle';
-    X.fillStyle = pales ? (bg === '#FFFFFF' ? rp(['#000000', '#EE2A35']) : rp(['#FFFFFF', '#FFFFFF', '#EE2A35'])) : onTop(bg, pal);
-    X.fillText(ln, tri + (W - tri) / 2, i * bh + bh / 2 + lo * .04);
+function paint() {
+  if (!PAL) return;
+  document.documentElement.style.background = document.body.style.background = PAL.bg;
+  const sp = [].slice.call(el.querySelectorAll('span')), tops = [];
+  sp.forEach(s => { if (tops.indexOf(s.offsetTop) < 0) tops.push(s.offsetTop); });
+  const n = PAL.t.length, off = PAL.off;
+  sp.forEach((s, i) => {
+    const li = tops.indexOf(s.offsetTop);
+    s.style.color = PAL.mode === 'solid' ? PAL.t[off % n]
+      : PAL.mode === 'word' ? PAL.t[(i + off) % n]
+      : PAL.mode === 'line' ? PAL.t[(li + off) % n]
+      : PAL.t[Math.min(n - 1, Math.round(li * (n - 1) / Math.max(1, tops.length - 1) * (tops.length > 1 ? 1 : 0)))];   // sfumatura: dalla prima riga all'ultima
   });
-  if (tri) { X.fillStyle = '#EE2A35'; X.beginPath(); X.moveTo(0, 0); X.lineTo(tri, H / 2); X.lineTo(0, H); X.fill(); }
 }
-function s3D() {
-  const t = rp(TRIAD), fk = ch(.7) ? 'arch' : 'round';
-  X.fillStyle = t[0]; X.fillRect(0, 0, W, H);
-  const L = lay(fk, W * .78, H * .7, 1.08), d = L.s * rr(.12, .3), a = rp([.25, .75, 1.25, 1.75, .5]) * Math.PI;
-  const dx = Math.cos(a), dy = Math.sin(a), cx = W / 2 - dx * d / 2, cy = H / 2 - dy * d / 2;
-  X.fillStyle = t[2];
-  for (let k = Math.ceil(d); k > 0; k--) text(L, cx + dx * k, cy + dy * k, (l, x, y) => X.fillText(l, x, y));
-  X.fillStyle = t[1]; X.lineJoin = 'round'; X.lineWidth = Math.max(1.5, L.s * .012); X.strokeStyle = t[2];
-  text(L, cx, cy, (l, x, y) => { X.fillText(l, x, y); X.strokeText(l, x, y); });
+function show(text, pal) {
+  current = text.toLocaleUpperCase('it');
+  PAL = pal || palette(); PAL.off = Math.floor(Math.random() * 12);
+  el.textContent = '';
+  current.split(/\s+/).forEach((w, i) => {
+    if (i) el.appendChild(document.createTextNode(' '));
+    const sp = document.createElement('span'); sp.textContent = w; el.appendChild(sp);
+  });
+  fit();
 }
-function sRound() {
-  const t = rp(TRIAD.concat([['#FFB3D1', '#ffffff', '#E30613'], ['#B8F2E6', '#FF6A00', '#000000'], ['#FFF3B0', '#0047BB', '#000000']]));
-  X.fillStyle = t[0]; X.fillRect(0, 0, W, H);
-  const L = lay('round', W * .8, H * .74, 1.02);
-  X.save(); X.translate(W / 2, H / 2); X.rotate(rr(-.05, .05)); X.lineJoin = 'round'; X.lineCap = 'round';
-  const out = lum(t[0]) > .5 ? '#000000' : '#ffffff', sh = L.s * .06;
-  X.lineWidth = L.s * .26; X.strokeStyle = shade(t[0], .72); text(L, sh, sh * 1.4, (l, x, y) => X.strokeText(l, x, y));
-  X.lineWidth = L.s * .24; X.strokeStyle = out; text(L, 0, 0, (l, x, y) => X.strokeText(l, x, y));
-  X.lineWidth = L.s * .1; X.strokeStyle = t[2] === out ? t[1] : t[2]; text(L, 0, 0, (l, x, y) => X.strokeText(l, x, y));
-  X.fillStyle = t[1] === out ? t[2] : t[1]; text(L, 0, 0, (l, x, y) => X.fillText(l, x, y));
-  X.restore();
-}
-function sComic() {
-  const c = rp([['#E30613', '#FFD500'], ['#0047BB', '#FFD500'], ['#FFD500', '#E30613'], ['#00B5E2', '#FF4FA3'], ['#FF6A00', '#ffffff'], ['#6A1B9A', '#B6F000']]);
-  X.fillStyle = c[0]; X.fillRect(0, 0, W, H);
-  const st = rr(14, 26) * U, ox = ch(.5) ? 0 : W, oy = ch(.5) ? 0 : H, far = Math.hypot(W, H);
-  X.fillStyle = lum(c[0]) > .5 ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.28)';
-  for (let y = 0, j = 0; y < H + st; y += st * .87, j++) for (let x = (j % 2) * st / 2; x < W + st; x += st) {
-    const r = st * .5 * Math.max(0, 1 - Math.hypot(x - ox, y - oy) / far * 1.15); if (r > .4) { X.beginPath(); X.arc(x, y, r, 0, 7); X.fill(); }
-  }
-  const L = lay('comic', W * .64, H * .5, 1.02), rx = L.w / 2 * 1.3 + L.s * .5, ry = L.h / 2 * 1.5 + L.s * .5, n = ri(14, 24);
-  X.save(); X.translate(W / 2, H / 2); X.rotate(rr(-.09, .09));
-  const burst = k => { X.beginPath(); for (let i = 0; i < n * 2; i++) { const a = i / (n * 2) * Math.PI * 2, f = (i % 2 ? rr(.74, .84) : rr(1.02, 1.28)) * k; X.lineTo(Math.cos(a) * rx * f, Math.sin(a) * ry * f); } X.closePath(); };
-  const s0 = seed; R = rng(s0 + 7); burst(1); X.fillStyle = '#000'; X.save(); X.translate(L.s * .09, L.s * .09); X.fill(); X.restore();
-  R = rng(s0 + 7); burst(1); X.fillStyle = ch(.6) ? '#ffffff' : '#FFF36B'; X.fill(); X.lineJoin = 'miter'; X.lineWidth = Math.max(3, L.s * .045); X.strokeStyle = '#000'; X.stroke();
-  X.lineJoin = 'round'; X.fillStyle = '#000'; text(L, L.s * .07, L.s * .07, (l, x, y) => X.fillText(l, x, y));
-  X.lineWidth = L.s * .11; text(L, 0, 0, (l, x, y) => X.strokeText(l, x, y));
-  X.fillStyle = rp([c[1], '#E30613', '#FFD500', '#00B5E2'].filter(k => k !== '#ffffff')); text(L, 0, 0, (l, x, y) => X.fillText(l, x, y));
-  X.restore();
-}
-
-/* ---- muri ---- */
-function wBrick() {
-  const white = ch(.25), yellow = !white && ch(.2);
-  X.fillStyle = white ? '#bdb9b0' : '#a9a295'; X.fillRect(0, 0, W, H);
-  const bh = rr(30, 46) * U, bw = bh * rr(2.3, 3), gap = Math.max(2, bh * .1);
-  for (let y = -bh, j = 0; y < H + bh; y += bh, j++) for (let x = -bw + (j % 2) * bw / 2; x < W + bw; x += bw) {
-    X.fillStyle = white ? `hsl(40,${ri(6, 14)}%,${ri(80, 91)}%)` : yellow ? `hsl(${ri(36, 44)},${ri(38, 52)}%,${ri(52, 64)}%)` : `hsl(${ri(6, 18)},${ri(42, 60)}%,${ri(28, 42)}%)`;
-    X.fillRect(x, y, bw - gap, bh - gap);
-    X.fillStyle = 'rgba(255,255,255,.07)'; X.fillRect(x, y, bw - gap, bh * .12);
-    X.fillStyle = 'rgba(0,0,0,.10)'; X.fillRect(x, y + bh - gap - bh * .1, bw - gap, bh * .1);
-  }
-  speckle(2500, ['#000', '#fff'], .03, .1, 1, 3 * U); blotch(14, ['#000', '#3a2a20'], .12, 120 * U, 380 * U);
-  return white ? .82 : yellow ? .55 : .3;
-}
-function wConcrete() {
-  const b = ri(118, 168); X.fillStyle = `rgb(${b},${b},${b - 4})`; X.fillRect(0, 0, W, H);
-  blotch(40, ['#fff', '#000', '#5a5a52'], .07, 100 * U, 420 * U); speckle(5000, ['#000', '#fff'], .03, .1, 1, 2.5 * U);
-  const pw = rr(280, 520) * U, ph = rr(200, 380) * U;
-  X.strokeStyle = 'rgba(0,0,0,.22)'; X.lineWidth = Math.max(1, 1.5 * U);
-  for (let x = rr(0, pw); x < W; x += pw) { X.beginPath(); X.moveTo(x, 0); X.lineTo(x, H); X.stroke(); }
-  for (let y = rr(0, ph); y < H; y += ph) { X.beginPath(); X.moveTo(0, y); X.lineTo(W, y); X.stroke(); }
-  X.fillStyle = 'rgba(0,0,0,.3)';
-  for (let x = pw * .25; x < W; x += pw / 2) for (let y = ph * .3; y < H; y += ph / 2) { X.beginPath(); X.arc(x, y, 4 * U, 0, 7); X.fill(); }
-  for (let i = 0; i < 9; i++) { const x = R() * W, w = rr(8, 50) * U, g = vgrad(0, H * rr(.4, 1), ['rgba(0,0,0,.14)', 'rgba(0,0,0,0)']); X.fillStyle = g; X.fillRect(x, 0, w, H); }
-  return b / 255;
-}
-function wIntonaco() {                             // intonaco romano
-  const k = rp([[32, 62, 58], [12, 55, 46], [40, 70, 66], [22, 45, 72], [0, 0, 86]]);
-  X.fillStyle = `hsl(${k[0]},${k[1]}%,${k[2]}%)`; X.fillRect(0, 0, W, H);
-  blotch(60, ['#fff', '#000', `hsl(${k[0]},${k[1]}%,${k[2] - 18}%)`], .07, 80 * U, 380 * U); speckle(3500, ['#000', '#fff'], .02, .08, 1, 3 * U);
-  for (let i = 0, n = ri(1, 4); i < n; i++) {     // intonaco caduto
-    const cx = R() * W, cy = R() * H, r = rr(40, 150) * U; X.beginPath();
-    for (let a = 0; a < 6.3; a += .5) X.lineTo(cx + Math.cos(a) * r * rr(.5, 1.2), cy + Math.sin(a) * r * rr(.4, 1));
-    X.closePath(); X.fillStyle = `hsl(35,8%,${ri(58, 70)}%)`; X.fill(); X.strokeStyle = 'rgba(0,0,0,.25)'; X.lineWidth = 1.5 * U; X.stroke();
-  }
-  X.strokeStyle = 'rgba(0,0,0,.3)'; X.lineWidth = Math.max(1, U);
-  for (let i = 0, n = ri(2, 5); i < n; i++) { let x = R() * W, y = R() * H; X.beginPath(); X.moveTo(x, y); for (let j = 0; j < 14; j++) { x += rr(-30, 30) * U; y += rr(10, 45) * U; X.lineTo(x, y); } X.stroke(); }
-  if (ch(.6)) { const zy = H * rr(.8, .9); X.fillStyle = `hsl(35,10%,${ri(48, 66)}%)`; X.fillRect(0, zy, W, H - zy); X.fillStyle = 'rgba(0,0,0,.3)'; X.fillRect(0, zy, W, 3 * U); speckle(900, ['#000', '#fff'], .03, .09, 1, 3 * U, 0, zy, W, H - zy); }
-  return k[2] / 100;
-}
-function wShutter() {                              // saracinesca
-  const k = rp([[0, 0, 62], [150, 22, 34], [210, 25, 38], [0, 0, 28], [28, 50, 44]]);
-  X.fillStyle = `hsl(${k[0]},${k[1]}%,${k[2]}%)`; X.fillRect(0, 0, W, H);
-  const st = rr(16, 28) * U;
-  for (let y = 0; y < H; y += st) { X.fillStyle = vgrad(y, y + st, ['rgba(255,255,255,.22)', 'rgba(255,255,255,0)', 'rgba(0,0,0,.28)']); X.fillRect(0, y, W, st); }
-  speckle(1800, ['#5a2e12', '#000'], .04, .14, 1, 4 * U); blotch(10, ['#5a2e12', '#000'], .1, 60 * U, 240 * U);
-  const rw = 34 * U; X.fillStyle = `hsl(${k[0]},${k[1]}%,${Math.max(12, k[2] - 16)}%)`; X.fillRect(0, 0, rw, H); X.fillRect(W - rw, 0, rw, H);
-  return k[2] / 100;
-}
-function wTiles() {                                // piastrelle della metro
-  X.fillStyle = '#8f8f88'; X.fillRect(0, 0, W, H);
-  const th = rr(44, 70) * U, tw = th * rp([1, 2, 2]), gap = Math.max(2, 3 * U), hue = rp([45, 45, 190, 140]), sat = ch(.6) ? 8 : 30;
-  for (let y = 0, j = 0; y < H; y += th, j++) for (let x = -(j % 2) * tw / 2; x < W; x += tw) {
-    X.fillStyle = `hsl(${hue},${sat}%,${ri(84, 92)}%)`; X.fillRect(x, y, tw - gap, th - gap);
-    X.fillStyle = 'rgba(255,255,255,.45)'; X.fillRect(x + 3, y + 3, tw - gap - 6, th * .16);
-    X.fillStyle = 'rgba(0,0,0,.07)'; X.fillRect(x, y + th * .72, tw - gap, th * .28 - gap);
-  }
-  blotch(8, ['#000'], .08, 150 * U, 400 * U);
-  return .86;
-}
-// vernice a spruzzo: scritta, nebbia di colore, colature
-function sprayText(L, cx, cy, paint, opt) {
-  opt = opt || {};
-  X.save(); X.translate(cx, cy); X.rotate(opt.rot || 0);
-  if (opt.blend) X.globalCompositeOperation = opt.blend;
-  const clean = L.fk === 'stencil' || L.fk === 'arch';
-  X.fillStyle = paint; X.globalAlpha = opt.alpha || .92;
-  X.shadowColor = paint; X.shadowBlur = L.s * (clean ? .02 : .05) * DPR;
-  text(L, 0, 0, (l, x, y) => X.fillText(l, x, y));
-  X.shadowBlur = 0;
-  const M = maskOf(L, Math.min(1, 220 / L.w));
-  X.globalAlpha = .28;                             // nebbia intorno
-  for (let i = 0, n = clean ? 60 : 260; i < n; i++) {
-    const mx = ri(0, M.w - 1), my = ri(0, M.h - 1); if (!on(M, mx, my)) continue;
-    const r = rr(1, 3.5) * U; X.beginPath(); X.arc((mx - M.w / 2) / M.scale + rr(-1, 1) * L.s * .22, (my - M.h / 2) / M.scale + rr(-1, 1) * L.s * .22, r, 0, 7); X.fill();
-  }
-  X.globalAlpha = opt.alpha || .92; X.strokeStyle = paint; X.lineCap = 'round';
-  for (let i = 0, n = clean ? ri(0, 3) : ri(3, 12); i < n; i++) {   // colature
-    const mx = ri(0, M.w - 1); let my = M.h - 1; while (my > 0 && !on(M, mx, my)) my--; if (my <= 0) continue;
-    while (my > 0 && on(M, mx, my) && R() < .5) my -= 1;
-    const x = (mx - M.w / 2) / M.scale, y = (my - M.h / 2) / M.scale, len = L.s * rr(.25, 1.3), lw = L.s * rr(.012, .03);
-    X.lineWidth = lw; X.beginPath(); X.moveTo(x, y - L.s * .05); X.lineTo(x + rr(-2, 2), y + len); X.stroke();
-    X.beginPath(); X.arc(x, y + len, lw * .9, 0, 7); X.fill();
-  }
-  if (!clean && ch(.3)) {                          // sottolineatura a mano
-    const y = L.h / 2 + L.s * .12, w = L.ws[L.ws.length - 1] / 2; X.lineWidth = L.s * .07;
-    X.beginPath(); X.moveTo(-w, y + rr(-6, 6)); X.quadraticCurveTo(0, y + rr(-18, 18) * U, w, y + rr(-8, 8)); X.stroke();
-  }
-  X.restore();
-}
-function sWall() {
-  const l = rp([wBrick, wBrick, wConcrete, wConcrete, wIntonaco, wIntonaco, wIntonaco, wShutter, wTiles])();
-  const paints = ['#111111', '#c8102e', '#ffffff', '#1f3fbf', '#0a7d3b', '#ff5ca8', '#111111', '#c8102e'].filter(p => Math.abs(lum(p) - l) > .28);
-  const fk = rp(['spray', 'spray', 'tag', 'marker', 'marker', 'stencil', 'arch']);
-  const L = lay(fk, W * .84, H * .68, fk === 'tag' ? 1.0 : 1.08);
-  sprayText(L, W / 2, H * .47, rp(paints), { rot: rr(-.05, .05) });
-  X.fillStyle = vgrad(0, H, ['rgba(255,240,210,.10)', 'rgba(0,0,0,0)', 'rgba(0,0,0,.28)']); X.fillRect(0, 0, W, H);
-  vignette(.42);
-}
-
-/* ---- palazzo del potere ---- */
-function sPalazzo() {
-  const time = rp(['day', 'day', 'dusk', 'night', 'night']), mode = time === 'night' ? rp(['luce', 'luce', 'spray', 'telo']) : rp(['spray', 'spray', 'telo', 'telo']);
-  const sky = { day: ['#7fb0e6', '#dcebf8'], dusk: ['#2b2d5b', '#b0607a', '#f2a65a'], night: ['#04060d', '#161d33'] }[time];
-  const stone = { day: '#d8d0c0', dusk: '#c2ab9a', night: '#474a58' }[time], dark = shade(stone, .55), mid = shade(stone, .8);
-  X.fillStyle = vgrad(0, H * .9, sky); X.fillRect(0, 0, W, H);
-  if (time === 'night') speckle(160, ['#fff'], .3, .9, 1, 2.2 * U, 0, 0, W, H * .5);
-  const bw = W * rr(.84, 1.06), x0 = (W - bw) / 2, gy = H * .92, yB = H * .8, yT = H * .36, fr = H * .07, n = ri(6, 10);
-  X.fillStyle = shade(stone, .42); X.fillRect(0, gy, W, H - gy);                        // piazza
-  X.fillStyle = dark; X.fillRect(x0 + bw * .02, yT, bw * .96, yB - yT);                 // muro dietro le colonne
-  const gapW = bw * .96 / n;
-  for (let i = 0; i < n; i++) {                                                        // finestre e portone
-    const cx = x0 + bw * .02 + gapW * (i + .5), mid2 = Math.abs(i - (n - 1) / 2) < .6, ww = gapW * (mid2 ? .5 : .3), wh = (yB - yT) * (mid2 ? .62 : .3);
-    X.fillStyle = time === 'night' && ch(.35) ? '#e8c36a' : shade(stone, .25);
-    X.fillRect(cx - ww / 2, mid2 ? yB - wh : yT + (yB - yT) * .2, ww, wh);
-    if (mid2) { X.beginPath(); X.arc(cx, yB - wh, ww / 2, Math.PI, 0); X.fill(); }
-  }
-  for (let i = 0; i < 4; i++) { X.fillStyle = shade(stone, 1 - i * .07); X.fillRect(x0 - bw * .02 * (4 - i), yB + (gy - yB) * i / 4, bw + bw * .04 * (4 - i), (gy - yB) / 4 + 1); }   // gradini
-  const colW = gapW * .42;
-  for (let i = 0; i <= n; i++) {                                                       // colonne
-    const cx = x0 + bw * .02 + gapW * i, g = X.createLinearGradient(cx - colW / 2, 0, cx + colW / 2, 0);
-    g.addColorStop(0, mid); g.addColorStop(.3, shade(stone, 1.08)); g.addColorStop(1, shade(stone, .6));
-    X.fillStyle = g; X.fillRect(cx - colW / 2, yT, colW, yB - yT);
-    X.strokeStyle = 'rgba(0,0,0,.12)'; X.lineWidth = 1; for (let f = 1; f < 5; f++) { X.beginPath(); X.moveTo(cx - colW / 2 + colW * f / 5, yT); X.lineTo(cx - colW / 2 + colW * f / 5, yB); X.stroke(); }
-    X.fillStyle = stone; X.fillRect(cx - colW * .7, yT, colW * 1.4, H * .018); X.fillRect(cx - colW * .65, yB - H * .016, colW * 1.3, H * .016);
-  }
-  X.fillStyle = stone; X.fillRect(x0 - bw * .01, yT - fr, bw * 1.02, fr);                 // trabeazione
-  X.fillStyle = 'rgba(0,0,0,.18)'; X.fillRect(x0 - bw * .01, yT - fr * .3, bw * 1.02, 2 * U); X.fillRect(x0 - bw * .01, yT - fr, bw * 1.02, 2 * U);
-  const ap = H * rr(.08, .14);
-  X.fillStyle = stone; X.beginPath(); X.moveTo(x0 - bw * .02, yT - fr); X.lineTo(W / 2, ap); X.lineTo(x0 + bw * 1.02, yT - fr); X.fill();       // frontone
-  X.fillStyle = mid; X.beginPath(); X.moveTo(x0 + bw * .06, yT - fr - H * .012); X.lineTo(W / 2, ap + H * .035); X.lineTo(x0 + bw * .94, yT - fr - H * .012); X.fill();
-  speckle(1500, ['#000', '#fff'], .02, .06, 1, 3 * U, x0, ap, bw, gy - ap);
-  if (mode === 'spray') {
-    const L = lay(rp(['spray', 'spray', 'tag', 'marker']), bw * .9, (yB - yT) * .86, 1.05);
-    sprayText(L, W / 2, (yT + yB) / 2, time === 'night' ? rp(['#ff3b4e', '#ffffff']) : rp(['#c8102e', '#111111', '#c8102e']), { rot: rr(-.03, .03), blend: time === 'night' ? 'source-over' : 'multiply', alpha: .9 });
-  } else if (mode === 'telo') {                    // striscione calato dalla facciata
-    const tw = bw * rr(.7, .86), th = (yB - yT) * rr(.5, .68), tx = W / 2 - tw / 2, ty = yT + (yB - yT) * .12, sag = th * .06;
-    X.strokeStyle = 'rgba(30,30,30,.8)'; X.lineWidth = 2 * U;
-    [[tx, tx - tw * .03], [tx + tw, tx + tw * 1.03]].forEach(p => { X.beginPath(); X.moveTo(p[0], ty); X.lineTo(p[1], yT - fr * .2); X.stroke(); });
-    const col = rp(['#f4f1ea', '#f4f1ea', '#111111', '#c8102e', '#FFD500']);
-    X.beginPath(); X.moveTo(tx, ty); X.quadraticCurveTo(W / 2, ty + sag, tx + tw, ty); X.lineTo(tx + tw * .995, ty + th); X.quadraticCurveTo(W / 2, ty + th + sag * 1.6, tx + tw * .005, ty + th); X.closePath();
-    X.fillStyle = col; X.shadowColor = 'rgba(0,0,0,.45)'; X.shadowBlur = 18 * U * DPR; X.shadowOffsetY = 6 * U * DPR; X.fill(); X.shadowBlur = 0; X.shadowOffsetY = 0;
-    X.save(); X.clip();
-    for (let x = tx; x < tx + tw; x += tw / ri(9, 16)) { const g = X.createLinearGradient(x, 0, x + tw / 12, 0); g.addColorStop(0, 'rgba(0,0,0,.09)'); g.addColorStop(.5, 'rgba(255,255,255,.07)'); g.addColorStop(1, 'rgba(0,0,0,0)'); X.fillStyle = g; X.fillRect(x, ty, tw / 12, th + sag * 2); }
-    X.restore();
-    const L = lay(ch(.7) ? 'arch' : 'marker', tw * .9, th * .8, 1.04);
-    X.fillStyle = lum(col) > .5 ? rp(['#111111', '#c8102e', '#111111']) : '#ffffff'; text(L, W / 2, ty + th / 2 + sag * .8, (l, x, y) => X.fillText(l, x, y));
-  } else {                                         // scritta di luce proiettata sulla facciata
-    const L = lay('arch', bw * .82, (gy - ap) * .62, 1.04);
-    X.save(); X.globalCompositeOperation = 'lighter'; const c = rp(['#ffffff', '#fff2b0', '#ff5a6a', '#7df9ff']);
-    X.fillStyle = c; X.shadowColor = c; X.shadowBlur = L.s * .25 * DPR; X.globalAlpha = .9;
-    text(L, W / 2, (ap + gy) / 2 + H * .04, (l, x, y) => X.fillText(l, x, y)); X.restore();
-  }
-  vignette(time === 'day' ? .22 : .5);
-}
-
-/* ---- montagna ---- */
-function ridge(base, amp) {
-  const p = [0, 1, 2, 3, 4].map(() => [rr(.6, 2.2), R() * 6.3]);
-  return x => base - amp * (.5 * Math.sin(x / W * 3.1 * p[0][0] + p[0][1]) + .28 * Math.sin(x / W * 7.3 * p[1][0] + p[1][1]) + .13 * Math.sin(x / W * 17 * p[2][0] + p[2][1]) + .06 * Math.sin(x / W * 41 * p[3][0] + p[3][1]) + .03 * Math.sin(x / W * 97 * p[4][0] + p[4][1]));
-}
-function sMountain() {
-  const sky = rp([['#5ea3e6', '#cfe6fa'], ['#f6b48f', '#fbe3c8'], ['#27305e', '#e58a6b', '#f7cf8f'], ['#bfd3dd', '#eef3f5']]);
-  X.fillStyle = vgrad(0, H * .7, sky); X.fillRect(0, 0, W, H);
-  if (ch(.6)) { X.fillStyle = rp(['#E30613', '#FFD500', '#ffffff', '#ff7a45']); X.beginPath(); X.arc(W * rr(.15, .85), H * rr(.12, .3), Math.min(W, H) * rr(.05, .11), 0, 7); X.fill(); }
-  const hue = rp([215, 205, 250, 160, 25]);
-  for (let i = 0; i < 3; i++) {
-    const f = ridge(H * (.3 + .07 * i), H * (.16 - .02 * i));
-    X.fillStyle = `hsl(${hue},${18 + i * 6}%,${74 - i * 13}%)`; X.beginPath(); X.moveTo(0, H); for (let x = 0; x <= W + 6; x += 6) X.lineTo(x, f(x)); X.lineTo(W, H); X.fill();
-    if (i < 2 && hue !== 25) { X.save(); X.clip(); X.fillStyle = 'rgba(255,255,255,.55)'; X.beginPath(); for (let x = 0; x <= W + 6; x += 6) X.lineTo(x, f(x) + H * .035 + 10 * Math.sin(x * .05)); for (let x = W; x >= 0; x -= 6) X.lineTo(x, f(x) - 2); X.fill(); X.restore(); }   // neve
-  }
-  const f = ridge(H * .42, H * .1), face = rp([[120, 28, 24], [95, 30, 30], [28, 32, 30], [215, 14, 30], [140, 22, 18]]);
-  X.fillStyle = vgrad(H * .3, H, [`hsl(${face[0]},${face[1]}%,${face[2] + 10}%)`, `hsl(${face[0]},${face[1]}%,${face[2] - 8}%)`]);
-  X.beginPath(); X.moveTo(0, H); for (let x = 0; x <= W + 6; x += 6) X.lineTo(x, f(x)); X.lineTo(W, H); X.fill();
-  X.save(); X.clip(); X.lineWidth = Math.max(1, 1.5 * U);
-  for (let i = 0; i < 900; i++) { const x = R() * W, y = H * .3 + R() * H * .7, l = rr(10, 60) * U; X.strokeStyle = ch(.5) ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.08)'; X.beginPath(); X.moveTo(x, y); X.lineTo(x + l * .5, y + l); X.stroke(); }
-  X.restore();
-  const cy = H * .7, L = lay('arch', W * .86, H * .4, 1.18);
-  if (ch(.55)) {                                   // lettere piantate sul pendio
-    X.font = font('arch', L.s); X.textBaseline = 'alphabetic'; X.textAlign = 'left';
-    L.lines.forEach((ln, i) => {
-      let x = W / 2 - L.ws[i] / 2; const by = cy + (i - (L.lines.length - 1) / 2) * L.s * L.lh + L.s * .36;
-      for (const c of ln) {
-        const w = X.measureText(c).width;
-        if (c !== ' ') {
-          const y = by + (f(x + w / 2) - H * .42) * .22 + rr(-1, 1) * L.s * .03;
-          X.fillStyle = 'rgba(0,0,0,.35)'; X.fillRect(x + w * .2, y, Math.max(1, L.s * .025), L.s * .22); X.fillRect(x + w * .72, y, Math.max(1, L.s * .025), L.s * .22);
-          X.save(); X.translate(x + w / 2, y); X.rotate(rr(-.03, .03));
-          X.fillStyle = 'rgba(0,0,0,.3)'; X.fillText(c, -w / 2 + L.s * .035, L.s * .03); X.fillStyle = '#f7f5ee'; X.fillText(c, -w / 2, 0); X.restore();
-        }
-        x += w;
-      }
-    });
-  } else {                                         // scritta enorme stesa sul fianco: neve, calce, pietre
-    X.save(); X.translate(W / 2, cy); X.transform(1, rr(-.1, .1), rr(-.25, .25), 1, 0, 0);
-    X.fillStyle = 'rgba(250,248,240,.9)'; text(L, 0, 0, (l, x, y) => X.fillText(l, x, y)); X.restore();
-    speckle(2600, [`hsl(${face[0]},${face[1]}%,${face[2]}%)`], .25, .7, 1, 5 * U, 0, cy - L.h * .7, W, L.h * 1.4);
-  }
-  X.fillStyle = vgrad(H * .25, H * .7, ['rgba(255,255,255,0)', 'rgba(255,255,255,.12)', 'rgba(255,255,255,0)']); X.fillRect(0, 0, W, H);
-  vignette(.25);
-}
-
-/* ---- cielo: scritta di nuvola ---- */
-let PUFF = null;
-function puff() {
-  if (PUFF) return PUFF; PUFF = document.createElement('canvas'); PUFF.width = PUFF.height = 64;
-  const g = PUFF.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.45, 'rgba(255,255,255,.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return PUFF;
-}
-function sSky() {
-  const sky = rp([['#0f55b8', '#3f8de0', '#a9d4fa'], ['#1668cf', '#5aa2ea'], ['#1b2a66', '#7a4a8c', '#e08a7a'], ['#0d4fae', '#2f86e0', '#9fd0ff'], ['#06122e', '#143a7a']]);
-  X.fillStyle = vgrad(0, H, sky); X.fillRect(0, 0, W, H);
-  const P = puff(), put = (x, y, r, a) => { X.globalAlpha = a; X.drawImage(P, x - r, y - r, r * 2, r * 2); };
-  for (let i = 0, n = ri(2, 6); i < n; i++) {      // nuvole vere, ai margini
-    const cx = R() * W, cy = ch(.5) ? H * rr(.82, 1) : H * rr(-.02, .14), w = rr(120, 380) * U;
-    for (let j = 0; j < 40; j++) put(cx + rr(-1, 1) * w, cy + rr(-.25, .25) * w * .4, rr(.25, .6) * w * .5, .35);
-  }
-  const L = lay(ch(.6) ? 'arch' : 'round', W * .84, H * .6, 1.12), M = maskOf(L, Math.min(1, 420 / L.w));
-  const st = Math.max(1, Math.round(L.s * M.scale * .055)), cy = H * .47;
-  for (let my = 0; my < M.h; my += st) for (let mx = 0; mx < M.w; mx += st) {
-    if (!on(M, mx, my)) continue;
-    const age = 1 - mx / M.w, j = L.s * (.012 + .035 * age * age);          // le prime lettere si stanno già sfaldando
-    put(W / 2 + (mx - M.w / 2) / M.scale + rr(-1, 1) * j, cy + (my - M.h / 2) / M.scale + rr(-1, 1) * j - age * L.s * .03, L.s * rr(.045, .085) * (1 + age * .4), .62 - age * .16);
-  }
-  X.globalAlpha = 1;
-  const li = L.lines.length - 1, px = W / 2 + L.ws[li] / 2 + L.s * .5, py = cy + (li - li / 2) * L.s * L.lh;        // l'aereo
-  X.fillStyle = '#e9eef5'; X.save(); X.translate(Math.min(W - 20 * U, px), py); X.rotate(-.08); const a = 7 * U;
-  X.beginPath(); X.ellipse(0, 0, a * 2.4, a * .5, 0, 0, 7); X.fill(); X.beginPath(); X.moveTo(-a * .3, 0); X.lineTo(-a * 1.3, -a * 2.2); X.lineTo(-a * .6, -a * 2.2); X.lineTo(a * .8, 0); X.lineTo(-a * .6, a * 2.2); X.lineTo(-a * 1.3, a * 2.2); X.fill(); X.restore();
-}
-
-/* ---- cartello di cartone ---- */
-function sSign() {
-  const bg = rp(COMP)[ri(0, 1)], sky = ch(.4);
-  X.fillStyle = sky ? vgrad(0, H, ['#6aa8e8', '#d6e9fa']) : bg; X.fillRect(0, 0, W, H);
-  const cw = Math.min(W * .84, H * 1.25), chh = H * .64, cy = H * .4, white = ch(.3);
-  X.save(); X.translate(W / 2, cy); X.rotate(rr(-.07, .07));
-  X.fillStyle = '#9a6a3a'; X.fillRect(-cw * .018, chh * .2, cw * .036, H);                          // bastone
-  X.fillStyle = 'rgba(0,0,0,.25)'; X.fillRect(-cw / 2 + 10 * U, -chh / 2 + 12 * U, cw, chh);
-  X.fillStyle = white ? '#f6f4ee' : `hsl(${ri(28, 34)},${ri(38, 48)}%,${ri(50, 60)}%)`; X.fillRect(-cw / 2, -chh / 2, cw, chh);
-  if (!white) { X.strokeStyle = 'rgba(0,0,0,.06)'; X.lineWidth = 1; for (let x = -cw / 2; x < cw / 2; x += 7 * U) { X.beginPath(); X.moveTo(x, -chh / 2); X.lineTo(x, chh / 2); X.stroke(); } }
-  speckle(1200, ['#000', '#fff'], .02, .07, 1, 3 * U, -cw / 2, -chh / 2, cw, chh);
-  X.strokeStyle = 'rgba(0,0,0,.25)'; X.lineWidth = 2 * U; X.strokeRect(-cw / 2, -chh / 2, cw, chh);
-  const fk = white && ch(.5) ? 'arch' : 'marker', L = lay(fk, cw * .88, chh * .84, 1.06), red = ri(0, L.lines.length * 2);
-  text(L, 0, 0, (l, x, y, i) => { X.fillStyle = i === red ? '#c8102e' : (white ? rp(['#111111', '#111111', '#0047BB']) : '#151515'); X.fillText(l, x, y); });
-  X.restore();
-  if (sky) vignette(.18);
-}
-
-const STYLES = [[sPlain, 8, 'plain'], [sFlat, 18, 'flat'], [sBands, 12, 'bands'], [s3D, 10, '3d'], [sRound, 8, 'round'], [sComic, 8, 'comic'], [sWall, 16, 'wall'], [sPalazzo, 8, 'palazzo'], [sMountain, 6, 'mountain'], [sSky, 6, 'sky'], [sSign, 6, 'sign']];
-function draw() {
-  R = rng(seed);
-  X.setTransform(DPR, 0, 0, DPR, 0, 0); X.globalAlpha = 1; X.globalCompositeOperation = 'source-over'; X.shadowBlur = 0; X.shadowOffsetY = 0;
-  X.save();
-  try { (STYLES.find(s => s[2] === styleName) || STYLES[0])[0](); } catch (e) { X.restore(); X.save(); sPlain(); }
-  X.restore();
-}
-function resize() {
-  DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; U = Math.max(.45, Math.min(W, H) / 800);
-  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  if (current) draw();
-}
-let lastStyle = '';
-function next() {
-  current = make().toLocaleUpperCase('it'); T = current.replace(/\s+/g, ' ').trim();
-  seed = Math.floor(Math.random() * 2147483647);
-  let tot = 0; STYLES.forEach(s => tot += s[1]);
-  do { let r = Math.random() * tot; styleName = STYLES.find(s => (r -= s[1]) < 0)[2]; } while (styleName === lastStyle && styleName !== 'flat');
-  lastStyle = styleName;
-  draw();
-  setTimeout(next, 1500 + current.length * 55);
-}
+function next() { show(make()); setTimeout(next, 900 + current.length * 55); }
 
 /* ---------- FOTO ---------- */
+function shot() {
+  const dpr = Math.max(2, devicePixelRatio || 1), k = document.createElement('canvas');
+  k.width = Math.round(innerWidth * dpr); k.height = Math.round(innerHeight * dpr);
+  const c = k.getContext('2d');
+  c.fillStyle = PAL.bg; c.fillRect(0, 0, k.width, k.height);
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  c.font = `800 ${size * dpr}px Archivo, "Arial Black", Arial, sans-serif`;
+  try { c.fontStretch = 'extra-expanded'; } catch (e) {}
+  // ogni parola nel punto esatto e con la larghezza esatta che ha sullo schermo
+  el.querySelectorAll('span').forEach(sp => {
+    const r = sp.getBoundingClientRect(), m = c.measureText(sp.textContent), w = m.width || 1;
+    const asc = m.fontBoundingBoxAscent || size * dpr * .8, desc = m.fontBoundingBoxDescent || size * dpr * .2;
+    c.save(); c.translate(r.left * dpr, (r.top + r.height * asc / (asc + desc)) * dpr); c.scale(r.width * dpr / w, 1);
+    c.fillStyle = sp.style.color; c.fillText(sp.textContent, 0, 0); c.restore();
+  });
+  return k;
+}
 function photo() {
-  if (!current) return;
-  cv.classList.add('flash'); setTimeout(() => cv.classList.remove('flash'), 90);
+  if (!current || !PAL) return;
+  const k = shot();
+  document.documentElement.classList.add('flash');
+  setTimeout(() => document.documentElement.classList.remove('flash'), 90);
   const name = 'slogan-' + current.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + '.png';
-  cv.toBlob(blob => {
+  k.toBlob(blob => {
     if (!blob) return;
     const save = () => {
       const a = document.createElement('a');
@@ -717,22 +390,21 @@ addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); photo(); }
 });
 addEventListener('touchend', e => { e.preventDefault(); photo(); }, { passive: false });
-addEventListener('resize', resize);
+addEventListener('resize', fit);
 addEventListener('dblclick', () => {
   try {
     const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
     if (p && p.catch) p.catch(() => {});
   } catch (e) {}
 });
-// per provare uno stile: SLOGAN.show('wall', 'TESTO', 123)
-window.SLOGAN = { styles: STYLES.map(s => s[2]), show(st, t, sd) { styleName = st; current = T = (t || make()).toLocaleUpperCase('it'); seed = sd || 1; draw(); } };
+// per provare un'armonia dalla console: SLOGAN.show('TESTO', 'triade')
+window.SLOGAN = { harmonies: HARMONY.map(h => h[0]), shot, show(t, name) { if (name) { let p; do { p = palette(); } while (p.name !== name); show(t || make(), p); } else show(t || make()); return PAL; } };
 
-// parte quando ci sono i caratteri e il corpo (o comunque dopo 3 secondi)
+// parte quando ci sono il font e il corpo (o comunque dopo 2,5 secondi)
 let started = false;
-const start = () => { if (!started) { started = true; resize(); if (!/[?&]fermo/.test(location.search)) next(); } };
-const fontsReady = document.fonts && document.fonts.load ? Promise.all(Object.keys(FONTS).map(k => document.fonts.load(font(k, 40), 'ÀÈ SLOGAN!').catch(() => {}))) : 0;
-Promise.all([load(), fontsReady]).then(start);
-setTimeout(start, 3000);
+const start = () => { if (!started) { started = true; if (/[?&]fermo/.test(location.search)) show(make()); else next(); } };
+Promise.all([load(), document.fonts && document.fonts.load ? document.fonts.load('800 40px Archivo').catch(() => {}) : 0]).then(start);
+setTimeout(start, 2500);
 setInterval(load, 30 * 60 * 1000);   // se resta acceso (mostra, installazione) continua a crescere
 </script>
 </body>
