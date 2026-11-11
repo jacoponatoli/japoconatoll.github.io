@@ -62,7 +62,7 @@
   <div id="autoOpts" hidden>
     <label>precision <input id="autoPrec" type="range" min="1" max="12" value="6"></label>
     <label>presence <input id="autoPres" type="range" min="0" max="100" value="85"></label>
-    <label>fade (s) <input id="autoFade" type="range" min="2" max="40" value="12"></label>
+    <label>fade (s) <input id="autoFade" type="range" min="5" max="90" value="30"></label>
     <label class="row">loop <input id="autoLoop" type="checkbox" checked></label>
     <label class="row">show eyes <input id="autoEyes" type="checkbox"></label>
     <div class="k" id="autoInfo">automatic: loading…</div>
@@ -170,7 +170,7 @@ function step(){
   const now = performance.now();
   let img = null;
   if (spotlight && now < spotlight.until && Math.random() < 0.35) img = spotlight.img;      // la foto appena fatta resta presente
-  else if (real.length && Math.random() < REAL_P) img = real[Math.floor(Math.random()*real.length)];
+  else if (real.length && mode !== 'auto' && Math.random() < REAL_P) img = real[Math.floor(Math.random()*real.length)];
   else if (pool.length) img = pool[Math.floor(Math.random()*pool.length)];
   if (img){
     ctx.globalAlpha = $('alpha').value/100;
@@ -303,14 +303,14 @@ function closeShot(){
   if (!camWasOn && camOn) toggleCam();
 }
 // scatta dal quadrato della camera, salva (locale + condiviso), aggiunge ai volti reali
-function captureBlob(done){
+function captureBlob(done, opts){
   const out = document.createElement('canvas'); out.width = out.height = 640;
   const o = out.getContext('2d'), [sx,sy,s] = camCrop();
   o.translate(640,0); o.scale(-1,1); o.drawImage(video, sx,sy,s,s, 0,0,640,640);
   out.toBlob(blob => {
     const t = Date.now();
     const im = new Image(); im.dataset.key = 'L' + String(t).padStart(15,'0');
-    im.onload = () => { pushReal(im); done && done(blob, im); };
+    im.onload = () => { if (!(opts && opts.archiveOnly)) pushReal(im); done && done(blob, im); };
     im.src = URL.createObjectURL(blob);
     saveLocal(blob, t); saveShared(blob);
   }, 'image/jpeg', 0.88);
@@ -361,6 +361,7 @@ async function setMode(m){
   else { face = null; alignS = 0; imprint = null; }
 }
 $('modeSel').onchange = () => setMode($('modeSel').value);
+if (store.get('persona-fadeV2') !== '1'){ store.set('persona-autoFade', '30'); store.set('persona-fadeV2', '1'); }
 ['autoPrec','autoPres','autoFade'].forEach(id => {
   const v = store.get('persona-' + id); if (v) $(id).value = v;
   $(id).addEventListener('input', () => store.set('persona-' + id, $(id).value));
@@ -409,9 +410,8 @@ function autoCapture(t){
   else { needLeave = true; cooldownUntil = t + 8000; }
   strobeFlash();
   captureBlob((blob, im) => {
-    imprint = { img: im, t0: performance.now() };
-    spotlight = { img: im, until: performance.now() + $('autoFade').value*1000 + 20000 };
-  });
+    imprint = { img: im, t0: performance.now() };   // si dissolve e sparisce: niente ritorni nel flusso
+  }, { archiveOnly: true });
   const f = $('flash'); f.style.transition = 'none'; f.style.opacity = 1;
   requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity 1.2s'; f.style.opacity = 0; }));
 }
@@ -429,7 +429,10 @@ function composeAuto(t){
   if (imprint && imprint.img.complete){
     const k = (t - imprint.t0) / ($('autoFade').value*1000);
     if (k >= 1) imprint = null;
-    else { dctx.globalAlpha = Math.pow(1 - k, 1.6); dctx.drawImage(imprint.img, x, y, S, S); }
+    else {   // resta piena un attimo, poi si scioglie piano piano e sparisce nel flusso
+      const a = k < .12 ? 1 : .5 + .5 * Math.cos(Math.PI * (k - .12) / .88);
+      dctx.globalAlpha = a * a; dctx.drawImage(imprint.img, x, y, S, S);
+    }
   }
   dctx.globalAlpha = 1;
 
