@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLOGAN</title>
+<meta name="description" content="SLOGAN — generatore di slogan politici. Un lavoro di Jacopo Natoli.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; }
+  body.flash { background: #fff; } body.flash #s { color: #000; }
+  body { display: flex; align-items: center; justify-content: center; cursor: none; }
+  #s {
+    color: #fff;
+    font-family: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    font-stretch: 125%;
+    text-align: center;
+    line-height: 1;
+    -webkit-user-select: none; user-select: none;
+    max-width: 92vw;
+    overflow-wrap: break-word;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+<p id="s" aria-live="off"></p>
+<script>
+/* SLOGAN — un lavoro di Jacopo Natoli. Generatore di slogan politici.
+
+   Due motori mescolati:
+   1. GRAMMATICA — gli slogan veri (storici e di oggi) ridotti a scheletri sintattici
+      ("X al potere", "Né X né Y", "Sotto X, Y"...) e riempiti con un lessico di
+      desideri, nemici, soggetti e luoghi.
+   2. CORPO — corpo.json, che cresce nel tempo: slogan nuovi inventati dopo aver letto
+      quelli delle piazze di questi giorni, e parole nuove che entrano nella grammatica.
+   Nessuno slogan si ripete nella stessa visita.
+
+   Ctrl+F (o Cmd+F): salva la foto dello slogan. Sul telefono: basta toccare lo schermo.
+   Doppio clic: schermo intero. */
+
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const pick2 = a => { const x = pick(a); let y = pick(a); while (y === x) y = pick(a); return [x, y]; };
+const N = s => s.split(',').map(x => { const [w, t] = x.trim().split(':'); return { w, g: t[0], n: t[1] }; });
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+/* ---------- LESSICO ITALIANO ---------- */
+const GOOD = N("fantasia:fs, desiderio:ms, sogno:ms, gioia:fs, tempo:ms, sonno:ms, ozio:ms, notte:fs, mare:ms, festa:fs, gioco:ms, poesia:fs, silenzio:ms, rumore:ms, corpo:ms, tenerezza:fs, rabbia:fs, pane:ms, rose:fp, casa:fs, acqua:fs, aria:fs, futuro:ms, luna:fs, vento:ms, pigrizia:fs, lentezza:fs, errore:ms, dubbio:ms, noia:fs, caos:ms, domenica:fs, amore:ms, cura:fs, respiro:ms, strada:fs, piazza:fs, vacanze:fp, sogni:mp, baci:mp, carezze:fp, ricreazione:fs, merenda:fs, pioggia:fs, erba:fs, stelle:fp, lucciole:fp, insonnia:fs, vertigine:fs, risata:fs, danza:fs, sbaglio:ms, tramonto:ms, estate:fs, inutile:ms, impossibile:ms, meraviglia:fs, disordine:ms, glitch:ms, sciopero:ms, siesta:fs, ombra:fs, vuoto:ms, ritardo:ms, pausa:fs, nebbia:fs, sbadiglio:ms, abbraccio:ms, nulla:ms, incanto:ms, vagabondaggio:ms, mattino:ms");
+const BAD = N("potere:ms, capitale:ms, padroni:mp, Stato:ms, lavoro:ms, mercato:ms, algoritmo:ms, piattaforme:fp, profitto:ms, debito:ms, guerra:fs, confini:mp, patriarcato:ms, norma:fs, orologio:ms, sveglia:fs, lunedì:ms, schermo:ms, notifiche:fp, cloud:ms, rendita:fs, affitto:ms, decoro:ms, produttività:fs, crescita:fs, password:fp, feed:ms, scroll:ms, pubblicità:fs, burocrazia:fs, ordine:ms, fretta:fs, merito:ms, curriculum:ms, sorveglianza:fs, telecamere:fp, muri:mp, recinti:mp, banche:fp, miliardari:mp, straordinari:mp, scadenze:fp, riunioni:fp, voti:mp, registro:ms, cemento:ms, asfalto:ms, traffico:ms, uffici:mp, tornelli:mp, cookie:mp, abbonamento:ms, aggiornamento:ms, competizione:fs, prestazione:fs, efficienza:fs, emergenza:fs, normalità:fs, obbedienza:fs, proprietà:fs, moduli:mp, classifiche:fp, influencer:mp, grattacieli:mp, parcometri:mp, sondaggi:mp");
+const SUBJ = N("studenti:mp, operai:mp, precari:mp, insonni:mp, poeti:mp, rider:mp, bambini:mp, nonne:fp, robot:mp, macchine:fp, piante:fp, gatti:mp, fantasmi:mp, disoccupati:mp, sognatrici:fp, corpi:mp, pigri:mp, inquilini:mp, pedoni:mp, utenti:mp, cyborg:mp, pendolari:mp, supplenti:mp, stagiste:fp, lucciole:fp, maree:fp, ritardatari:mp, distratte:fp, sonnambuli:mp, algoritmi:mp, streghe:fp, nuvole:fp, erbacce:fp, ultimi:mp, assenti:mp, stanche:fp, piccioni:mp, sorelle:fp, avatar:mp, bidelle:fp, ripetenti:mp, timidi:mp, licenziate:fp, zanzare:fp, comparse:fp");
+const PLACE = N("strade:fp, piazze:fp, scuole:fp, fabbriche:fp, server:mp, tetti:mp, spiagge:fp, musei:mp, condomini:mp, supermercati:mp, letti:mp, cucine:fp, parcheggi:mp, periferie:fp, cortili:mp, uffici:mp, stazioni:fp, schermi:mp, cieli:mp, marciapiedi:mp, biblioteche:fp, balconi:mp, corridoi:mp, ascensori:mp, rotonde:fp, palestre:fp");
+
+const REFL = ["unitevi","riposatevi","perdetevi","sdraiatevi","disconnettetevi","baciatevi","addormentatevi","svegliatevi","nascondetevi","annoiatevi","abbracciatevi","licenziatevi","moltiplicatevi","fermatevi","scioglietevi","distraetevi","spettinatevi","assentatevi","sedetevi"];
+const GOODV = ["sognare","dormire","danzare","disobbedire","sbagliare","rallentare","giocare","oziare","respirare","scioperare","ridere","sparire","disertare","cantare","dubitare","perdere tempo","sbadigliare","esitare","vagare","restare a letto","guardare le nuvole","fare tardi","annoiarsi","fischiare","inciampare"];
+const BADV = ["lavorare","produrre","correre","competere","consumare","scrollare","obbedire","misurare","valutare","ottimizzare","aggiornare","rendicontare","timbrare"];
+const FORBID = ["obbedire","correre","produrre","competere","crescere","tacere","arrendersi","lavorare","misurare","valutare","ottimizzare","rassegnarsi","avere fretta","tornare alla normalità","essere puntuali","fare carriera","rispondere subito","avere ragione","stare al passo","dare voti"];
+const ADJ = ["realisti","stanchi","tanti","in ritardo","pigri","svegli","ingovernabili","inutili","lenti","impazienti","fragili","troppi","distratti","offline","spettinati","assenti","senza password","inadatti"];
+const NONSI = [["vende","vendono"],["tocca","toccano"],["arresta","arrestano"],["sgombera","sgomberano"],["misura","misurano"],["processa","processano"],["delega","delegano"],["privatizza","privatizzano"],["cancella","cancellano"],["valuta","valutano"],["affitta","affittano"],["aggiorna","aggiornano"]];
+const WE = ["paghiamo","firmiamo","aggiorniamo","vogliamo","accettiamo","votiamo","scarichiamo","timbriamo"];
+const ACT = ["spegniamo","blocchiamo","aboliamo","sabotiamo","smontiamo","disertiamo","disinstalliamo","dimentichiamo"];
+const GOODPRED = [["politico","politica","politici","politiche"],["nostro","nostra","nostri","nostre"],["di tutti"],["un diritto"],["resistenza"],["già una rivolta"],["un bene comune"],["la nostra arma"],["senza padroni"],["sciopero generale"]];
+const BADPRED = [["è una tigre di carta","sono tigri di carta"],["è un furto","sono un furto"],["non è un destino","non sono un destino"],["è violenza","sono violenza"],["ci ruba il tempo","ci rubano il tempo"],["non ci avrà","non ci avranno"],["ha i giorni contati","hanno i giorni contati"],["è già in ritardo","sono già in ritardo"],["non sa ballare","non sanno ballare"]];
+const PEACE = ["pace","lavoro","ordine","tregua","profitto","silenzio","lunedì"];
+const INFPRED = ["è resistere","è un diritto","è già lottare","è sabotaggio","è politica","non è reato","è sciopero"];
+
+/* ---------- GRAMMATICA ---------- */
+const VOW = /^[aeiouàèéìòùh]/i, IMPURE = /^(s[^aeiouàèéìòù]|z|gn|ps|pn|x|y)/i;
+function art(n) {
+  const w = n.w;
+  if (n.g === 'f') return n.n === 's' ? (VOW.test(w) ? "l'" : "la ") : "le ";
+  if (n.n === 's') return VOW.test(w) ? "l'" : IMPURE.test(w) ? "lo " : "il ";
+  return (VOW.test(w) || IMPURE.test(w)) ? "gli " : "i ";
+}
+const d = n => art(n) + n.w;                       // "la fantasia"
+function ind(n) {                                   // "una risata"
+  if (n.g === 'f') return (VOW.test(n.w) ? "un'" : "una ") + n.w;
+  return (IMPURE.test(n.w) ? "uno " : "un ") + n.w;
+}
+function prep(p, n) {                               // "ai poeti", "dalle strade"
+  const base = { di: 'de', a: 'a', da: 'da', in: 'ne', su: 'su' }[p];
+  const a = art(n).trim();
+  const suf = { il: 'l ', lo: 'llo ', "l'": "ll'", la: 'lla ', i: 'i ', gli: 'gli ', le: 'lle ' }[a];
+  return base + suf + n.w;
+}
+const idx = n => (n.g === 'f' ? 1 : 0) + (n.n === 'p' ? 2 : 0);
+const agr = (forms, n) => forms.length === 1 ? forms[0] : forms[idx(n)];
+const cop = n => n.n === 's' ? 'è' : 'sono';
+const sing = a => a.filter(n => n.n === 's');
+const clit = n => ['lo', 'la', 'li', 'le'][idx(n)];
+const any = (...ls) => pick(pick(ls));
+const di = w => VOW.test(w) ? "d'" + w : 'di ' + w;       // "d'ozio", "di guerra"
+const PP = ['condiviso','occupato','liberato','redistribuito','restituito','moltiplicato','difeso','sprecato','preso sul serio','scioperato'];
+const UNIT = ['Stato','tempo','scuola','economia','governo','turno','orario','ministero','sciopero','bilancio','piano','decreto'];
+
+/* ---------- SCHELETRI (da slogan storici) ---------- */
+const IT = [
+  () => `${d(pick(GOOD))} al potere`,                                              // L'immaginazione al potere
+  () => { const [a, b] = pick2(GOOD); return `Vogliamo ${d(a)} e anche ${d(b)}`; }, // Il pane e le rose
+  () => { const [a, b] = pick2(BAD); return `Né ${a.w} né ${b.w}`; },               // Né Dio né padrone
+  () => `Sotto ${d(any(BAD, PLACE))}, ${d(pick(GOOD))}`,                            // Sotto il selciato, la spiaggia
+  () => `Sarà ${ind(pick(sing(GOOD)))} che vi seppellirà`,                          // Una risata vi seppellirà
+  () => `${pick(SUBJ).w} di tutto il mondo, ${pick(REFL)}!`,                        // Proletari di tutti i paesi
+  () => { const b = pick(BAD); return `${d(b)} ${pick(BADPRED)[b.n === 's' ? 0 : 1]}`; }, // La proprietà è un furto
+  () => `Vietato ${pick(FORBID)}`,                                                  // Vietato vietare
+  () => `Fate ${d(pick(GOOD))}, non ${d(pick(BAD))}`,                               // Fate l'amore, non la guerra
+  () => { const g = pick(GOOD); return `${d(g)} ${cop(g)} ${agr(pick(GOODPRED), g)}`; }, // Il personale è politico
+  () => `${pick(BADV)} meno, ${pick(GOODV)} tutti`,                                 // Lavorare meno, lavorare tutti
+  () => `Riprendiamoci ${d(any(GOOD, PLACE))}`,                                     // Riprendiamoci la città
+  () => `Siamo ${pick(ADJ)}, vogliamo ${d(pick(GOOD))}`,                            // Siate realisti...
+  () => { const g = pick(sing(GOOD)); return `Nessun${ind(g).slice(2)} è illegale`; }, // Nessuno è illegale
+  () => `${pick(GOOD).w} sì, ${pick(BAD).w} no`,
+  () => `Tutto il potere ${prep('a', pick(SUBJ))}`,                                 // Tutto il potere ai soviet
+  () => `Più ${pick(GOOD).w}, meno ${pick(BAD).w}`,
+  () => `${d(pick(PLACE))} ${prep('a', pick(SUBJ))}`,                               // La terra a chi la lavora
+  () => `Contro ${d(pick(BAD))}, ${d(pick(GOOD))}`,
+  () => `È solo l'inizio, continuiamo ${d(pick(GOOD))}`,                            // Ce n'est qu'un début
+  () => `Se non posso ${pick(GOODV)}, non è la mia rivoluzione`,                    // Se non posso ballare
+  () => { const g = any(GOOD, PLACE); return `${d(g)} non si ${pick(NONSI)[g.n === 's' ? 0 : 1]}`; }, // ...non si tocca
+  () => `Ci avete tolto ${d(pick(GOOD))}, vi toglieremo ${d(pick(BAD))}`,
+  () => { const s = pick(SUBJ), f = s.g === 'f'; return `${d(s)} ${f ? 'unite' : 'uniti'} mai saranno ${f ? 'vinte' : 'vinti'}`; }, // El pueblo unido
+  () => { const g = pick(sing(GOOD)); return `${g.g === 'f' ? "un'altra" : 'un altro'} ${g.w} è possibile`; }, // Un altro mondo è possibile
+  () => `Niente ${pick(GOOD).w}, niente ${pick(PEACE)}`,                            // No justice, no peace
+  () => { const b = pick(BAD); return `${d(b)} non ${b.n === 's' ? 'passerà' : 'passeranno'}`; }, // No pasarán
+  () => `${pick(GOODV)} ${pick(INFPRED)}`,
+  () => `Occupiamo ${d(pick(PLACE))}, ${pick(ACT)} ${d(pick(BAD))}`,
+  () => { const b = pick(BAD); return `Noi ${d(b)} non ${clit(b)} ${pick(WE)}`; },  // Noi la crisi non la paghiamo
+  () => `${pick(GOOD).w} o barbarie`,                                               // Socialismo o barbarie
+  () => `Giù le mani ${prep('da', any(GOOD, PLACE))}`,
+  () => { const g = pick(sing(GOOD)); return `${g.w} ${g.g === 'f' ? 'dura' : 'duro'} senza paura`; }, // Lotta dura senza paura
+  () => `${pick(GOOD).w} ${pick(['subito', 'per tutti', 'adesso', 'gratis', 'a oltranza', 'ovunque'])}`,
+  () => `${d(pick(SUBJ))} non hanno ${pick(['padroni', 'password', 'orari', 'confini', 'fretta', 'capi'])}`,
+  () => `${pick(ACT)} ${d(pick(BAD))}`,
+  () => `Dopo ${d(pick(BAD))}, ${d(pick(GOOD))}`,
+  () => `${pick(SUBJ).w} e ${pick(SUBJ).w} ${pick(['uniti nella lotta', 'stessa lotta', 'stessa notte', 'stesso sonno'])}`, // Operai e studenti uniti nella lotta
+  // --- dalle piazze del 2026 ---
+  () => { const u = pick(UNIT); return `${u} ${di(pick(GOOD).w)}, non ${u.toLowerCase()} ${di(pick(BAD).w)}`; }, // Stato sociale, non stato di guerra
+  () => { const g = pick(GOOD); return `${d(g)} ${cop(g)} adesso`; },                // Il futuro è adesso
+  () => { const g = pick(sing(GOOD)), p = pick(PP); return `${d(g)} va ${g.g === 'f' ? p.replace(/o( |$)/, 'a$1') : p}`; }, // La ricchezza va condivisa
+  () => `Fuori ${d(pick(BAD))} ${prep('da', pick(PLACE))}`,                         // ICE out
+  () => { const g = pick(GOOD); return `${d(g)} non ${cop(g)} in vendita`; },       // Greenland is not for sale
+  () => `Adesso basta ${pick(BAD).w}`,                                              // Adesso basta
+  () => `Tassate ${d(pick(BAD))}, non ${d(pick(GOOD))}`,                            // Tax the rich
+];
+
+/* ---------- ALTRE LINGUE (inserti più rari) ---------- */
+const EG = ["sleep","boredom","silence","laziness","noise","error","nothing","poetry","time","doubt","slowness","tenderness","daydreaming","idleness","fog","play"];
+const EB = ["work","growth","speed","debt","rent","productivity","the feed","the cloud","the algorithm","monday"];
+const EBP = ["clocks","borders","algorithms","deadlines","landlords","billionaires","platforms","passwords","mondays","screens","updates","meetings","notifications","alarms","turnstiles"];
+const EP = ["nights","dreams","sundays","clouds","servers","bodies","data","mornings","streets","beds"];
+const EN = [
+  () => `${pick(EG)} not ${pick(EB)}`,
+  () => `No ${pick(EG)}, no peace`,
+  () => `Abolish ${pick(EBP)}`,
+  () => `Eat the ${pick(EBP)}`,
+  () => `All ${pick(EBP)} are bastards`,
+  () => `${pick(EG)} is a human right`,
+  () => `${pick(EBP)} = ${pick(['violence', 'theft', 'boredom', 'war', 'noise'])}`,
+  () => `${pick(EG)} to the people`,
+  () => `Make ${pick(EG)}, not ${pick(EB)}`,
+  () => { const p = pick(EP); return `Whose ${p}? Our ${p}!`; },
+  () => `We are the ${Math.floor(Math.random() * 98) + 1}%`,
+  () => `There is no ${pick(['sunday', 'night', 'sea', 'sleep', 'body', 'summer'])} B`,
+  () => `Tax the ${pick(EBP)}`,
+  () => `No ${pick(EBP)}`,
+  () => `${pick(EBP)} out`,
+  () => `${pick(EG)} is not for sale`,
+  () => `Make ${pick(EBP)} go away`,
+  () => `${pick(EG)} over ${pick(EB)}`,
+];
+const FR_UNDER = ["les écrans","les données","le béton","les horaires","le bureau","les notifications","les factures","le parking"];
+const FR_GOOD = ["la plage","la nuit","la mer","le sommeil","la fête","le vent","l'herbe","la paresse","la poésie","la lenteur","le silence","l'ennui"];
+const FR = [
+  () => `Sous ${pick(FR_UNDER)}, ${pick(FR_GOOD)}`,
+  () => `Il est interdit ${pick(["d'obéir","de produire","de se presser","de mesurer","d'optimiser","de se résigner","de scroller","d'arriver à l'heure"])}`,
+  () => `${pick(FR_UNDER)} partout, ${pick(FR_GOOD)} nulle part`,
+  () => `Soyez ${pick(['paresseux','lents','inutiles','en retard','distraits'])}, demandez ${pick(FR_GOOD)}`,
+  () => `${pick(FR_GOOD)} est dans la rue`,
+];
+const ES_M = ["sueño","silencio","ocio","error","verano","domingo"], ES_F = ["siesta","poesía","pereza","fiesta","noche","duda"];
+const ES_BAD = ["reloj","patrón","pantalla","frontera","algoritmo","deuda","prisa","lunes","horario","contraseña"];
+const ES = [
+  () => { const [a, b] = pick2(ES_BAD); return `Ni ${a} ni ${b}`; },
+  () => Math.random() < .5 ? `El ${pick(ES_M)} unido jamás será vencido` : `La ${pick(ES_F)} unida jamás será vencida`,
+  () => `¡Que se vayan ${pick(['los relojes','los algoritmos','los lunes','los patrones','los horarios','las pantallas','las prisas'])}!`,
+  () => `${pick(ES_F)} o muerte`,
+];
+
+/* ---------- CORPO CHE CRESCE (corpo.json) ---------- */
+let BATCH = [];                       // blocchi di slogan inventati, dal più vecchio al più recente
+const known = new Set();
+function grow(c) {
+  if (!c) return;
+  const P = c.parole || {};
+  [[GOOD, P.good], [BAD, P.bad], [SUBJ, P.subj], [PLACE, P.place]].forEach(([list, add]) => {
+    (add || []).forEach(x => {
+      if (known.has(list === GOOD ? 'g' + x : list === BAD ? 'b' + x : list === SUBJ ? 's' + x : 'p' + x)) return;
+      known.add((list === GOOD ? 'g' : list === BAD ? 'b' : list === SUBJ ? 's' : 'p') + x);
+      try { const n = N(x)[0]; if (n.w && /^[mf][sp]$/.test(n.g + n.n)) list.push(n); } catch (e) {}
+    });
+  });
+  BATCH = (c.slogan || []).map(b => (b.t || []).filter(Boolean)).filter(b => b.length);
+}
+function load() {
+  return fetch('corpo.json?' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(grow).catch(() => {});
+}
+
+/* ---------- MOTORE ---------- */
+const REAL = new Set(["fate l'amore, non la guerra", "né stato né padroni", "il futuro è adesso", "la ricchezza va condivisa", "tax the rich", "no kings"]);
+const seen = new Set();
+let lastT = null;
+function invented() {
+  if (!BATCH.length) return null;
+  for (let i = 0; i < 12; i++) {
+    // più spesso dagli ultimi blocchi: il presente pesa di più
+    const b = Math.random() < .6 ? BATCH[BATCH.length - 1 - Math.floor(Math.random() * Math.min(3, BATCH.length))] : pick(BATCH);
+    const s = pick(b), k = s.toLowerCase();
+    if (!seen.has(k)) { seen.add(k); return s; }
+  }
+  return null;
+}
+function make() {
+  if (Math.random() < .35) { const s = invented(); if (s) { lastT = null; return s; } }
+  for (let i = 0; i < 200; i++) {
+    const r = Math.random();
+    const bank = r < .80 ? IT : r < .91 ? EN : r < .96 ? FR : ES;
+    const t = pick(bank);
+    if (t === lastT) continue;
+    const s = t().trim();
+    const k = s.toLowerCase();
+    if (seen.has(k) || REAL.has(k)) continue;
+    seen.add(k); lastT = t;
+    return s;
+  }
+  seen.clear();
+  return make();
+}
+
+const el = document.getElementById('s');
+let size = 40, current = '';
+function fit() {
+  const W = innerWidth * 0.92, H = innerHeight * 0.86;
+  let lo = 12, hi = 600;
+  while (hi - lo > 1) {
+    const m = (lo + hi) >> 1;
+    el.style.fontSize = m + 'px';
+    (el.scrollWidth <= W + 1 && el.offsetHeight <= H) ? lo = m : hi = m;
+  }
+  size = lo;
+  el.style.fontSize = lo + 'px';
+}
+function next() {
+  current = make().toLocaleUpperCase('it');
+  el.textContent = '';
+  current.split(/\s+/).forEach((w, i) => {
+    if (i) el.appendChild(document.createTextNode(' '));
+    const sp = document.createElement('span'); sp.textContent = w; el.appendChild(sp);
+  });
+  fit();
+  setTimeout(next, 900 + current.length * 55);
+}
+
+/* ---------- FOTO ---------- */
+function photo() {
+  if (!current) return;
+  const dpr = Math.max(2, devicePixelRatio || 1);
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+  const c = cv.getContext('2d');
+  c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height);
+  c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.font = `800 ${size * dpr}px Archivo, "Arial Black", Arial, sans-serif`;
+  try { c.fontStretch = 'extra-expanded'; } catch (e) {}
+  // stesse righe che si vedono a schermo
+  const lines = [];
+  el.querySelectorAll('span').forEach(sp => {
+    const r = sp.getBoundingClientRect(), y = r.top + r.height / 2;
+    const last = lines[lines.length - 1];
+    if (last && Math.abs(last.y - y) < r.height / 2) last.w.push(sp.textContent);
+    else lines.push({ y, w: [sp.textContent] });
+  });
+  lines.forEach(l => c.fillText(l.w.join(' '), cv.width / 2, l.y * dpr, cv.width * 0.98));
+  document.body.classList.add('flash');
+  setTimeout(() => document.body.classList.remove('flash'), 90);
+  const name = 'slogan-' + current.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + '.png';
+  cv.toBlob(blob => {
+    if (!blob) return;
+    const save = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    };
+    // sul telefono: foglio "Salva immagine"; altrove (o se non c'è): scarica il file
+    try {
+      const f = new File([blob], name, { type: 'image/png' });
+      if (TOUCH && navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f] }).catch(e => { if (!e || e.name !== 'AbortError') save(); }); return; }
+    } catch (e) {}
+    save();
+  }, 'image/png');
+}
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); photo(); }
+});
+addEventListener('touchend', e => { e.preventDefault(); photo(); }, { passive: false });
+addEventListener('resize', fit);
+addEventListener('dblclick', () => {
+  try {
+    const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+});
+
+// parte quando ci sono il font e il corpo (o comunque dopo 2,5 secondi)
+let started = false;
+const start = () => { if (!started) { started = true; next(); } };
+Promise.all([load(), document.fonts && document.fonts.load ? document.fonts.load('800 40px Archivo').catch(() => {}) : 0]).then(start);
+setTimeout(start, 2500);
+setInterval(load, 30 * 60 * 1000);   // se resta acceso (mostra, installazione) continua a crescere
+</script>
+</body>
+</html>

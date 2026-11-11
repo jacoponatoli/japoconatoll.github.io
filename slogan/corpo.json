@@ -1,0 +1,88 @@
+{
+  "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati dopo aver letto quelli veri del momento. 'letti' sono gli slogan veri letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai.",
+  "aggiornato": "2026-11-11",
+  "parole": {
+    "good": ["sanità:fs", "scuola:fs", "salario:ms", "pensione:fs", "pace:fs", "welfare:ms", "gessetti:mp", "diserzione:fs", "obiezione:fs", "ricchezza:fs", "condivisione:fs", "tenebre:fp"],
+    "bad": ["riarmo:ms", "manovra:fs", "finanziaria:fs", "carovita:ms", "re:mp", "droni:mp", "data center:mp", "precarietà:fs", "austerità:fs", "bollette:fp", "sfratti:mp", "armi:fp", "frontiere:fp", "repressione:fs", "decreti:mp", "zone rosse:fp", "manganelli:mp", "lacrimogeni:mp", "chatbot:mp", "prompt:mp", "oligarchi:mp", "dazi:mp", "troni:mp", "corone:fp", "tagli:mp", "spese militari:fp", "intelligenza artificiale:fs"],
+    "subj": ["liceali:mp", "renitenti:mp", "obiettori:mp", "infermiere:fp", "maestre:fp", "disertori:mp", "nipoti:mp", "fuorisede:mp"],
+    "place": ["licei:mp", "caserme:fp", "data center:mp", "porti:mp", "binari:mp", "chat:fp", "tangenziali:fp"]
+  },
+  "slogan": [
+    {
+      "d": "2026-11-11",
+      "t": [
+        "Stato di sonno, non stato di guerra",
+        "Disarmate anche le sveglie",
+        "Il futuro era ieri, lo rivogliamo indietro",
+        "Nessun re, nemmeno l'algoritmo",
+        "La manovra la facciamo noi: inversione a U",
+        "Tassate i ricchi, detassate i sogni",
+        "Più gessetti, meno droni",
+        "Riarmo? Ri-amo",
+        "Il carovita ci costa la vita",
+        "Non ci avete sentiti, adesso ci leggete",
+        "Obiezione di coscienza anche al lunedì",
+        "La ricchezza va condivisa, la password pure",
+        "Né re né reel",
+        "Troppi per stare zitti, troppo stanchi per stare buoni",
+        "Sciopero generale, particolare e personale",
+        "Il bilancio è in rosso, noi pure",
+        "Meno caserme, più ricreazione",
+        "Chi semina droni raccoglie disertori",
+        "Il futuro è adesso, ma è in ritardo",
+        "Fuori la guerra dal bilancio",
+        "Spegnete i data center, accendete le piazze",
+        "Diserta, disegna, disobbedisci",
+        "Un altro novembre è possibile",
+        "La pace non si finanzia a debito",
+        "Affitto in scadenza, pazienza scaduta",
+        "Generazione Z come zero armi",
+        "Stato sociale cercasi, astenersi perditempo",
+        "L'intelligenza è artificiale, la rabbia no",
+        "Scrivetelo col gesso: pioverà e lo riscriveremo",
+        "Non siamo in vendita, nemmeno in saldo",
+        "Tutto il potere ai marciapiedi",
+        "Il prompt è: basta",
+        "Ci volete in riga, ci avrete in corteo",
+        "Curateci, non armateci",
+        "Dal warfare al farniente",
+        "La scuola crolla, noi no",
+        "Venti novembre, tutti i mesi",
+        "Non è una fase, è una piazza",
+        "Cercasi futuro, anche usato",
+        "L'algoritmo non sciopera, noi sì",
+        "Occupiamo il tempo libero",
+        "Chi non salta è un abbonamento",
+        "No kings, no queues",
+        "Tax the clocks",
+        "Make mondays go away",
+        "Sleep is not for sale",
+        "Nobody heard us, so we got louder",
+        "Empathy over uptime",
+        "La nuit n'est pas à vendre",
+        "On est trop nombreux pour se taire"
+      ]
+    }
+  ],
+  "letti": [
+    {
+      "d": "2026-11-11",
+      "t": [
+        "Stato sociale, non stato di guerra",
+        "Il futuro è adesso",
+        "Pace e non riarmo",
+        "Adesso basta",
+        "La ricchezza va condivisa",
+        "Tax the rich",
+        "No Kings",
+        "ICE Out",
+        "Greenland is not for sale",
+        "Make America Go Away",
+        "Empathy over empire",
+        "Democracy not monarchy",
+        "Whose streets? Our streets!",
+        "People united, won't be divided"
+      ]
+    }
+  ]
+}
