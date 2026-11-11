@@ -9,25 +9,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; cursor: none; }
   html.flash { filter: invert(1); }
-  body { display: flex; align-items: center; justify-content: center; cursor: none; }
-  #s {
+  #s, #r {
     color: #fff;
     font-family: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
     font-weight: 800;
     font-stretch: 125%;
-    text-align: center;
-    line-height: 1;
-    max-width: 92vw;
-    margin: 0;
+    white-space: nowrap;
     -webkit-user-select: none; user-select: none;
   }
-  #s span { white-space: nowrap; }
+  #s { position: fixed; inset: 0; box-sizing: border-box; margin: 0; display: flex; flex-direction: column; align-items: center; }
+  #s div { line-height: 0.76; flex: none; }
+  #r { position: absolute; left: -99999px; top: 0; font-size: 100px; visibility: hidden; }
 </style>
 </head>
 <body>
-<p id="s" aria-live="off"></p>
+<div id="s"></div>
+<span id="r" aria-hidden="true"></span>
 <script>
 /* SLOGAN — un lavoro di Jacopo Natoli. Generatore di slogan politici.
 
@@ -38,8 +37,7 @@
    2. CORPO — corpo.json, che cresce nel tempo: slogan nuovi inventati dopo aver letto
       quelli delle piazze di questi giorni, e parole nuove che entrano nella grammatica.
    Nessuno slogan si ripete nella stessa visita.
-   3. COLORE — il lettering è sempre lo stesso; ogni slogan ha una gamma di colori
-      costruita con una regola d'armonia (vedi COLORE più sotto), mai a caso.
+   Bianco su nero, la scritta più grande possibile: ogni riga tocca i due bordi dello schermo.
 
    Ctrl+F (o Cmd+F): salva la foto dello slogan. Sul telefono: basta toccare lo schermo.
    Doppio clic: schermo intero. */
@@ -240,131 +238,84 @@ function make() {
   return make();
 }
 
-/* ---------- COLORE ----------
-   Il lettering è sempre lo stesso; cambia solo il colore, e mai a caso.
-   Ogni slogan parte da una tinta estratta a sorte sulla ruota dei pittori (rosso-giallo-blu,
-   dove i complementari sono giallo/viola, rosso/verde, blu/arancio) e costruisce la sua
-   gamma con una regola d'armonia: le regole della ruota cromatica (complementari,
-   monocromatico, sfumature, analoghi, triade, complementari divergenti, tetrade, quadrato,
-   composto) e i contrasti di Itten (qualità, simultaneità, caldo-freddo, chiaro-scuro,
-   colori puri, quantità). Per la quantità vale la proporzione di Goethe: il colore più
-   luminoso prende la superficie più piccola, cioè la scritta. */
-const RYB = [[0, 0], [60, 30], [120, 58], [180, 130], [240, 222], [300, 278], [360, 360]];   // angolo dei pittori -> tinta dello schermo
-const NAT = [[0, 49], [60, 52], [120, 52], [180, 38], [240, 46], [300, 40], [360, 49]];       // luminosità "naturale" del colore puro
-function interp(T, a) { a = ((a % 360) + 360) % 360; for (let i = 0; i < 6; i++) { const p = T[i], q = T[i + 1]; if (a <= q[0]) return p[1] + (q[1] - p[1]) * (a - p[0]) / (q[0] - p[0]); } return T[0][1]; }
-const rnd = (a, b) => a + (b - a) * Math.random();
-const C = (a, s, l) => ({ a, s, l });
-const vivid = a => C(a, rnd(90, 100), interp(NAT, a) + rnd(-2, 3));     // puro, alla massima brillantezza
-const deep = a => C(a, rnd(65, 90), interp(NAT, a) * rnd(.3, .5));       // lo stesso colore, scuro
-const pale = a => C(a, rnd(70, 95), rnd(82, 90));                        // lo stesso colore, chiaro
-const grey = (a, l) => C(a, rnd(8, 22), l);                              // lo stesso colore, spento
-const css = c => `hsl(${interp(RYB, c.a).toFixed(1)},${c.s.toFixed(1)}%,${c.l.toFixed(1)}%)`;
-function rgb(c) {
-  const h = interp(RYB, c.a) / 360, s = c.s / 100, l = c.l / 100, q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
-  const f = t => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < .5 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
-  return [f(h + 1 / 3), f(h), f(h - 1 / 3)];
+/* ---------- SCRITTA ----------
+   Bianco su nero. Lo slogan è il più grande possibile sullo schermo che ha davanti
+   (telefono in piedi, computer, proiezione): ogni riga è ingrandita fino a toccare i due
+   bordi, le parole non si spezzano mai, e l'interlinea distribuisce le righe su tutta
+   l'altezza. Tra tutti i modi di andare a capo sceglie quello che copre più schermo. */
+const el = document.getElementById('s'), ruler = document.getElementById('r');
+const CAP = 0.76;            // altezza delle maiuscole rispetto al corpo
+// aria sopra e sotto la riga, solo dove serve: accenti in alto, virgole e ¡ in basso
+const above = t => /[ÀÁÂÄÈÉÊËÌÍÎÒÓÔÖÙÚÛÜÑ]/.test(t) ? .2 : .03;
+const below = t => /[¡¿]/.test(t) ? .2 : /[,;QÇ]/.test(t) ? .12 : .03;
+let current = '', words = [], ww = [], spw = 0;
+function measure() {         // larghezza di ogni parola a corpo 100
+  ruler.textContent = 'A A'; const a = ruler.offsetWidth; ruler.textContent = 'AA'; spw = a - ruler.offsetWidth;
+  ww = words.map(w => { ruler.textContent = w; return ruler.offsetWidth; });
 }
-function lumi(c) { const k = rgb(c).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * k[0] + .7152 * k[1] + .0722 * k[2]; }
-const ratio = (x, y) => { const a = lumi(x), b = lumi(y); return (Math.max(a, b) + .05) / (Math.min(a, b) + .05); };
-// leggibilità: se la scritta non stacca abbastanza dal fondo, si sposta di chiarezza (stessa tinta)
-function legible(t, bg, min) {
-  t = C(t.a, t.s, t.l); const lb = lumi(bg), dir = (1.05 / (lb + .05)) >= ((lb + .05) / .05) ? 1 : -1;
-  for (let i = 0; i < 40 && ratio(t, bg) < (min || 3.2); i++) t.l = Math.max(2, Math.min(98, t.l + dir * 2.5));
-  return t;
-}
-const HARMONY = [
-  ['complementari', 14, a => { const x = vivid(a), y = vivid(a + 180), hi = lumi(x) > lumi(y) ? x : y, lo = hi === x ? y : x; return Math.random() < .8 ? { bg: lo, t: [hi] } : { bg: hi, t: [lo] }; }],
-  ['complementari in toni', 8, a => ({ bg: deep(a), t: [vivid(a + 180), pale(a + 180)] })],
-  ['monocromatico', 10, a => Math.random() < .6 ? { bg: C(a, rnd(70, 95), rnd(9, 20)), t: [vivid(a), pale(a), C(a, rnd(60, 90), 68)] } : { bg: pale(a), t: [deep(a), vivid(a)] }],
-  ['sfumature', 10, a => { const dark = Math.random() < .65, s = rnd(75, 98); return { bg: C(a, s, dark ? rnd(6, 13) : rnd(90, 95)), t: [0, 1, 2, 3, 4, 5].map(i => C(a, s, dark ? 92 - i * 11 : 14 + i * 9)), grad: true }; }],
-  ['analoghi', 10, a => ({ bg: Math.random() < .7 ? deep(a) : pale(a), t: [vivid(a - 30), vivid(a), vivid(a + 30)] })],
-  ['analoghi su puro', 5, a => ({ bg: vivid(a), t: [pale(a + 30), pale(a - 30)] })],
-  ['triade', 9, a => ({ bg: Math.random() < .5 ? vivid(a) : deep(a), t: [vivid(a + 120), vivid(a + 240)] })],
-  ['complementari divergenti', 8, a => ({ bg: Math.random() < .5 ? vivid(a) : deep(a), t: [vivid(a + 150), vivid(a + 210)] })],
-  ['tetrade', 6, a => ({ bg: deep(a), t: [vivid(a + 60), vivid(a + 180), vivid(a + 240)] })],
-  ['quadrato', 6, a => ({ bg: deep(a), t: [vivid(a + 90), vivid(a + 180), vivid(a + 270)] })],
-  ['composto', 5, a => ({ bg: deep(a), t: [vivid(a + 30), vivid(a + 150), vivid(a + 180)] })],
-  ['qualità', 7, a => Math.random() < .6 ? { bg: grey(a, rnd(22, 38)), t: [vivid(a)] } : { bg: vivid(a), t: [grey(a, rnd(86, 93))] }],
-  ['simultaneità', 5, a => ({ bg: C(a, 0, Math.random() < .5 ? rnd(18, 30) : rnd(78, 86)), t: [vivid(a)] })],
-  ['caldo-freddo', 8, a => { const w = rnd(0, 115), c = rnd(185, 290); return Math.random() < .5 ? { bg: deep(c), t: [vivid(w), vivid(w + 25)] } : { bg: vivid(w), t: [deep(c)] }; }],
-  ['chiaro-scuro', 6, a => Math.random() < .5 ? { bg: C(a, rnd(60, 90), rnd(4, 9)), t: [pale(a + (Math.random() < .5 ? 0 : 180))] } : { bg: pale(a), t: [C(a + (Math.random() < .5 ? 0 : 180), rnd(70, 95), rnd(8, 16))] }],
-  ['colori puri', 8, () => { const P = [vivid(0), vivid(120), vivid(240), C(0, 0, 4), C(0, 0, 98)], i = Math.floor(Math.random() * 5); return { bg: P[i], t: P.filter((_, j) => j !== i) }; }],
-  ['bianco e nero', 3, () => ({ bg: C(0, 0, 0), t: [C(0, 0, 100)] })],
-];
-let lastH = '';
-function palette() {
-  let tot = 0; HARMONY.forEach(h => tot += h[1]);
-  let h; do { let r = Math.random() * tot; h = HARMONY.find(x => (r -= x[1]) < 0); } while (h[0] === lastH);
-  lastH = h[0];
-  const p = h[2](Math.random() * 360);
-  let t = p.t.map(c => legible(c, p.bg));
-  if (!p.grad) { t = t.filter((c, i) => t.findIndex(d => Math.abs(d.l - c.l) < 4 && Math.abs(((d.a - c.a) % 360 + 360) % 360) < 8) === i); t.sort(() => Math.random() - .5); }
-  // come si distribuiscono i colori: tutta la scritta, riga per riga, parola per parola
-  const mode = p.grad ? 'grad' : t.length < 2 ? 'solid' : ['line', 'word', 'word', 'solid'][Math.floor(Math.random() * 4)];
-  return { name: h[0], bg: css(p.bg), t: t.map(css), mode };
-}
-
-/* ---------- SCRITTA ---------- */
-const el = document.getElementById('s');
-let size = 40, current = '', PAL = null;
-function fit() {
-  const W = innerWidth * 0.92, H = innerHeight * 0.86;
-  let lo = 12, hi = 600;
-  while (hi - lo > 1) {
-    const m = (lo + hi) >> 1;
-    el.style.fontSize = m + 'px';
-    (el.scrollWidth <= W + 1 && el.offsetHeight <= H) ? lo = m : hi = m;
+function layout() {
+  if (!words.length) return;
+  const mx = Math.max(10, innerWidth * .025), my = Math.max(10, innerHeight * .03), W = innerWidth - mx * 2, H = innerHeight - my * 2;
+  const n = words.length, cuts = Math.min(n - 1, 13);
+  let best = null;
+  // tutte le divisioni in righe (le parole restano in ordine)
+  for (let m = 0; m < (1 << cuts); m++) {
+    const lines = []; let from = 0;
+    for (let i = 0; i < n; i++) if (i === n - 1 || (i < cuts && (m >> i & 1))) { lines.push([from, i]); from = i + 1; }
+    let tot = 0, ink = 0, lo = 1e9, hi = 0;
+    const sz = lines.map(l => {
+      let w = spw * (l[1] - l[0]); for (let i = l[0]; i <= l[1]; i++) w += ww[i];
+      const s = W / w * 100, t = words.slice(l[0], l[1] + 1).join(' ');
+      tot += s * (CAP + above(t) + below(t)); ink += s * s * w; lo = Math.min(lo, s); hi = Math.max(hi, s); return s;
+    });
+    const f = Math.min(1, H / tot);                               // se è troppo alto si rimpicciolisce tutto insieme
+    let score = ink * f * f;
+    if (hi / lo > 2.6) score *= Math.pow(2.6 / (hi / lo), 3);     // niente parola gigante accanto a righe minuscole
+    if (!best || score > best.score) best = { score, lines, sz: sz.map(s => s * f), tot: tot * f };
   }
-  size = lo;
-  el.style.fontSize = lo + 'px';
-  paint();
-}
-function paint() {
-  if (!PAL) return;
-  document.documentElement.style.background = document.body.style.background = PAL.bg;
-  const sp = [].slice.call(el.querySelectorAll('span')), tops = [];
-  sp.forEach(s => { if (tops.indexOf(s.offsetTop) < 0) tops.push(s.offsetTop); });
-  const n = PAL.t.length, off = PAL.off;
-  sp.forEach((s, i) => {
-    const li = tops.indexOf(s.offsetTop);
-    s.style.color = PAL.mode === 'solid' ? PAL.t[off % n]
-      : PAL.mode === 'word' ? PAL.t[(i + off) % n]
-      : PAL.mode === 'line' ? PAL.t[(li + off) % n]
-      : PAL.t[Math.min(n - 1, Math.round(li * (n - 1) / Math.max(1, tops.length - 1) * (tops.length > 1 ? 1 : 0)))];   // sfumatura: dalla prima riga all'ultima
-  });
-}
-function show(text, pal) {
-  current = text.toLocaleUpperCase('it');
-  PAL = pal || palette(); PAL.off = Math.floor(Math.random() * 12);
   el.textContent = '';
-  current.split(/\s+/).forEach((w, i) => {
-    if (i) el.appendChild(document.createTextNode(' '));
-    const sp = document.createElement('span'); sp.textContent = w; el.appendChild(sp);
+  el.style.padding = my + 'px ' + mx + 'px';
+  el.style.justifyContent = best.lines.length > 1 ? 'space-between' : 'center';
+  const free = H - best.tot, air = best.lines.length > 1 ? 0 : free / 2;
+  // se avanza molta altezza le righe non si allontanano oltre mezzo corpo: il blocco resta al centro
+  const gapMax = Math.max.apply(null, best.sz) * .5, gap = best.lines.length > 1 ? free / (best.lines.length - 1) : 0;
+  if (gap > gapMax) { el.style.justifyContent = 'center'; el.style.rowGap = gapMax + 'px'; } else el.style.rowGap = '0px';
+  best.lines.forEach((l, i) => {
+    const d = document.createElement('div');
+    d.textContent = words.slice(l[0], l[1] + 1).join(' ');
+    d.style.fontSize = best.sz[i] + 'px';
+    d.style.padding = above(d.textContent) + 'em 0 ' + below(d.textContent) + 'em';
+    el.appendChild(d);
   });
-  fit();
 }
-function next() { show(make()); setTimeout(next, 900 + current.length * 55); }
+function show(text) {
+  current = text.toLocaleUpperCase('it').replace(/\s+/g, ' ').trim();
+  words = current.split(' '); measure(); layout();
+}
+// il tempo di leggerla: più è lunga, più resta
+function next() { show(make()); setTimeout(next, 1700 + current.length * 95); }
 
 /* ---------- FOTO ---------- */
 function shot() {
   const dpr = Math.max(2, devicePixelRatio || 1), k = document.createElement('canvas');
   k.width = Math.round(innerWidth * dpr); k.height = Math.round(innerHeight * dpr);
   const c = k.getContext('2d');
-  c.fillStyle = PAL.bg; c.fillRect(0, 0, k.width, k.height);
-  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-  c.font = `800 ${size * dpr}px Archivo, "Arial Black", Arial, sans-serif`;
-  try { c.fontStretch = 'extra-expanded'; } catch (e) {}
-  // ogni parola nel punto esatto e con la larghezza esatta che ha sullo schermo
-  el.querySelectorAll('span').forEach(sp => {
-    const r = sp.getBoundingClientRect(), m = c.measureText(sp.textContent), w = m.width || 1;
-    const asc = m.fontBoundingBoxAscent || size * dpr * .8, desc = m.fontBoundingBoxDescent || size * dpr * .2;
-    c.save(); c.translate(r.left * dpr, (r.top + r.height * asc / (asc + desc)) * dpr); c.scale(r.width * dpr / w, 1);
-    c.fillStyle = sp.style.color; c.fillText(sp.textContent, 0, 0); c.restore();
+  c.fillStyle = '#000'; c.fillRect(0, 0, k.width, k.height);
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  // ogni riga nel punto esatto e con la larghezza esatta che ha sullo schermo
+  el.querySelectorAll('div').forEach(d => {
+    const range = document.createRange(); range.selectNodeContents(d);
+    const r = range.getBoundingClientRect(), box = d.getBoundingClientRect(), fs = parseFloat(d.style.fontSize) * dpr;
+    c.font = `800 ${fs}px Archivo, "Arial Black", Arial, sans-serif`;
+    try { c.fontStretch = 'extra-expanded'; } catch (e) {}
+    const m = c.measureText(d.textContent), w = m.width || 1, asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .21;
+    c.save(); c.translate(r.left * dpr, (box.top + above(d.textContent) * fs / dpr) * dpr + (CAP * fs - (asc + desc)) / 2 + asc); c.scale(r.width * dpr / w, 1);
+    c.fillText(d.textContent, 0, 0); c.restore();
   });
   return k;
 }
 function photo() {
-  if (!current || !PAL) return;
+  if (!current) return;
   const k = shot();
   document.documentElement.classList.add('flash');
   setTimeout(() => document.documentElement.classList.remove('flash'), 90);
@@ -390,21 +341,21 @@ addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); photo(); }
 });
 addEventListener('touchend', e => { e.preventDefault(); photo(); }, { passive: false });
-addEventListener('resize', fit);
+addEventListener('resize', layout);
 addEventListener('dblclick', () => {
   try {
     const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
     if (p && p.catch) p.catch(() => {});
   } catch (e) {}
 });
-// per provare un'armonia dalla console: SLOGAN.show('TESTO', 'triade')
-window.SLOGAN = { harmonies: HARMONY.map(h => h[0]), shot, show(t, name) { if (name) { let p; do { p = palette(); } while (p.name !== name); show(t || make(), p); } else show(t || make()); return PAL; } };
+window.SLOGAN = { shot, show(t) { show(t || make()); } };   // per provare dalla console: SLOGAN.show('TESTO')
 
 // parte quando ci sono il font e il corpo (o comunque dopo 2,5 secondi)
 let started = false;
 const start = () => { if (!started) { started = true; if (/[?&]fermo/.test(location.search)) show(make()); else next(); } };
 Promise.all([load(), document.fonts && document.fonts.load ? document.fonts.load('800 40px Archivo').catch(() => {}) : 0]).then(start);
 setTimeout(start, 2500);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (current) { measure(); layout(); } });
 setInterval(load, 30 * 60 * 1000);   // se resta acceso (mostra, installazione) continua a crescere
 </script>
 </body>
