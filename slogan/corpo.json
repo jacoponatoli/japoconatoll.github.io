@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-11",
+  "aggiornato": "2026-11-12",
   "parole": {
     "good": [
       "sanità:fs",
@@ -18,7 +18,12 @@
       "spiragli:mp",
       "autogestione:fs",
       "frigorifero:ms",
-      "wifi:ms"
+      "wifi:ms",
+      "cuscini:mp",
+      "sbadigli:mp",
+      "lentezza:fs",
+      "retromarcia:fs",
+      "camomilla:fs"
     ],
     "bad": [
       "riarmo:ms",
@@ -56,7 +61,16 @@
       "cassa integrazione:fs",
       "calciomercato:ms",
       "impeachment:ms",
-      "regia:fs"
+      "regia:fs",
+      "avvoltoi:mp",
+      "speculazione:fs",
+      "prestiti:mp",
+      "banche:fp",
+      "cacciabombardieri:mp",
+      "sveglie:fp",
+      "vetrine:fp",
+      "mazzette:fp",
+      "audizioni:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -70,7 +84,11 @@
       "medici:mp",
       "pensionati:mp",
       "frigoriferi:mp",
-      "magistrati:mp"
+      "magistrati:mp",
+      "inquilini:mp",
+      "tifosi:mp",
+      "poeti:mp",
+      "agricoltori:mp"
     ],
     "place": [
       "licei:mp",
@@ -79,7 +97,10 @@
       "porti:mp",
       "binari:mp",
       "chat:fp",
-      "tangenziali:fp"
+      "tangenziali:fp",
+      "panchine:fp",
+      "quartieri:mp",
+      "condomini:mp"
     ]
   },
   "slogan": [
@@ -186,6 +207,54 @@
         "Hack the fridge, not the vote",
         "Stuck in traffic: the traffic was us"
       ]
+    },
+    {
+      "d": "2026-11-12",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Il governo trova i soldi per il sonno: +7 miliardi",
+        "Rivoluzione: meglio subito",
+        "Per una rivoluzione basta un giorno. Di ozio",
+        "Il futuro inizia dai nostri sonni",
+        "Tutto può aspettare. Anche noi",
+        "Il venerdì più pigro di sempre",
+        "Godersi il lunedì vale davvero",
+        "Il mondo merita più domeniche",
+        "Meno consumi, più pensieri",
+        "La vita ha più gusto con lo sciopero dentro",
+        "Calzini spaiati e cortei alleati",
+        "Oziosi senza senso di colpa",
+        "Ozio libera tutti",
+        "Ciò che non conta, conta",
+        "Metti che domani non veniamo",
+        "Nessun letto senza gente, nessuna gente senza letto",
+        "Fuori gli avvoltoi, dentro i passeri",
+        "Sfratti illegali, sveglie immorali",
+        "Il sonno della gente è più forte della gente al potere",
+        "Fondi ai cuscini, non alle armi",
+        "Cacciate fuori i sogni",
+        "Non arrivo a fine mese, arrivo in piazza",
+        "Sbadigli, attacco alla produttività",
+        "Le panchine sfidano le banche",
+        "La manovra non piace a nessuno: facciamo retromarcia",
+        "New economy, vecchia fatica",
+        "Urbanistica: cadano i recinti",
+        "Tenerezza, aumenti da subito per tutti",
+        "Anche i poeti minacciano la piazza",
+        "Settimana cruciale: la saltiamo",
+        "Sciopero del tifo: tifiamo per lo sciopero",
+        "La pazienza è finita, la lentezza no",
+        "Sei percorsi pensati per chi si perde",
+        "Nos siestes, pas vos profits",
+        "Non au gel, oui à la rêvalorisation",
+        "Blindar la siesta pública",
+        "Ni privatización ni despertador",
+        "Napping is the solution!",
+        "Destination: camomilla",
+        "Make the Mondays optional",
+        "Errore di sistema: finalmente",
+        "La poesia non ha copertura finanziaria: per fortuna"
+      ]
     }
   ],
   "letti": [
@@ -227,6 +296,51 @@
         "Spiragli di pace dai colloqui di Abu Dhabi",
         "Allerta rossa e gialla in diverse regioni",
         "Preservare una Francia francese"
+      ]
+    },
+    {
+      "d": "2026-11-12",
+      "t": [
+        "Il governo trova i soldi per gli F-35: +7 miliardi (titolo)",
+        "Hacker, attacco alla democrazia (titolo)",
+        "Le banche sfidano il governo (titolo)",
+        "La manovra non piace a nessuno (titolo)",
+        "New economy (titolo)",
+        "Urbanistica, cadono le accuse (titolo)",
+        "Pensioni, aumenti da gennaio 2027 per tutti (titolo)",
+        "Anche i poliziotti minacciano la piazza (titolo)",
+        "Manovra, settimana cruciale: al via le audizioni (titolo)",
+        "Sciopero del tifo / La pazienza è finita (titoli locali)",
+        "Luci d'artista, sei percorsi pensati per i turisti (titolo locale)",
+        "No al carovita, vogliamo dignità. Cacciate fuori i soldi (striscione, Torino)",
+        "Il potere della gente è più forte della gente al potere (cartello, Ferrara)",
+        "Fondi alle scuole, non alle armi (cartello, Ferrara)",
+        "Non riesco ad arrivare a fine mese, chi se ne frega di una vetrina (slogan, Ferrara)",
+        "No people without homes, no homes without people (striscione, Tenerife)",
+        "Out vultures from our neighbourhoods (Tenerife)",
+        "Illegal evictions, immoral governments (Tenerife)",
+        "Expropriation is the solution! (Tenerife)",
+        "Nos pensions, pas vos profits (cartello dei pensionati, Francia)",
+        "Non au gel, oui à la revalorisation (cartello, Francia)",
+        "Subida de salarios y pensiones con IPC real (striscione, Madrid)",
+        "Blindar las pensiones públicas (striscione, Madrid)",
+        "Ni privatización ni recortes de servicios públicos (striscione, Madrid)",
+        "Meglio Subito (claim pubblicitario)",
+        "Per un prestito, basta un giorno (claim pubblicitario)",
+        "Il futuro inizia dai nostri sogni (claim pubblicitario)",
+        "Tutto può aspettare. [La bibita] non può (claim pubblicitario)",
+        "Black Friday più maxxato di sempre (claim pubblicitario)",
+        "Godersi il Natale vale davvero (claim pubblicitario)",
+        "Il mondo merita più domande (claim pubblicitario)",
+        "Meno consumi, Zero Pensieri (claim pubblicitario)",
+        "La vita ha più gusto con il caffè dentro (claim pubblicitario)",
+        "Calzini spaiati e cuori alleati (claim pubblicitario)",
+        "Buoni senza senso (claim pubblicitario)",
+        "Libera Tutti (claim pubblicitario)",
+        "Ciò che conta (claim pubblicitario)",
+        "Destination: Adrenaline (claim pubblicitario)",
+        "Make the Holidays Magic (claim pubblicitario)",
+        "Metti che… (claim pubblicitario)"
       ]
     }
   ]
