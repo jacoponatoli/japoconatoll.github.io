@@ -1069,7 +1069,12 @@ async function boot(){
   if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
-document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
+// double click (or the F key): full screen on / off
+const fullscreen=()=>{try{const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>{})}catch(e){}};
+addEventListener('dblclick',fullscreen);
+document.addEventListener('keydown',e=>{if(e.key==='f')fullscreen()});
+// in full screen the cursor disappears after a few seconds of stillness
+let curT;addEventListener('mousemove',()=>{document.body.style.cursor='';clearTimeout(curT);curT=setTimeout(()=>{if(document.fullscreenElement)document.body.style.cursor='none'},2500)});
 </script>
 </body>
 </html>
