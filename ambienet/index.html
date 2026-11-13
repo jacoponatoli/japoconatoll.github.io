@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMBIENET</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;z-index:2;background:#000;transition:opacity 4s}
+#start h1{font-weight:400;letter-spacing:.6em;font-size:clamp(28px,6vw,72px);margin:0 0 0 .6em}
+#start p{opacity:.5;letter-spacing:.3em;font-size:12px;margin-top:2em;text-transform:uppercase}
+#now{position:fixed;top:20px;left:24px;right:24px;font-size:11px;letter-spacing:.15em;opacity:.55;text-transform:uppercase}
+#log{position:fixed;left:24px;right:24px;bottom:52px;font-size:12px;line-height:1.75;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 60%);mask-image:linear-gradient(to bottom,transparent,#000 60%)}
+#log b{font-weight:400;opacity:.45;display:inline-block;min-width:10em;letter-spacing:.1em}
+.l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:in 1.5s;transition:color 4s}
+.l.live{color:#ff2a1a}
+.l.off{opacity:.35;transition:color 4s,opacity 4s}
+@keyframes in{from{opacity:0}to{opacity:1}}
+#foot{position:fixed;bottom:20px;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="start"><h1>AMBIENET</h1><p>click to listen</p></div>
+<div id="now"></div>
+<div id="log"></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli</div>
+<script>
+'use strict';
+/* ============ utils ============ */
+const R=Math.random,pick=a=>a[Math.floor(R()*a.length)],rr=(a,b)=>a+R()*(b-a),ri=(a,b)=>Math.floor(rr(a,b+1));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const wpick=o=>{let s=0;for(const k in o)s+=o[k];let x=R()*s;for(const k in o){x-=o[k];if(x<=0)return k}return Object.keys(o)[0]};
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const WEST={ionian:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],lydian:[0,2,4,6,7,9,11],mixolydian:[0,2,4,5,7,9,10],aeolian:[0,2,3,5,7,8,10],phrygian:[0,1,3,5,7,8,10],'major pentatonic':[0,2,4,7,9],'minor pentatonic':[0,3,5,7,10]};
+const PIANOSC={ionian:WEST.ionian,lydian:WEST.lydian,dorian:WEST.dorian,aeolian:WEST.aeolian,'major pentatonic':WEST['major pentatonic'],mixolydian:WEST.mixolydian};
+const RAGAS={'raga Yaman':[0,2,4,6,7,9,11],'raga Bhairav':[0,1,4,5,7,8,11],'raga Todi':[0,1,3,6,7,8,11],'raga Marwa':[0,1,4,6,9,11],'raga Bhupali':[0,2,4,7,9],'raga Malkauns':[0,3,5,8,10],'raga Darbari':[0,2,3,5,7,8,10],'raga Bhimpalasi':[0,2,3,5,7,9,10],'raga Purvi':[0,1,4,6,7,8,11],'raga Kafi':[0,2,3,5,7,9,10],'raga Bilawal':[0,2,4,5,7,9,11]};
+// samay: the raga follows the real hour of the day
+function ragaNow(){const h=new Date().getHours();
+  const m=h<4?['raga Darbari','raga Malkauns']:h<7?['raga Bhairav','raga Todi']:h<10?['raga Todi','raga Bilawal','raga Bhairav']:h<13?['raga Bilawal','raga Bhupali']:h<16?['raga Bhimpalasi','raga Kafi']:h<18?['raga Bhimpalasi','raga Marwa']:h<20?['raga Marwa','raga Purvi','raga Yaman']:h<22?['raga Yaman','raga Bhupali']:['raga Darbari','raga Malkauns','raga Kafi'];
+  return R()<.75?pick(m):pick(Object.keys(RAGAS))}
+const S={root:38,scaleName:'dorian',scale:WEST.dorian,scene:0,color:'ambient'};
+const deg=(d,base)=>{const sc=S.scale,n=sc.length,o=Math.floor(d/n),i=((d%n)+n)%n;return base+sc[i]+12*o};
+const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.length-1];
+
+/* scene colours: what each scene leans towards */
+const COLORS={
+  ambient:{w:.32,scales:WEST,ia:{ambient:.8,piano:.12,indian:.08},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,alap:0,piano:.2,voices:.3}},
+  indian:{w:.24,raga:true,ia:{indian:.85,ambient:.15},
+    prob:{drone:.25,loops:.2,arp:0,phase:0,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2}},
+  piano:{w:.22,scales:PIANOSC,ia:{piano:.8,ambient:.2},
+    prob:{drone:.45,loops:.35,arp:0,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,tanpura:0,alap:0,piano:.95,voices:.25}},
+  mixed:{w:.22,raga:true,ia:{ambient:.4,indian:.3,piano:.3},
+    prob:{drone:.6,loops:.4,arp:0,phase:0,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35}}
+};
+const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7};
+const RHYTHMIC=['arp','phase'];
+
+let ctx,master,reverb,delayIn,running=false;const L={},T={};
+const logEl=document.getElementById('log'),nowEl=document.getElementById('now');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// every line is red while its sound is playing, then goes back to white
+function log(k,t,liveSec){
+  const d=document.createElement('div');d.className='l'+(liveSec!==0?' live':'');d.innerHTML='<b>'+esc(k)+'</b>'+esc(t);logEl.appendChild(d);
+  while(logEl.children.length>26)logEl.firstChild.remove();
+  if(liveSec>0)setTimeout(()=>d.classList.remove('live'),liveSec*1000);
+  return d;
+}
+const unlive=d=>{if(d){d.classList.remove('live');d.classList.add('off')}};
+async function fetchJSON(u,ms=12000){const c=new AbortController();const to=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(to)}}
+
+/* ============ audio graph ============ */
+function impulse(sec,dec){const n=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(R()*2-1)*Math.pow(1-i/n,dec)}return b}
+function setup(){
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=20;comp.ratio.value=3;comp.attack.value=.05;comp.release.value=.8;
+  master=ctx.createGain();master.gain.value=0;master.connect(comp);comp.connect(ctx.destination);
+  master.gain.setTargetAtTime(.9,ctx.currentTime,3);
+  reverb=ctx.createConvolver();reverb.buffer=impulse(10,2.4);const rv=ctx.createGain();rv.gain.value=.75;reverb.connect(rv);rv.connect(master);
+  delayIn=ctx.createGain();const dl=ctx.createDelay(4);dl.delayTime.value=.75;const fb=ctx.createGain();fb.gain.value=.5;const lp=ctx.createBiquadFilter();lp.frequency.value=2200;
+  delayIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);const dOut=ctx.createGain();dOut.gain.value=.5;lp.connect(dOut);dOut.connect(master);dOut.connect(reverb);
+  const mk=(n,wet,del,dry=1)=>{const g=ctx.createGain();g.gain.value=0;const dr=ctx.createGain();dr.gain.value=dry;g.connect(dr);dr.connect(master);const s=ctx.createGain();s.gain.value=wet;g.connect(s);s.connect(reverb);if(del){const d=ctx.createGain();d.gain.value=del;g.connect(d);d.connect(delayIn)}L[n]=g;T[n]=0};
+  mk('drone',.5,0);mk('loops',.8,.15);mk('arp',.6,.4);mk('phase',.6,.15);mk('data',.9,.2);mk('radio',.55,0);mk('archive',.6,.1);mk('grains',.8,.2);
+  mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
+  mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
+}
+function tone(f,t,dur,o){
+  const osc=ctx.createOscillator();osc.type=o.type||'sine';osc.frequency.value=f;if(o.detune)osc.detune.value=o.detune;
+  let n=osc;if(o.cutoff){const fl=ctx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=o.cutoff;fl.Q.value=o.q||.7;n.connect(fl);n=fl}
+  const g=ctx.createGain(),a=Math.min(o.attack||.01,dur*.5),p=o.gain||.1;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+dur);n.connect(g);n=g;
+  if(o.pan!=null&&ctx.createStereoPanner){const pn=ctx.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,o.pan));n.connect(pn);n=pn}
+  n.connect(o.dest);osc.start(t);osc.stop(t+dur+.05);
+}
+const bell=(f,t,dur,gain,dest,pan)=>{tone(f,t,dur,{gain,attack:.004,dest,pan});tone(f*2.005,t,dur*.45,{gain:gain*.28,attack:.003,dest,pan});tone(f*3.99,t,dur*.18,{gain:gain*.12,attack:.002,dest,pan})};
+const mallet=(f,t,gain,dest,pan,dur=2)=>{tone(f,t,dur,{gain,attack:.004,dest,pan});tone(f*4,t,.15,{gain:gain*.25,attack:.003,dest,pan})};
+// soft piano: inharmonic partials, long sustain
+function piano(f,t,vel,dest,pan){const B=.00035,dur=rr(6,10);for(let n=1;n<=7;n++){const fn=f*n*Math.sqrt(1+B*n*n);if(fn>11000)break;tone(fn,t,dur/(1+n*.55),{gain:vel/Math.pow(n,1.5),attack:.005,dest,pan,detune:rr(-2,2)})}}
+
+/* ============ DRONE (Young, Radigue, Niblock) ============ */
+const D={oscs:[],filter:null,lfo:null,ints:[0,7,12,19,24]};
+function startDrone(){
+  const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=700;f.Q.value=2;
+  const lfo=ctx.createOscillator();lfo.frequency.value=.025;const lg=ctx.createGain();lg.gain.value=450;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
+  const out=ctx.createGain();out.gain.value=.11;f.connect(out);out.connect(L.drone);D.filter=f;D.lfo=lfo;
+  ['sawtooth','triangle','sine','triangle','sine'].forEach((ty,i)=>{
+    const o=ctx.createOscillator();o.type=ty;o.frequency.value=mtof(S.root+D.ints[i]);o.detune.value=rr(-7,7);
+    const g=ctx.createGain();g.gain.value=.22;const tl=ctx.createOscillator();tl.frequency.value=rr(.008,.05);const tg=ctx.createGain();tg.gain.value=.18;tl.connect(tg);tg.connect(g.gain);tl.start();
+    o.connect(g);let n=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=[-.6,.6,-.3,.3,0][i];g.connect(p);n=p}n.connect(f);o.start();D.oscs.push(o);
+  });
+}
+function retuneDrone(){
+  const t=ctx.currentTime,sc=S.scale,pa=paInt(),third=sc[Math.min(2,sc.length-1)],top=sc[sc.length-1];
+  D.ints=pick([[0,pa,12,pa+12,24],[0,12,pa+12,third+24,24],[0,pa,12,third+12,top+12]]);
+  D.oscs.forEach((o,i)=>o.frequency.setTargetAtTime(mtof(S.root+D.ints[i]),t,6));
+  D.filter.frequency.setTargetAtTime(rr(250,1300),t,8);
+}
+
+/* ============ LOOPS (Eno: incommensurable cycles) ============ */
+let loops=[];
+function newLoops(){
+  loops.forEach(v=>clearTimeout(v.to));loops=[];
+  for(let i=0,n=ri(5,7);i<n;i++){
+    const v={d:ri(0,9),period:+rr(13,34).toFixed(1),pan:rr(-.8,.8),soft:R()<.55};
+    const tick=()=>{if(T.loops>.01){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
+      if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}
+      v.to=setTimeout(tick,v.period*1000)};
+    v.to=setTimeout(tick,rr(0,v.period)*1000);loops.push(v);
+  }
+}
+
+/* ============ sequencer (look-ahead) ============ */
+const seqs=[];
+setInterval(()=>{if(!running)return;const now=ctx.currentTime;for(const s of seqs){if(s.next<now)s.next=now+.05;while(s.next<now+.3){s.play(s.next);s.next+=s.interval()}}},60);
+
+/* ============ ARP (Glass additive process) — slow and blurred ============ */
+const A={pat:[0,2,4],k:1,dir:1,i:0,bpm:48,oct:2,sweep:40};
+function newArp(){A.pat=Array.from({length:ri(4,7)},()=>ri(0,7));A.k=1;A.dir=1;A.i=0;A.bpm=rr(36,56);A.oct=pick([2,3]);A.sweep=rr(30,80)}
+seqs.push({next:0,interval:()=>60/A.bpm/2,play:t=>{
+  const sub=A.pat.slice(0,A.k),d=sub[A.i%sub.length];A.i++;
+  if(A.i>=sub.length*2){A.i=0;A.k+=A.dir;if(A.k>=A.pat.length){A.k=A.pat.length;A.dir=-1}if(A.k<=1){A.k=1;A.dir=1}}
+  if(T.arp<.01)return;
+  const c=300+1600*(.5+.5*Math.sin(t*2*Math.PI/A.sweep));
+  tone(mtof(deg(d,S.root+12*A.oct)),t,1.8,{type:'triangle',gain:.035,attack:.08,cutoff:c,q:3,dest:L.arp,pan:A.i%2?-.4:.4});
+}});
+
+/* ============ PHASE (Reich) — slow glass shimmer ============ */
+const P={pat:[],iv:.34},pA={i:0},pB={i:0};
+function newPhase(){const pool=shuffle([0,1,2,3,4,5,6]).slice(0,5);P.pat=Array.from({length:12},()=>pick(pool));P.iv=rr(.28,.4);pA.i=pB.i=0;if(ctx){const n=ctx.currentTime+.1;seqs[1].next=seqs[2].next=n}}
+seqs.push({next:0,interval:()=>P.iv,play:t=>{const d=P.pat[pA.i++%12];if(T.phase>.01)mallet(mtof(deg(d,S.root+36)),t,.035,L.phase,-.6)}});
+seqs.push({next:0,interval:()=>P.iv*.9965,play:t=>{const d=P.pat[pB.i++%12];if(T.phase>.01)mallet(mtof(deg(d,S.root+36)),t,.035,L.phase,.6)}});
+
+/* ============ TANPURA (the drone of Indian classical music) ============ */
+const TP={i:0};
+function tanpuraPluck(f,t,g,pan){
+  const dur=rr(5,7);
+  [0,-4,4].forEach((dt,j)=>{
+    const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt+rr(-1,1);
+    const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=7; // jawari: a resonance sweeping up the harmonics
+    bp.frequency.setValueAtTime(f*2,t);bp.frequency.linearRampToValueAtTime(f*rr(8,14),t+1.4);bp.frequency.exponentialRampToValueAtTime(f*3,t+dur);
+    const gg=ctx.createGain();gg.gain.setValueAtTime(0,t);gg.gain.linearRampToValueAtTime(g*(j?.5:1),t+.012);gg.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(bp);bp.connect(gg);let n=gg;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan;gg.connect(p);n=p}n.connect(L.tanpura);o.start(t);o.stop(t+dur+.1);
+  });
+  tone(f,t,dur,{gain:g*.7,attack:.01,dest:L.tanpura,pan});
+}
+seqs.push({next:0,interval:()=>TP.i%4===0?rr(1.7,2.1):rr(1.15,1.4),play:t=>{
+  const k=TP.i++%4;if(T.tanpura<.01)return;const sa=S.root+12;
+  const m=[sa+paInt(),sa+12,sa+12,sa][k]; // Pa (or Ma/Ni) – Sa – Sa – low Sa
+  tanpuraPluck(mtof(m),t,k===3?.08:.06,[-.35,.1,.25,-.1][k]);
+}});
+
+/* ============ ALAP: a slow raga line with meend (glides) ============ */
+const AL={pos:0};
+async function alapLoop(){
+  while(true){
+    if(T.alap<.01){await sleep(5000);continue}
+    const t0=ctx.currentTime+.1,n=ri(3,7);
+    const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='triangle';o2.type='sine';
+    const vib=ctx.createOscillator();vib.frequency.value=rr(4.5,5.8);const vg=ctx.createGain();vg.gain.value=0;vib.connect(vg);vg.connect(o1.detune);vg.connect(o2.detune);
+    const lp=ctx.createBiquadFilter();lp.frequency.value=1700;const g=ctx.createGain();g.gain.value=0;
+    o1.connect(lp);o2.connect(lp);lp.connect(g);let out=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.3,.3);g.connect(p);out=p}out.connect(L.alap);
+    const f0=mtof(deg(AL.pos,S.root+24));o1.frequency.setValueAtTime(f0,t0);o2.frequency.setValueAtTime(f0,t0);
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.06,t0+1.5);
+    let t=t0+rr(1.5,3);
+    for(let k=1;k<n;k++){
+      AL.pos=k===n-1?pick([0,0,Math.max(0,S.scale.indexOf(paInt()))]):Math.max(-3,Math.min(10,AL.pos+pick([-1,-1,1,1,0,2,-2])));
+      const f=mtof(deg(AL.pos,S.root+24)),glide=rr(.08,.4);
+      o1.frequency.setTargetAtTime(f,t,glide);o2.frequency.setTargetAtTime(f,t,glide);
+      vg.gain.setTargetAtTime(R()<.4?rr(8,22):0,t+.6,.5); // andolan: a slow oscillation
+      t+=rr(1.6,4.5);
+    }
+    g.gain.setTargetAtTime(0,t,1);
+    [o1,o2,vib].forEach(x=>{x.start(t0);x.stop(t+6)});
+    const line=log('ALAP',`${S.scaleName} · Sa = ${NOTES[S.root%12]} · ${n} notes`,t-t0+2);
+    await sleep((t-ctx.currentTime+rr(4,12))*1000);
+  }
+}
+
+/* ============ PIANO (Satie, Feldman, Budd): sparse, held ============ */
+const PN={last:7};
+function pianoTick(){
+  if(T.piano>.01){const t=ctx.currentTime+.05,m=R();
+    if(m<.55){PN.last=Math.max(0,Math.min(14,PN.last+pick([-2,-1,-1,1,1,2,0,3,-3])));piano(mtof(deg(PN.last,S.root+24)),t,rr(.035,.06),L.piano,rr(-.3,.3))}
+    else if(m<.8){piano(mtof(S.root+12),t,.045,L.piano,-.3);piano(mtof(S.root+12+paInt()),t+rr(0,.06),.035,L.piano,-.2)}
+    else{const b=ri(0,6);[0,2,4].forEach((k,i)=>piano(mtof(deg(b+k,S.root+24)),t+i*rr(.04,.18),.03,L.piano,rr(-.4,.4)))}}
+  setTimeout(pianoTick,rr(2,7.5)*1000*(R()<.12?2.5:1));
+}
+
+/* ============ SCENES: the random mixer ============ */
+function newScene(first){
+  S.scene++;const prev=S.color;
+  if(first||R()<.6){const w={};for(const k in COLORS)w[k]=COLORS[k].w;S.color=wpick(w)}
+  const C=COLORS[S.color];
+  if(first||S.color!==prev||R()<.45){
+    S.root=36+ri(0,11);
+    if(C.raga){S.scaleName=ragaNow();S.scale=RAGAS[S.scaleName]}else{S.scaleName=pick(Object.keys(C.scales));S.scale=C.scales[S.scaleName]}
+    retuneDrone();
+  }
+  const on={};for(const k in C.prob)on[k]=R()<C.prob[k];
+  if(first){on.drone=on.loops=true;on.data=true}
+  if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
+  let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
+  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&C.prob[k]>.05));
+  while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
+  if(on.arp&&(!T.arp||R()<.5))newArp();
+  if(on.phase&&!T.phase)newPhase();
+  if(R()<.3)newLoops();
+  for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;L[k].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7);T[k]=v}
+  const act=Object.keys(on).filter(k=>on[k]);
+  const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
+  nowEl.textContent=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;
+  log('SCENE '+S.scene,`${S.color} — ${key} — ${act.join(', ')}`,0);
+  setTimeout(()=>newScene(false),rr(80,170)*1000);
+}
+
+/* ============ LIVE INTERNET DATA ============ */
+function startWiki(){
+  let last=0,gap=2;
+  try{
+    const es=new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
+    es.onopen=()=>log('WIKIPEDIA','listening to the live stream of edits',0);
+    es.onmessage=e=>{
+      const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;
+      let d;try{d=JSON.parse(e.data)}catch(_){return}
+      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(1.2,4.5);
+      const diff=d.length?(d.length.new||0)-(d.length.old||0):0,a=Math.abs(diff);
+      let h=0;for(const c of (d.title||''))h=(h*31+c.charCodeAt(0))|0;const dg=Math.abs(h)%10;
+      const base=S.root+(a>3000?24:a>300?36:48),t=ctx.currentTime+.05,g=d.bot?.02:.045,pan=rr(-.9,.9);
+      if(d.type==='new'){bell(mtof(deg(dg,base)),t,4,g,L.data,pan);bell(mtof(deg(dg+2,base)),t+.12,4,g*.7,L.data,-pan)}
+      else if(diff>=0)bell(mtof(deg(dg,base)),t,rr(2,4),g,L.data,pan);
+      else tone(mtof(deg(dg,base-12)),t,rr(2,3.5),{type:'triangle',gain:g*.9,attack:.01,cutoff:900,dest:L.data,pan});
+      log('WIKIPEDIA',`${d.server_name||d.wiki} · ${d.title} · ${diff>=0?'+':''}${diff}${d.bot?' · bot':''}`,3);
+    };
+  }catch(e){}
+}
+const seenQ=new Set();
+function gong(f){
+  if(T.data<.01)return;
+  const m=Math.max(0,f.properties.mag||0),t=ctx.currentTime+.05,fr=mtof(deg(pick([0,0,4]),S.root)),dur=8+m*3,g=Math.min(.25,.06+m*.035);
+  [1,2.32,4.25,6.63].forEach((p,k)=>tone(fr*p,t,dur/(k*.8+1),{gain:g/(k+1),attack:.01+k*.002,dest:L.data,pan:rr(-.3,.3)}));
+  log('EARTHQUAKE',`M ${m.toFixed(1)} · ${f.properties.place||''}`,dur*.6);
+}
+async function pollQuakes(first){
+  try{const j=await fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
+    const fresh=j.features.filter(f=>!seenQ.has(f.id));fresh.forEach(f=>seenQ.add(f.id));
+    fresh.forEach((f,i)=>setTimeout(()=>gong(f),first?rr(5,150)*1000:i*rr(3,9)*1000));
+  }catch(e){}
+  setTimeout(()=>pollQuakes(false),180000);
+}
+function startBTC(){
+  let last=0,gap=6;
+  const open=()=>{let ws;try{ws=new WebSocket('wss://ws.blockchain.info/inv')}catch(e){return}
+    ws.onopen=()=>{ws.send(JSON.stringify({op:'unconfirmed_sub'}));log('BITCOIN','listening to unconfirmed transactions',0)};
+    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(5,14);
+      let v=0;try{const x=JSON.parse(e.data).x;v=(x.out||[]).reduce((s,o)=>s+(o.value||0),0)/1e8}catch(_){return}
+      const d=Math.max(0,Math.min(9,Math.round(Math.log10(v+1e-4)+4)));
+      tone(mtof(deg(d,S.root+48)),ctx.currentTime+.05,1.4,{gain:.015,attack:.002,dest:L.data,pan:rr(-1,1)});
+      log('BITCOIN',`${v.toFixed(4)} BTC moving`,1.5)};
+    ws.onclose=()=>setTimeout(open,30000)};
+  open();
+}
+async function breathe(){
+  const urls=[['wikipedia.org','https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*'],['usgs.gov','https://earthquake.usgs.gov/fdsnws/event/1/version'],['radio-browser.info','https://de1.api.radio-browser.info/json/stats']];
+  const [name,u]=pick(urls),t0=performance.now();
+  try{await fetch(u+(u.includes('?')?'&':'?')+'_='+Date.now(),{cache:'no-store'});const ms=Math.round(performance.now()-t0);
+    D.oscs.forEach((o,i)=>o.detune.setTargetAtTime((i%2?1:-1)*Math.min(25,ms/12),ctx.currentTime,4));
+    D.lfo.frequency.setTargetAtTime(Math.min(.3,.01+ms/8000),ctx.currentTime,4);
+    if(T.drone>.01)log('NETWORK',`${name} · ${ms} ms · the drone bends`,4);
+  }catch(e){}
+  setTimeout(breathe,rr(15,35)*1000);
+}
+
+/* ============ RHYTHM FILTER ============
+   every stream/file is first listened to in silence for 7 seconds;
+   if it has too many attacks or a regular pulse, it is slowed to 25-50% and blurred.
+   While playing it keeps being checked: if it becomes rhythmic it is slowed down. */
+function score(e){
+  const n=e.length;if(n<30)return{rate:0,ac:0,mean:0};
+  let mean=0;for(const x of e)mean+=x;mean/=n;
+  const fl=[];for(let i=1;i<n;i++)fl.push(Math.max(0,e[i]-e[i-1]));
+  let on=0;for(let i=1;i<fl.length-1;i++)if(fl[i]>3.5&&fl[i]>=fl[i-1]&&fl[i]>=fl[i+1])on++;
+  const m=fl.reduce((a,b)=>a+b,0)/fl.length,f=fl.map(x=>x-m);let e0=0;for(const x of f)e0+=x*x;e0=e0||1e-9;
+  let ac=0;for(let lag=5;lag<=30;lag++){let s=0;for(let i=0;i+lag<f.length;i++)s+=f[i]*f[i+lag];ac=Math.max(ac,s/e0)}
+  return{rate:on/(n/20),ac,mean};
+}
+function judge(F,H){const a=score(F),b=score(H),rate=Math.max(a.rate,b.rate),ac=Math.max(a.ac,b.ac),silent=F.length>=30&&a.mean<-58;
+  return{ok:!silent&&rate<1.6&&!(ac>.4&&rate>1.0),silent,rate,ac}}
+
+/* ============ media player (live streams + archive files) ============ */
+function playMedia(url,o){return new Promise(resolve=>{
+  let done=false,started=false,passed=false,stopT=null,startT=null,an=null;const nodes=[];
+  const el=new Audio();el.preload='auto';el.crossOrigin='anonymous';
+  el.preservesPitch=false;el.mozPreservesPitch=false;el.webkitPreservesPitch=false;
+  let src;try{src=ctx.createMediaElementSource(el)}catch(e){resolve(false);return}
+  nodes.push(src);let n=src;
+  const blur=ctx.createBiquadFilter();blur.type='lowpass';blur.frequency.value=20000;n.connect(blur);n=blur;nodes.push(blur);
+  if(o.filter){const f=ctx.createBiquadFilter();f.type=o.filter.type||'lowpass';f.frequency.value=o.filter.freq;f.Q.value=o.filter.q||.7;n.connect(f);n=f;nodes.push(f)}
+  const g=ctx.createGain();g.gain.value=0;n.connect(g);nodes.push(g);let m=g;
+  if(o.pan&&ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=o.pan;g.connect(p);m=p;nodes.push(p)}
+  m.connect(o.dest);
+  const aF=ctx.createAnalyser(),aH=ctx.createAnalyser(),hp=ctx.createBiquadFilter(),sink=ctx.createGain();
+  aF.fftSize=aH.fftSize=1024;hp.type='highpass';hp.frequency.value=2000;sink.gain.value=0;
+  src.connect(aF);src.connect(hp);hp.connect(aH);aF.connect(sink);aH.connect(sink);sink.connect(ctx.destination);nodes.push(aF,aH,hp,sink);
+  const buf=new Float32Array(1024),db=a=>{a.getFloatTimeDomainData(buf);let s=0;for(let i=0;i<buf.length;i++)s+=buf[i]*buf[i];return 10*Math.log10(s/buf.length+1e-12)};
+  let F=[],H=[],t0=0,lastEval=0;
+  const total=o.fadeIn+o.hold+o.fadeOut,lvl=o.level||1,AUD=7000;
+  // rhythmic material is not thrown away: it is slowed right down and blurred
+  let slowed=false;
+  const slowDown=(v,mid)=>{if(slowed)return;slowed=true;const target=pick([.5,.4,.33,.25]),from=el.playbackRate||1,steps=15;
+    for(let i=1;i<=steps;i++)setTimeout(()=>{try{el.playbackRate=from+(target-from)*i/steps}catch(_){}},i*200);
+    blur.frequency.setTargetAtTime(rr(700,1600),ctx.currentTime,1.5);o.onSlow&&o.onSlow(v,target,mid)};
+  const fin=ok=>{if(done)return;done=true;clearTimeout(startT);clearTimeout(stopT);clearInterval(an);try{el.pause();el.removeAttribute('src');el.load()}catch(_){}
+    nodes.forEach(x=>{try{x.disconnect()}catch(_){}});o.onEnd&&o.onEnd(ok);resolve(ok)};
+  const fadeAway=sec=>{const t=ctx.currentTime;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+sec);clearTimeout(stopT);setTimeout(()=>fin(true),sec*1000+300)};
+  el.addEventListener('loadedmetadata',()=>{if(o.seek&&isFinite(el.duration)&&el.duration>60){try{el.currentTime=rr(0,el.duration*.8)}catch(e){}}if(o.rate)el.playbackRate=o.rate});
+  el.addEventListener('playing',()=>{
+    if(started)return;started=true;clearTimeout(startT);t0=performance.now();
+    an=setInterval(()=>{
+      F.push(db(aF));H.push(db(aH));const now=performance.now();
+      if(!passed&&now-t0>AUD){
+        const v=o.noJudge?{ok:F.length<30||score(F).mean>-58}:judge(F,H);
+        if(!v.ok){if(v.silent){fin(false);return}slowDown(v,false)}
+        passed=true;F=[];H=[];lastEval=now;o.onStart&&o.onStart();
+        const t=ctx.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+o.fadeIn);g.gain.setValueAtTime(lvl,t+o.fadeIn+o.hold);g.gain.linearRampToValueAtTime(0,t+total);
+        stopT=setTimeout(()=>fin(true),total*1000+400);
+      }else if(passed&&!o.noJudge&&now-lastEval>AUD){
+        const v=judge(F,H);F=[];H=[];lastEval=now;
+        if(!v.ok&&!v.silent)slowDown(v,true)
+      }
+    },50);
+  });
+  el.addEventListener('error',()=>fin(started&&passed));
+  el.addEventListener('ended',()=>fin(passed));
+  el.src=url;el.play().catch(()=>{});
+  startT=setTimeout(()=>{if(!started)fin(false)},15000);
+})}
+const slowTag=r=>r!==1?` · slowed ${Math.round((1-r)*100)}%`:'';
+const slowLog=(what,title)=>(v,r,mid)=>log('SLOW',`${mid?'became':'too'} rhythmic (${v.rate.toFixed(1)} attacks/s) → slowed to ${Math.round(r*100)}% and blurred · ${what} · ${title}`,20);
+
+/* ============ RADIO: live streams of the world ============ */
+const RB=['de1','de2','fi1','at1','nl1'].map(h=>`https://${h}.api.radio-browser.info`);
+const RGROUPS={ambient:['ambient','ambient','drone','dark ambient','soundscape','field recordings','nature sounds','space ambient'],indian:['indian classical','hindustani','hindustani classical','raga'],piano:['piano','solo piano','classical piano','ambient piano','neoclassical']};
+const BEATS=/techno|house|dance|edm|trance|beat|hip.?hop|\brap\b|lo.?fi|chill.?out|lounge|downtempo|\bdub|drum|bass|jazz|rock|\bpop\b|synthwave|psy|club|disco|reggae|bollywood|filmi|\bfilm\b|devotional|bhajan|qawwali|news|talk|top ?40|hits|party|latin|country|metal|punk|funk|soul|r.?n.?b/i;
+const stations={};const seenSt=new Set();
+async function nextStation(grp){
+  stations[grp]=stations[grp]||[];
+  for(let tries=0;tries<4&&!stations[grp].length;tries++){const tag=pick(RGROUPS[grp]);
+    for(const h of shuffle(RB.slice())){try{const j=await fetchJSON(`${h}/json/stations/search?tag=${encodeURIComponent(tag)}&hidebroken=true&order=random&limit=80`);
+      stations[grp]=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)&&!BEATS.test((s.tags||'')+' '+(s.name||''))));break}catch(e){}}}
+  const s=stations[grp].pop();if(s)seenSt.add(s.stationuuid);if(seenSt.size>600)seenSt.clear();return s;
+}
+const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano']):S.color;
+async function radioDeck(delay){
+  await sleep(delay);let fails=0;
+  while(true){
+    if(T.radio<.01){await sleep(8000);continue}
+    const grp=groupNow(),s=await nextStation(grp);if(!s){await sleep(20000);continue}
+    const under=R()<.35,rate=pick([1,1,1,.9,.85,.8]),name=(s.name||'').trim();let line=null;
+    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(15,28),hold:rr(35,100),fadeOut:rr(18,30),rate,filter:under?{freq:rr(350,1100)}:null,level:.8,pan:rr(-.5,.5),
+      onStart:()=>{line=log('RADIO · LIVE',`${name} · ${[s.country,(s.tags||'').split(',').slice(0,2).join(' ')].filter(Boolean).join(' · ')}${under?' · underwater':''}${slowTag(rate)}`)},
+      onSlow:slowLog('radio',name),onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(0,12)*1000:fails>8?30000:1500);
+  }
+}
+
+/* ============ ARCHIVE: ambient, Indian classical, minimal piano, voices ============ */
+const NOBEAT=' AND NOT subject:(techno OR house OR dance OR "drum and bass" OR dubstep OR beats OR "hip hop" OR breakbeat OR trance OR idm OR rock OR pop OR "tabla solo" OR bollywood OR filmi OR qawwali)';
+const IAQ={
+  ambient:'mediatype:audio AND subject:(ambient OR drone OR "field recording" OR "field recordings" OR soundscape OR "dark ambient" OR "minimal music" OR minimalism)'+NOBEAT,
+  indian:'mediatype:audio AND subject:(raga OR alap OR alaap OR aalap OR dhrupad OR tanpura OR "hindustani classical" OR "indian classical" OR "rudra veena" OR bansuri OR sarangi OR "surbahar")'+NOBEAT,
+  piano:'mediatype:audio AND subject:("solo piano" OR "piano solo" OR "ambient piano" OR "minimal piano" OR satie OR gymnopedie OR gymnopedies OR feldman OR "neoclassical")'+NOBEAT,
+  voices:'mediatype:audio AND subject:(philosophy OR philosopher) AND (subject:(lecture OR lectures OR interview OR speech OR talk OR seminar OR radio) OR collection:librivoxaudio)'
+};
+const iaPool={},iaSeen=new Set();
+const flen=l=>{if(!l)return 999;if(String(l).includes(':'))return String(l).split(':').reduce((a,b)=>a*60+(+b||0),0);return parseFloat(l)||999};
+async function iaNext(cat){
+  iaPool[cat]=iaPool[cat]||[];
+  if(!iaPool[cat].length){for(const p of [ri(1,12),ri(1,4),1]){try{const j=await fetchJSON(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(IAQ[cat])}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&rows=100&page=${p}&output=json`);iaPool[cat]=shuffle((j.response.docs||[]).filter(d=>!iaSeen.has(d.identifier)));if(iaPool[cat].length)break}catch(e){}}}
+  const doc=iaPool[cat].pop();if(!doc)return null;iaSeen.add(doc.identifier);
+  try{const m=await fetchJSON(`https://archive.org/metadata/${encodeURIComponent(doc.identifier)}`);
+    const fs=(m.files||[]).filter(f=>/\.mp3$/i.test(f.name)&&flen(f.length)>=40);if(!fs.length)return null;
+    const f=pick(fs),cr=Array.isArray(doc.creator)?doc.creator[0]:doc.creator;
+    return{cat,url:`https://archive.org/download/${encodeURIComponent(doc.identifier)}/${f.name.split('/').map(encodeURIComponent).join('/')}`,title:f.title||doc.title||doc.identifier,creator:cr||''};
+  }catch(e){return null}
+}
+const catNow=()=>wpick(COLORS[S.color].ia);
+async function archiveDeck(delay){
+  await sleep(delay);let fails=0;
+  while(true){
+    if(T.archive<.01){await sleep(8000);continue}
+    const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:1500);continue}
+    const rate=pick([1,1,.9,.85,.8,.75,.5]),under=R()<.25;let line=null;
+    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(15,28),hold:rr(30,90),fadeOut:rr(18,30),rate,seek:true,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
+      onStart:()=>{line=log('ARCHIVE · '+it.cat.toUpperCase(),`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}${under?' · underwater':''}`)},
+      onSlow:slowLog(it.cat,it.title),onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(0,10)*1000:fails>8?30000:1500);
+  }
+}
+
+/* ============ VOICES: philosophers, as if in a far away room ============ */
+async function voicesDeck(){
+  await sleep(rr(20,60)*1000);let fails=0;
+  while(true){
+    if(T.voices<.01){await sleep(8000);continue}
+    const it=await iaNext('voices');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    const rate=pick([1,.9,.85,.8,.8,.5]),room=pick([{type:'bandpass',freq:rr(500,1300),q:rr(.6,1.4),name:'far room'},{type:'lowpass',freq:rr(600,1500),name:'behind a wall'},{type:'highpass',freq:rr(900,1800),name:'thin, like a radio'}]);let line=null;
+    const ok=await playMedia(it.url,{dest:L.voices,fadeIn:rr(8,15),hold:rr(15,40),fadeOut:rr(10,18),rate,seek:true,noJudge:true,filter:room,level:.9,pan:rr(-.8,.8),
+      onStart:()=>{line=log('VOICE',`${it.title}${it.creator?' — '+it.creator:''} · ${room.name}${slowTag(rate)}`)},onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(40,150)*1000:fails>8?30000:2000); // voices only once in a while
+  }
+}
+
+/* ============ GRAINS: new music from the dust of old tracks ============ */
+async function fetchHead(url,max){
+  const c=new AbortController(),to=setTimeout(()=>c.abort(),25000);
+  try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);const rd=r.body.getReader(),chunks=[];let n=0;
+    while(n<max){const {done,value}=await rd.read();if(done)break;chunks.push(value);n+=value.length}
+    try{c.abort()}catch(e){}
+    const out=new Uint8Array(n);let o=0;for(const ch of chunks){out.set(ch,o);o+=ch.length}return out.buffer;
+  }finally{clearTimeout(to)}
+}
+async function grainsDeck(){
+  let fails=0;
+  while(true){
+    if(T.grains<.01){await sleep(8000);continue}
+    const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2000000))}catch(e){buf=null}
+    if(!buf||buf.duration<4){fails++;await sleep(fails>8?30000:1500);continue}
+    fails=0;
+    const dur=rr(40,100),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.06,.16);
+    const line=log('GRAINS',`new music from the dust of “${it.title}”`,dur);
+    const rates=S.scale.map(s=>Math.pow(2,(s-12)/12)).concat([.5,1]);let pos=rr(0,buf.duration-3);
+    const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(1,t0+12);dg.gain.setValueAtTime(1,end-12);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
+    while(ctx.currentTime<end){
+      const t=ctx.currentTime+.03,gd=rr(.2,.8),src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=pick(rates);
+      const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+gd/2);g.gain.linearRampToValueAtTime(0,t+gd);
+      src.connect(g);let n=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.9,.9);g.connect(p);n=p}n.connect(dg);
+      pos=Math.min(buf.duration-1,Math.max(0,pos+drift+rr(-.15,.15)));src.start(t,pos,gd*2);
+      await sleep(dens*1000*rr(.6,1.4));
+    }
+    unlive(line);setTimeout(()=>dg.disconnect(),2000);await sleep(rr(0,8000));
+  }
+}
+
+/* ============ start ============ */
+document.getElementById('start').addEventListener('click',async()=>{
+  if(running)return;running=true;setup();try{await ctx.resume()}catch(e){}
+  const st=document.getElementById('start');st.style.opacity=0;setTimeout(()=>st.remove(),4000);
+  log('AMBIENET','listening to the internet…',0);
+  newArp();newPhase();startDrone();newLoops();newScene(true);
+  startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
+  setTimeout(pianoTick,3000);alapLoop();
+  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();
+});
+document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
+</script>
+</body>
+</html>
