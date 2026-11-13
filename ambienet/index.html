@@ -51,17 +51,17 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,binaural:.45,animals:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:0.6,binaural:.45,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.15,binaural:.3,animals:.2}},
+    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:0.45,binaural:.3,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:.25,binaural:.3,animals:.15}},
+    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:0.55,binaural:.3,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.15,binaural:.35,animals:.3}},
+    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:0.45,binaural:.35,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.15,binaural:.5,voices:.1,net:.1,hum:.05,animals:.2}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:0.45,binaural:.5,voices:.1,net:.1,hum:.05,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,binaural:.4,animals:.3}}
+    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:0.6,binaural:.4,animals:.3}}
 };
 const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6,binaural:.6};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
@@ -291,7 +291,7 @@ function newScene(first){
   if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
-  {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>1)on[acc.pop()]=false}
+  {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>1)on[acc.pop()]=false}
   {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'],keep=TEX.find(k=>on[k]);
    const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep));const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
@@ -987,12 +987,12 @@ async function sloganLoop(){
       const total=t-t0+4;
       log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
-      await sleep((total+rr(90,220))*1000);
+      await sleep((total+rr(35,90))*1000);
     }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
       const text=pick(sloganText),vs=speechSynthesis.getVoices().filter(v=>/^it/i.test(v.lang));
       const u=new SpeechSynthesisUtterance(text);if(vs.length)u.voice=pick(vs);u.lang='it-IT';u.rate=.8;u.pitch=.3;u.volume=.25;
       const id=log('SLOGAN',text,undefined,90);await new Promise(res=>{u.onend=res;u.onerror=res;setTimeout(res,15000);try{speechSynthesis.speak(u)}catch(e){res()}});unlive(id);
-      await sleep(rr(90,220)*1000);
+      await sleep(rr(35,90)*1000);
     }else await sleep(30000);
   }
 }
