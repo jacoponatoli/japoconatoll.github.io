@@ -51,17 +51,19 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.27,scales:WEST,ia:{ambient:.5,drone:.2,nature:.12,piano:.08,indian:.05,japan:.05},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.35,nature:.35,sho:.1,airwaves:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3}},
   indian:{w:.2,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.25,loops:.2,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2}},
+    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2}},
   piano:{w:.18,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.45,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3}},
+    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3}},
   east:{w:.18,scales:EAST,ia:{japan:.45,pacific:.35,nature:.1,ambient:.1},
-    prob:{drone:.3,loops:.25,data:.3,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2}},
+    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2}},
   mixed:{w:.17,raga:true,ia:{ambient:.25,indian:.2,piano:.2,japan:.15,pacific:.1,drone:.1},
     prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35}}
 };
-const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7,net:.8,hum:.7,city:.65,bigdrone:.75,nature:.7,flute:.6,koto:.6,sho:.55,gamelan:.6,airwaves:.55};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4};
+// the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
+const ACCENTS=['net','voices','city','airwaves','hum'];
 const RHYTHMIC=['arp','phase'];
 
 let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,meterSink,running=false;const LA={};const L={},T={};
@@ -254,6 +256,10 @@ function newScene(first){
   let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
   const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&(C.prob[k]||0)>.05));
   while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
+  // always a bed of drone; at least one slow ambient texture; accents at most two
+  if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
+  if(!['loops','grains','archive','sho','nature','tanpura'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
+  {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>2)on[acc.pop()]=false}
   // never too many things at once: at most 6 layers per scene, plus the drone and the live data
   {const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='data'&&k!=='drone'));const MAX=6;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
@@ -277,7 +283,7 @@ function startWiki(){
     es.onmessage=e=>{
       const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;
       let d;try{d=JSON.parse(e.data)}catch(_){return}
-      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(1.2,4.5);
+      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(3,9);
       const diff=d.length?(d.length.new||0)-(d.length.old||0):0,a=Math.abs(diff);
       let h=0;for(const c of (d.title||''))h=(h*31+c.charCodeAt(0))|0;const dg=Math.abs(h)%10;
       const base=S.root+(a>3000?24:a>300?36:48),t=ctx.currentTime+.05,g=d.bot?.02:.045,pan=rr(-.9,.9);
@@ -545,7 +551,7 @@ async function netLoop(){
   while(true){
     if(T.net>.01){const kind=wpick(NETW),fx=wpick({dry:.35,delay:.3,reflected:.35}),bus=L[{dry:'netdry',delay:'netdelay',reflected:'netverb'}[fx]];
       try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}}
-    await sleep(rr(8,45)*1000);
+    await sleep(rr(25,90)*1000);
   }
 }
 
@@ -757,7 +763,8 @@ function guardian(){
   over=db>-14?over+1:Math.max(0,over-1);
   if(over>=8){
     const lv={};for(const n in LA){const k=n.startsWith('net')?'net':n;if(T[k]>.01)lv[k]=Math.max(lv[k]??-200,rmsDb(LA[n]))}
-    const loud=Object.keys(lv).filter(k=>k!=='drone').sort((a,b)=>lv[b]-lv[a])[0];
+    const cand=Object.keys(lv).filter(k=>k!=='drone'&&k!=='bigdrone'),acc=cand.filter(k=>ACCENTS.includes(k)||k==='data'||k==='radio');
+    const loud=(acc.length?acc:cand).sort((a,b)=>lv[b]-lv[a])[0];
     if(loud){T[loud]=0;(loud==='net'?['netdry','netdelay','netverb']:[loud]).forEach(n=>L[n].gain.setTargetAtTime(0,ctx.currentTime,2.5));
       log('VOLUME',`too much at once (${db.toFixed(1)} dB) → ${loud} fades out`,0)}
     over=0;cool=40; // wait 10 s before acting again
