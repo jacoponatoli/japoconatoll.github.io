@@ -30,7 +30,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
 'use strict';
@@ -57,22 +57,22 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:0.6,binaural:.45,animals:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:0.6,binaural:.45,remnant:.35,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:0.45,binaural:.3,animals:.2}},
+    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:0.45,binaural:.3,remnant:.1,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:0.55,binaural:.3,animals:.15}},
+    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,remnant:.7,classical:.3,slogan:0.55,binaural:.3,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:0.45,binaural:.35,animals:.3}},
+    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:0.45,binaural:.35,remnant:.1,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:0.45,binaural:.5,voices:.1,net:.1,hum:.05,animals:.2}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:0.45,binaural:.5,remnant:.12,voices:.1,net:.1,hum:.05,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:0.6,binaural:.4,animals:.3}}
+    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:0.6,binaural:.4,remnant:.35,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6,binaural:.6};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6,binaural:.6,remnant:.7};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
-const ACCENTS=['net','voices','city','airwaves','hum','slogan'];
+const ACCENTS=['net','city','airwaves','hum','slogan'];
 const RHYTHMIC=['arp','phase'];
 
 let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
@@ -86,9 +86,10 @@ const live=new Map();let liveId=0,flash=null;
    yellow — made here from the archive (loops, grains): larger
    green  — signals of the internet (notifications, phones, Wikipedia, earthquakes, Bitcoin, network)
    blue   — recordings from the archives (music, field recordings, classical, voices)
+   lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP)$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -149,7 +150,10 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.45; // slogans outside the scenes toomk('binaural',.12,0,1); // binaural beats: almost dry, left and right must stay apart // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.45;
+  mk('binaural',.12,0,1);mk('remnant',.9,.1);mk('spoken',.35,0,1);L.spoken.gain.value=.75;
+  /* slogans: a far demonstration, mostly reverb (also outside the scenes) · classical: almost all reverb, far away ·
+     binaural beats: almost dry, left and right must stay apart · spoken: rare, outside the scenes, nearly dry */
   // pings: a message, a ring — always possible, outside the scenes
   mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.4);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
@@ -298,7 +302,7 @@ function newScene(first){
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>1)on[acc.pop()]=false}
-  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'],keep=TEX.find(k=>on[k]);
+  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant'],keep=TEX.find(k=>on[k]);
    const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
@@ -494,6 +498,8 @@ const IAQ={
   tibet:'mediatype:audio AND (title:(tibetan OR tibet OR "singing bowl" OR "singing bowls" OR gyuto OR "throat singing" OR "overtone chanting" OR "om mani" OR dungchen OR tingsha OR "buddhist chant" OR "monks chanting") OR subject:(tibetan OR "singing bowls" OR "tibetan music" OR "buddhist chant"))'+NOBEAT,
   classical:'mediatype:audio AND (collection:musopen OR subject:("classical music" OR classical OR "classical piano")) AND title:(adagio OR largo OR lento OR nocturne OR andante OR prelude OR "clair de lune" OR moonlight OR gymnopedie OR pavane OR elegy OR lullaby OR berceuse OR reverie OR chorale OR "song without words" OR intermezzo OR "slow movement" OR "air on")'+NOBEAT,
   animals:'mediatype:audio AND title:(birds OR birdsong OR "bird song" OR whale OR whales OR humpback OR owl OR owls OR crickets OR frogs OR wolves OR wolf OR "dawn chorus" OR loon OR cicadas OR cicada OR nightingale) AND subject:("field recording" OR "field recordings" OR nature OR "nature sounds" OR soundscape OR animals OR wildlife OR birds OR "sound effects")'+NOBEAT,
+  pianoclassic:'mediatype:audio AND title:(chopin OR satie OR debussy OR schubert OR schumann OR liszt OR brahms OR beethoven OR mozart OR bach OR ravel OR scriabin OR grieg OR mendelssohn OR field OR mompou) AND title:(piano OR nocturne OR prelude OR etude OR sonata OR impromptu OR gymnopedie OR gnossienne OR "clair de lune" OR intermezzo OR berceuse OR "song without words" OR reverie OR consolation)'+NOBEAT,
+  dreamy:'mediatype:audio AND collection:librivoxaudio AND subject:(poetry OR philosophy OR dreams OR poems) AND title:(dream OR dreams OR night OR nights OR sleep OR reverie OR silence OR moon OR stars OR sea OR sogno OR sogni OR notte OR rêve OR rêves OR nuit OR traum OR träume OR nacht OR sueño OR sueños OR noche)',
   city:'mediatype:audio AND title:(city OR street OR streets OR traffic OR market OR "train station" OR station OR subway OR metro OR piazza OR crowd OR urban OR downtown OR harbour OR harbor OR "city ambience" OR "street ambience") AND subject:("field recording" OR "field recordings" OR soundscape OR ambience OR ambiance OR ambient OR "sound effects" OR "city sounds")'+NOBEAT,
   piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
   poetry:()=>{const l=R()<.75?pick(['Italian','English','French','German','Spanish','Portuguese','Latin','Russian','Greek','Dutch','Japanese','Chinese']):null;
@@ -1030,6 +1036,59 @@ async function binauralLoop(){
   }
 }
 
+/* ============ PIANO REMNANTS: classical piano, as something left over ============
+   a real piano recording (Chopin, Satie, Debussy, Schubert, Bach…) from the archive: a long phrase is cut
+   and repeated, muffled, slightly slowed, wavering like an old tape, with a little hiss —
+   sometimes a ghost of itself an octave below. (The Caretaker, Basinski.) */
+async function remnantDeck(){
+  await sleep(rr(30,80)*1000);let fails=0;
+  while(true){
+    if(T.remnant<.01){await sleep(8000);continue}
+    const it=await iaNext('pianoclassic');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,3500000))}catch(e){buf=null}
+    if(!buf||buf.duration<25){fails++;await sleep(fails>8?30000:1500);continue}
+    fails=0;
+    const len=rr(8,20),start=rr(2,buf.duration-len-2),lb=loopBuffer(buf,start,len),env=bufEnv(lb),v=judge(env,env);
+    if(v.silent){await sleep(1500);continue}
+    let rate=pick([1,.92,.85,.8,.75]);if(!v.ok)rate=pick([.6,.5]);
+    const norm=Math.max(.03,Math.min(3,Math.pow(10,(-24-bufDb(lb))/20)));
+    const dur=rr(90,200),t=ctx.currentTime+.1,fi=rr(20,35),fo=rr(25,40);
+    const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+fi);out.gain.setValueAtTime(1,t+dur-fo);out.gain.linearRampToValueAtTime(0,t+dur);out.connect(L.remnant);
+    const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=110;
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=rr(900,2200);lp.Q.value=.6;
+    const sh=ctx.createWaveShaper(),k=rr(1.3,2.5),c=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;c[i]=Math.tanh(k*x)/Math.tanh(k)}sh.curve=c;
+    hp.connect(lp);lp.connect(sh);sh.connect(out);
+    const ghost=R()<.35,voices=ghost?2:1;
+    for(let j=0;j<voices;j++){
+      const src=ctx.createBufferSource();src.buffer=lb;src.loop=true;src.playbackRate.value=rate*(j?.5:1);
+      const wow=ctx.createOscillator(),wg=ctx.createGain();wow.frequency.value=rr(.2,.5);wg.gain.value=rr(6,14);wow.connect(wg);wg.connect(src.detune); // wow
+      const fl=ctx.createOscillator(),fg=ctx.createGain();fl.frequency.value=rr(5,7);fg.gain.value=rr(1.5,3);fl.connect(fg);fg.connect(src.detune);   // flutter
+      const g=ctx.createGain();g.gain.value=norm*(j?.35:.85);src.connect(g);
+      if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=j?rr(-.6,.6):rr(-.25,.25);g.connect(p);p.connect(hp)}else g.connect(hp);
+      [src,wow,fl].forEach(x=>{x.start(t);x.stop(t+dur+.3)});
+    }
+    noise(t,dur,{freq:rr(2500,4000),q:.5,gain:.004,attack:fi,release:fo,dest:out}); // tape hiss
+    log('PIANO REMNANT',`${it.title}${it.creator?' — '+it.creator:''} · ${Math.round(len)} s, muffled${slowTag(rate)}${ghost?' · ghost an octave below':''}`,dur);
+    setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+1)*1000);
+    await sleep(rr(dur*.7,dur+40)*1000);
+  }
+}
+
+/* ============ SPOKEN: rare dreamlike inserts, nearly untouched, so the words can be followed ============
+   philosophers (lectures, interviews) and readings of dreams, nights and poems from the archive;
+   they come rarely, outside the scenes; the music steps back a little while they speak. */
+async function spokenLoop(){
+  await sleep(rr(70,140)*1000);let fails=0;
+  while(true){
+    const cat=R()<.55?'voices':'dreamy',it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    const rate=pick([1,1,.96,.92]);let line=null;
+    const ok=await playMedia(it.url,{dest:L.spoken,fadeIn:rr(3,6),hold:rr(25,50),fadeOut:rr(5,8),rate,seek:true,noJudge:true,filter:{type:'lowpass',freq:rr(4500,7000),q:.5},level:.9,pan:rr(-.25,.25),
+      onStart:()=>{line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`);master.gain.setTargetAtTime(.5,ctx.currentTime,2)},
+      onEnd:()=>{unlive(line);master.gain.setTargetAtTime(.8,ctx.currentTime,3)}});
+    fails=ok?0:fails+1;await sleep(ok?rr(150,330)*1000:fails>8?30000:2000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -1038,7 +1097,7 @@ async function binauralLoop(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={remnant:-27,spoken:-25,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -1069,9 +1128,10 @@ setInterval(guardian,100);
 /* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
 const LEGEND={
   gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
-  mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: short phrases cut and repeated like tape loops (sometimes drifting out of phase), or broken into clouds of tiny grains tuned to the scene.'],
+  mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
+  spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
-  arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals, poetry read aloud, voices of philosophers. Anything too rhythmic is slowed down and blurred.'],
+  arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
   word:['#ffffff','Words of SLOGAN','The slogans of SLOGAN (jacoponatoli.net/slogan), invented or read in the streets, spoken by a robotic synthetic voice and heard like a distant demonstration: megaphone, echo, reverb.']
 };
 {const pop=document.getElementById('pop'),foot=document.getElementById('foot'),TOUCH=matchMedia('(pointer: coarse)').matches;let cur=null,hideT;
@@ -1103,7 +1163,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
