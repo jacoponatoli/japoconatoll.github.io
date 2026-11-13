@@ -293,7 +293,7 @@ function newScene(first){
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>1)on[acc.pop()]=false}
   {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'],keep=TEX.find(k=>on[k]);
-   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); // the slogan is never the one cutconst MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
+   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
   if(R()<.3)newLoops();
