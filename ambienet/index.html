@@ -149,7 +149,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('binaural',.12,0,1); // binaural beats: almost dry, left and right must stay apart // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.45; // slogans outside the scenes toomk('binaural',.12,0,1); // binaural beats: almost dry, left and right must stay apart // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
   // pings: a message, a ring — always possible, outside the scenes
   mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.4);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
@@ -974,14 +974,14 @@ async function sloganBuffer(it){
   sloganBuf.set(it.f,b);if(sloganBuf.size>40)sloganBuf.delete(sloganBuf.keys().next().value);return b;
 }
 async function sloganLoop(){
-  await sleep(rr(40,90)*1000);await loadSlogans();setInterval(loadSlogans,3600e3);
+  await sleep(rr(15,30)*1000);await loadSlogans();setInterval(loadSlogans,3600e3);
   while(true){
-    if(T.slogan<.01){await sleep(10000);continue}
+    const inScene=T.slogan>.01,dest=inScene?L.slogan:L.sloganbase;
     if(sloganIdx&&sloganIdx.length){
       let pool=sloganIdx.filter(x=>!sloganSeen.has(x.f));if(!pool.length){sloganSeen.clear();pool=sloganIdx}
       const it=pick(pool);sloganSeen.add(it.f);
       let buf;try{buf=await sloganBuffer(it)}catch(e){await sleep(20000);continue}
-      const m=megaphone(L.slogan),reps=pick([1,2,2,3]),crowd=R()<.35,rate=pick([1,1,.92,.85]),t0=ctx.currentTime+.3;let t=t0;
+      const m=megaphone(dest),reps=pick([1,2,2,3]),crowd=R()<.35,rate=pick([1,1,.92,.85]),t0=ctx.currentTime+.3;let t=t0;
       for(let r=0;r<reps;r++){
         const copies=crowd?3:1;
         for(let c=0;c<copies;c++){const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate*(c?pick([.985,1.015,.97]):1);
@@ -993,12 +993,12 @@ async function sloganLoop(){
       const total=t-t0+4;
       log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
-      await sleep((total+rr(35,90))*1000);
+      await sleep((total+(inScene?rr(35,90):rr(100,200)))*1000);
     }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
       const text=pick(sloganText),vs=speechSynthesis.getVoices().filter(v=>/^it/i.test(v.lang));
       const u=new SpeechSynthesisUtterance(text);if(vs.length)u.voice=pick(vs);u.lang='it-IT';u.rate=.8;u.pitch=.3;u.volume=.25;
       const id=log('SLOGAN',text,undefined,90);await new Promise(res=>{u.onend=res;u.onerror=res;setTimeout(res,15000);try{speechSynthesis.speak(u)}catch(e){res()}});unlive(id);
-      await sleep(rr(35,90)*1000);
+      await sleep((inScene?rr(35,90):rr(100,200))*1000);
     }else await sleep(30000);
   }
 }
@@ -1038,7 +1038,7 @@ async function binauralLoop(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
