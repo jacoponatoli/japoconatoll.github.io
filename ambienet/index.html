@@ -52,22 +52,22 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,oracle:.35,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05}},
+    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,oracle:.3,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45}},
+    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,oracle:.35,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08}},
+    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,oracle:.3,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:.2,radio:.3,loops:.2,sho:.15,classical:.1,voices:.1,net:.1,hum:.05}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:.2,radio:.3,loops:.2,sho:.15,classical:.1,voices:.1,net:.1,hum:.05,oracle:.3,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25}}
+    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,oracle:.4,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,oracle:1,animals:.55};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
-const ACCENTS=['net','voices','city','airwaves','hum'];
+const ACCENTS=['net','voices','city','airwaves','hum','oracle'];
 const RHYTHMIC=['arp','phase'];
 
 let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
@@ -76,9 +76,9 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 /* what is sounding right now, in red, as large as possible: one line per sound (like SLOGAN).
    Long-lasting sounds keep their line until they end; short events (an edit, a ping) share one line. */
 const live=new Map();let liveId=0,flash=null;
-const clip=t=>{t=String(t).replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).trim()+'…':t};
-function log(k,t,liveSec){
-  const text=clip(k+' · '+t);
+const clip=(t,mx=46)=>{t=String(t).replace(/\s+/g,' ').trim();return t.length>mx?t.slice(0,mx-1).trim()+'…':t};
+function log(k,t,liveSec,mx){
+  const text=clip(k+' · '+t,mx);
   if(liveSec===0){msgEl.textContent=text;return null}
   if(liveSec>0&&liveSec<5){flash={text,until:performance.now()+liveSec*1000};render();setTimeout(render,liveSec*1000+50);return null}
   const id=++liveId;live.set(id,text);render();
@@ -123,7 +123,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15); // classical: almost all reverb, far away
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7); // classical: almost all reverb, far away
   // pings: a message, a ring — always possible, outside the scenes
   mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.55);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
@@ -277,7 +277,7 @@ function newScene(first){
   if(on.phase&&!T.phase)newPhase();
   if(R()<.3)newLoops();
   for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;T[k]=v;
-    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7))}
+    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7))}
   const act=Object.keys(on).filter(k=>on[k]);
   const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
   nowEl.textContent=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;
@@ -302,15 +302,17 @@ function startWiki(){
       else if(diff>=0)bell(mtof(deg(dg,base)),t,rr(2,4),g,L.data,pan);
       else tone(mtof(deg(dg,base-12)),t,rr(2,3.5),{type:'triangle',gain:g*.9,attack:.01,cutoff:900,dest:L.data,pan});
       log('WIKIPEDIA',`${d.server_name||d.wiki} · ${d.title} · ${diff>=0?'+':''}${diff}${d.bot?' · bot':''}`,3);
+      if(!d.bot&&d.title&&d.title.length<40&&!/:/.test(d.title)){LIVE_WORDS.push(d.title);if(LIVE_WORDS.length>30)LIVE_WORDS.shift()}
     };
   }catch(e){}
 }
-const seenQ=new Set();
+const seenQ=new Set(),LIVE_WORDS=[],LIVE_PLACES=[];
 function gong(f){
   if(T.data<.01)return;
   const m=Math.max(0,f.properties.mag||0),t=ctx.currentTime+.05,fr=mtof(deg(pick([0,0,4]),S.root)),dur=8+m*3,g=Math.min(.25,.06+m*.035);
   [1,2.32,4.25,6.63].forEach((p,k)=>tone(fr*p,t,dur/(k*.8+1),{gain:g/(k+1),attack:.01+k*.002,dest:L.data,pan:rr(-.3,.3)}));
   log('EARTHQUAKE',`M ${m.toFixed(1)} · ${f.properties.place||''}`,dur*.6);
+  if(f.properties.place){LIVE_PLACES.push(String(f.properties.place).replace(/^.* of /,''));if(LIVE_PLACES.length>10)LIVE_PLACES.shift()}
 }
 async function pollQuakes(first){
   try{const j=await fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
@@ -464,6 +466,7 @@ const IAQ={
   pacific:'mediatype:audio AND (title:(gamelan OR polynesian OR polynesia OR hawaiian OR tahiti OR tahitian OR samoan OR maori OR "nose flute" OR "slack key" OR pelog OR slendro OR "pacific islands" OR fiji OR tonga) OR subject:(gamelan OR polynesian OR hawaiian OR "pacific islands" OR maori OR "music of oceania"))'+NOBEAT,
   tibet:'mediatype:audio AND (title:(tibetan OR tibet OR "singing bowl" OR "singing bowls" OR gyuto OR "throat singing" OR "overtone chanting" OR "om mani" OR dungchen OR tingsha OR "buddhist chant" OR "monks chanting") OR subject:(tibetan OR "singing bowls" OR "tibetan music" OR "buddhist chant"))'+NOBEAT,
   classical:'mediatype:audio AND (collection:musopen OR subject:("classical music" OR classical OR "classical piano")) AND title:(adagio OR largo OR lento OR nocturne OR andante OR prelude OR "clair de lune" OR moonlight OR gymnopedie OR pavane OR elegy OR lullaby OR berceuse OR reverie OR chorale OR "song without words" OR intermezzo OR "slow movement" OR "air on")'+NOBEAT,
+  animals:'mediatype:audio AND title:(birds OR birdsong OR "bird song" OR whale OR whales OR humpback OR owl OR owls OR crickets OR frogs OR wolves OR wolf OR "dawn chorus" OR loon OR cicadas OR cicada OR nightingale) AND subject:("field recording" OR "field recordings" OR nature OR "nature sounds" OR soundscape OR animals OR wildlife OR birds OR "sound effects")'+NOBEAT,
   city:'mediatype:audio AND title:(city OR street OR streets OR traffic OR market OR "train station" OR station OR subway OR metro OR piazza OR crowd OR urban OR downtown OR harbour OR harbor OR "city ambience" OR "street ambience") AND subject:("field recording" OR "field recordings" OR soundscape OR ambience OR ambiance OR ambient OR "sound effects" OR "city sounds")'+NOBEAT,
   piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
   voices:()=>R()<.65?`mediatype:audio AND (title:(${PHILO}) OR creator:(${PHILO})) AND (title:(lecture OR lezione OR conférence OR cours OR interview OR intervista OR entretien OR talk OR speech OR voice OR seminar) OR subject:(lecture OR interview OR speech OR philosophy))`:'mediatype:audio AND collection:librivoxaudio AND subject:philosophy'
@@ -875,6 +878,120 @@ async function classicalDeck(){
   }
 }
 
+/* ============ ORACLE: a voice that speaks predictions and poetic fragments, in many languages ============
+   lines are invented here, from grammars (Italian, English) and from a small book of sentences that
+   exist in many languages at once; sometimes woven with what is happening online right now
+   (a page just edited on Wikipedia, a place where the earth just moved).
+   The voice is the browser's own speech synthesis: soft, slow, low; the music steps back while it speaks. */
+const ORA={
+ it:{subj:['il mare','la rete','una lingua dimenticata','il tuo nome','l’ultimo server acceso','la luce delle sei','un fiume sotto la città','il silenzio','una parola nuova','la pioggia','l’algoritmo','un bambino','il deserto','la memoria del telefono','una stella spenta','il vento di nord-est','un animale senza nome','l’oceano dei dati','la notte','una montagna'],
+   verb:['ricorderà','dimenticherà','canterà','attraverserà','aprirà','chiamerà','scioglierà','sognerà','perderà','ritroverà','custodirà','restituirà'],
+   obj:['ogni cosa che hai scritto','la strada di casa','il colore dell’acqua','tutte le password','il suono delle campane','il tuo nome a bassa voce','un giardino sommerso','le stelle una per una','la lingua degli uccelli','il primo giorno del mondo','ciò che non hai detto','la forma delle nuvole'],
+   vision:['una porta aperta nel mare','mille schermi che si spengono insieme','una città fatta di neve','un fiume di parole che scorre al contrario','due mani che non si toccano','un treno vuoto che canta','l’ultima notifica del mondo','una montagna che respira','un deserto pieno di campane'],
+   imp:['Ascolta','Rallenta','Respira','Dimentica','Aspetta','Chiudi gli occhi','Spegni lo schermo'],
+   adv:['ogni onda torna','nulla è perduto nella rete','il rumore è una forma di preghiera','la lentezza è una rivolta','anche il silenzio ha un indirizzo','le cose inutili sono le più vere','il tempo perso è tempo ritrovato'],
+   when:['Quando l’ultima luce si spegnerà','Quando il mare salirà fino ai server','Quando nessuno guarderà','Quando smetterai di scorrere','Quando la rete dormirà','Quando i telefoni taceranno'],
+   then:['sentirai la musica delle cose','qualcuno pronuncerà il tuo nome','le parole torneranno animali','il tempo si fermerà per un respiro','nascerà una lingua nuova','gli uccelli impareranno a scrivere'],
+   make(){const R2=R(),y=new Date().getFullYear()+ri(1,90),w=LIVE_WORDS.length?pick(LIVE_WORDS):null,pl=LIVE_PLACES.length?pick(LIVE_PLACES):null;
+     if(w&&R2<.18)return `Sento che «${w}» ${pick(this.verb)} ${pick(this.obj)}.`;
+     if(pl&&R2<.26)return `Un tremore vicino a ${pl}: ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`;
+     return pick([()=>`Domani ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`Nel ${y}, ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`Vedo ${pick(this.vision)}.`,()=>`${pick(this.imp)}: ${pick(this.adv)}.`,()=>`${pick(this.when)}, ${pick(this.then)}.`])()}},
+ en:{subj:['the sea','the network','a forgotten language','your name','the last server still on','the six o’clock light','a river under the city','silence','a new word','the rain','the algorithm','a child','the desert','your phone’s memory','a dead star','the north-east wind','an animal with no name','the ocean of data','the night','a mountain'],
+   verb:['will remember','will forget','will sing','will cross','will open','will call','will dissolve','will dream','will lose','will find again','will keep','will give back'],
+   obj:['everything you have written','the way home','the colour of water','all the passwords','the sound of bells','your name, quietly','a drowned garden','the stars one by one','the language of birds','the first day of the world','what you never said','the shape of clouds'],
+   vision:['a door open in the sea','a thousand screens going dark together','a city made of snow','a river of words flowing backwards','two hands that do not touch','an empty train that sings','the last notification on earth','a mountain breathing','a desert full of bells'],
+   imp:['Listen','Slow down','Breathe','Forget','Wait','Close your eyes','Turn off the screen'],
+   adv:['every wave returns','nothing is lost in the network','noise is a kind of prayer','slowness is a revolt','even silence has an address','useless things are the truest','lost time is time found again'],
+   when:['When the last light goes out','When the sea rises to the servers','When no one is watching','When you stop scrolling','When the network sleeps','When the phones fall silent'],
+   then:['you will hear the music of things','someone will say your name','words will turn back into animals','time will stop for one breath','a new language will be born','birds will learn to write'],
+   make(){const R2=R(),y=new Date().getFullYear()+ri(1,90),w=LIVE_WORDS.length?pick(LIVE_WORDS):null,pl=LIVE_PLACES.length?pick(LIVE_PLACES):null;
+     if(w&&R2<.18)return `I can hear that “${w}” ${pick(this.verb)} ${pick(this.obj)}.`;
+     if(pl&&R2<.26)return `A tremor near ${pl}: ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`;
+     return pick([()=>`Tomorrow ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`In ${y}, ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`I see ${pick(this.vision)}.`,()=>`${pick(this.imp)}: ${pick(this.adv)}.`,()=>`${pick(this.when)}, ${pick(this.then)}.`])()}}
+};
+// a small book of sentences that exist in many languages at once (so a line can echo in translation)
+const BOOK=[
+ {it:'Domani il mare ricorderà il tuo nome.',en:'Tomorrow the sea will remember your name.',fr:'Demain, la mer se souviendra de ton nom.',es:'Mañana el mar recordará tu nombre.',de:'Morgen wird das Meer sich an deinen Namen erinnern.',pt:'Amanhã o mar vai lembrar o teu nome.',ja:'明日、海はあなたの名前を思い出すでしょう。',hi:'कल समुद्र तुम्हारा नाम याद करेगा।',zh:'明天，大海会记得你的名字。',ar:'غدًا سيتذكّر البحر اسمك.'},
+ {it:'Vedo una porta aperta nell’acqua.',en:'I see a door open in the water.',fr:'Je vois une porte ouverte dans l’eau.',es:'Veo una puerta abierta en el agua.',de:'Ich sehe eine offene Tür im Wasser.',pt:'Vejo uma porta aberta na água.',ja:'水の中に開いた扉が見える。',hi:'मुझे पानी में एक खुला दरवाज़ा दिखता है।',zh:'我看见水中有一扇打开的门。',ar:'أرى بابًا مفتوحًا في الماء.'},
+ {it:'Ascolta: anche il silenzio ha un indirizzo.',en:'Listen: even silence has an address.',fr:'Écoute : même le silence a une adresse.',es:'Escucha: también el silencio tiene una dirección.',de:'Hör zu: auch die Stille hat eine Adresse.',pt:'Escuta: até o silêncio tem morada.',ja:'聞いて。静けさにも住所がある。',hi:'सुनो, मौन का भी एक पता होता है।',zh:'听，寂静也有地址。',ar:'اصغِ: للصمت أيضًا عنوان.'},
+ {it:'Quando l’ultimo schermo si spegnerà, sentirai la pioggia.',en:'When the last screen goes dark, you will hear the rain.',fr:'Quand le dernier écran s’éteindra, tu entendras la pluie.',es:'Cuando se apague la última pantalla, oirás la lluvia.',de:'Wenn der letzte Bildschirm erlischt, wirst du den Regen hören.',pt:'Quando o último ecrã se apagar, vais ouvir a chuva.',ja:'最後の画面が消えるとき、雨の音が聞こえる。',hi:'जब आख़िरी स्क्रीन बुझेगी, तुम बारिश सुनोगे।',zh:'当最后一块屏幕熄灭，你会听见雨声。',ar:'حين تنطفئ آخر شاشة، ستسمع المطر.'},
+ {it:'Rallenta. Il tempo è un fiume.',en:'Slow down. Time is a river.',fr:'Ralentis. Le temps est un fleuve.',es:'Despacio. El tiempo es un río.',de:'Langsam. Die Zeit ist ein Fluss.',pt:'Devagar. O tempo é um rio.',ja:'ゆっくり。時間は川です。',hi:'धीरे चलो। समय एक नदी है।',zh:'慢一点。时间是一条河。',ar:'تمهّل. الزمن نهر.'},
+ {it:'Vedo una città fatta di neve.',en:'I see a city made of snow.',fr:'Je vois une ville faite de neige.',es:'Veo una ciudad hecha de nieve.',de:'Ich sehe eine Stadt aus Schnee.',pt:'Vejo uma cidade feita de neve.',ja:'雪でできた町が見える。',hi:'मुझे बर्फ़ से बना एक शहर दिखता है।',zh:'我看见一座用雪做的城市。',ar:'أرى مدينة من ثلج.'},
+ {it:'Quando la rete dormirà, le parole torneranno uccelli.',en:'When the network sleeps, words will turn back into birds.',fr:'Quand le réseau dormira, les mots redeviendront des oiseaux.',es:'Cuando la red duerma, las palabras volverán a ser pájaros.',de:'Wenn das Netz schläft, werden die Wörter wieder zu Vögeln.',pt:'Quando a rede dormir, as palavras voltarão a ser pássaros.',ja:'ネットが眠るとき、言葉はまた鳥になる。',hi:'जब जाल सो जाएगा, शब्द फिर से पंछी बन जाएँगे।',zh:'当网络入睡，词语会重新变成鸟。',ar:'حين تنام الشبكة، ستعود الكلمات طيورًا.'},
+ {it:'Niente è perduto nell’oceano dei dati.',en:'Nothing is lost in the ocean of data.',fr:'Rien n’est perdu dans l’océan des données.',es:'Nada se pierde en el océano de los datos.',de:'Nichts geht verloren im Ozean der Daten.',pt:'Nada se perde no oceano dos dados.',ja:'データの海では、何も失われない。',hi:'आँकड़ों के सागर में कुछ भी खोता नहीं।',zh:'在数据的海洋里，什么都不会丢失。',ar:'لا شيء يضيع في محيط البيانات.'},
+ {it:'Una montagna respira mentre dormi.',en:'A mountain breathes while you sleep.',fr:'Une montagne respire pendant que tu dors.',es:'Una montaña respira mientras duermes.',de:'Ein Berg atmet, während du schläfst.',pt:'Uma montanha respira enquanto dormes.',ja:'あなたが眠るあいだ、山が息をしている。',hi:'जब तुम सोते हो, एक पहाड़ साँस लेता है।',zh:'你睡着时，一座山在呼吸。',ar:'جبلٌ يتنفّس وأنت نائم.'}
+];
+const LANGS={it:'it',en:'en',fr:'fr',es:'es',de:'de',pt:'pt',ja:'ja',hi:'hi',zh:'zh',ar:'ar'};
+let VOICES=[];const loadVoices=()=>{try{VOICES=speechSynthesis.getVoices()}catch(e){}};
+if('speechSynthesis'in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+const voiceFor=l=>{const vs=VOICES.filter(v=>(v.lang||'').toLowerCase().startsWith(l));return vs.length?pick(vs):null};
+function speak(text,lang,vol){return new Promise(res=>{
+  const v=voiceFor(lang);if(!v){res(false);return}
+  const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=rr(.68,.86);u.pitch=rr(.55,.95);u.volume=vol;
+  let done=false;const end=()=>{if(done)return;done=true;res(true)};u.onend=end;u.onerror=end;setTimeout(end,20000);
+  try{speechSynthesis.speak(u)}catch(e){end()}
+})}
+async function oracleLoop(){
+  if(!('speechSynthesis'in window))return;
+  await sleep(rr(40,80)*1000);
+  while(true){
+    if(T.oracle<.01){await sleep(10000);continue}
+    let lang,text,echo=null;
+    if(R()<.55){lang=R()<.5?'it':'en';text=ORA[lang].make()}
+    else{const b=pick(BOOK),ls=Object.keys(b).filter(l=>voiceFor(l));if(!ls.length){await sleep(20000);continue}
+      lang=R()<.45?pick(ls):pick(ls.filter(l=>l!=='it'&&l!=='en').concat(['it','en']).filter(l=>ls.includes(l)));text=b[lang];
+      if(R()<.4){const el=ls.filter(l=>l!==lang);if(el.length)echo=[pick(el),b]}}
+    if(!voiceFor(lang)){lang=voiceFor('it')?'it':'en';text=ORA[lang].make()}
+    // the music steps back while the voice speaks
+    const t=ctx.currentTime;master.gain.setTargetAtTime(.5,t,1.2);await sleep(1800);
+    const id=log('ORACLE · '+lang.toUpperCase(),text,undefined,90);
+    await speak(text,lang,.38);unlive(id);
+    if(echo){await sleep(rr(1500,3500));const [l2,b]=echo,id2=log('ECHO · '+l2.toUpperCase(),b[l2],undefined,90);await speak(b[l2],l2,.24);unlive(id2)}
+    master.gain.setTargetAtTime(.8,ctx.currentTime,2.5);
+    await sleep(rr(70,180)*1000);
+  }
+}
+
+/* ============ ANIMALS: atmospheric creatures, generated ============ */
+const AN={
+  'birdsong':(t,d)=>{const n=ri(2,4);for(let k=0;k<n;k++){const base=rr(2400,4800),syl=ri(3,8),t0=t+k*rr(1.5,4),pan=rr(-.8,.8);
+    for(let i=0;i<syl;i++){const tt=t0+i*rr(.07,.16),o=ctx.createOscillator(),g=ctx.createGain(),f=base*rr(.8,1.2);o.frequency.setValueAtTime(f,tt);o.frequency.exponentialRampToValueAtTime(f*rr(.6,1.7),tt+rr(.04,.12));
+      g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.025,tt+.01);g.gain.exponentialRampToValueAtTime(.0001,tt+.14);o.connect(g);let n2=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan;g.connect(p);n2=p}n2.connect(d);o.start(tt);o.stop(tt+.16)}}},
+  'owl':(t,d)=>{const f=rr(320,420);[[0,.8],[1.3,.45],[1.85,.7]].forEach(([dt,len])=>{const tt=t+dt,o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(f*1.03,tt);o.frequency.linearRampToValueAtTime(f*.95,tt+len);
+    g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.06,tt+.08);g.gain.linearRampToValueAtTime(0,tt+len);o.connect(g);g.connect(d);o.start(tt);o.stop(tt+len+.05);noise(tt,len,{freq:f*2,q:2,gain:.006,attack:.08,release:.2,dest:d})})},
+  'whale song':(t,d)=>{const lp=ctx.createBiquadFilter();lp.frequency.value=1600;lp.connect(d);let tt=t;
+    for(let k=0,n=ri(3,6);k<n;k++){const len=rr(2,4.5),o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain(),f1=rr(150,600),f2=rr(100,900);
+      [o,o2].forEach((x,j)=>{x.frequency.setValueAtTime(f1*(j+1),tt);x.frequency.exponentialRampToValueAtTime(f2*(j+1),tt+len)});
+      const g2=ctx.createGain();g2.gain.value=.3;o2.connect(g2);g2.connect(g);o.connect(g);g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.07,tt+len*.3);g.gain.linearRampToValueAtTime(0,tt+len);g.connect(lp);
+      [o,o2].forEach(x=>{x.start(tt);x.stop(tt+len+.1)});tt+=len+rr(1.5,4)}},
+  'distant wolf':(t,d)=>{const lp=ctx.createBiquadFilter();lp.frequency.value=1200;lp.connect(d);const o=ctx.createOscillator(),g=ctx.createGain(),v=ctx.createOscillator(),vg=ctx.createGain(),f=rr(330,420),len=rr(4,6);
+    o.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*1.6,t+1.4);o.frequency.setValueAtTime(f*1.6,t+len-1.5);o.frequency.linearRampToValueAtTime(f*1.1,t+len);
+    v.frequency.value=5;vg.gain.value=12;v.connect(vg);vg.connect(o.detune);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+1);g.gain.setValueAtTime(.05,t+len-1.5);g.gain.linearRampToValueAtTime(0,t+len);
+    o.connect(g);g.connect(lp);[o,v].forEach(x=>{x.start(t);x.stop(t+len+.1)})},
+  'loon':(t,d)=>{const o=ctx.createOscillator(),g=ctx.createGain(),v=ctx.createOscillator(),vg=ctx.createGain(),f=rr(650,800),len=rr(3,4.5);
+    o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*1.5,t+.8);o.frequency.setValueAtTime(f*1.5,t+len*.6);o.frequency.linearRampToValueAtTime(f*1.25,t+len);
+    v.frequency.value=7;vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(40,t+len);v.connect(vg);vg.connect(o.detune);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.04,t+.4);g.gain.linearRampToValueAtTime(0,t+len);o.connect(g);g.connect(d);[o,v].forEach(x=>{x.start(t);x.stop(t+len+.1)})},
+  'crickets':(t,d,dur)=>{for(let c=0;c<2;c++){const f=rr(4200,4900),pan=rr(-.8,.8);for(let tt=t+rr(0,1);tt<t+dur;tt+=rr(.5,.95)){const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;
+    g.gain.setValueAtTime(0,tt);for(let i=0;i<4;i++){g.gain.linearRampToValueAtTime(.012,tt+i*.03+.01);g.gain.linearRampToValueAtTime(0,tt+i*.03+.025)}o.connect(g);let n2=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan;g.connect(p);n2=p}n2.connect(d);o.start(tt);o.stop(tt+.15)}}},
+  'cicadas':(t,d,dur)=>{const g=noise(t,dur,{freq:rr(5500,7000),q:4,gain:.05,attack:dur*.3,release:dur*.3,dest:d})},
+  'frogs at night':(t,d,dur)=>{const lp=ctx.createBiquadFilter();lp.frequency.value=700;lp.connect(d);for(let tt=t+rr(0,2);tt<t+dur;tt+=rr(1.2,4.5)){const f=rr(110,190),n=ri(6,12);
+    for(let i=0;i<n;i++){const ti=tt+i*.025,o=ctx.createOscillator(),g=ctx.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(0,ti);g.gain.linearRampToValueAtTime(.02,ti+.004);g.gain.linearRampToValueAtTime(0,ti+.02);o.connect(g);g.connect(lp);o.start(ti);o.stop(ti+.03)}}}
+};
+const AN_LONG=['crickets','cicadas','frogs at night'];
+async function animalsLoop(){
+  await sleep(rr(20,50)*1000);
+  while(true){
+    if(T.animals<.01){await sleep(8000);continue}
+    const kind=pick(Object.keys(AN)),long=AN_LONG.includes(kind),dur=long?rr(30,70):12,t=ctx.currentTime+.1;
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+(long?8:.5));g.gain.setValueAtTime(1,t+dur-(long?8:.5));g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.animals);
+    try{AN[kind](t,g,dur)}catch(e){}
+    log('ANIMAL',kind,long?dur:6);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+3)*1000);
+    await sleep((long?rr(dur*.7,dur+40):rr(15,60))*1000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -883,7 +1000,7 @@ async function classicalDeck(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -919,7 +1036,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();oracleLoop();animalsLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
