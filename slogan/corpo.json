@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-12",
+  "aggiornato": "2026-11-13",
   "parole": {
     "good": [
       "sanità:fs",
@@ -23,7 +23,13 @@
       "sbadigli:mp",
       "lentezza:fs",
       "retromarcia:fs",
-      "camomilla:fs"
+      "camomilla:fs",
+      "coperte:fp",
+      "biciclette:fp",
+      "pisolino:ms",
+      "errore:ms",
+      "tenerezza:fs",
+      "siesta:fs"
     ],
     "bad": [
       "riarmo:ms",
@@ -70,7 +76,13 @@
       "sveglie:fp",
       "vetrine:fp",
       "mazzette:fp",
-      "audizioni:fp"
+      "audizioni:fp",
+      "rottamazione:fs",
+      "coperture:fp",
+      "cinghia:fs",
+      "listini:mp",
+      "fretta:fs",
+      "risposte automatiche:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -88,7 +100,9 @@
       "inquilini:mp",
       "tifosi:mp",
       "poeti:mp",
-      "agricoltori:mp"
+      "agricoltori:mp",
+      "sognatori:mp",
+      "presidi:mp"
     ],
     "place": [
       "licei:mp",
@@ -100,7 +114,9 @@
       "tangenziali:fp",
       "panchine:fp",
       "quartieri:mp",
-      "condomini:mp"
+      "condomini:mp",
+      "aule:fp",
+      "soffitte:fp"
     ]
   },
   "slogan": [
@@ -255,6 +271,55 @@
         "Errore di sistema: finalmente",
         "La poesia non ha copertura finanziaria: per fortuna"
       ]
+    },
+    {
+      "d": "2026-11-13",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Abbiamo sonno di futuro. Cuscini alla scuola, non alla guerra",
+        "Ci hanno detto di stringere la cinghia: l'abbiamo slacciata",
+        "Settimana prossima? Vado in bici. Piano",
+        "Se la sveglia cade a pezzi, si alza il nostro futuro",
+        "Crollano i listini, non la nostra voglia di giocare",
+        "Vogliamo un futuro lento: che ci insegua lui",
+        "Vi siete messi contro la generazione sbagliata: sbagliamo meglio",
+        "Il sonno sta diventando un privilegio: rifacciamone un diritto",
+        "Descansa aunque no te falte nada: a algunos les falta el sueño",
+        "La domenica nuk shitet: non è in vendita",
+        "Nesër më ngadalë! Domani più piano",
+        "Aspettateci che arriviamo. Con calma",
+        "Cancel the alarm",
+        "La plus grande journée de sieste depuis des années",
+        "Fuochi d'artificio sulla manovra, sognatori convocati il 13 novembre",
+        "La coperta è corta: stringiamoci",
+        "La manovra non cambia: cambiamo strada noi",
+        "Super rottamazione delle sveglie",
+        "Il 43% delle coperte grava sui sognatori",
+        "Avviate le simulazioni di ozio",
+        "Piano contro la fretta, estendibile a trasporti e ospedali",
+        "Protocollo contro le risposte automatiche",
+        "Consiglio straordinario: fate un pisolino",
+        "Investimenti in IA: Inerzia Affettuosa",
+        "Salari bassi, sogni alti: invertire l'ordine",
+        "Colletta poetica: donate un verso",
+        "Tenerezza dedicata che ancora non c'è: la facciamo noi",
+        "Per il Black Friday cresce la voglia di niente",
+        "Corteo non fatto dall'AI",
+        "Sciopero disegnato a mano",
+        "Effortless signaling: non facciamo niente, e si vede",
+        "Intelligenza artigianale, pigrizia agentica",
+        "Ritorno all'umano: orario ridotto",
+        "Go for Life. Go slow",
+        "Ozio is. Lentezza da gustare",
+        "Play has no limits. Work should",
+        "Visioni dell'inaspettato: un lunedì gentile",
+        "Ce n'est qu'un début, continuons la sieste",
+        "El pueblo dormido jamás será vencido (versión 2.0)",
+        "Lavorare meno, giocare tutti: aggiornamento disponibile",
+        "Siate realisti, chiedete un pomeriggio libero",
+        "Venerdì 13: porta sfortuna solo alle sveglie",
+        "L'errore non si corregge: si festeggia"
+      ]
     }
   ],
   "letti": [
@@ -341,6 +406,47 @@
         "Destination: Adrenaline (claim pubblicitario)",
         "Make the Holidays Magic (claim pubblicitario)",
         "Metti che… (claim pubblicitario)"
+      ]
+    },
+    {
+      "d": "2026-11-13",
+      "t": [
+        "Abbiamo fame di futuro. Soldi alla scuola non alla guerra (striscione degli studenti, Ferrara)",
+        "Ci hanno detto di stringere la cinghia, peccato che la cinghia costi troppo (cartello, Ferrara)",
+        "Settimana prossima? Vado in bici? (cartello sul caro metano, Ferrara)",
+        "Se la scuola cade a pezzi, cade anche il nostro futuro (cartello, Trento)",
+        "Crollano i soffitti ma non la nostra voglia di lottare (slogan, Trento)",
+        "Vogliamo un futuro da vivere, non da inseguire (slogan, Trento)",
+        "Vi siete messi contro la generazione sbagliata (cartello, Trento)",
+        "La scuola sta diventando un privilegio, non è più un diritto (studenti, Agrigento)",
+        "Lucha aunque no te falte nada porque a algunos les falta todo (cartello, Quito)",
+        "Shqipëria nuk shitet / Albania is not for sale (cortei in Albania e nella diaspora)",
+        "Nesër më shumë! — Domani di più (coro, Tirana)",
+        "Na prit se po vijmë! — Aspettaci che arriviamo (corteo d'auto della diaspora)",
+        "Cancel the project (coro, Albania)",
+        "France strikes: largest day of protests in years (titolo)",
+        "Fuoco di fila sulla manovra, sindacati convocati il 13 novembre (titolo)",
+        "La coperta è corta (frase sulla manovra)",
+        "La manovra economica non cambia (titolo)",
+        "È lite sulla super rottamazione (titolo)",
+        "Il 43% delle coperture grava sulle imprese (audizioni sulla manovra)",
+        "Avviate simulazioni di crisi / piano contro le minacce informatiche estendibile a trasporti e ospedali (prime pagine)",
+        "Protocollo contro le evacuazioni automatiche (prime pagine)",
+        "Consiglio straordinario (prime pagine, tecnologia)",
+        "Investimenti in IA / salari bassi / Colletta alimentare (prime pagine)",
+        "Previdenza dedicata che ancora non c'è (frase sulla manovra)",
+        "Per il Black Friday cresce la voglia di acquisti (titolo)",
+        "Non fatto dall'AI / campagna di Natale disegnata a mano (claim e titolo, moda)",
+        "Effort signaling (parola d'ordine del marketing)",
+        "Intelligenza artificiale agentica / ritorno all'umano e alla creatività (titoli, marketing)",
+        "Go for Life (claim pubblicitario, assicurazioni)",
+        "Piemonte is. Eccellenza da gustare (claim istituzionale)",
+        "Play has no limits (claim pubblicitario)",
+        "Visioni dell'inaspettato (tema di un festival del marketing)",
+        "Ce n'est qu'un début, continuons le combat (slogan storico)",
+        "El pueblo unido jamás será vencido (slogan storico)",
+        "Lavorare meno, lavorare tutti (slogan storico)",
+        "Siate realisti, chiedete l'impossibile (slogan storico)"
       ]
     }
   ]
