@@ -48,17 +48,17 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.27,scales:WEST,ia:{ambient:.5,drone:.2,nature:.12,piano:.08,indian:.05,japan:.05},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.35,nature:.35,sho:.1}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.35,nature:.35,sho:.1,airwaves:.3}},
   indian:{w:.2,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.25,loops:.2,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2}},
+    prob:{drone:.25,loops:.2,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2}},
   piano:{w:.18,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.45,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3}},
+    prob:{drone:.45,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3}},
   east:{w:.18,scales:EAST,ia:{japan:.45,pacific:.35,nature:.1,ambient:.1},
-    prob:{drone:.3,loops:.25,data:.3,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45}},
+    prob:{drone:.3,loops:.25,data:.3,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2}},
   mixed:{w:.17,raga:true,ia:{ambient:.25,indian:.2,piano:.2,japan:.15,pacific:.1,drone:.1},
-    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2}}
+    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35}}
 };
-const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7,net:.8,hum:.7,city:.65,bigdrone:.75,nature:.7,flute:.6,koto:.6,sho:.55,gamelan:.6};
+const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7,net:.8,hum:.7,city:.65,bigdrone:.75,nature:.7,flute:.6,koto:.6,sho:.55,gamelan:.6,airwaves:.55};
 const RHYTHMIC=['arp','phase'];
 
 let ctx,master,reverb,delayIn,noiseBuf,running=false;const L={},T={};
@@ -89,7 +89,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
 }
 function tone(f,t,dur,o){
@@ -324,6 +324,7 @@ function playMedia(url,o){return new Promise(resolve=>{
   nodes.push(src);let n=src;
   const blur=ctx.createBiquadFilter();blur.type='lowpass';blur.frequency.value=20000;n.connect(blur);n=blur;nodes.push(blur);
   if(o.filter){const f=ctx.createBiquadFilter();f.type=o.filter.type||'lowpass';f.frequency.value=o.filter.freq;f.Q.value=o.filter.q||.7;n.connect(f);n=f;nodes.push(f)}
+  if(o.chain)o.chain.forEach(x=>{n.connect(x);n=x;nodes.push(x)});
   const g=ctx.createGain();g.gain.value=0;n.connect(g);nodes.push(g);let m=g;
   if(o.pan&&ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=o.pan;g.connect(p);m=p;nodes.push(p)}
   m.connect(o.dest);
@@ -670,6 +671,45 @@ async function gamelanLoop(){
   }
 }
 
+/* ============ AIRWAVES: any live radio in the world, through a heavy radio filter ============
+   news, talk, music from anywhere — squeezed into a narrow, distorted band, with static,
+   left underneath as a carpet (Cage, Imaginary Landscape No. 4) */
+let airPool=[];
+async function nextAir(){
+  for(let tries=0;tries<3&&!airPool.length;tries++){for(const h of shuffle(RB.slice())){try{
+    const j=await fetchJSON(`${h}/json/stations/search?hidebroken=true&order=random&limit=100&is_https=true`);
+    airPool=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))));break}catch(e){}}}
+  return airPool.pop();
+}
+function radioChain(){
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=rr(350,600);hp.Q.value=1.2;
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=rr(800,1700);bp.Q.value=rr(1.2,3);
+  const sh=ctx.createWaveShaper(),k=rr(2,7),c=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;c[i]=Math.tanh(k*x)/Math.tanh(k)}sh.curve=c;
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=rr(2200,3400);
+  const mk=ctx.createGain();mk.gain.value=.7;
+  // the band drifts slowly, like a dial that is never quite tuned
+  const lfo=ctx.createOscillator();lfo.frequency.value=rr(.02,.08);const lg=ctx.createGain();lg.gain.value=rr(150,450);lfo.connect(lg);lg.connect(bp.frequency);lfo.start();
+  return{nodes:[hp,bp,sh,lp,mk],lfo};
+}
+function tuning(t,d){const o=ctx.createOscillator();o.frequency.setValueAtTime(rr(2500,4500),t);o.frequency.exponentialRampToValueAtTime(rr(300,900),t+rr(1.5,3));
+  const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.012,t+.3);g.gain.linearRampToValueAtTime(0,t+3);o.connect(g);g.connect(d);o.start(t);o.stop(t+3.1);
+  noise(t,3,{freq:1500,q:.6,gain:.04,attack:.1,release:1.5,dest:d})}
+async function airDeck(){
+  await sleep(rr(20,60)*1000);let fails=0;
+  while(true){
+    if(T.airwaves<.01){await sleep(8000);continue}
+    const s=await nextAir();if(!s){await sleep(20000);continue}
+    const ch=radioChain(),rate=pick([1,1,1,.9,.8]),hold=rr(90,240),fi=rr(15,25),fo=rr(20,30),name=(s.name||'').trim();let line=null,hiss=null;
+    const ok=await playMedia(s.url_resolved,{dest:L.airwaves,fadeIn:fi,hold,fadeOut:fo,rate,chain:ch.nodes,level:.9,pan:rr(-.6,.6),
+      onStart:()=>{const t=ctx.currentTime;tuning(t,L.airwaves);
+        hiss=noise(t,fi+hold+fo,{freq:rr(2500,5000),q:.5,gain:.025,attack:fi,release:fo,dest:L.airwaves}); // static
+        line=log('RADIO · AIR',`${name} · ${[s.country,s.language].filter(Boolean).join(' · ')} · through a radio filter${slowTag(rate)}`)},
+      onSlow:slowLog('air',name),onEnd:()=>{unlive(line);try{ch.lfo.stop()}catch(e){}}});
+    if(!ok){try{ch.lfo.stop()}catch(e){}}
+    fails=ok?0:fails+1;await sleep(ok?rr(10,60)*1000:fails>8?30000:1500);
+  }
+}
+
 /* ============ start ============ */
 document.getElementById('start').addEventListener('click',async()=>{
   if(running)return;running=true;setup();try{await ctx.resume()}catch(e){}
@@ -678,7 +718,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();
+  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
