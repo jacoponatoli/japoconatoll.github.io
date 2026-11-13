@@ -52,22 +52,22 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,oracle:.35,animals:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,oracle:.3,animals:.2}},
+    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.15,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,oracle:.35,animals:.15}},
+    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:.25,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,oracle:.3,animals:.3}},
+    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.15,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:.2,radio:.3,loops:.2,sho:.15,classical:.1,voices:.1,net:.1,hum:.05,oracle:.3,animals:.2}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.15,voices:.1,net:.1,hum:.05,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,oracle:.4,animals:.3}}
+    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,oracle:1,animals:.55};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
-const ACCENTS=['net','voices','city','airwaves','hum','oracle'];
+const ACCENTS=['net','voices','city','airwaves','hum','slogan'];
 const RHYTHMIC=['arp','phase'];
 
 let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
@@ -123,9 +123,9 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7); // classical: almost all reverb, far away
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3); // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
   // pings: a message, a ring — always possible, outside the scenes
-  mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.55);
+  mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.4);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
 }
 function tone(f,t,dur,o){
@@ -164,7 +164,7 @@ function retuneDrone(){
 let loops=[];
 function newLoops(){
   loops.forEach(v=>clearTimeout(v.to));loops=[];
-  for(let i=0,n=ri(5,7);i<n;i++){
+  for(let i=0,n=ri(3,5);i<n;i++){
     const v={d:ri(0,9),period:+rr(13,34).toFixed(1),pan:rr(-.8,.8),soft:R()<.55};
     const tick=()=>{if(T.loops>.01){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
       if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}
@@ -247,7 +247,7 @@ function pianoTick(){
     if(m<.55){PN.last=Math.max(0,Math.min(14,PN.last+pick([-2,-1,-1,1,1,2,0,3,-3])));piano(mtof(deg(PN.last,S.root+24)),t,rr(.035,.06),L.piano,rr(-.3,.3))}
     else if(m<.8){piano(mtof(S.root+12),t,.045,L.piano,-.3);piano(mtof(S.root+12+paInt()),t+rr(0,.06),.035,L.piano,-.2)}
     else{const b=ri(0,6);[0,2,4].forEach((k,i)=>piano(mtof(deg(b+k,S.root+24)),t+i*rr(.04,.18),.03,L.piano,rr(-.4,.4)))}}
-  setTimeout(pianoTick,rr(2,7.5)*1000*(R()<.12?2.5:1));
+  setTimeout(pianoTick,rr(4,11)*1000*(R()<.15?2.5:1));
 }
 
 /* ============ SCENES: the random mixer ============ */
@@ -261,28 +261,29 @@ function newScene(first){
     retuneDrone();
   }
   const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0);
-  if(first){on.drone=on.loops=true;on.data=true}
+  if(first){on.drone=on.loops=true}
   if(NO_RADIO)on.radio=on.airwaves=false; // live radios switched off
   if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
   let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
-  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&(C.prob[k]||0)>.05));
-  while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
+  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&!ACCENTS.includes(k)&&(C.prob[k]||0)>.05));
+  while(cnt<2){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
   // always a bed of drone; at least one slow ambient texture; accents at most two
   if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
-  {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>2)on[acc.pop()]=false}
-  // never too many things at once: at most 6 layers per scene, plus the drone and the live data
-  {const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='data'&&k!=='drone'));const MAX=6;while(act.length>MAX)on[act.pop()]=false}
+  // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
+  {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>1)on[acc.pop()]=false}
+  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'],keep=TEX.find(k=>on[k]);
+   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!==keep));const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
   if(R()<.3)newLoops();
   for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;T[k]=v;
-    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7))}
+    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?15:12))}
   const act=Object.keys(on).filter(k=>on[k]);
   const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
   nowEl.textContent=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;
   log('SCENE '+S.scene,`${S.color} — ${key} — ${act.join(', ')}`,0);
-  setTimeout(()=>newScene(false),rr(80,170)*1000);
+  setTimeout(()=>newScene(false),rr(160,320)*1000);
 }
 
 /* ============ LIVE INTERNET DATA ============ */
@@ -294,7 +295,7 @@ function startWiki(){
     es.onmessage=e=>{
       const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;
       let d;try{d=JSON.parse(e.data)}catch(_){return}
-      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(3,9);
+      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(7,18);
       const diff=d.length?(d.length.new||0)-(d.length.old||0):0,a=Math.abs(diff);
       let h=0;for(const c of (d.title||''))h=(h*31+c.charCodeAt(0))|0;const dg=Math.abs(h)%10;
       const base=S.root+(a>3000?24:a>300?36:48),t=ctx.currentTime+.05,g=d.bot?.02:.045,pan=rr(-.9,.9);
@@ -325,7 +326,7 @@ function startBTC(){
   let last=0,gap=6;
   const open=()=>{let ws;try{ws=new WebSocket('wss://ws.blockchain.info/inv')}catch(e){return}
     ws.onopen=()=>{ws.send(JSON.stringify({op:'unconfirmed_sub'}));log('BITCOIN','listening to unconfirmed transactions',0)};
-    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(5,14);
+    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(20,50);
       let v=0;try{const x=JSON.parse(e.data).x;v=(x.out||[]).reduce((s,o)=>s+(o.value||0),0)/1e8}catch(_){return}
       const d=Math.max(0,Math.min(9,Math.round(Math.log10(v+1e-4)+4)));
       tone(mtof(deg(d,S.root+48)),ctx.currentTime+.05,1.4,{gain:.015,attack:.002,dest:L.data,pan:rr(-1,1)});
@@ -447,7 +448,7 @@ async function radioDeck(delay){
     if(T.radio<.01){await sleep(8000);continue}
     const grp=groupNow(),s=await nextStation(grp);if(!s){await sleep(20000);continue}
     const under=R()<.35,rate=pick([1,1,1,.9,.85,.8]),name=(s.name||'').trim();let line=null;
-    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(15,28),hold:rr(60,150),fadeOut:rr(18,30),rate,filter:under?{freq:rr(350,1100)}:null,level:.8,pan:rr(-.5,.5),
+    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(25,40),hold:rr(90,200),fadeOut:rr(30,45),rate,filter:under?{freq:rr(350,1100)}:null,level:.8,pan:rr(-.5,.5),
       onStart:()=>{line=log('RADIO · LIVE',`${name} · ${[s.country,(s.tags||'').split(',').slice(0,2).join(' ')].filter(Boolean).join(' · ')}${under?' · underwater':''}${slowTag(rate)}`)},
       onSlow:slowLog('radio',name),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(0,12)*1000:fails>8?30000:1500);
@@ -469,6 +470,9 @@ const IAQ={
   animals:'mediatype:audio AND title:(birds OR birdsong OR "bird song" OR whale OR whales OR humpback OR owl OR owls OR crickets OR frogs OR wolves OR wolf OR "dawn chorus" OR loon OR cicadas OR cicada OR nightingale) AND subject:("field recording" OR "field recordings" OR nature OR "nature sounds" OR soundscape OR animals OR wildlife OR birds OR "sound effects")'+NOBEAT,
   city:'mediatype:audio AND title:(city OR street OR streets OR traffic OR market OR "train station" OR station OR subway OR metro OR piazza OR crowd OR urban OR downtown OR harbour OR harbor OR "city ambience" OR "street ambience") AND subject:("field recording" OR "field recordings" OR soundscape OR ambience OR ambiance OR ambient OR "sound effects" OR "city sounds")'+NOBEAT,
   piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
+  poetry:()=>{const l=R()<.75?pick(['Italian','English','French','German','Spanish','Portuguese','Latin','Russian','Greek','Dutch','Japanese','Chinese']):null;
+    return 'mediatype:audio AND collection:librivoxaudio AND subject:(poetry OR poems OR poesia OR poesie OR poésie OR poesía OR gedichte OR lyrik)'+(l?` AND language:(${l})`:'')},
+  prophecy:'mediatype:audio AND title:(prophecy OR prophecies OR nostradamus OR oracle OR oracles OR sibyl OR sibylline OR revelation OR apocalypse OR "i ching" OR divination OR prophet OR visions)',
   voices:()=>R()<.65?`mediatype:audio AND (title:(${PHILO}) OR creator:(${PHILO})) AND (title:(lecture OR lezione OR conférence OR cours OR interview OR intervista OR entretien OR talk OR speech OR voice OR seminar) OR subject:(lecture OR interview OR speech OR philosophy))`:'mediatype:audio AND collection:librivoxaudio AND subject:philosophy'
 };
 const BAD=/\b(AM|FM)\b|BBC Radio|\d{1,2}:\d\d ?(AM|PM)|ringtone|PRBT|mix ?tape|remix|bollywood|ragtime|soccer|football|\btiger rag\b/i;
@@ -493,7 +497,7 @@ async function archiveDeck(delay){
     const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:1500);continue}
     const rate=pick([1,1,.9,.85,.8,.75,.5]),under=R()<.25;let line=null;
     const sweep=!under&&R()<.35;
-    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(15,28),hold:rr(60,150),fadeOut:rr(18,30),rate,seek:true,sweep,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
+    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(25,40),hold:rr(90,200),fadeOut:rr(30,45),rate,seek:true,sweep,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
       onStart:()=>{line=log('ARCHIVE · '+it.cat.toUpperCase(),`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}${under?' · underwater':''}${sweep?' · DJ filter':''}`)},
       onSlow:slowLog(it.cat,it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(0,10)*1000:fails>8?30000:1500);
@@ -505,11 +509,11 @@ async function voicesDeck(){
   await sleep(rr(20,60)*1000);let fails=0;
   while(true){
     if(T.voices<.01){await sleep(8000);continue}
-    const it=await iaNext('voices');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
-    const rate=pick([1,.9,.85,.8,.8,.5]),room=pick([{type:'bandpass',freq:rr(500,1300),q:rr(.6,1.4),name:'far room'},{type:'lowpass',freq:rr(600,1500),name:'behind a wall'},{type:'highpass',freq:rr(900,1800),name:'thin, like a radio'}]);let line=null;
-    const ok=await playMedia(it.url,{dest:L.voices,fadeIn:rr(10,18),hold:rr(40,90),fadeOut:rr(14,22),rate,seek:true,noJudge:true,filter:room,level:.9,pan:rr(-.8,.8),
-      onStart:()=>{line=log('VOICE',`${it.title}${it.creator?' — '+it.creator:''} · ${room.name}${slowTag(rate)}`)},onEnd:()=>unlive(line)});
-    fails=ok?0:fails+1;await sleep(ok?rr(40,150)*1000:fails>8?30000:2000); // voices only once in a while
+    const cat=wpick({poetry:.45,voices:.35,prophecy:.2}),it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    const rate=pick([1,1,.9,.85,.8,.5]),room=pick([{type:'bandpass',freq:rr(500,1300),q:rr(.6,1.4),name:'far room'},{type:'lowpass',freq:rr(600,1500),name:'behind a wall'},{type:'highpass',freq:rr(900,1800),name:'thin, like a radio'}]);let line=null;
+    const ok=await playMedia(it.url,{dest:L.voices,fadeIn:rr(20,30),hold:rr(50,110),fadeOut:rr(25,35),rate,seek:true,noJudge:true,filter:room,level:.85,pan:rr(-.8,.8),
+      onStart:()=>{line=log('VOICE · '+{poetry:'POETRY',voices:'PHILOSOPHY',prophecy:'PROPHECY'}[cat],`${it.title}${it.creator?' — '+it.creator:''} · ${room.name}${slowTag(rate)}`)},onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(90,240)*1000:fails>8?30000:2000); // voices only once in a while
   }
 }
 
@@ -581,7 +585,7 @@ async function netLoop(){
     const scene=T.net>.01,kind=scene?wpick(NETW):wpick(PINGW),fx=wpick({dry:.4,delay:.3,reflected:.3});
     const bus=L[(scene?'net':'ping')+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
     try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}
-    await sleep((scene?rr(12,45):rr(35,100))*1000);
+    await sleep((scene?rr(40,100):rr(90,240))*1000);
   }
 }
 
@@ -614,7 +618,7 @@ async function fieldDeck(cat,layer,label){
     if(T[layer]<.01){await sleep(8000);continue}
     const it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     const rate=pick([1,1,1,.9,.8,.5]),far=R()<.4;let line=null;
-    const ok=await playMedia(it.url,{dest:L[layer],fadeIn:rr(15,25),hold:rr(60,140),fadeOut:rr(18,28),rate,seek:true,filter:far?{freq:rr(500,1200)}:null,level:.75,pan:rr(-.5,.5),
+    const ok=await playMedia(it.url,{dest:L[layer],fadeIn:rr(25,40),hold:rr(90,180),fadeOut:rr(30,45),rate,seek:true,filter:far?{freq:rr(500,1200)}:null,level:.75,pan:rr(-.5,.5),
       onStart:()=>{line=log(label,`${it.title}${far?' · from far away':''}${slowTag(rate)}`)},onSlow:slowLog(cat,it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(5,40)*1000:fails>8?30000:2000);
   }
@@ -693,7 +697,7 @@ async function fluteLoop(){
       t+=dur+rr(.4,2.8); // ma: the silence between
     }
     log(name,`${S.scaleName} · ${n} breaths`,t-t0);
-    await sleep((t-ctx.currentTime+rr(5,15))*1000);
+    await sleep((t-ctx.currentTime+rr(15,40))*1000);
   }
 }
 function kotoPluck(f,t,pan){tone(f,t,rr(2.5,4),{type:'triangle',gain:.06,attack:.002,dest:L.koto,pan});tone(f*2,t,.8,{gain:.025,attack:.002,dest:L.koto,pan});tone(f*3.01,t,.3,{gain:.012,attack:.001,dest:L.koto,pan});noise(t,.015,{freq:3000,q:1,gain:.03,attack:.001,release:.01,dest:L.koto});
@@ -705,7 +709,7 @@ async function kotoLoop(){
     const n=ri(2,6),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,7);
     for(let k=0;k<n;k++){pos=Math.max(0,Math.min(12,pos+pick([-2,-1,1,2,3,-3])));const f=mtof(deg(pos,S.root+24)),pan=rr(-.5,.5);kotoPluck(f,t,pan);if(R()<.2)kotoPluck(f*2,t+.02,-pan);t+=rr(.35,1.6)}
     log('KOTO',`${S.scaleName} · ${n} plucks`,t-t0+2);
-    await sleep((t-ctx.currentTime+rr(4,14))*1000);
+    await sleep((t-ctx.currentTime+rr(15,40))*1000);
   }
 }
 function templeBell(t){const f=mtof(S.root-12+pick([0,paInt()]))*2,dur=rr(14,22);
@@ -734,7 +738,7 @@ async function gamelanLoop(){
     gongAgeng(t);
     for(let k=0;k<n;k++){pos=Math.max(0,Math.min(9,pos+pick([-1,1,-2,2,1,-1])));metallo(mtof(deg(pos,S.root+36)),t,.045,rr(-.6,.6));if(R()<.3)metallo(mtof(deg(pos,S.root+48)),t+beat/2,.025,rr(-.6,.6));t+=beat*rr(.9,1.15)}
     log('GAMELAN',`${S.scaleName} · slow irama · ${n} strokes`,t-t0);
-    await sleep((t-ctx.currentTime+rr(4,14))*1000);
+    await sleep((t-ctx.currentTime+rr(15,40))*1000);
   }
 }
 
@@ -838,7 +842,7 @@ async function bowlsLoop(){
     else{const rubbed=R()<.3,n=rubbed?1:ri(1,3);
       const ns=[];for(let i=0;i<n;i++){const m=deg(ri(0,6),S.root+pick([12,24,24])),dur=rubbed?rr(25,40):rr(18,35);ns.push(NOTES[m%12]);bowl(mtof(m),t+i*rr(2,6),dur,rubbed?.05:.07,rr(-.6,.6),rubbed)}
       log('SINGING BOWL',`${rubbed?'rubbed':'struck'} · ${ns.join(' ')}`,rubbed?25:15)}
-    await sleep(rr(8,28)*1000);
+    await sleep(rr(25,60)*1000);
   }
 }
 async function chantLoop(){
@@ -872,83 +876,9 @@ async function classicalDeck(){
     if(T.classical<.01){await sleep(8000);continue}
     const it=await iaNext('classical');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     const rate=pick([1,1,.9,.85,.75]);let line=null;
-    const ok=await playMedia(it.url,{dest:L.classical,fadeIn:rr(20,30),hold:rr(60,150),fadeOut:rr(20,30),rate,seek:true,filter:{type:'lowpass',freq:rr(700,1600),q:.5},level:.6,pan:rr(-.6,.6),
+    const ok=await playMedia(it.url,{dest:L.classical,fadeIn:rr(30,45),hold:rr(90,200),fadeOut:rr(30,45),rate,seek:true,filter:{type:'lowpass',freq:rr(700,1600),q:.5},level:.6,pan:rr(-.6,.6),
       onStart:()=>{line=log('CLASSICAL · FAR AWAY',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`)},onSlow:slowLog('classical',it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(10,50)*1000:fails>8?30000:2000);
-  }
-}
-
-/* ============ ORACLE: a voice that speaks predictions and poetic fragments, in many languages ============
-   lines are invented here, from grammars (Italian, English) and from a small book of sentences that
-   exist in many languages at once; sometimes woven with what is happening online right now
-   (a page just edited on Wikipedia, a place where the earth just moved).
-   The voice is the browser's own speech synthesis: soft, slow, low; the music steps back while it speaks. */
-const ORA={
- it:{subj:['il mare','la rete','una lingua dimenticata','il tuo nome','l’ultimo server acceso','la luce delle sei','un fiume sotto la città','il silenzio','una parola nuova','la pioggia','l’algoritmo','un bambino','il deserto','la memoria del telefono','una stella spenta','il vento di nord-est','un animale senza nome','l’oceano dei dati','la notte','una montagna'],
-   verb:['ricorderà','dimenticherà','canterà','attraverserà','aprirà','chiamerà','scioglierà','sognerà','perderà','ritroverà','custodirà','restituirà'],
-   obj:['ogni cosa che hai scritto','la strada di casa','il colore dell’acqua','tutte le password','il suono delle campane','il tuo nome a bassa voce','un giardino sommerso','le stelle una per una','la lingua degli uccelli','il primo giorno del mondo','ciò che non hai detto','la forma delle nuvole'],
-   vision:['una porta aperta nel mare','mille schermi che si spengono insieme','una città fatta di neve','un fiume di parole che scorre al contrario','due mani che non si toccano','un treno vuoto che canta','l’ultima notifica del mondo','una montagna che respira','un deserto pieno di campane'],
-   imp:['Ascolta','Rallenta','Respira','Dimentica','Aspetta','Chiudi gli occhi','Spegni lo schermo'],
-   adv:['ogni onda torna','nulla è perduto nella rete','il rumore è una forma di preghiera','la lentezza è una rivolta','anche il silenzio ha un indirizzo','le cose inutili sono le più vere','il tempo perso è tempo ritrovato'],
-   when:['Quando l’ultima luce si spegnerà','Quando il mare salirà fino ai server','Quando nessuno guarderà','Quando smetterai di scorrere','Quando la rete dormirà','Quando i telefoni taceranno'],
-   then:['sentirai la musica delle cose','qualcuno pronuncerà il tuo nome','le parole torneranno animali','il tempo si fermerà per un respiro','nascerà una lingua nuova','gli uccelli impareranno a scrivere'],
-   make(){const R2=R(),y=new Date().getFullYear()+ri(1,90),w=LIVE_WORDS.length?pick(LIVE_WORDS):null,pl=LIVE_PLACES.length?pick(LIVE_PLACES):null;
-     if(w&&R2<.18)return `Sento che «${w}» ${pick(this.verb)} ${pick(this.obj)}.`;
-     if(pl&&R2<.26)return `Un tremore vicino a ${pl}: ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`;
-     return pick([()=>`Domani ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`Nel ${y}, ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`Vedo ${pick(this.vision)}.`,()=>`${pick(this.imp)}: ${pick(this.adv)}.`,()=>`${pick(this.when)}, ${pick(this.then)}.`])()}},
- en:{subj:['the sea','the network','a forgotten language','your name','the last server still on','the six o’clock light','a river under the city','silence','a new word','the rain','the algorithm','a child','the desert','your phone’s memory','a dead star','the north-east wind','an animal with no name','the ocean of data','the night','a mountain'],
-   verb:['will remember','will forget','will sing','will cross','will open','will call','will dissolve','will dream','will lose','will find again','will keep','will give back'],
-   obj:['everything you have written','the way home','the colour of water','all the passwords','the sound of bells','your name, quietly','a drowned garden','the stars one by one','the language of birds','the first day of the world','what you never said','the shape of clouds'],
-   vision:['a door open in the sea','a thousand screens going dark together','a city made of snow','a river of words flowing backwards','two hands that do not touch','an empty train that sings','the last notification on earth','a mountain breathing','a desert full of bells'],
-   imp:['Listen','Slow down','Breathe','Forget','Wait','Close your eyes','Turn off the screen'],
-   adv:['every wave returns','nothing is lost in the network','noise is a kind of prayer','slowness is a revolt','even silence has an address','useless things are the truest','lost time is time found again'],
-   when:['When the last light goes out','When the sea rises to the servers','When no one is watching','When you stop scrolling','When the network sleeps','When the phones fall silent'],
-   then:['you will hear the music of things','someone will say your name','words will turn back into animals','time will stop for one breath','a new language will be born','birds will learn to write'],
-   make(){const R2=R(),y=new Date().getFullYear()+ri(1,90),w=LIVE_WORDS.length?pick(LIVE_WORDS):null,pl=LIVE_PLACES.length?pick(LIVE_PLACES):null;
-     if(w&&R2<.18)return `I can hear that “${w}” ${pick(this.verb)} ${pick(this.obj)}.`;
-     if(pl&&R2<.26)return `A tremor near ${pl}: ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`;
-     return pick([()=>`Tomorrow ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`In ${y}, ${pick(this.subj)} ${pick(this.verb)} ${pick(this.obj)}.`,()=>`I see ${pick(this.vision)}.`,()=>`${pick(this.imp)}: ${pick(this.adv)}.`,()=>`${pick(this.when)}, ${pick(this.then)}.`])()}}
-};
-// a small book of sentences that exist in many languages at once (so a line can echo in translation)
-const BOOK=[
- {it:'Domani il mare ricorderà il tuo nome.',en:'Tomorrow the sea will remember your name.',fr:'Demain, la mer se souviendra de ton nom.',es:'Mañana el mar recordará tu nombre.',de:'Morgen wird das Meer sich an deinen Namen erinnern.',pt:'Amanhã o mar vai lembrar o teu nome.',ja:'明日、海はあなたの名前を思い出すでしょう。',hi:'कल समुद्र तुम्हारा नाम याद करेगा।',zh:'明天，大海会记得你的名字。',ar:'غدًا سيتذكّر البحر اسمك.'},
- {it:'Vedo una porta aperta nell’acqua.',en:'I see a door open in the water.',fr:'Je vois une porte ouverte dans l’eau.',es:'Veo una puerta abierta en el agua.',de:'Ich sehe eine offene Tür im Wasser.',pt:'Vejo uma porta aberta na água.',ja:'水の中に開いた扉が見える。',hi:'मुझे पानी में एक खुला दरवाज़ा दिखता है।',zh:'我看见水中有一扇打开的门。',ar:'أرى بابًا مفتوحًا في الماء.'},
- {it:'Ascolta: anche il silenzio ha un indirizzo.',en:'Listen: even silence has an address.',fr:'Écoute : même le silence a une adresse.',es:'Escucha: también el silencio tiene una dirección.',de:'Hör zu: auch die Stille hat eine Adresse.',pt:'Escuta: até o silêncio tem morada.',ja:'聞いて。静けさにも住所がある。',hi:'सुनो, मौन का भी एक पता होता है।',zh:'听，寂静也有地址。',ar:'اصغِ: للصمت أيضًا عنوان.'},
- {it:'Quando l’ultimo schermo si spegnerà, sentirai la pioggia.',en:'When the last screen goes dark, you will hear the rain.',fr:'Quand le dernier écran s’éteindra, tu entendras la pluie.',es:'Cuando se apague la última pantalla, oirás la lluvia.',de:'Wenn der letzte Bildschirm erlischt, wirst du den Regen hören.',pt:'Quando o último ecrã se apagar, vais ouvir a chuva.',ja:'最後の画面が消えるとき、雨の音が聞こえる。',hi:'जब आख़िरी स्क्रीन बुझेगी, तुम बारिश सुनोगे।',zh:'当最后一块屏幕熄灭，你会听见雨声。',ar:'حين تنطفئ آخر شاشة، ستسمع المطر.'},
- {it:'Rallenta. Il tempo è un fiume.',en:'Slow down. Time is a river.',fr:'Ralentis. Le temps est un fleuve.',es:'Despacio. El tiempo es un río.',de:'Langsam. Die Zeit ist ein Fluss.',pt:'Devagar. O tempo é um rio.',ja:'ゆっくり。時間は川です。',hi:'धीरे चलो। समय एक नदी है।',zh:'慢一点。时间是一条河。',ar:'تمهّل. الزمن نهر.'},
- {it:'Vedo una città fatta di neve.',en:'I see a city made of snow.',fr:'Je vois une ville faite de neige.',es:'Veo una ciudad hecha de nieve.',de:'Ich sehe eine Stadt aus Schnee.',pt:'Vejo uma cidade feita de neve.',ja:'雪でできた町が見える。',hi:'मुझे बर्फ़ से बना एक शहर दिखता है।',zh:'我看见一座用雪做的城市。',ar:'أرى مدينة من ثلج.'},
- {it:'Quando la rete dormirà, le parole torneranno uccelli.',en:'When the network sleeps, words will turn back into birds.',fr:'Quand le réseau dormira, les mots redeviendront des oiseaux.',es:'Cuando la red duerma, las palabras volverán a ser pájaros.',de:'Wenn das Netz schläft, werden die Wörter wieder zu Vögeln.',pt:'Quando a rede dormir, as palavras voltarão a ser pássaros.',ja:'ネットが眠るとき、言葉はまた鳥になる。',hi:'जब जाल सो जाएगा, शब्द फिर से पंछी बन जाएँगे।',zh:'当网络入睡，词语会重新变成鸟。',ar:'حين تنام الشبكة، ستعود الكلمات طيورًا.'},
- {it:'Niente è perduto nell’oceano dei dati.',en:'Nothing is lost in the ocean of data.',fr:'Rien n’est perdu dans l’océan des données.',es:'Nada se pierde en el océano de los datos.',de:'Nichts geht verloren im Ozean der Daten.',pt:'Nada se perde no oceano dos dados.',ja:'データの海では、何も失われない。',hi:'आँकड़ों के सागर में कुछ भी खोता नहीं।',zh:'在数据的海洋里，什么都不会丢失。',ar:'لا شيء يضيع في محيط البيانات.'},
- {it:'Una montagna respira mentre dormi.',en:'A mountain breathes while you sleep.',fr:'Une montagne respire pendant que tu dors.',es:'Una montaña respira mientras duermes.',de:'Ein Berg atmet, während du schläfst.',pt:'Uma montanha respira enquanto dormes.',ja:'あなたが眠るあいだ、山が息をしている。',hi:'जब तुम सोते हो, एक पहाड़ साँस लेता है।',zh:'你睡着时，一座山在呼吸。',ar:'جبلٌ يتنفّس وأنت نائم.'}
-];
-const LANGS={it:'it',en:'en',fr:'fr',es:'es',de:'de',pt:'pt',ja:'ja',hi:'hi',zh:'zh',ar:'ar'};
-let VOICES=[];const loadVoices=()=>{try{VOICES=speechSynthesis.getVoices()}catch(e){}};
-if('speechSynthesis'in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
-const voiceFor=l=>{const vs=VOICES.filter(v=>(v.lang||'').toLowerCase().startsWith(l));return vs.length?pick(vs):null};
-function speak(text,lang,vol){return new Promise(res=>{
-  const v=voiceFor(lang);if(!v){res(false);return}
-  const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=rr(.68,.86);u.pitch=rr(.55,.95);u.volume=vol;
-  let done=false;const end=()=>{if(done)return;done=true;res(true)};u.onend=end;u.onerror=end;setTimeout(end,20000);
-  try{speechSynthesis.speak(u)}catch(e){end()}
-})}
-async function oracleLoop(){
-  if(!('speechSynthesis'in window))return;
-  await sleep(rr(40,80)*1000);
-  while(true){
-    if(T.oracle<.01){await sleep(10000);continue}
-    let lang,text,echo=null;
-    if(R()<.55){lang=R()<.5?'it':'en';text=ORA[lang].make()}
-    else{const b=pick(BOOK),ls=Object.keys(b).filter(l=>voiceFor(l));if(!ls.length){await sleep(20000);continue}
-      lang=R()<.45?pick(ls):pick(ls.filter(l=>l!=='it'&&l!=='en').concat(['it','en']).filter(l=>ls.includes(l)));text=b[lang];
-      if(R()<.4){const el=ls.filter(l=>l!==lang);if(el.length)echo=[pick(el),b]}}
-    if(!voiceFor(lang)){lang=voiceFor('it')?'it':'en';text=ORA[lang].make()}
-    // the music steps back while the voice speaks
-    const t=ctx.currentTime;master.gain.setTargetAtTime(.5,t,1.2);await sleep(1800);
-    const id=log('ORACLE · '+lang.toUpperCase(),text,undefined,90);
-    await speak(text,lang,.38);unlive(id);
-    if(echo){await sleep(rr(1500,3500));const [l2,b]=echo,id2=log('ECHO · '+l2.toUpperCase(),b[l2],undefined,90);await speak(b[l2],l2,.24);unlive(id2)}
-    master.gain.setTargetAtTime(.8,ctx.currentTime,2.5);
-    await sleep(rr(70,180)*1000);
   }
 }
 
@@ -988,7 +918,62 @@ async function animalsLoop(){
     try{AN[kind](t,g,dur)}catch(e){}
     log('ANIMAL',kind,long?dur:6);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+3)*1000);
-    await sleep((long?rr(dur*.7,dur+40):rr(15,60))*1000);
+    await sleep((long?rr(dur,dur+80):rr(40,120))*1000);
+  }
+}
+
+/* ============ SLOGANS: the voice of SLOGAN, as a demonstration far away ============
+   every slogan of jacoponatoli.net/slogan (invented and read in the streets) is spoken by a robotic
+   synthetic voice (espeak-ng, rendered by a GitHub Action into the "ambienet-voice" branch).
+   Here it arrives through a radio / megaphone filter, a slow echo and a lot of reverb;
+   sometimes repeated, sometimes as a small robotic crowd. Until the voices exist, the browser's own voice reads them. */
+const VOICE_BASE='https://raw.githubusercontent.com/jacoponatoli/japoconatoll.github.io/ambienet-voice/';
+let sloganIdx=null,sloganText=[];const sloganSeen=new Set(),sloganBuf=new Map();
+async function loadSlogans(){
+  try{const j=await fetchJSON(VOICE_BASE+'index.json?'+Date.now());if(j.items&&j.items.length)sloganIdx=j.items}catch(e){}
+  try{const c=await fetchJSON('../slogan/corpo.json?'+Date.now());sloganText=[].concat(...(c.slogan||[]).map(g=>g.t||[]),...(c.letti||[]).map(g=>g.t||[]))}catch(e){}
+}
+function megaphone(dest){
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=rr(280,450);
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=rr(900,1600);bp.Q.value=rr(.8,1.6);
+  const sh=ctx.createWaveShaper(),k=rr(2,5),c=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;c[i]=Math.tanh(k*x)/Math.tanh(k)}sh.curve=c;
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=rr(1800,3000);
+  const dl=ctx.createDelay(2);dl.delayTime.value=rr(.35,.7);const fb=ctx.createGain();fb.gain.value=rr(.25,.45);const out=ctx.createGain();out.gain.value=1;
+  hp.connect(bp);bp.connect(sh);sh.connect(lp);lp.connect(out);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(out);out.connect(dest);
+  return{input:hp,out};
+}
+async function sloganBuffer(it){
+  if(sloganBuf.has(it.f))return sloganBuf.get(it.f);
+  const r=await fetch(VOICE_BASE+it.f);if(!r.ok)throw new Error(r.status);const b=await ctx.decodeAudioData(await r.arrayBuffer());
+  sloganBuf.set(it.f,b);if(sloganBuf.size>40)sloganBuf.delete(sloganBuf.keys().next().value);return b;
+}
+async function sloganLoop(){
+  await sleep(rr(40,90)*1000);await loadSlogans();setInterval(loadSlogans,3600e3);
+  while(true){
+    if(T.slogan<.01){await sleep(10000);continue}
+    if(sloganIdx&&sloganIdx.length){
+      let pool=sloganIdx.filter(x=>!sloganSeen.has(x.f));if(!pool.length){sloganSeen.clear();pool=sloganIdx}
+      const it=pick(pool);sloganSeen.add(it.f);
+      let buf;try{buf=await sloganBuffer(it)}catch(e){await sleep(20000);continue}
+      const m=megaphone(L.slogan),reps=pick([1,2,2,3]),crowd=R()<.35,rate=pick([1,1,.92,.85]),t0=ctx.currentTime+.3;let t=t0;
+      for(let r=0;r<reps;r++){
+        const copies=crowd?3:1;
+        for(let c=0;c<copies;c++){const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate*(c?pick([.985,1.015,.97]):1);
+          const g=ctx.createGain();g.gain.value=(c?.45:.9)*Math.pow(.75,r);src.connect(g);
+          if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=c?rr(-.8,.8):rr(-.4,.4);g.connect(p);p.connect(m.input)}else g.connect(m.input);
+          src.start(t+c*rr(.02,.09))}
+        t+=buf.duration/rate+rr(1.5,4);
+      }
+      const total=t-t0+4;
+      log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total,90);
+      setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
+      await sleep((total+rr(90,220))*1000);
+    }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
+      const text=pick(sloganText),vs=speechSynthesis.getVoices().filter(v=>/^it/i.test(v.lang));
+      const u=new SpeechSynthesisUtterance(text);if(vs.length)u.voice=pick(vs);u.lang='it-IT';u.rate=.8;u.pitch=.3;u.volume=.25;
+      const id=log('SLOGAN',text,undefined,90);await new Promise(res=>{u.onend=res;u.onerror=res;setTimeout(res,15000);try{speechSynthesis.speak(u)}catch(e){res()}});unlive(id);
+      await sleep(rr(90,220)*1000);
+    }else await sleep(30000);
   }
 }
 
@@ -1000,7 +985,7 @@ async function animalsLoop(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -1036,7 +1021,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();oracleLoop();animalsLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
