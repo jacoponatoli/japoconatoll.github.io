@@ -569,7 +569,8 @@ async function grainsDeck(){
     if(!buf||buf.duration<4){fails++;await sleep(fails>8?30000:1500);continue}
     fails=0;const gn=Math.max(.05,Math.min(3,Math.pow(10,(-22-bufDb(buf))/20)));
     const dur=rr(90,200),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.06,.16);
-    const line=log('GRAINS',`new music from the dust of “${it.title}”`,dur);
+    const grev=R()<.35;if(grev)buf=reverseBuffer(buf);
+    const line=log('GRAINS',`new music from the dust of “${it.title}”${grev?' · reversed':''}`,dur);
     const rates=S.scale.map(s=>Math.pow(2,(s-12)/12)).concat([.5,1]);let pos=rr(0,buf.duration-3);
     const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(gn,t0+12);dg.gain.setValueAtTime(gn,end-12);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
     while(ctx.currentTime<end){
@@ -818,6 +819,8 @@ async function airDeck(){
 /* ============ PHRASE LOOPS: a phrase cut from the archive and repeated, like a DJ / a tape loop ============
    a 2.5–9 s phrase is cut with a crossfade (no click), repeated by 1–3 voices: same speed,
    slightly different speeds (phasing, Reich), or an octave down; with slow DJ filter sweeps. */
+function reverseBuffer(b){const o=ctx.createBuffer(b.numberOfChannels,b.length,b.sampleRate);for(let c=0;c<b.numberOfChannels;c++){const a=b.getChannelData(c),d=o.getChannelData(c),n=a.length;for(let i=0;i<n;i++)d[i]=a[n-1-i]}return o}
+function rangeDb(b,s0,len){const d=b.getChannelData(0),a=Math.floor(s0*b.sampleRate),e=Math.min(d.length,a+Math.floor(len*b.sampleRate));let s=0,n=0;for(let i=a;i<e;i+=8){s+=d[i]*d[i];n++}return 10*Math.log10(s/(n||1)+1e-12)}
 function bufDb(b){const d=b.getChannelData(0);let s=0,n=0;for(let i=0;i<d.length;i+=4){s+=d[i]*d[i];n++}return 10*Math.log10(s/(n||1)+1e-12)}
 function bufEnv(b){const d=b.getChannelData(0),w=Math.floor(b.sampleRate/20),e=[];for(let i=0;i+w<=d.length;i+=w){let s=0;for(let j=i;j<i+w;j+=2)s+=d[j]*d[j];e.push(10*Math.log10(s/(w/2)+1e-12))}return e}
 function loopBuffer(buf,start,len){const sr=buf.sampleRate,X=Math.floor(sr*.06),s0=Math.floor(start*sr),n=Math.floor(len*sr),out=ctx.createBuffer(buf.numberOfChannels,n,sr);
@@ -831,7 +834,7 @@ async function phraseDeck(){
     let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2500000))}catch(e){buf=null}
     if(!buf||buf.duration<14){fails++;await sleep(fails>8?30000:1500);continue}
     fails=0;
-    const len=rr(2.5,9),start=rr(1,buf.duration-len-1.5),lb=loopBuffer(buf,start,len),env=bufEnv(lb),v=judge(env,env);
+    const len=rr(2.5,9),start=rr(1,buf.duration-len-1.5),lb0=loopBuffer(buf,start,len),rev=R()<.3,lb=rev?reverseBuffer(lb0):lb0,env=bufEnv(lb),v=judge(env,env);
     if(v.silent){await sleep(1500);continue}
     let rate=pick([1,1,.75,.5]),dark=R()<.4;if(!v.ok){rate=pick([.5,.4,.33]);dark=true} // rhythmic phrases: slowed and darkened
     const norm=Math.max(.03,Math.min(3,Math.pow(10,(-24-bufDb(lb))/20)));
@@ -849,7 +852,7 @@ async function phraseDeck(){
       if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=n===1?rr(-.3,.3):(j/(n-1)*2-1)*.7;vg.connect(p);p.connect(filt)}else vg.connect(filt);
       src.start(t,rr(0,len*.9));src.stop(t+dur+.3);
     }
-    log('LOOP',`${len.toFixed(1)} s phrase from “${it.title}”${n>1?' · '+n+' voices'+(mode?' · '+mode:''):''}${slowTag(rate)}`,dur);
+    log('LOOP',`${len.toFixed(1)} s phrase from “${it.title}”${rev?' · reversed':''}${n>1?' · '+n+' voices'+(mode?' · '+mode:''):''}${slowTag(rate)}`,dur);
     setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+1)*1000);
     await sleep(rr(dur*.6,dur+30)*1000);
   }
@@ -990,16 +993,17 @@ async function sloganLoop(){
       const it=pick(pool);sloganSeen.add(it.f);
       let buf;try{buf=await sloganBuffer(it)}catch(e){await sleep(20000);continue}
       const m=megaphone(dest),reps=pick([1,2,2,3]),crowd=R()<.35,rate=pick([1,1,.92,.85]),t0=ctx.currentTime+.3;let t=t0;
+      const back=R()<.18,rbuf=back?reverseBuffer(buf):null;
       for(let r=0;r<reps;r++){
         const copies=crowd?3:1;
-        for(let c=0;c<copies;c++){const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate*(c?pick([.985,1.015,.97]):1);
+        for(let c=0;c<copies;c++){const src=ctx.createBufferSource();src.buffer=back&&r===0?rbuf:buf;src.playbackRate.value=rate*(c?pick([.985,1.015,.97]):1);
           const g=ctx.createGain();g.gain.value=(c?.45:.9)*Math.pow(.75,r);src.connect(g);
           if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=c?rr(-.8,.8):rr(-.4,.4);g.connect(p);p.connect(m.input)}else g.connect(m.input);
           src.start(t+c*rr(.02,.09))}
         t+=buf.duration/rate+rr(1.5,4);
       }
       const total=t-t0+4;
-      log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total);
+      log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':'')+(back?' · first reversed':''),total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
       await sleep((total+(inScene?rr(35,90):rr(100,200)))*1000);
     }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
@@ -1050,7 +1054,7 @@ async function remnantDeck(){
     let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,3500000))}catch(e){buf=null}
     if(!buf||buf.duration<25){fails++;await sleep(fails>8?30000:1500);continue}
     fails=0;
-    const len=rr(8,20),start=rr(2,buf.duration-len-2),lb=loopBuffer(buf,start,len),env=bufEnv(lb),v=judge(env,env);
+    const len=rr(8,20),start=rr(2,buf.duration-len-2),lb0=loopBuffer(buf,start,len),rev=R()<.25,lb=rev?reverseBuffer(lb0):lb0,env=bufEnv(lb),v=judge(env,env);
     if(v.silent){await sleep(1500);continue}
     let rate=pick([1,.92,.85,.8,.75]);if(!v.ok)rate=pick([.6,.5]);
     const norm=Math.max(.03,Math.min(3,Math.pow(10,(-24-bufDb(lb))/20)));
@@ -1070,7 +1074,7 @@ async function remnantDeck(){
       [src,wow,fl].forEach(x=>{x.start(t);x.stop(t+dur+.3)});
     }
     noise(t,dur,{freq:rr(2500,4000),q:.5,gain:.004,attack:fi,release:fo,dest:out}); // tape hiss
-    log('PIANO REMNANT',`${it.title}${it.creator?' — '+it.creator:''} · ${Math.round(len)} s, muffled${slowTag(rate)}${ghost?' · ghost an octave below':''}`,dur);
+    log('PIANO REMNANT',`${it.title}${it.creator?' — '+it.creator:''} · ${Math.round(len)} s, muffled${rev?', reversed':''}${slowTag(rate)}${ghost?' · ghost an octave below':''}`,dur);
     setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+1)*1000);
     await sleep(rr(dur*.7,dur+40)*1000);
   }
@@ -1080,14 +1084,29 @@ async function remnantDeck(){
    philosophers (lectures, interviews) and readings of dreams, nights and poems from the archive;
    they come rarely, outside the scenes; the music steps back a little while they speak. */
 async function spokenLoop(){
-  await sleep(rr(70,140)*1000);let fails=0;
+  await sleep(rr(60,120)*1000);let fails=0;
   while(true){
     const cat=R()<.55?'voices':'dreamy',it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
-    const rate=pick([1,1,.96,.92]);let line=null;
-    const ok=await playMedia(it.url,{dest:L.spoken,target:-21,fadeIn:rr(2.5,4),hold:rr(25,50),fadeOut:rr(4,6),rate,seek:true,noJudge:true,filter:{type:'lowpass',freq:rr(6500,8500),q:.5},level:1,pan:rr(-.15,.15),
-      onStart:()=>{line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`);speaking=true;master.gain.setTargetAtTime(.4,ctx.currentTime,1.2)},
-      onEnd:()=>{unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3)}});
-    fails=ok?0:fails+1;await sleep(ok?rr(150,330)*1000:fails>8?30000:2000);
+    let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,3000000))}catch(e){buf=null}
+    if(!buf||buf.duration<45){fails++;await sleep(fails>8?30000:1500);continue}
+    // a stretch of 28–48 s where there is really a voice (not silence, not a pause)
+    const len=Math.min(buf.duration-8,rr(28,48));let st=null,lvl=-99;
+    for(let k=0;k<12;k++){const s0=rr(4,buf.duration-len-2),d=rangeDb(buf,s0,len);if(d>-42&&d>lvl){st=s0;lvl=d;if(d>-32)break}}
+    if(st==null){fails++;await sleep(1500);continue}
+    fails=0;
+    const rate=pick([1,1,.96,.92]),gain=Math.max(.05,Math.min(10,Math.pow(10,(-21-lvl)/20))),t=ctx.currentTime+.15,fi=rr(2.5,4),fo=rr(4,6),play=len/rate;
+    const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;
+    const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=90;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=rr(6500,8500);
+    const cmp=ctx.createDynamicsCompressor();cmp.threshold.value=-24;cmp.ratio.value=3;cmp.knee.value=8;cmp.attack.value=.01;cmp.release.value=.25;
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+fi);g.gain.setValueAtTime(gain,t+play-fo);g.gain.linearRampToValueAtTime(0,t+play);
+    src.connect(hp);hp.connect(lp);lp.connect(cmp);cmp.connect(g);g.connect(L.spoken);
+    src.start(t,st,len);src.stop(t+play+.2);
+    speaking=true;master.gain.setTargetAtTime(.4,ctx.currentTime,1.2);
+    const line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`);
+    await sleep((play+.3)*1000);
+    unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},1000);
+    await sleep(rr(150,330)*1000);
   }
 }
 
