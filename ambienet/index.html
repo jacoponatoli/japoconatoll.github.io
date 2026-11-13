@@ -50,23 +50,23 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 
 /* scene colours: what each scene leans towards */
 const COLORS={
-  ambient:{w:.27,scales:WEST,ia:{ambient:.5,drone:.2,nature:.12,piano:.08,indian:.05,japan:.05},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3}},
-  indian:{w:.2,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2}},
-  piano:{w:.18,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3}},
+  ambient:{w:.2,scales:WEST,ia:{ambient:.42,drone:.2,indian:.15,nature:.1,japan:.08,piano:.05},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35}},
+  indian:{w:.3,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
+    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45}},
+  piano:{w:.12,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
+    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3}},
   east:{w:.18,scales:EAST,ia:{japan:.45,pacific:.35,nature:.1,ambient:.1},
-    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2}},
-  mixed:{w:.17,raga:true,ia:{ambient:.25,indian:.2,piano:.2,japan:.15,pacific:.1,drone:.1},
-    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35}}
+    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4}},
+  mixed:{w:.2,raga:true,ia:{indian:.3,ambient:.2,japan:.15,piano:.12,drone:.13,pacific:.1},
+    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const ACCENTS=['net','voices','city','airwaves','hum'];
 const RHYTHMIC=['arp','phase'];
 
-let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,meterSink,running=false;const LA={};const L={},T={};
+let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
 const nowEl=document.getElementById('now'),stage=document.getElementById('stage'),ruler=document.getElementById('r'),msgEl=document.getElementById('msg');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* what is sounding right now, in red, as large as possible: one line per sound (like SLOGAN).
@@ -102,20 +102,26 @@ function setup(){
   const comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=20;comp.ratio.value=3;comp.attack.value=.05;comp.release.value=.8;
   master=ctx.createGain();master.gain.value=0;master.connect(comp);
   // brickwall limiter + meter at the very end
-  const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.003;lim.release.value=.25;
-  rider=ctx.createGain();rider.gain.value=1;comp.connect(rider);rider.connect(lim);lim.connect(ctx.destination);
+  const lim=ctx.createDynamicsCompressor();lim.threshold.value=-12;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.2;
+  rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);lim.connect(ctx.destination);
+  preAn=ctx.createAnalyser();preAn.fftSize=2048;comp.connect(preAn);
   masterAn=ctx.createAnalyser();masterAn.fftSize=2048;lim.connect(masterAn);
-  meterSink=ctx.createGain();meterSink.gain.value=0;meterSink.connect(ctx.destination);masterAn.connect(meterSink);
-  master.gain.setTargetAtTime(.9,ctx.currentTime,3);
+  meterSink=ctx.createGain();meterSink.gain.value=0;meterSink.connect(ctx.destination);masterAn.connect(meterSink);preAn.connect(meterSink);
+  master.gain.setTargetAtTime(.8,ctx.currentTime,3);
   reverb=ctx.createConvolver();reverb.buffer=impulse(10,2.4);const rv=ctx.createGain();rv.gain.value=.75;reverb.connect(rv);rv.connect(master);
   delayIn=ctx.createGain();const dl=ctx.createDelay(4);dl.delayTime.value=.75;const fb=ctx.createGain();fb.gain.value=.5;const lp=ctx.createBiquadFilter();lp.frequency.value=2200;
   delayIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);const dOut=ctx.createGain();dOut.gain.value=.5;lp.connect(dOut);dOut.connect(master);dOut.connect(reverb);
-  const mk=(n,wet,del,dry=1)=>{const g=ctx.createGain();g.gain.value=0;const dr=ctx.createGain();dr.gain.value=dry;g.connect(dr);dr.connect(master);const s=ctx.createGain();s.gain.value=wet;g.connect(s);s.connect(reverb);if(del){const d=ctx.createGain();d.gain.value=del;g.connect(d);d.connect(delayIn)}L[n]=g;T[n]=0;const an=ctx.createAnalyser();an.fftSize=2048;g.connect(an);an.connect(meterSink);LA[n]=an};
+  const mk=(n,wet,del,dry=1)=>{const g=ctx.createGain();g.gain.value=0;const ng=ctx.createGain();ng.gain.value=1;g.connect(ng);
+    const dr=ctx.createGain();dr.gain.value=dry;ng.connect(dr);dr.connect(master);const s=ctx.createGain();s.gain.value=wet;ng.connect(s);s.connect(reverb);
+    if(del){const d=ctx.createGain();d.gain.value=del;ng.connect(d);d.connect(delayIn)}
+    L[n]=g;T[n]=0;LN[n]=ng;LNv[n]=1;const an=ctx.createAnalyser();an.fftSize=2048;ng.connect(an);an.connect(meterSink);LA[n]=an};
   mk('drone',.5,0);mk('loops',.8,.15);mk('arp',.6,.4);mk('phase',.6,.15);mk('data',.9,.2);mk('radio',.55,0);mk('archive',.6,.1);mk('grains',.8,.2);
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);
+  // pings: a message, a ring — always possible, outside the scenes
+  mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.55);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
 }
 function tone(f,t,dur,o){
@@ -258,7 +264,7 @@ function newScene(first){
   while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
   // always a bed of drone; at least one slow ambient texture; accents at most two
   if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
-  if(!['loops','grains','archive','sho','nature','tanpura'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
+  if(!['loops','grains','archive','sho','nature','tanpura','phrase'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>2)on[acc.pop()]=false}
   // never too many things at once: at most 6 layers per scene, plus the drone and the live data
   {const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='data'&&k!=='drone'));const MAX=6;while(act.length>MAX)on[act.pop()]=false}
@@ -348,6 +354,7 @@ function judge(F,H){const a=score(F),b=score(H),rate=Math.max(a.rate,b.rate),ac=
   return{ok:!silent&&rate<1.6&&!(ac>.4&&rate>1.0),silent,rate,ac}}
 
 /* ============ media player (live streams + archive files) ============ */
+const SRC_TARGET=-26; // dB: every source is brought to about this level
 function playMedia(url,o){return new Promise(resolve=>{
   let done=false,started=false,passed=false,stopT=null,startT=null,an=null;const nodes=[];
   const el=new Audio();el.preload='auto';el.crossOrigin='anonymous';
@@ -357,6 +364,9 @@ function playMedia(url,o){return new Promise(resolve=>{
   const blur=ctx.createBiquadFilter();blur.type='lowpass';blur.frequency.value=20000;n.connect(blur);n=blur;nodes.push(blur);
   if(o.filter){const f=ctx.createBiquadFilter();f.type=o.filter.type||'lowpass';f.frequency.value=o.filter.freq;f.Q.value=o.filter.q||.7;n.connect(f);n=f;nodes.push(f)}
   if(o.chain)o.chain.forEach(x=>{n.connect(x);n=x;nodes.push(x)});
+  // every source is squeezed and levelled before it reaches the mix: no sudden loud entries
+  const cmp=ctx.createDynamicsCompressor();cmp.threshold.value=-30;cmp.knee.value=6;cmp.ratio.value=8;cmp.attack.value=.005;cmp.release.value=.3;n.connect(cmp);n=cmp;nodes.push(cmp);
+  const norm=ctx.createGain();norm.gain.value=.25;n.connect(norm);n=norm;nodes.push(norm);let normCur=.25,normRef=.25;
   const g=ctx.createGain();g.gain.value=0;n.connect(g);nodes.push(g);let m=g;
   if(o.pan&&ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=o.pan;g.connect(p);m=p;nodes.push(p)}
   m.connect(o.dest);
@@ -383,10 +393,17 @@ function playMedia(url,o){return new Promise(resolve=>{
   el.addEventListener('playing',()=>{
     if(started)return;started=true;clearTimeout(startT);t0=performance.now();
     an=setInterval(()=>{
-      F.push(db(aF));H.push(db(aH));const now=performance.now();
+      const cur=db(aF);F.push(cur);H.push(db(aH));const now=performance.now();
+      // fast automatic gain: if the source gets loud, pull it down at once; give back slowly
+      if(passed&&cur>-80){const out=cur+20*Math.log10(normCur);
+        if(out>SRC_TARGET+4){normCur=Math.max(.01,normCur*Math.pow(10,(SRC_TARGET+1-out)/20));norm.gain.setTargetAtTime(normCur,ctx.currentTime,.02)}
+        else if(out<SRC_TARGET-5&&normCur<normRef){normCur=Math.min(normRef,normCur*1.008);norm.gain.setTargetAtTime(normCur,ctx.currentTime,.4)}}
       if(!passed&&now-t0>AUD){
         const v=o.noJudge?{ok:F.length<30||score(F).mean>-58}:judge(F,H);
         if(!v.ok){if(v.silent){fin(false);return}slowDown(v,false)}
+        {const v2=F.filter(x=>x>-80).sort((a,b)=>a-b),p75=v2.length?v2[Math.floor(v2.length*.75)]:-40;
+          normRef=normCur=Math.max(.02,Math.min(2.5,Math.pow(10,(SRC_TARGET-p75)/20)));norm.gain.setValueAtTime(normCur,ctx.currentTime)}
+        if(o.sweep&&!slowed){let tt=ctx.currentTime;blur.frequency.setValueAtTime(rr(500,1500),tt);while(tt<ctx.currentTime+total){tt+=rr(8,20);blur.frequency.exponentialRampToValueAtTime(rr(350,12000),tt)}} // DJ filter
         passed=true;F=[];H=[];lastEval=now;o.onStart&&o.onStart();
         const t=ctx.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+o.fadeIn);g.gain.setValueAtTime(lvl,t+o.fadeIn+o.hold);g.gain.linearRampToValueAtTime(0,t+total);
         stopT=setTimeout(()=>fin(true),total*1000+400);
@@ -465,8 +482,9 @@ async function archiveDeck(delay){
     if(T.archive<.01){await sleep(8000);continue}
     const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:1500);continue}
     const rate=pick([1,1,.9,.85,.8,.75,.5]),under=R()<.25;let line=null;
-    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(15,28),hold:rr(60,150),fadeOut:rr(18,30),rate,seek:true,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
-      onStart:()=>{line=log('ARCHIVE · '+it.cat.toUpperCase(),`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}${under?' · underwater':''}`)},
+    const sweep=!under&&R()<.35;
+    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(15,28),hold:rr(60,150),fadeOut:rr(18,30),rate,seek:true,sweep,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
+      onStart:()=>{line=log('ARCHIVE · '+it.cat.toUpperCase(),`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}${under?' · underwater':''}${sweep?' · DJ filter':''}`)},
       onSlow:slowLog(it.cat,it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(0,10)*1000:fails>8?30000:1500);
   }
@@ -501,11 +519,11 @@ async function grainsDeck(){
     const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2000000))}catch(e){buf=null}
     if(!buf||buf.duration<4){fails++;await sleep(fails>8?30000:1500);continue}
-    fails=0;
+    fails=0;const gn=Math.max(.05,Math.min(3,Math.pow(10,(-22-bufDb(buf))/20)));
     const dur=rr(60,140),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.06,.16);
     const line=log('GRAINS',`new music from the dust of “${it.title}”`,dur);
     const rates=S.scale.map(s=>Math.pow(2,(s-12)/12)).concat([.5,1]);let pos=rr(0,buf.duration-3);
-    const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(1,t0+12);dg.gain.setValueAtTime(1,end-12);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
+    const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(gn,t0+12);dg.gain.setValueAtTime(gn,end-12);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
     while(ctx.currentTime<end){
       const t=ctx.currentTime+.03,gd=rr(.2,.8),src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=pick(rates);
       const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+gd/2);g.gain.linearRampToValueAtTime(0,t+gd);
@@ -546,12 +564,14 @@ const NET={
     noise(x,2.5,{freq:1800,q:.5,gain:.04,dest:d})}
 };
 const NETW={'ta-tan':5,'message':4,'three notes':2,'uh-oh':1.5,'pop':3,'whoosh (sent)':2,'group chat':1.5,'dial tone (IT)':1,'busy tone':1,'ringback (IT)':1,'ring (US)':1,'double ring (UK)':1,'dialling':1.5,'old bell phone':1,'phone vibrating':1.5,'fax':.6,'modem':.8};
+const PINGW={'message':5,'ta-tan':5,'three notes':2,'pop':2,'ring (US)':2,'double ring (UK)':2,'ringback (IT)':1,'phone vibrating':2,'old bell phone':1.5,'uh-oh':1};
 async function netLoop(){
-  await sleep(rr(10,25)*1000);
+  await sleep(rr(15,35)*1000);
   while(true){
-    if(T.net>.01){const kind=wpick(NETW),fx=wpick({dry:.35,delay:.3,reflected:.35}),bus=L[{dry:'netdry',delay:'netdelay',reflected:'netverb'}[fx]];
-      try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}}
-    await sleep(rr(25,90)*1000);
+    const scene=T.net>.01,kind=scene?wpick(NETW):wpick(PINGW),fx=wpick({dry:.4,delay:.3,reflected:.3});
+    const bus=L[(scene?'net':'ping')+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
+    try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}
+    await sleep((scene?rr(12,45):rr(35,100))*1000);
   }
 }
 
@@ -636,7 +656,7 @@ async function natureLoop(){
   while(true){
     if(T.nature<.01){await sleep(8000);continue}
     const kind=pick(Object.keys(NATURE)),dur=rr(60,150),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+12);g.gain.setValueAtTime(1,t+dur-12);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.nature);
-    NATURE[kind](t,dur,g);log('WATER · WIND',kind,dur);
+    NATURE[kind](t,dur,g);log('NATURE',kind,dur);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+5)*1000);
     await sleep(rr(dur*.5,dur+50)*1000);
   }
@@ -747,30 +767,81 @@ async function airDeck(){
   }
 }
 
+/* ============ PHRASE LOOPS: a phrase cut from the archive and repeated, like a DJ / a tape loop ============
+   a 2.5–9 s phrase is cut with a crossfade (no click), repeated by 1–3 voices: same speed,
+   slightly different speeds (phasing, Reich), or an octave down; with slow DJ filter sweeps. */
+function bufDb(b){const d=b.getChannelData(0);let s=0,n=0;for(let i=0;i<d.length;i+=4){s+=d[i]*d[i];n++}return 10*Math.log10(s/(n||1)+1e-12)}
+function bufEnv(b){const d=b.getChannelData(0),w=Math.floor(b.sampleRate/20),e=[];for(let i=0;i+w<=d.length;i+=w){let s=0;for(let j=i;j<i+w;j+=2)s+=d[j]*d[j];e.push(10*Math.log10(s/(w/2)+1e-12))}return e}
+function loopBuffer(buf,start,len){const sr=buf.sampleRate,X=Math.floor(sr*.06),s0=Math.floor(start*sr),n=Math.floor(len*sr),out=ctx.createBuffer(buf.numberOfChannels,n,sr);
+  for(let c=0;c<buf.numberOfChannels;c++){const a=buf.getChannelData(c),o=out.getChannelData(c);for(let i=0;i<n;i++){let v=a[s0+i]||0;if(i<X){const k=i/X;v=v*Math.sqrt(k)+(a[s0+n+i]||0)*Math.sqrt(1-k)}o[i]=v}}
+  return out}
+async function phraseDeck(){
+  await sleep(rr(20,50)*1000);let fails=0;
+  while(true){
+    if(T.phrase<.01){await sleep(8000);continue}
+    const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2500000))}catch(e){buf=null}
+    if(!buf||buf.duration<14){fails++;await sleep(fails>8?30000:1500);continue}
+    fails=0;
+    const len=rr(2.5,9),start=rr(1,buf.duration-len-1.5),lb=loopBuffer(buf,start,len),env=bufEnv(lb),v=judge(env,env);
+    if(v.silent){await sleep(1500);continue}
+    let rate=pick([1,1,.75,.5]),dark=R()<.4;if(!v.ok){rate=pick([.5,.4,.33]);dark=true} // rhythmic phrases: slowed and darkened
+    const norm=Math.max(.03,Math.min(3,Math.pow(10,(-24-bufDb(lb))/20)));
+    const dur=rr(50,130),t=ctx.currentTime+.1,fi=rr(10,20),fo=rr(12,22);
+    const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+fi);out.gain.setValueAtTime(1,t+dur-fo);out.gain.linearRampToValueAtTime(0,t+dur);out.connect(L.phrase);
+    const filt=ctx.createBiquadFilter();filt.type=dark?'lowpass':pick(['lowpass','lowpass','highpass','bandpass']);
+    const range={lowpass:[300,dark?1800:9000],highpass:[40,1200],bandpass:[300,3000]}[filt.type];if(filt.type==='bandpass')filt.Q.value=1.2;
+    filt.frequency.setValueAtTime(rr(range[0],range[1]),t);for(let tt=t+rr(8,20);tt<t+dur;tt+=rr(8,20))filt.frequency.exponentialRampToValueAtTime(rr(range[0],range[1]),tt);
+    const cmp=ctx.createDynamicsCompressor();cmp.threshold.value=-28;cmp.ratio.value=6;cmp.attack.value=.005;filt.connect(cmp);cmp.connect(out);
+    const n=pick([1,2,2,3]),mode=n===1?'':pick(['phasing','phasing','octave']);
+    for(let j=0;j<n;j++){
+      const src=ctx.createBufferSource();src.buffer=lb;src.loop=true;
+      src.playbackRate.value=rate*(j===0?1:mode==='octave'&&j===1?.5:pick([1.003,.997,1.006,.994]));
+      const vg=ctx.createGain();vg.gain.value=norm/Math.sqrt(n)*.8;src.connect(vg);
+      if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=n===1?rr(-.3,.3):(j/(n-1)*2-1)*.7;vg.connect(p);p.connect(filt)}else vg.connect(filt);
+      src.start(t,rr(0,len*.9));src.stop(t+dur+.3);
+    }
+    log('LOOP',`${len.toFixed(1)} s phrase from “${it.title}”${n>1?' · '+n+' voices'+(mode?' · '+mode:''):''}${slowTag(rate)}`,dur);
+    setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+1)*1000);
+    await sleep(rr(dur*.6,dur+30)*1000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
-   listens to the whole mix and to every layer. If the total stays too loud for ~2 seconds,
-   the loudest layer is faded out. A slow "rider" also keeps the overall level even. */
+   three levels of control, ten times a second:
+   1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
+   2. the whole mix is levelled (fast down, slow up) to stay calm and even;
+   3. if the total still stays too loud for ~2 s, the loudest accent is faded out.
+   (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-let over=0,cool=0,smooth=-30;
+const CEIL={drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
-  if(!running)return;
-  const db=rmsDb(masterAn);smooth=smooth*.9+db*.1;
-  // slow rider: aim for about -20 dB RMS
-  const target=smooth>-17?.65:smooth>-19?.85:smooth<-26?1.15:1;
-  rider.gain.setTargetAtTime(Math.max(.4,Math.min(1.2,rider.gain.value*(target<1?.97:target>1?1.01:1))),ctx.currentTime,.5);
+  if(!running)return;const now=ctx.currentTime;
+  // 1. per-layer ceilings
+  for(const n in LA){const d=rmsDb(LA[n]);if(d<-90)continue;const c=CEIL[n]??(n.startsWith('ping')||n.startsWith('net')?-27:-27);
+    if(d>c+2){LNv[n]=Math.max(.02,LNv[n]*Math.pow(10,(c-d)/20));LN[n].gain.setTargetAtTime(LNv[n],now,.03)}
+    else if(d<c-6&&LNv[n]<1){LNv[n]=Math.min(1,LNv[n]*1.004);LN[n].gain.setTargetAtTime(LNv[n],now,.5)}}
+  // 2. leveler on the whole mix
+  // measured at the output (what you actually hear), aiming for about -23 dB RMS
+  const out=rmsDb(masterAn);longDb=longDb*.85+out*.15;const level=Math.max(longDb,out-4);
+  const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(-23-level)/20)));
+  if(want<riderV){riderV=want;rider.gain.setTargetAtTime(riderV,now,.04)}
+  else{riderV=Math.min(want,riderV*1.004);rider.gain.setTargetAtTime(riderV,now,.4)}
+  // 3. too much for too long: an accent goes
   if(cool>0){cool--;return}
-  over=db>-14?over+1:Math.max(0,over-1);
-  if(over>=8){
+  const db=rmsDb(masterAn);over=db>-17?over+1:Math.max(0,over-1);
+  if(over>=20){
     const lv={};for(const n in LA){const k=n.startsWith('net')?'net':n;if(T[k]>.01)lv[k]=Math.max(lv[k]??-200,rmsDb(LA[n]))}
     const cand=Object.keys(lv).filter(k=>k!=='drone'&&k!=='bigdrone'),acc=cand.filter(k=>ACCENTS.includes(k)||k==='data'||k==='radio');
     const loud=(acc.length?acc:cand).sort((a,b)=>lv[b]-lv[a])[0];
-    if(loud){T[loud]=0;(loud==='net'?['netdry','netdelay','netverb']:[loud]).forEach(n=>L[n].gain.setTargetAtTime(0,ctx.currentTime,2.5));
+    if(loud){T[loud]=0;(loud==='net'?['netdry','netdelay','netverb']:[loud]).forEach(n=>L[n].gain.setTargetAtTime(0,now,2.5));
       log('VOLUME',`too much at once (${db.toFixed(1)} dB) → ${loud} fades out`,0)}
-    over=0;cool=40; // wait 10 s before acting again
+    over=0;cool=100; // wait 10 s before acting again
   }
 }
-setInterval(guardian,250);
+setInterval(guardian,100);
 
 /* ============ start ============ */
 document.getElementById('start').addEventListener('click',async()=>{
@@ -780,7 +851,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();
+  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();phraseDeck();
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
