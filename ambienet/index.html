@@ -367,8 +367,8 @@ const stations={};const seenSt=new Set();
 async function nextStation(grp){
   stations[grp]=stations[grp]||[];
   for(let tries=0;tries<4&&!stations[grp].length;tries++){const tag=pick(RGROUPS[grp]);
-    for(const h of shuffle(RB.slice())){try{const j=await fetchJSON(`${h}/json/stations/search?tag=${encodeURIComponent(tag)}&hidebroken=true&order=random&limit=80`);
-      stations[grp]=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)&&!BEATS.test((s.tags||'')+' '+(s.name||''))));break}catch(e){}}}
+    for(const h of shuffle(RB.slice())){try{const j=await fetchJSON(`${h}/json/stations/search?tag=${encodeURIComponent(tag)}&tagExact=true&hidebroken=true&order=random&limit=80`);
+      stations[grp]=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)&&!BEATS.test((s.tags||'')+' '+(s.name||'')+' '+s.url_resolved)));break}catch(e){}}}
   const s=stations[grp].pop();if(s)seenSt.add(s.stationuuid);if(seenSt.size>600)seenSt.clear();return s;
 }
 const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano']):S.color;
@@ -386,18 +386,21 @@ async function radioDeck(delay){
 }
 
 /* ============ ARCHIVE: ambient, Indian classical, minimal piano, voices ============ */
-const NOBEAT=' AND NOT subject:(techno OR house OR dance OR "drum and bass" OR dubstep OR beats OR "hip hop" OR breakbeat OR trance OR idm OR rock OR pop OR "tabla solo" OR bollywood OR filmi OR qawwali)';
+const NOBEAT=' AND NOT subject:(techno OR house OR dance OR "drum and bass" OR dubstep OR beats OR "hip hop" OR breakbeat OR trance OR idm OR rock OR pop OR "tabla solo" OR bollywood OR filmi OR qawwali OR lofi OR "lo-fi")';
+const PHILO='Deleuze OR Foucault OR Heidegger OR Sartre OR Arendt OR "de Beauvoir" OR Derrida OR Lacan OR Adorno OR Pasolini OR Agamben OR Bergson OR "Bertrand Russell" OR Marcuse OR Barthes OR Baudrillard OR Krishnamurti OR "Alan Watts" OR Chomsky OR Wittgenstein OR Jung OR "Simone Weil" OR McLuhan OR Virno OR Tronti OR Negri OR Guattari OR Lyotard OR Debord OR Huxley OR Bateson OR Cage';
 const IAQ={
   ambient:'mediatype:audio AND subject:(ambient OR drone OR "field recording" OR "field recordings" OR soundscape OR "dark ambient" OR "minimal music" OR minimalism)'+NOBEAT,
-  indian:'mediatype:audio AND subject:(raga OR alap OR alaap OR aalap OR dhrupad OR tanpura OR "hindustani classical" OR "indian classical" OR "rudra veena" OR bansuri OR sarangi OR "surbahar")'+NOBEAT,
-  piano:'mediatype:audio AND subject:("solo piano" OR "piano solo" OR "ambient piano" OR "minimal piano" OR satie OR gymnopedie OR gymnopedies OR feldman OR "neoclassical")'+NOBEAT,
-  voices:'mediatype:audio AND subject:(philosophy OR philosopher) AND (subject:(lecture OR lectures OR interview OR speech OR talk OR seminar OR radio) OR collection:librivoxaudio)'
+  indian:'mediatype:audio AND title:(raga OR raag OR alap OR alaap OR aalap OR dhrupad OR tanpura OR sarangi OR bansuri OR "rudra veena" OR surbahar)'+NOBEAT,
+  piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
+  voices:()=>R()<.65?`mediatype:audio AND (title:(${PHILO}) OR creator:(${PHILO})) AND (title:(lecture OR lezione OR conférence OR cours OR interview OR intervista OR entretien OR talk OR speech OR voice OR seminar) OR subject:(lecture OR interview OR speech OR philosophy))`:'mediatype:audio AND collection:librivoxaudio AND subject:philosophy'
 };
+const BAD=/\b(AM|FM)\b|BBC Radio|\d{1,2}:\d\d ?(AM|PM)|ringtone|PRBT|mix ?tape|remix|bollywood|ragtime|soccer|football|\btiger rag\b/i;
 const iaPool={},iaSeen=new Set();
 const flen=l=>{if(!l)return 999;if(String(l).includes(':'))return String(l).split(':').reduce((a,b)=>a*60+(+b||0),0);return parseFloat(l)||999};
 async function iaNext(cat){
   iaPool[cat]=iaPool[cat]||[];
-  if(!iaPool[cat].length){for(const p of [ri(1,12),ri(1,4),1]){try{const j=await fetchJSON(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(IAQ[cat])}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&rows=100&page=${p}&output=json`);iaPool[cat]=shuffle((j.response.docs||[]).filter(d=>!iaSeen.has(d.identifier)));if(iaPool[cat].length)break}catch(e){}}}
+  if(!iaPool[cat].length){for(const p of [ri(1,12),ri(1,4),1]){try{const q=typeof IAQ[cat]==='function'?IAQ[cat]():IAQ[cat];const j=await fetchJSON(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(q)}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&fl%5B%5D=collection&rows=100&page=${p}&output=json`);
+      iaPool[cat]=shuffle((j.response.docs||[]).filter(d=>!iaSeen.has(d.identifier)&&!BAD.test(String(d.title||''))&&!/radio|tvnews/i.test([].concat(d.collection||[]).join(' '))));if(iaPool[cat].length)break}catch(e){}}}
   const doc=iaPool[cat].pop();if(!doc)return null;iaSeen.add(doc.identifier);
   try{const m=await fetchJSON(`https://archive.org/metadata/${encodeURIComponent(doc.identifier)}`);
     const fs=(m.files||[]).filter(f=>/\.mp3$/i.test(f.name)&&flen(f.length)>=40);if(!fs.length)return null;
