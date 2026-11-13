@@ -17,6 +17,11 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 #stage div{line-height:.92;flex:none;animation:in 1.2s}
 #r{position:absolute;left:-99999px;top:0;font-size:100px;visibility:hidden}
 #msg{position:fixed;bottom:58px;left:24px;right:24px;font-size:10px;letter-spacing:.15em;opacity:.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#foot .lg{cursor:help;padding:6px 0;transition:opacity .3s}
+#foot:hover{opacity:.7}
+#pop{position:fixed;left:24px;bottom:64px;max-width:min(430px,86vw);padding:12px 15px 13px;background:rgba(12,12,12,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-left:3px solid #fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.6;letter-spacing:.02em;color:rgba(255,255,255,.88);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;pointer-events:none;z-index:5}
+#pop.on{opacity:1;transform:none}
+#pop b{display:block;font-weight:400;letter-spacing:.18em;text-transform:uppercase;font-size:10px;margin-bottom:6px}
 @keyframes in{from{opacity:0}to{opacity:1}}
 #foot{position:fixed;bottom:14px;line-height:1.8;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
 </style>
@@ -25,7 +30,8 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span style="color:#ff2a1a">generated</span> · <span style="color:#ffcf1a">remixed from the archive</span> · <span style="color:#22d65a">signals of the internet</span> · <span style="color:#3b7bff">from the archives</span> · <span style="color:#fff">words of SLOGAN</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span></div>
+<div id="pop" role="tooltip"></div>
 <script>
 'use strict';
 /* ============ utils ============ */
@@ -1059,6 +1065,28 @@ function guardian(){
   }
 }
 setInterval(guardian,100);
+
+/* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
+const LEGEND={
+  gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
+  mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: short phrases cut and repeated like tape loops (sometimes drifting out of phase), or broken into clouds of tiny grains tuned to the scene.'],
+  net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
+  arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals, poetry read aloud, voices of philosophers. Anything too rhythmic is slowed down and blurred.'],
+  word:['#ffffff','Words of SLOGAN','The slogans of SLOGAN (jacoponatoli.net/slogan), invented or read in the streets, spoken by a robotic synthetic voice and heard like a distant demonstration: megaphone, echo, reverb.']
+};
+{const pop=document.getElementById('pop'),foot=document.getElementById('foot'),TOUCH=matchMedia('(pointer: coarse)').matches;let cur=null,hideT;
+ // keep the grey scene line and the popup above the legend, however many lines the legend takes (phones)
+ const place=()=>{const fh=foot.offsetHeight;msgEl.style.bottom=(fh+22)+'px';pop.style.bottom=(fh+48)+'px';stage.style.bottom=(fh+60)+'px'};
+ place();addEventListener('resize',()=>{place();render()});
+ const show=k=>{const [c,t,x]=LEGEND[k];pop.style.borderLeftColor=c;pop.innerHTML='<b style="color:'+c+'">'+t+'</b>'+x;pop.classList.add('on');cur=k;clearTimeout(hideT);if(TOUCH)hideT=setTimeout(hide,12000)};
+ const hide=()=>{pop.classList.remove('on');cur=null};
+ document.querySelectorAll('#foot .lg').forEach(el=>{
+   el.addEventListener('mouseenter',()=>{if(!TOUCH)show(el.dataset.k)});
+   el.addEventListener('mouseleave',()=>{if(!TOUCH)hide()});
+   el.addEventListener('click',e=>{e.stopPropagation();cur===el.dataset.k?hide():show(el.dataset.k)});
+ });
+ addEventListener('pointerdown',e=>{if(cur&&!e.target.closest('#foot .lg'))hide()});
+}
 
 /* ============ start ============ */
 /* starts at once, no start screen. If the browser keeps the sound locked until the first touch
