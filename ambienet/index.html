@@ -40,6 +40,7 @@ const WEST={ionian:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],lydian:[0,2,4,6,7,9,
 const PIANOSC={ionian:WEST.ionian,lydian:WEST.lydian,dorian:WEST.dorian,aeolian:WEST.aeolian,'major pentatonic':WEST['major pentatonic'],mixolydian:WEST.mixolydian};
 const RAGAS={'raga Yaman':[0,2,4,6,7,9,11],'raga Bhairav':[0,1,4,5,7,8,11],'raga Todi':[0,1,3,6,7,8,11],'raga Marwa':[0,1,4,6,9,11],'raga Bhupali':[0,2,4,7,9],'raga Malkauns':[0,3,5,8,10],'raga Darbari':[0,2,3,5,7,8,10],'raga Bhimpalasi':[0,2,3,5,7,9,10],'raga Purvi':[0,1,4,6,7,8,11],'raga Kafi':[0,2,3,5,7,9,10],'raga Bilawal':[0,2,4,5,7,9,11]};
 const EAST={'in (Japan)':[0,1,5,7,8],'yo (Japan)':[0,2,5,7,9],'hirajoshi (Japan)':[0,2,3,7,8],'iwato (Japan)':[0,1,5,6,10],'ryukyu (Okinawa)':[0,4,5,7,11],'pelog (Bali)':[0,1,3,7,8],'slendro (Java)':[0,2,5,7,9]};
+const TIBET={'minor pentatonic':[0,3,5,7,10],'major pentatonic':[0,2,4,7,9],'dorian':[0,2,3,5,7,9,10],'open fifths':[0,5,7]};
 // samay: the raga follows the real hour of the day
 function ragaNow(){const h=new Date().getHours();
   const m=h<4?['raga Darbari','raga Malkauns']:h<7?['raga Bhairav','raga Todi']:h<10?['raga Todi','raga Bilawal','raga Bhairav']:h<13?['raga Bilawal','raga Bhupali']:h<16?['raga Bhimpalasi','raga Kafi']:h<18?['raga Bhimpalasi','raga Marwa']:h<20?['raga Marwa','raga Purvi','raga Yaman']:h<22?['raga Yaman','raga Bhupali']:['raga Darbari','raga Malkauns','raga Kafi'];
@@ -50,18 +51,20 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 
 /* scene colours: what each scene leans towards */
 const COLORS={
-  ambient:{w:.2,scales:WEST,ia:{ambient:.42,drone:.2,indian:.15,nature:.1,japan:.08,piano:.05},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35}},
-  indian:{w:.3,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45}},
-  piano:{w:.12,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3}},
-  east:{w:.18,scales:EAST,ia:{japan:.45,pacific:.35,nature:.1,ambient:.1},
-    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4}},
-  mixed:{w:.2,raga:true,ia:{indian:.3,ambient:.2,japan:.15,piano:.12,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45}}
+  ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3}},
+  indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
+    prob:{drone:.6,loops:.2,data:.3,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05}},
+  piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
+    prob:{drone:.65,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45}},
+  east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
+    prob:{drone:.6,loops:.3,data:.25,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08}},
+  tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:.2,radio:.3,loops:.2,sho:.15,classical:.1,voices:.1,net:.1,hum:.05}},
+  mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
+    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const ACCENTS=['net','voices','city','airwaves','hum'];
 const RHYTHMIC=['arp','phase'];
@@ -119,7 +122,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15); // classical: almost all reverb, far away
   // pings: a message, a ring — always possible, outside the scenes
   mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.55);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
@@ -264,7 +267,7 @@ function newScene(first){
   while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
   // always a bed of drone; at least one slow ambient texture; accents at most two
   if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
-  if(!['loops','grains','archive','sho','nature','tanpura','phrase'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
+  if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>2)on[acc.pop()]=false}
   // never too many things at once: at most 6 layers per scene, plus the drone and the live data
   {const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='data'&&k!=='drone'));const MAX=6;while(act.length>MAX)on[act.pop()]=false}
@@ -423,7 +426,7 @@ const slowLog=(what,title)=>(v,r,mid)=>log('SLOW',`${mid?'became':'too'} rhythmi
 
 /* ============ RADIO: live streams of the world ============ */
 const RB=['de1','de2','fi1','at1','nl1'].map(h=>`https://${h}.api.radio-browser.info`);
-const RGROUPS={ambient:['ambient','ambient','drone','dark ambient','soundscape','field recordings','nature sounds','space ambient'],indian:['indian classical','hindustani','hindustani classical','raga'],piano:['piano','solo piano','classical piano','ambient piano','neoclassical'],east:['japanese traditional','japanese classical','gamelan','hawaiian','zen','shakuhachi','koto','polynesian']};
+const RGROUPS={ambient:['ambient','ambient','drone','dark ambient','soundscape','field recordings','nature sounds','space ambient'],indian:['indian classical','hindustani','hindustani classical','raga'],piano:['piano','solo piano','classical piano','ambient piano','neoclassical'],tibet:['tibetan','singing bowls','buddhist','tibetan music','meditation'],east:['japanese traditional','japanese classical','gamelan','hawaiian','zen','shakuhachi','koto','polynesian']};
 const BEATS=/techno|house|dance|edm|trance|beat|hip.?hop|\brap\b|lo.?fi|chill.?out|lounge|downtempo|\bdub|drum|bass|jazz|rock|\bpop\b|synthwave|psy|club|disco|reggae|bollywood|filmi|\bfilm\b|devotional|bhajan|qawwali|news|talk|top ?40|hits|party|latin|country|metal|punk|funk|soul|r.?n.?b/i;
 const stations={};const seenSt=new Set();
 async function nextStation(grp){
@@ -433,7 +436,7 @@ async function nextStation(grp){
       stations[grp]=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)&&!BEATS.test((s.tags||'')+' '+(s.name||'')+' '+s.url_resolved)));break}catch(e){}}}
   const s=stations[grp].pop();if(s)seenSt.add(s.stationuuid);if(seenSt.size>600)seenSt.clear();return s;
 }
-const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano','east']):S.color;
+const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano','east','tibet']):S.color;
 async function radioDeck(delay){
   await sleep(delay);let fails=0;
   while(true){
@@ -457,6 +460,8 @@ const IAQ={
   nature:'mediatype:audio AND title:(rain OR raindrops OR water OR ocean OR sea OR waves OR stream OR river OR brook OR creek OR thunderstorm OR storm OR forest OR birds OR birdsong OR wind OR waterfall) AND subject:("field recording" OR "field recordings" OR nature OR "nature sounds" OR soundscape OR relaxing OR relaxation OR ambience OR ambient OR "sound effects")'+NOBEAT,
   japan:'mediatype:audio AND (title:(shakuhachi OR koto OR gagaku OR honkyoku OR shamisen OR biwa OR "japanese traditional" OR "japanese flute" OR "zen music") OR subject:(shakuhachi OR koto OR gagaku OR honkyoku OR "japanese traditional music" OR "traditional japanese music"))'+NOBEAT,
   pacific:'mediatype:audio AND (title:(gamelan OR polynesian OR polynesia OR hawaiian OR tahiti OR tahitian OR samoan OR maori OR "nose flute" OR "slack key" OR pelog OR slendro OR "pacific islands" OR fiji OR tonga) OR subject:(gamelan OR polynesian OR hawaiian OR "pacific islands" OR maori OR "music of oceania"))'+NOBEAT,
+  tibet:'mediatype:audio AND (title:(tibetan OR tibet OR "singing bowl" OR "singing bowls" OR gyuto OR "throat singing" OR "overtone chanting" OR "om mani" OR dungchen OR tingsha OR "buddhist chant" OR "monks chanting") OR subject:(tibetan OR "singing bowls" OR "tibetan music" OR "buddhist chant"))'+NOBEAT,
+  classical:'mediatype:audio AND (collection:musopen OR subject:("classical music" OR classical OR "classical piano")) AND title:(adagio OR largo OR lento OR nocturne OR andante OR prelude OR "clair de lune" OR moonlight OR gymnopedie OR pavane OR elegy OR lullaby OR berceuse OR reverie OR chorale OR "song without words" OR intermezzo OR "slow movement" OR "air on")'+NOBEAT,
   city:'mediatype:audio AND title:(city OR street OR streets OR traffic OR market OR "train station" OR station OR subway OR metro OR piazza OR crowd OR urban OR downtown OR harbour OR harbor OR "city ambience" OR "street ambience") AND subject:("field recording" OR "field recordings" OR soundscape OR ambience OR ambiance OR ambient OR "sound effects" OR "city sounds")'+NOBEAT,
   piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
   voices:()=>R()<.65?`mediatype:audio AND (title:(${PHILO}) OR creator:(${PHILO})) AND (title:(lecture OR lezione OR conférence OR cours OR interview OR intervista OR entretien OR talk OR speech OR voice OR seminar) OR subject:(lecture OR interview OR speech OR philosophy))`:'mediatype:audio AND collection:librivoxaudio AND subject:philosophy'
@@ -807,6 +812,67 @@ async function phraseDeck(){
   }
 }
 
+/* ============ TIBET: singing bowls, tingsha, chord-singing monks, dungchen ============ */
+function bowl(f,t,dur,gain,pan,rubbed){
+  const P=rubbed?[1,2.71,5.15]:[1,2.71,5.15,8.43,12.1];
+  P.forEach((p,i)=>{const fr=f*p,g=gain/Math.pow(i+1,1.3),d=dur/(1+i*.6);
+    [0,rr(.6,2.2)].forEach((off,j)=>{ // each partial in a beating pair: the bowl's wobble
+      const o=ctx.createOscillator();o.frequency.value=fr+off;const gg=ctx.createGain();gg.gain.setValueAtTime(0,t);
+      gg.gain.linearRampToValueAtTime(g*(j?.7:1),t+(rubbed&&i<2?d*.35:.004));gg.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(gg);let n=gg;if(ctx.createStereoPanner){const pn=ctx.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,pan+(j?.15:-.15)));gg.connect(pn);n=pn}
+      n.connect(L.bowls);o.start(t);o.stop(t+d+.1)})});
+  if(!rubbed)noise(t,.03,{freq:3000,q:1,gain:gain*.25,attack:.001,release:.02,dest:L.bowls});
+}
+function tingsha(t){const f=rr(2400,3200);[0,.12].forEach(dt=>{[1,2.4].forEach((p,i)=>[0,rr(2,5)].forEach(off=>tone(f*p+off,t+dt,6/(1+i),{gain:.02/(i+1),attack:.002,dest:L.bowls,pan:rr(-.5,.5)})))})}
+async function bowlsLoop(){
+  await sleep(rr(5,15)*1000);
+  while(true){
+    if(T.bowls<.01){await sleep(6000);continue}
+    const t=ctx.currentTime+.1;
+    if(R()<.15){tingsha(t);log('TINGSHA','two small cymbals',6)}
+    else{const rubbed=R()<.3,n=rubbed?1:ri(1,3);
+      const ns=[];for(let i=0;i<n;i++){const m=deg(ri(0,6),S.root+pick([12,24,24])),dur=rubbed?rr(25,40):rr(18,35);ns.push(NOTES[m%12]);bowl(mtof(m),t+i*rr(2,6),dur,rubbed?.05:.07,rr(-.6,.6),rubbed)}
+      log('SINGING BOWL',`${rubbed?'rubbed':'struck'} · ${ns.join(' ')}`,rubbed?25:15)}
+    await sleep(rr(8,28)*1000);
+  }
+}
+async function chantLoop(){
+  await sleep(rr(15,40)*1000);
+  const VOW=[[400,800,2600],[350,600,2700],[700,1100,2500],[500,900,2400]]; // o, u, a, ɔ
+  while(true){
+    if(T.chant<.01){await sleep(8000);continue}
+    const dur=rr(40,100),t0=ctx.currentTime+.1;let m=S.root-12;if(mtof(m)<50)m+=12;const f0=mtof(m);
+    const sum=ctx.createGain(),out=ctx.createGain();out.gain.setValueAtTime(0,t0);
+    const forms=VOW[0].map((fq,i)=>{const b=ctx.createBiquadFilter();b.type='bandpass';b.frequency.value=fq;b.Q.value=[6,8,10][i];const bg=ctx.createGain();bg.gain.value=[1,.6,.25][i];sum.connect(b);b.connect(bg);bg.connect(out);return b});
+    const ot=ctx.createBiquadFilter();ot.type='bandpass';ot.Q.value=30;ot.frequency.value=f0*8;const og=ctx.createGain();og.gain.value=.9;sum.connect(ot);ot.connect(og);og.connect(out); // the overtone that sings above
+    const n=ri(3,5),oscs=[];
+    for(let i=0;i<n;i++){const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f0*(1+rr(-.004,.004));const og2=ctx.createGain();og2.gain.value=.3;o.connect(og2);og2.connect(sum);o.start(t0);o.stop(t0+dur+1);oscs.push(o)}
+    // vowels and overtones move slowly; the voices breathe in phrases
+    for(let t=t0;t<t0+dur;t+=rr(4,8)){const v=pick(VOW);forms.forEach((b,i)=>b.frequency.setTargetAtTime(v[i],t,1.2));ot.frequency.setTargetAtTime(f0*pick([5,6,8,10,12]),t,.8)}
+    for(let t=t0;t<t0+dur-3;){const ph=rr(6,12);out.gain.setTargetAtTime(1.2,t,.8);out.gain.setTargetAtTime(.0001,t+ph-1,.4);t+=ph+rr(.6,1.2)}
+    out.gain.setTargetAtTime(0,t0+dur,.6);
+    let n2=out;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.3,.3);out.connect(p);n2=p}n2.connect(L.chant);
+    const horn=R()<.35;
+    if(horn)for(let k=0;k<2;k++){const t=t0+rr(5,dur-15);tone(f0,t,rr(6,9),{type:'sawtooth',gain:.08,attack:2,cutoff:380,q:2,dest:L.chant,detune:rr(-10,10)})} // dungchen
+    log('TIBETAN CHANT',`chord singing · ${NOTES[m%12]} · ${n} voices${horn?' · dungchen':''}`,dur);
+    setTimeout(()=>{try{out.disconnect();sum.disconnect()}catch(e){}},(dur+3)*1000);
+    await sleep(rr(dur*.7,dur+60)*1000);
+  }
+}
+
+/* ============ CLASSICAL, far away: slow movements heard from another room ============ */
+async function classicalDeck(){
+  await sleep(rr(30,70)*1000);let fails=0;
+  while(true){
+    if(T.classical<.01){await sleep(8000);continue}
+    const it=await iaNext('classical');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    const rate=pick([1,1,.9,.85,.75]);let line=null;
+    const ok=await playMedia(it.url,{dest:L.classical,fadeIn:rr(20,30),hold:rr(60,150),fadeOut:rr(20,30),rate,seek:true,filter:{type:'lowpass',freq:rr(700,1600),q:.5},level:.6,pan:rr(-.6,.6),
+      onStart:()=>{line=log('CLASSICAL · FAR AWAY',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`)},onSlow:slowLog('classical',it.title),onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(10,50)*1000:fails>8?30000:2000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -815,7 +881,7 @@ async function phraseDeck(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -851,7 +917,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();phraseDeck();
+  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
