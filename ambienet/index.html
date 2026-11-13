@@ -66,6 +66,7 @@ const COLORS={
 };
 const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
+const NO_RADIO=true;
 const ACCENTS=['net','voices','city','airwaves','hum'];
 const RHYTHMIC=['arp','phase'];
 
@@ -261,6 +262,7 @@ function newScene(first){
   }
   const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0);
   if(first){on.drone=on.loops=true;on.data=true}
+  if(NO_RADIO)on.radio=on.airwaves=false; // live radios switched off
   if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
   let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
   const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&(C.prob[k]||0)>.05));
@@ -917,7 +919,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
