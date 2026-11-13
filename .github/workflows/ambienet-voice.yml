@@ -1,0 +1,38 @@
+name: AMBIENET voce degli slogan
+# Fa leggere gli slogan di SLOGAN (slogan/corpo.json) a una voce sintetica robotica (espeak-ng)
+# e mette un mp3 per slogan nel ramo "ambienet-voice": AMBIENET li ascolta da lì, lontani e riverberati.
+# Parte da sola quando corpo.json cambia (cioè quando SLOGAN cresce), e una volta al giorno.
+on:
+  push:
+    branches: [main]
+    paths: ["slogan/corpo.json", "tools/ambienet-voice.py", ".github/workflows/ambienet-voice.yml"]
+  schedule:
+    - cron: "41 5 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ambienet-voice
+  cancel-in-progress: false
+jobs:
+  voce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installa la voce (espeak-ng) e ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+      - name: Fai leggere gli slogan
+        run: |
+          mkdir -p out
+          git fetch -q --depth 1 origin ambienet-voice && git --work-tree=out checkout -q FETCH_HEAD -- . || true
+          git reset -q
+          python3 tools/ambienet-voice.py
+      - name: Salva nel ramo ambienet-voice
+        run: |
+          cd out
+          git init -q -b ambienet-voice
+          git config user.name "ambienet-bot"
+          git config user.email "ambienet-bot@users.noreply.github.com"
+          git add -A
+          git commit -qm "AMBIENET: voce degli slogan"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ambienet-voice
