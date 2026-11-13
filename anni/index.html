@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANNI</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;z-index:2;background:#000;transition:opacity 4s}
+#start h1{font-weight:400;letter-spacing:.6em;font-size:clamp(28px,6vw,72px);margin:0 0 0 .6em}
+#start p{opacity:.5;letter-spacing:.3em;font-size:12px;margin-top:2em;text-transform:uppercase}
+#now{position:fixed;top:20px;left:24px;right:24px;font-size:11px;letter-spacing:.15em;opacity:.55;text-transform:uppercase}
+#log{position:fixed;left:24px;right:24px;bottom:52px;font-size:12px;line-height:1.75;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 70%);mask-image:linear-gradient(to bottom,transparent,#000 70%)}
+#log b{font-weight:400;opacity:.4;display:inline-block;min-width:10em;letter-spacing:.1em}
+.l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:in 1.5s}
+@keyframes in{from{opacity:0}to{opacity:1}}
+#foot{position:fixed;bottom:20px;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="start"><h1>ANNI</h1><p>click to listen</p></div>
+<div id="now"></div>
+<div id="log"></div>
+<div id="foot">ANNI — an endless ambient music generated from the internet · A project by Jacopo Natoli</div>
+<script>
+'use strict';
+/* ---------- utils ---------- */
+const R=Math.random,pick=a=>a[Math.floor(R()*a.length)],rr=(a,b)=>a+R()*(b-a),ri=(a,b)=>Math.floor(rr(a,b+1));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const SCALES={ionian:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],phrygian:[0,1,3,5,7,8,10],lydian:[0,2,4,6,7,9,11],mixolydian:[0,2,4,5,7,9,10],aeolian:[0,2,3,5,7,8,10],'major pentatonic':[0,2,4,7,9],'minor pentatonic':[0,3,5,7,10],'whole tone':[0,2,4,6,8,10]};
+const S={root:38,scaleName:'dorian',scale:SCALES.dorian,scene:0};
+const deg=(d,base)=>{const sc=S.scale,n=sc.length,o=Math.floor(d/n),i=((d%n)+n)%n;return base+sc[i]+12*o};
+const BASE={drone:.9,loops:.8,arp:.45,phase:.4,data:.8,radio:.6,archive:.65,grains:.6};
+const PROB={drone:.75,loops:.7,arp:.3,phase:.22,data:.85,radio:.5,archive:.5,grains:.4};
+let ctx,master,reverb,delayIn,running=false;const L={},T={};
+const logEl=document.getElementById('log'),nowEl=document.getElementById('now');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function log(k,t){const d=document.createElement('div');d.className='l';d.innerHTML='<b>'+esc(k)+'</b>'+esc(t);logEl.appendChild(d);while(logEl.children.length>24)logEl.firstChild.remove()}
+async function fetchJSON(u,ms=12000){const c=new AbortController();const to=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(to)}}
+
+/* ---------- audio graph ---------- */
+function impulse(sec,dec){const n=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(R()*2-1)*Math.pow(1-i/n,dec)}return b}
+function setup(){
+  ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=20;comp.ratio.value=3;comp.attack.value=.05;comp.release.value=.8;
+  master=ctx.createGain();master.gain.value=0;master.connect(comp);comp.connect(ctx.destination);
+  master.gain.setTargetAtTime(.9,ctx.currentTime,2);
+  reverb=ctx.createConvolver();reverb.buffer=impulse(9,2.6);const rv=ctx.createGain();rv.gain.value=.7;reverb.connect(rv);rv.connect(master);
+  delayIn=ctx.createGain();const dl=ctx.createDelay(4);dl.delayTime.value=.75;const fb=ctx.createGain();fb.gain.value=.5;const lp=ctx.createBiquadFilter();lp.frequency.value=2200;
+  delayIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);const dOut=ctx.createGain();dOut.gain.value=.5;lp.connect(dOut);dOut.connect(master);dOut.connect(reverb);
+  const mk=(n,wet,del)=>{const g=ctx.createGain();g.gain.value=0;g.connect(master);const s=ctx.createGain();s.gain.value=wet;g.connect(s);s.connect(reverb);if(del){const d=ctx.createGain();d.gain.value=del;g.connect(d);d.connect(delayIn)}L[n]=g;T[n]=0};
+  mk('drone',.5,0);mk('loops',.8,.15);mk('arp',.45,.5);mk('phase',.5,.1);mk('data',.9,.25);mk('radio',.5,0);mk('archive',.6,.1);mk('grains',.8,.2);
+}
+function tone(f,t,dur,o){
+  const osc=ctx.createOscillator();osc.type=o.type||'sine';osc.frequency.value=f;if(o.detune)osc.detune.value=o.detune;
+  let n=osc;if(o.cutoff){const fl=ctx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=o.cutoff;fl.Q.value=o.q||.7;n.connect(fl);n=fl}
+  const g=ctx.createGain(),a=Math.min(o.attack||.01,dur*.5),p=o.gain||.1;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+dur);n.connect(g);n=g;
+  if(o.pan!=null&&ctx.createStereoPanner){const pn=ctx.createStereoPanner();pn.pan.value=Math.max(-1,Math.min(1,o.pan));n.connect(pn);n=pn}
+  n.connect(o.dest);osc.start(t);osc.stop(t+dur+.05);
+}
+const bell=(f,t,dur,gain,dest,pan)=>{tone(f,t,dur,{gain,attack:.004,dest,pan});tone(f*2.005,t,dur*.45,{gain:gain*.28,attack:.003,dest,pan});tone(f*3.99,t,dur*.18,{gain:gain*.12,attack:.002,dest,pan})};
+const mallet=(f,t,gain,dest,pan)=>{tone(f,t,1.1,{gain,attack:.003,dest,pan});tone(f*4,t,.12,{gain:gain*.35,attack:.002,dest,pan})};
+
+/* ---------- DRONE (Young, Radigue, Niblock) ---------- */
+const D={oscs:[],filter:null,lfo:null,ints:[0,7,12,19,24]};
+function startDrone(){
+  const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=700;f.Q.value=2;
+  const lfo=ctx.createOscillator();lfo.frequency.value=.025;const lg=ctx.createGain();lg.gain.value=450;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
+  const out=ctx.createGain();out.gain.value=.11;f.connect(out);out.connect(L.drone);D.filter=f;D.lfo=lfo;
+  ['sawtooth','triangle','sine','triangle','sine'].forEach((ty,i)=>{
+    const o=ctx.createOscillator();o.type=ty;o.frequency.value=mtof(S.root+D.ints[i]);o.detune.value=rr(-7,7);
+    const g=ctx.createGain();g.gain.value=.22;const tl=ctx.createOscillator();tl.frequency.value=rr(.008,.05);const tg=ctx.createGain();tg.gain.value=.18;tl.connect(tg);tg.connect(g.gain);tl.start();
+    o.connect(g);let n=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=[-.6,.6,-.3,.3,0][i];g.connect(p);n=p}n.connect(f);o.start();D.oscs.push(o);
+  });
+}
+function retuneDrone(){
+  const t=ctx.currentTime,sc=S.scale,third=sc[Math.min(2,sc.length-1)],top=sc[sc.length-1];
+  D.ints=pick([[0,7,12,19,24],[0,12,19,third+24,24],[0,7,12,third+12,top+12],[0,7,14,19,24]]);
+  D.oscs.forEach((o,i)=>o.frequency.setTargetAtTime(mtof(S.root+D.ints[i]),t,5));
+  D.filter.frequency.setTargetAtTime(rr(250,1400),t,8);
+}
+
+/* ---------- LOOPS (Eno, Music for Airports: incommensurable cycles) ---------- */
+let loops=[];
+function newLoops(){
+  loops.forEach(v=>clearTimeout(v.to));loops=[];
+  for(let i=0,n=ri(5,7);i<n;i++){
+    const v={d:ri(0,9),period:+rr(13,34).toFixed(1),pan:rr(-.8,.8),soft:R()<.5};
+    const tick=()=>{if(T.loops>.01){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
+      if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.07,attack:rr(.5,1.5),cutoff:1600,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.08,L.loops,v.pan)}
+      v.to=setTimeout(tick,v.period*1000)};
+    v.to=setTimeout(tick,rr(0,v.period)*1000);loops.push(v);
+  }
+}
+
+/* ---------- sample-accurate sequencer ---------- */
+const seqs=[];
+setInterval(()=>{if(!running)return;const now=ctx.currentTime;for(const s of seqs){if(s.next<now)s.next=now+.05;while(s.next<now+.3){s.play(s.next);s.next+=s.interval()}}},60);
+
+/* ---------- ARP (Glass additive process, Barbieri sequenced synths) ---------- */
+const A={pat:[0,2,4],k:1,dir:1,i:0,bpm:90,oct:2,sweep:40,type:'sawtooth'};
+function newArp(){A.pat=Array.from({length:ri(4,8)},()=>ri(0,7));A.k=1;A.dir=1;A.i=0;A.bpm=rr(66,118);A.oct=pick([2,2,3]);A.sweep=rr(25,70);A.type=pick(['sawtooth','square','sawtooth'])}
+seqs.push({next:0,interval:()=>60/A.bpm/4,play:t=>{
+  const sub=A.pat.slice(0,A.k),d=sub[A.i%sub.length];A.i++;
+  if(A.i>=sub.length*2){A.i=0;A.k+=A.dir;if(A.k>=A.pat.length){A.k=A.pat.length;A.dir=-1}if(A.k<=1){A.k=1;A.dir=1}}
+  if(T.arp<.01)return;
+  const c=250+2800*(.5+.5*Math.sin(t*2*Math.PI/A.sweep));
+  tone(mtof(deg(d,S.root+12*A.oct)),t,.32,{type:A.type,gain:.045,attack:.004,cutoff:c,q:9,dest:L.arp,pan:A.i%2?-.45:.45});
+}});
+
+/* ---------- PHASE (Reich, Piano Phase) ---------- */
+const P={pat:[],iv:.18},pA={i:0},pB={i:0};
+function newPhase(){const pool=shuffle([0,1,2,3,4,5,6]).slice(0,5);P.pat=Array.from({length:12},()=>pick(pool));P.iv=rr(.15,.21);pA.i=pB.i=0;if(ctx){const n=ctx.currentTime+.1;seqs[1].next=seqs[2].next=n}}
+seqs.push({next:0,interval:()=>P.iv,play:t=>{const d=P.pat[pA.i++%12];if(T.phase>.01)mallet(mtof(deg(d,S.root+36)),t,.06,L.phase,-.6)}});
+seqs.push({next:0,interval:()=>P.iv*.9965,play:t=>{const d=P.pat[pB.i++%12];if(T.phase>.01)mallet(mtof(deg(d,S.root+36)),t,.06,L.phase,.6)}});
+
+/* ---------- SCENES: the random mixer ---------- */
+function newScene(first){
+  S.scene++;
+  if(first||R()<.55){S.root=36+ri(0,11);S.scaleName=pick(Object.keys(SCALES));S.scale=SCALES[S.scaleName];retuneDrone()}
+  const on={};for(const k in PROB)on[k]=R()<PROB[k];
+  if(first){on.drone=on.loops=on.data=true}
+  if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
+  let cnt=Object.values(on).filter(Boolean).length;const ks=shuffle(Object.keys(on).filter(k=>k!=='arp'&&k!=='phase'));
+  while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
+  if(on.arp&&(!T.arp||R()<.5))newArp();
+  if(on.phase&&!T.phase)newPhase();
+  if(R()<.3)newLoops();
+  for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;L[k].gain.setTargetAtTime(v,ctx.currentTime,on[k]?5:3);T[k]=v}
+  const act=Object.keys(on).filter(k=>on[k]);
+  nowEl.textContent=`scene ${S.scene} · ${NOTES[S.root%12]} ${S.scaleName} · ${act.join(' · ')}`;
+  log('SCENE '+S.scene,`${NOTES[S.root%12]} ${S.scaleName} — ${act.join(', ')}`);
+  setTimeout(()=>newScene(false),rr(70,160)*1000);
+}
+
+/* ---------- LIVE INTERNET DATA ---------- */
+// Wikipedia: every edit in the world, right now
+function startWiki(){
+  let last=0,gap=1;
+  try{
+    const es=new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
+    es.onopen=()=>log('WIKIPEDIA','listening to the live stream of edits');
+    es.onmessage=e=>{
+      const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;
+      let d;try{d=JSON.parse(e.data)}catch(_){return}
+      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(.5,2.6);
+      const diff=d.length?(d.length.new||0)-(d.length.old||0):0,a=Math.abs(diff);
+      let h=0;for(const c of (d.title||''))h=(h*31+c.charCodeAt(0))|0;const dg=Math.abs(h)%10;
+      const base=S.root+(a>3000?24:a>300?36:48),t=ctx.currentTime+.05,g=d.bot?.025:.06,pan=rr(-.9,.9);
+      if(d.type==='new'){bell(mtof(deg(dg,base)),t,4,g,L.data,pan);bell(mtof(deg(dg+2,base)),t+.12,4,g*.7,L.data,-pan)}
+      else if(diff>=0)bell(mtof(deg(dg,base)),t,rr(2,4),g,L.data,pan);
+      else tone(mtof(deg(dg,base-12)),t,rr(2,3.5),{type:'triangle',gain:g*.9,attack:.01,cutoff:900,dest:L.data,pan});
+      log('WIKIPEDIA',`${d.server_name||d.wiki} · ${d.title} · ${diff>=0?'+':''}${diff}${d.bot?' · bot':''}`);
+    };
+  }catch(e){}
+}
+// USGS: the earth moving, last hour
+const seenQ=new Set();
+function gong(f){
+  if(T.data<.01)return;
+  const m=Math.max(0,f.properties.mag||0),t=ctx.currentTime+.05,fr=mtof(deg(pick([0,0,4]),S.root)),dur=8+m*3,g=Math.min(.3,.07+m*.04);
+  [1,2.32,4.25,6.63].forEach((p,k)=>tone(fr*p,t,dur/(k*.8+1),{gain:g/(k+1),attack:.01+k*.002,dest:L.data,pan:rr(-.3,.3)}));
+  log('EARTHQUAKE',`M ${m.toFixed(1)} · ${f.properties.place||''}`);
+}
+async function pollQuakes(first){
+  try{const j=await fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
+    const fresh=j.features.filter(f=>!seenQ.has(f.id));fresh.forEach(f=>seenQ.add(f.id));
+    fresh.forEach((f,i)=>setTimeout(()=>gong(f),first?rr(5,150)*1000:i*rr(3,9)*1000));
+  }catch(e){}
+  setTimeout(()=>pollQuakes(false),180000);
+}
+// Bitcoin: money flowing, unconfirmed transactions
+function startBTC(){
+  let last=0,gap=3;
+  const open=()=>{let ws;try{ws=new WebSocket('wss://ws.blockchain.info/inv')}catch(e){return}
+    ws.onopen=()=>{ws.send(JSON.stringify({op:'unconfirmed_sub'}));log('BITCOIN','listening to unconfirmed transactions')};
+    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(2,8);
+      let v=0;try{const x=JSON.parse(e.data).x;v=(x.out||[]).reduce((s,o)=>s+(o.value||0),0)/1e8}catch(_){return}
+      const d=Math.max(0,Math.min(9,Math.round(Math.log10(v+1e-4)+4)));
+      tone(mtof(deg(d,S.root+48)),ctx.currentTime+.05,1.4,{gain:.02,attack:.002,dest:L.data,pan:rr(-1,1)});
+      log('BITCOIN',`${v.toFixed(4)} BTC moving`)};
+    ws.onclose=()=>setTimeout(open,30000)};
+  open();
+}
+// Network: the latency of the internet bends the drone
+async function breathe(){
+  const urls=[['wikipedia.org','https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&format=json&origin=*'],['usgs.gov','https://earthquake.usgs.gov/fdsnws/event/1/version'],['radio-browser.info','https://de1.api.radio-browser.info/json/stats']];
+  const [name,u]=pick(urls),t0=performance.now();
+  try{await fetch(u+(u.includes('?')?'&':'?')+'_='+Date.now(),{cache:'no-store'});const ms=Math.round(performance.now()-t0);
+    D.oscs.forEach((o,i)=>o.detune.setTargetAtTime((i%2?1:-1)*Math.min(25,ms/12),ctx.currentTime,4));
+    D.lfo.frequency.setTargetAtTime(Math.min(.3,.01+ms/8000),ctx.currentTime,4);
+    log('NETWORK',`${name} · ${ms} ms · the drone bends`);
+  }catch(e){}
+  setTimeout(breathe,rr(15,35)*1000);
+}
+
+/* ---------- media player (live streams + archive files) ---------- */
+function playMedia(url,o){return new Promise(resolve=>{
+  let done=false,el=null,src=null,g=null,vt=null,started=false,stopT=null,startT=null,stage=0;
+  const total=o.fadeIn+o.hold+o.fadeOut,lvl=o.level||1;
+  const kill=e=>{try{e.pause();e.removeAttribute('src');e.load()}catch(_){}};
+  const fin=ok=>{if(done)return;done=true;clearTimeout(startT);clearTimeout(stopT);clearInterval(vt);const e=el;el=null;if(e)kill(e);try{src&&src.disconnect();g&&g.disconnect()}catch(_){}resolve(ok)};
+  const next=()=>{clearTimeout(startT);if(stage===0){stage=1;const e=el;el=null;if(e)kill(e);try{src&&src.disconnect();g&&g.disconnect()}catch(_){}src=g=null;attempt(false)}else fin(false)};
+  const attempt=routed=>{
+    const me=new Audio();el=me;me.preload='auto';if(routed)me.crossOrigin='anonymous';me.volume=routed?1:0;
+    if(o.rate&&o.rate!==1){me.preservesPitch=false;me.mozPreservesPitch=false;me.webkitPreservesPitch=false}
+    if(routed){try{src=ctx.createMediaElementSource(me);let n=src;if(o.cutoff){const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=o.cutoff;n.connect(f);n=f}
+      g=ctx.createGain();g.gain.value=0;n.connect(g);let m=g;if(o.pan&&ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=o.pan;g.connect(p);m=p}m.connect(o.dest)}catch(e){}}
+    me.addEventListener('loadedmetadata',()=>{if(me!==el)return;if(o.seek&&isFinite(me.duration)&&me.duration>60){try{me.currentTime=rr(0,me.duration*.8)}catch(e){}}if(o.rate)me.playbackRate=o.rate});
+    me.addEventListener('playing',()=>{if(me!==el||started)return;started=true;clearTimeout(startT);o.onStart&&o.onStart(routed);
+      if(routed){const t=ctx.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+o.fadeIn);g.gain.setValueAtTime(lvl,t+o.fadeIn+o.hold);g.gain.linearRampToValueAtTime(0,t+total)}
+      else{const t0=performance.now();vt=setInterval(()=>{if(!el)return;const s=(performance.now()-t0)/1000;const e=s<o.fadeIn?s/o.fadeIn:s<o.fadeIn+o.hold?1:Math.max(0,1-(s-o.fadeIn-o.hold)/o.fadeOut);el.volume=Math.max(0,Math.min(1,e*lvl*o.dest.gain.value*master.gain.value*.8))},150)}
+      stopT=setTimeout(()=>fin(true),total*1000+400)});
+    me.addEventListener('error',()=>{if(me!==el)return;if(started)fin(true);else next()});
+    me.addEventListener('ended',()=>{if(me===el)fin(true)});
+    me.src=url;me.play().catch(()=>{});
+    startT=setTimeout(()=>{if(me===el&&!started)next()},15000);
+  };
+  attempt(true);
+})}
+
+/* ---------- RADIO: live ambient streams of the world ---------- */
+const RB=['de1','de2','fi1','at1','nl1'].map(h=>`https://${h}.api.radio-browser.info`);
+const RTAGS=['ambient','ambient','ambient','drone','dark ambient','minimal','soundscape','space','field recordings','meditation','nature sounds','experimental'];
+let stations=[];const seenSt=new Set();
+async function nextStation(){
+  for(let tries=0;tries<4&&!stations.length;tries++){const tag=pick(RTAGS);
+    for(const h of shuffle(RB.slice())){try{const j=await fetchJSON(`${h}/json/stations/search?tag=${encodeURIComponent(tag)}&hidebroken=true&order=random&limit=60`);
+      stations=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)));break}catch(e){}}}
+  const s=stations.pop();if(s)seenSt.add(s.stationuuid);if(seenSt.size>500)seenSt.clear();return s;
+}
+async function radioDeck(delay){
+  await sleep(delay);let fails=0;
+  while(true){
+    if(T.radio<.01){await sleep(8000);continue}
+    const s=await nextStation();if(!s){await sleep(20000);continue}
+    const lp=R()<.35?rr(350,1200):0;
+    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(6,14),hold:rr(35,110),fadeOut:rr(8,16),cutoff:lp,level:.8,pan:rr(-.5,.5),
+      onStart:routed=>log('RADIO · LIVE',`${(s.name||'').trim()} · ${[s.country,(s.tags||'').split(',').slice(0,2).join(' ')].filter(Boolean).join(' · ')}${lp&&routed?' · underwater':''}`)});
+    fails=ok?0:fails+1;await sleep(ok?rr(0,12)*1000:fails>6?30000:1500);
+  }
+}
+
+/* ---------- ARCHIVE: ambient/drone/field recordings from the Internet Archive ---------- */
+const IAQ='mediatype:audio AND (subject:ambient OR subject:drone OR subject:"field recording" OR subject:"field recordings" OR subject:soundscape OR subject:minimalism OR subject:"minimal music" OR subject:"dark ambient")';
+let iaPool=[];
+const flen=l=>{if(!l)return 999;if(String(l).includes(':'))return String(l).split(':').reduce((a,b)=>a*60+(+b||0),0);return parseFloat(l)||999};
+async function iaNext(){
+  if(!iaPool.length){for(const p of [ri(1,30),ri(1,8),1]){try{const j=await fetchJSON(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(IAQ)}&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator&rows=100&page=${p}&output=json`);iaPool=shuffle(j.response.docs||[]);if(iaPool.length)break}catch(e){}}}
+  const doc=iaPool.pop();if(!doc)return null;
+  try{const m=await fetchJSON(`https://archive.org/metadata/${encodeURIComponent(doc.identifier)}`);
+    const fs=(m.files||[]).filter(f=>/\.mp3$/i.test(f.name)&&flen(f.length)>=40);if(!fs.length)return null;
+    const f=pick(fs),cr=Array.isArray(doc.creator)?doc.creator[0]:doc.creator;
+    return{url:`https://archive.org/download/${encodeURIComponent(doc.identifier)}/${f.name.split('/').map(encodeURIComponent).join('/')}`,title:f.title||doc.title||doc.identifier,creator:cr||''};
+  }catch(e){return null}
+}
+async function archiveDeck(){
+  let fails=0;
+  while(true){
+    if(T.archive<.01){await sleep(8000);continue}
+    const it=await iaNext();if(!it){fails++;await sleep(fails>6?30000:1500);continue}
+    const rate=pick([1,1,.5,.5,.75,.25]),lp=R()<.3?rr(500,1500):0;
+    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(8,15),hold:rr(30,90),fadeOut:rr(10,18),rate,seek:true,cutoff:lp,level:.85,pan:rr(-.4,.4),
+      onStart:routed=>log('ARCHIVE',`${it.title}${it.creator?' — '+it.creator:''}${rate!==1?' · slowed ×'+rate:''}${lp&&routed?' · underwater':''}`)});
+    fails=ok?0:fails+1;await sleep(ok?rr(0,10)*1000:fails>6?30000:1500);
+  }
+}
+
+/* ---------- GRAINS: new music made from the dust of old tracks ---------- */
+async function fetchHead(url,max){
+  const c=new AbortController(),to=setTimeout(()=>c.abort(),25000);
+  try{const r=await fetch(url,{signal:c.signal});if(!r.ok)throw new Error(r.status);const rd=r.body.getReader(),chunks=[];let n=0;
+    while(n<max){const {done,value}=await rd.read();if(done)break;chunks.push(value);n+=value.length}
+    try{c.abort()}catch(e){}
+    const out=new Uint8Array(n);let o=0;for(const ch of chunks){out.set(ch,o);o+=ch.length}return out.buffer;
+  }finally{clearTimeout(to)}
+}
+async function grainsDeck(){
+  let fails=0;
+  while(true){
+    if(T.grains<.01){await sleep(8000);continue}
+    const it=await iaNext();if(!it){fails++;await sleep(fails>6?30000:2000);continue}
+    let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2000000))}catch(e){buf=null}
+    if(!buf||buf.duration<4){fails++;await sleep(fails>6?30000:1500);continue}
+    fails=0;log('GRAINS',`new music from the dust of “${it.title}”`);
+    const dur=rr(40,100),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.05,.16);
+    const rates=S.scale.map(s=>Math.pow(2,(s-12)/12)).concat([.5,1]);let pos=rr(0,buf.duration-3);
+    const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(1,t0+8);dg.gain.setValueAtTime(1,end-8);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
+    while(ctx.currentTime<end){
+      const t=ctx.currentTime+.03,gd=rr(.15,.7),src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=pick(rates);
+      const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+gd/2);g.gain.linearRampToValueAtTime(0,t+gd);
+      src.connect(g);let n=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.9,.9);g.connect(p);n=p}n.connect(dg);
+      pos=Math.min(buf.duration-1,Math.max(0,pos+drift+rr(-.15,.15)));src.start(t,pos,gd*2);
+      await sleep(dens*1000*rr(.6,1.4));
+    }
+    setTimeout(()=>dg.disconnect(),2000);await sleep(rr(0,8000));
+  }
+}
+
+/* ---------- start ---------- */
+document.getElementById('start').addEventListener('click',async()=>{
+  if(running)return;running=true;setup();try{await ctx.resume()}catch(e){}
+  const st=document.getElementById('start');st.style.opacity=0;setTimeout(()=>st.remove(),4000);
+  log('ANNI','listening to the internet…');
+  newArp();newPhase();startDrone();newLoops();newScene(true);
+  startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
+  radioDeck(3000);radioDeck(45000);archiveDeck();grainsDeck();
+});
+document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
+</script>
+</body>
+</html>
