@@ -75,7 +75,7 @@ const NO_RADIO=true;
 const ACCENTS=['net','city','airwaves','hum','slogan'];
 const RHYTHMIC=['arp','phase'];
 
-let ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
+let postBus,speaking=false,ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
 const nowEl=document.getElementById('now'),stage=document.getElementById('stage'),ruler=document.getElementById('r'),msgEl=document.getElementById('msg');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* what is sounding right now, in red, as large as possible: one line per sound (like SLOGAN).
@@ -131,6 +131,7 @@ function setup(){
   // brickwall limiter + meter at the very end
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-4;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.15;
   rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);lim.connect(ctx.destination);
+  postBus=ctx.createGain();postBus.gain.value=1;postBus.connect(lim); // after the leveller: what goes here is never pushed down with the music
   preAn=ctx.createAnalyser();preAn.fftSize=2048;comp.connect(preAn);
   masterAn=ctx.createAnalyser();masterAn.fftSize=2048;lim.connect(masterAn);
   meterSink=ctx.createGain();meterSink.gain.value=0;meterSink.connect(ctx.destination);masterAn.connect(meterSink);preAn.connect(meterSink);
@@ -151,7 +152,8 @@ function setup(){
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
   mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.45;
-  mk('binaural',.12,0,1);mk('remnant',.9,.1);mk('spoken',.35,0,1);L.spoken.gain.value=.75;
+  mk('binaural',.12,0,1);mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
+   L.spoken=g;T.spoken=0;LN.spoken=ng;LNv.spoken=1;const an=ctx.createAnalyser();an.fftSize=2048;ng.connect(an);an.connect(meterSink);LA.spoken=an} // spoken: its own path, in front
   /* slogans: a far demonstration, mostly reverb (also outside the scenes) · classical: almost all reverb, far away ·
      binaural beats: almost dry, left and right must stay apart · spoken: rare, outside the scenes, nearly dry */
   // pings: a message, a ring — always possible, outside the scenes
@@ -393,7 +395,7 @@ function judge(F,H){const a=score(F),b=score(H),rate=Math.max(a.rate,b.rate),ac=
 
 /* ============ media player (live streams + archive files) ============ */
 const SRC_TARGET=-26; // dB: every source is brought to about this level
-function playMedia(url,o){return new Promise(resolve=>{
+function playMedia(url,o){const TGT=o.target??SRC_TARGET;return new Promise(resolve=>{
   let done=false,started=false,passed=false,stopT=null,startT=null,an=null;const nodes=[];
   const el=new Audio();el.preload='auto';el.crossOrigin='anonymous';
   el.preservesPitch=false;el.mozPreservesPitch=false;el.webkitPreservesPitch=false;
@@ -434,13 +436,13 @@ function playMedia(url,o){return new Promise(resolve=>{
       const cur=db(aF);F.push(cur);H.push(db(aH));const now=performance.now();
       // fast automatic gain: if the source gets loud, pull it down at once; give back slowly
       if(passed&&cur>-80){const out=cur+20*Math.log10(normCur);
-        if(out>SRC_TARGET+4){normCur=Math.max(.01,normCur*Math.pow(10,(SRC_TARGET+1-out)/20));norm.gain.setTargetAtTime(normCur,ctx.currentTime,.02)}
-        else if(out<SRC_TARGET-5&&normCur<normRef){normCur=Math.min(normRef,normCur*1.008);norm.gain.setTargetAtTime(normCur,ctx.currentTime,.4)}}
+        if(out>TGT+4){normCur=Math.max(.01,normCur*Math.pow(10,(TGT+1-out)/20));norm.gain.setTargetAtTime(normCur,ctx.currentTime,.02)}
+        else if(out<TGT-5&&normCur<normRef){normCur=Math.min(normRef,normCur*1.008);norm.gain.setTargetAtTime(normCur,ctx.currentTime,.4)}}
       if(!passed&&now-t0>AUD){
         const v=o.noJudge?{ok:F.length<30||score(F).mean>-58}:judge(F,H);
         if(!v.ok){if(v.silent){fin(false);return}slowDown(v,false)}
         {const v2=F.filter(x=>x>-80).sort((a,b)=>a-b),p75=v2.length?v2[Math.floor(v2.length*.75)]:-40;
-          normRef=normCur=Math.max(.02,Math.min(2.5,Math.pow(10,(SRC_TARGET-p75)/20)));norm.gain.setValueAtTime(normCur,ctx.currentTime)}
+          normRef=normCur=Math.max(.02,Math.min(2.5,Math.pow(10,(TGT-p75)/20)));norm.gain.setValueAtTime(normCur,ctx.currentTime)}
         if(o.sweep&&!slowed){let tt=ctx.currentTime;blur.frequency.setValueAtTime(rr(500,1500),tt);while(tt<ctx.currentTime+total){tt+=rr(8,20);blur.frequency.exponentialRampToValueAtTime(rr(350,12000),tt)}} // DJ filter
         passed=true;F=[];H=[];lastEval=now;o.onStart&&o.onStart();
         const t=ctx.currentTime;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(lvl,t+o.fadeIn);g.gain.setValueAtTime(lvl,t+o.fadeIn+o.hold);g.gain.linearRampToValueAtTime(0,t+total);
@@ -1082,9 +1084,9 @@ async function spokenLoop(){
   while(true){
     const cat=R()<.55?'voices':'dreamy',it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     const rate=pick([1,1,.96,.92]);let line=null;
-    const ok=await playMedia(it.url,{dest:L.spoken,fadeIn:rr(3,6),hold:rr(25,50),fadeOut:rr(5,8),rate,seek:true,noJudge:true,filter:{type:'lowpass',freq:rr(4500,7000),q:.5},level:.9,pan:rr(-.25,.25),
-      onStart:()=>{line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`);master.gain.setTargetAtTime(.5,ctx.currentTime,2)},
-      onEnd:()=>{unlive(line);master.gain.setTargetAtTime(.8,ctx.currentTime,3)}});
+    const ok=await playMedia(it.url,{dest:L.spoken,target:-21,fadeIn:rr(2.5,4),hold:rr(25,50),fadeOut:rr(4,6),rate,seek:true,noJudge:true,filter:{type:'lowpass',freq:rr(6500,8500),q:.5},level:1,pan:rr(-.15,.15),
+      onStart:()=>{line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`);speaking=true;master.gain.setTargetAtTime(.4,ctx.currentTime,1.2)},
+      onEnd:()=>{unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3)}});
     fails=ok?0:fails+1;await sleep(ok?rr(150,330)*1000:fails>8?30000:2000);
   }
 }
@@ -1097,7 +1099,7 @@ async function spokenLoop(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={remnant:-27,spoken:-25,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={remnant:-27,spoken:-20,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -1109,7 +1111,8 @@ function guardian(){
   // measured at the output (what you actually hear), aiming for about -23 dB RMS
   const out=rmsDb(masterAn);longDb=longDb*.85+out*.15;const level=Math.max(longDb,out-4);
   const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(-26-level)/20)));
-  if(want<riderV){riderV=want;rider.gain.setTargetAtTime(riderV,now,.04)}
+  if(speaking){} // while a voice speaks the leveller holds still: the music stays where the duck put it
+  else if(want<riderV){riderV=want;rider.gain.setTargetAtTime(riderV,now,.04)}
   else{riderV=Math.min(want,riderV*1.004);rider.gain.setTargetAtTime(riderV,now,.4)}
   // 3. too much for too long: an accent goes
   if(cool>0){cool--;return}
