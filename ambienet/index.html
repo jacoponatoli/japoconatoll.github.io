@@ -111,19 +111,28 @@ addEventListener('resize',render);if(document.fonts&&document.fonts.ready)docume
 async function fetchJSON(u,ms=12000){const c=new AbortController();const to=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(to)}}
 
 /* ============ audio graph ============ */
-function impulse(sec,dec){const n=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(R()*2-1)*Math.pow(1-i/n,dec)}return b}
+function impulse(sec,dec){const sr=ctx.sampleRate,n=Math.floor(sr*sec),b=ctx.createBuffer(2,n,sr);
+  for(let c=0;c<2;c++){const d=b.getChannelData(c);let y=0;for(let i=0;i<n;i++){const k=i/n,fc=6000*Math.pow(1-k,2.2)+250,a=1-Math.exp(-2*Math.PI*fc/sr);y+=a*((R()*2-1)-y);d[i]=y*Math.pow(1-k,dec)*1.6}}
+  return b}
 function setup(){
   ctx=new (window.AudioContext||window.webkitAudioContext)();
-  const comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=20;comp.ratio.value=3;comp.attack.value=.05;comp.release.value=.8;
-  master=ctx.createGain();master.gain.value=0;master.connect(comp);
+  const comp=ctx.createDynamicsCompressor();comp.threshold.value=-12;comp.knee.value=12;comp.ratio.value=2;comp.attack.value=.03;comp.release.value=.6;
+  master=ctx.createGain();master.gain.value=0;
+  const shelf=ctx.createBiquadFilter();shelf.type='highshelf';shelf.frequency.value=4500;shelf.gain.value=-6;
+  const top=ctx.createBiquadFilter();top.type='lowpass';top.frequency.value=11000;top.Q.value=.5;
+  master.connect(shelf);shelf.connect(top);top.connect(comp);
   // brickwall limiter + meter at the very end
-  const lim=ctx.createDynamicsCompressor();lim.threshold.value=-12;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.2;
+  const lim=ctx.createDynamicsCompressor();lim.threshold.value=-4;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.15;
   rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);lim.connect(ctx.destination);
   preAn=ctx.createAnalyser();preAn.fftSize=2048;comp.connect(preAn);
   masterAn=ctx.createAnalyser();masterAn.fftSize=2048;lim.connect(masterAn);
   meterSink=ctx.createGain();meterSink.gain.value=0;meterSink.connect(ctx.destination);masterAn.connect(meterSink);preAn.connect(meterSink);
   master.gain.setTargetAtTime(.8,ctx.currentTime,3);
-  reverb=ctx.createConvolver();reverb.buffer=impulse(10,2.4);const rv=ctx.createGain();rv.gain.value=.75;reverb.connect(rv);rv.connect(master);
+  reverb=ctx.createConvolver();reverb.buffer=impulse(10,2.4);
+  // the reverb return is darkened, cleaned of rumble and gently compressed before it rejoins the mix
+  const rvHp=ctx.createBiquadFilter();rvHp.type='highpass';rvHp.frequency.value=120;const rvLp=ctx.createBiquadFilter();rvLp.type='lowpass';rvLp.frequency.value=4200;rvLp.Q.value=.5;
+  const rvC=ctx.createDynamicsCompressor();rvC.threshold.value=-24;rvC.ratio.value=4;rvC.knee.value=10;rvC.attack.value=.02;rvC.release.value=.6;
+  const rv=ctx.createGain();rv.gain.value=.4;reverb.connect(rvHp);rvHp.connect(rvLp);rvLp.connect(rvC);rvC.connect(rv);rv.connect(master);
   delayIn=ctx.createGain();const dl=ctx.createDelay(4);dl.delayTime.value=.75;const fb=ctx.createGain();fb.gain.value=.5;const lp=ctx.createBiquadFilter();lp.frequency.value=2200;
   delayIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);const dOut=ctx.createGain();dOut.gain.value=.5;lp.connect(dOut);dOut.connect(master);dOut.connect(reverb);
   const mk=(n,wet,del,dry=1)=>{const g=ctx.createGain();g.gain.value=0;const ng=ctx.createGain();ng.gain.value=1;g.connect(ng);
@@ -1034,12 +1043,12 @@ function guardian(){
   // 2. leveler on the whole mix
   // measured at the output (what you actually hear), aiming for about -23 dB RMS
   const out=rmsDb(masterAn);longDb=longDb*.85+out*.15;const level=Math.max(longDb,out-4);
-  const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(-23-level)/20)));
+  const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(-26-level)/20)));
   if(want<riderV){riderV=want;rider.gain.setTargetAtTime(riderV,now,.04)}
   else{riderV=Math.min(want,riderV*1.004);rider.gain.setTargetAtTime(riderV,now,.4)}
   // 3. too much for too long: an accent goes
   if(cool>0){cool--;return}
-  const db=rmsDb(masterAn);over=db>-17?over+1:Math.max(0,over-1);
+  const db=rmsDb(masterAn);over=db>-20?over+1:Math.max(0,over-1);
   if(over>=20){
     const lv={};for(const n in LA){const k=n.startsWith('net')?'net':n;if(T[k]>.01)lv[k]=Math.max(lv[k]??-200,rmsDb(LA[n]))}
     const cand=Object.keys(lv).filter(k=>k!=='drone'&&k!=='bigdrone'&&k!=='binaural'),acc=cand.filter(k=>ACCENTS.includes(k)||k==='data'||k==='radio');
