@@ -36,6 +36,7 @@ const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const WEST={ionian:[0,2,4,5,7,9,11],dorian:[0,2,3,5,7,9,10],lydian:[0,2,4,6,7,9,11],mixolydian:[0,2,4,5,7,9,10],aeolian:[0,2,3,5,7,8,10],phrygian:[0,1,3,5,7,8,10],'major pentatonic':[0,2,4,7,9],'minor pentatonic':[0,3,5,7,10]};
 const PIANOSC={ionian:WEST.ionian,lydian:WEST.lydian,dorian:WEST.dorian,aeolian:WEST.aeolian,'major pentatonic':WEST['major pentatonic'],mixolydian:WEST.mixolydian};
 const RAGAS={'raga Yaman':[0,2,4,6,7,9,11],'raga Bhairav':[0,1,4,5,7,8,11],'raga Todi':[0,1,3,6,7,8,11],'raga Marwa':[0,1,4,6,9,11],'raga Bhupali':[0,2,4,7,9],'raga Malkauns':[0,3,5,8,10],'raga Darbari':[0,2,3,5,7,8,10],'raga Bhimpalasi':[0,2,3,5,7,9,10],'raga Purvi':[0,1,4,6,7,8,11],'raga Kafi':[0,2,3,5,7,9,10],'raga Bilawal':[0,2,4,5,7,9,11]};
+const EAST={'in (Japan)':[0,1,5,7,8],'yo (Japan)':[0,2,5,7,9],'hirajoshi (Japan)':[0,2,3,7,8],'iwato (Japan)':[0,1,5,6,10],'ryukyu (Okinawa)':[0,4,5,7,11],'pelog (Bali)':[0,1,3,7,8],'slendro (Java)':[0,2,5,7,9]};
 // samay: the raga follows the real hour of the day
 function ragaNow(){const h=new Date().getHours();
   const m=h<4?['raga Darbari','raga Malkauns']:h<7?['raga Bhairav','raga Todi']:h<10?['raga Todi','raga Bilawal','raga Bhairav']:h<13?['raga Bilawal','raga Bhupali']:h<16?['raga Bhimpalasi','raga Kafi']:h<18?['raga Bhimpalasi','raga Marwa']:h<20?['raga Marwa','raga Purvi','raga Yaman']:h<22?['raga Yaman','raga Bhupali']:['raga Darbari','raga Malkauns','raga Kafi'];
@@ -46,19 +47,21 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 
 /* scene colours: what each scene leans towards */
 const COLORS={
-  ambient:{w:.32,scales:WEST,ia:{ambient:.8,piano:.12,indian:.08},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,alap:0,piano:.2,voices:.3}},
-  indian:{w:.24,raga:true,ia:{indian:.85,ambient:.15},
-    prob:{drone:.25,loops:.2,arp:0,phase:0,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2}},
-  piano:{w:.22,scales:PIANOSC,ia:{piano:.8,ambient:.2},
-    prob:{drone:.45,loops:.35,arp:0,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,tanpura:0,alap:0,piano:.95,voices:.25}},
-  mixed:{w:.22,raga:true,ia:{ambient:.4,indian:.3,piano:.3},
-    prob:{drone:.6,loops:.4,arp:0,phase:0,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35}}
+  ambient:{w:.27,scales:WEST,ia:{ambient:.5,drone:.2,nature:.12,piano:.08,indian:.05,japan:.05},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:.6,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.35,nature:.35,sho:.1}},
+  indian:{w:.2,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
+    prob:{drone:.25,loops:.2,data:.35,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2}},
+  piano:{w:.18,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
+    prob:{drone:.45,loops:.35,phase:.06,data:.35,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3}},
+  east:{w:.18,scales:EAST,ia:{japan:.45,pacific:.35,nature:.1,ambient:.1},
+    prob:{drone:.3,loops:.25,data:.3,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45}},
+  mixed:{w:.17,raga:true,ia:{ambient:.25,indian:.2,piano:.2,japan:.15,pacific:.1,drone:.1},
+    prob:{drone:.6,loops:.4,data:.45,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2}}
 };
-const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7};
+const BASE={drone:.9,loops:.8,arp:.4,phase:.35,data:.65,radio:.6,archive:.65,grains:.6,tanpura:.75,alap:.65,piano:.85,voices:.7,net:.8,hum:.7,city:.65,bigdrone:.75,nature:.7,flute:.6,koto:.6,sho:.55,gamelan:.6};
 const RHYTHMIC=['arp','phase'];
 
-let ctx,master,reverb,delayIn,running=false;const L={},T={};
+let ctx,master,reverb,delayIn,noiseBuf,running=false;const L={},T={};
 const logEl=document.getElementById('log'),nowEl=document.getElementById('now');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // every line is red while its sound is playing, then goes back to white
@@ -85,6 +88,9 @@ function setup(){
   mk('drone',.5,0);mk('loops',.8,.15);mk('arp',.6,.4);mk('phase',.6,.15);mk('data',.9,.2);mk('radio',.55,0);mk('archive',.6,.1);mk('grains',.8,.2);
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
+  mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);
+  noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
 }
 function tone(f,t,dur,o){
   const osc=ctx.createOscillator();osc.type=o.type||'sine';osc.frequency.value=f;if(o.detune)osc.detune.value=o.detune;
@@ -218,16 +224,17 @@ function newScene(first){
     if(C.raga){S.scaleName=ragaNow();S.scale=RAGAS[S.scaleName]}else{S.scaleName=pick(Object.keys(C.scales));S.scale=C.scales[S.scaleName]}
     retuneDrone();
   }
-  const on={};for(const k in C.prob)on[k]=R()<C.prob[k];
+  const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0);
   if(first){on.drone=on.loops=true;on.data=true}
   if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
   let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
-  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&C.prob[k]>.05));
+  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&(C.prob[k]||0)>.05));
   while(cnt<3){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
   if(R()<.3)newLoops();
-  for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;L[k].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7);T[k]=v}
+  for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;T[k]=v;
+    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?9:7))}
   const act=Object.keys(on).filter(k=>on[k]);
   const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
   nowEl.textContent=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;
@@ -361,7 +368,7 @@ const slowLog=(what,title)=>(v,r,mid)=>log('SLOW',`${mid?'became':'too'} rhythmi
 
 /* ============ RADIO: live streams of the world ============ */
 const RB=['de1','de2','fi1','at1','nl1'].map(h=>`https://${h}.api.radio-browser.info`);
-const RGROUPS={ambient:['ambient','ambient','drone','dark ambient','soundscape','field recordings','nature sounds','space ambient'],indian:['indian classical','hindustani','hindustani classical','raga'],piano:['piano','solo piano','classical piano','ambient piano','neoclassical']};
+const RGROUPS={ambient:['ambient','ambient','drone','dark ambient','soundscape','field recordings','nature sounds','space ambient'],indian:['indian classical','hindustani','hindustani classical','raga'],piano:['piano','solo piano','classical piano','ambient piano','neoclassical'],east:['japanese traditional','japanese classical','gamelan','hawaiian','zen','shakuhachi','koto','polynesian']};
 const BEATS=/techno|house|dance|edm|trance|beat|hip.?hop|\brap\b|lo.?fi|chill.?out|lounge|downtempo|\bdub|drum|bass|jazz|rock|\bpop\b|synthwave|psy|club|disco|reggae|bollywood|filmi|\bfilm\b|devotional|bhajan|qawwali|news|talk|top ?40|hits|party|latin|country|metal|punk|funk|soul|r.?n.?b/i;
 const stations={};const seenSt=new Set();
 async function nextStation(grp){
@@ -371,7 +378,7 @@ async function nextStation(grp){
       stations[grp]=shuffle(j.filter(s=>s.url_resolved&&!s.hls&&(location.protocol!=='https:'||s.url_resolved.startsWith('https:'))&&!seenSt.has(s.stationuuid)&&!BEATS.test((s.tags||'')+' '+(s.name||'')+' '+s.url_resolved)));break}catch(e){}}}
   const s=stations[grp].pop();if(s)seenSt.add(s.stationuuid);if(seenSt.size>600)seenSt.clear();return s;
 }
-const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano']):S.color;
+const groupNow=()=>S.color==='mixed'?pick(['ambient','indian','piano','east']):S.color;
 async function radioDeck(delay){
   await sleep(delay);let fails=0;
   while(true){
@@ -391,6 +398,11 @@ const PHILO='Deleuze OR Foucault OR Heidegger OR Sartre OR Arendt OR "de Beauvoi
 const IAQ={
   ambient:'mediatype:audio AND subject:(ambient OR drone OR "field recording" OR "field recordings" OR soundscape OR "dark ambient" OR "minimal music" OR minimalism)'+NOBEAT,
   indian:'mediatype:audio AND title:(raga OR raag OR alap OR alaap OR aalap OR dhrupad OR tanpura OR sarangi OR bansuri OR "rudra veena" OR surbahar)'+NOBEAT,
+  drone:'mediatype:audio AND (subject:(drone OR "drone music" OR "drone ambient" OR "dark ambient") OR title:(drone OR drones))'+NOBEAT,
+  nature:'mediatype:audio AND title:(rain OR raindrops OR water OR ocean OR sea OR waves OR stream OR river OR brook OR creek OR thunderstorm OR storm OR forest OR birds OR birdsong OR wind OR waterfall) AND subject:("field recording" OR "field recordings" OR nature OR "nature sounds" OR soundscape OR relaxing OR relaxation OR ambience OR ambient OR "sound effects")'+NOBEAT,
+  japan:'mediatype:audio AND (title:(shakuhachi OR koto OR gagaku OR honkyoku OR shamisen OR biwa OR "japanese traditional" OR "japanese flute" OR "zen music") OR subject:(shakuhachi OR koto OR gagaku OR honkyoku OR "japanese traditional music" OR "traditional japanese music"))'+NOBEAT,
+  pacific:'mediatype:audio AND (title:(gamelan OR polynesian OR polynesia OR hawaiian OR tahiti OR tahitian OR samoan OR maori OR "nose flute" OR "slack key" OR pelog OR slendro OR "pacific islands" OR fiji OR tonga) OR subject:(gamelan OR polynesian OR hawaiian OR "pacific islands" OR maori OR "music of oceania"))'+NOBEAT,
+  city:'mediatype:audio AND title:(city OR street OR streets OR traffic OR market OR "train station" OR station OR subway OR metro OR piazza OR crowd OR urban OR downtown OR harbour OR harbor OR "city ambience" OR "street ambience") AND subject:("field recording" OR "field recordings" OR soundscape OR ambience OR ambiance OR ambient OR "sound effects" OR "city sounds")'+NOBEAT,
   piano:'mediatype:audio AND title:(satie OR gymnopedie OR gymnopedies OR gnossienne OR "solo piano" OR "piano solo" OR "ambient piano" OR "piano improvisation" OR feldman OR "for piano" OR nocturne)'+NOBEAT,
   voices:()=>R()<.65?`mediatype:audio AND (title:(${PHILO}) OR creator:(${PHILO})) AND (title:(lecture OR lezione OR conférence OR cours OR interview OR intervista OR entretien OR talk OR speech OR voice OR seminar) OR subject:(lecture OR interview OR speech OR philosophy))`:'mediatype:audio AND collection:librivoxaudio AND subject:philosophy'
 };
@@ -467,6 +479,197 @@ async function grainsDeck(){
   }
 }
 
+/* ============ INTERNET & PHONE SOUNDS: notifications, rings, dial tones, modems ============ */
+function noise(t,dur,o){const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;const f=ctx.createBiquadFilter();f.type=o.type||'bandpass';f.frequency.setValueAtTime(o.freq,t);if(o.to)f.frequency.exponentialRampToValueAtTime(o.to,t+dur);f.Q.value=o.q||1;
+  const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(o.gain,t+(o.attack||.01));g.gain.setValueAtTime(o.gain,t+Math.max(.02,dur-(o.release||.05)));g.gain.linearRampToValueAtTime(0,t+dur);
+  s.connect(f);f.connect(g);g.connect(o.dest);s.start(t,rr(0,1.5));s.stop(t+dur+.05);return g}
+const beep=(fs,t,dur,gain,dest,type='sine')=>fs.forEach(f=>{const o=ctx.createOscillator();o.type=type;o.frequency.value=f;const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.setValueAtTime(gain,t+dur-.01);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.02)});
+const DTMF={1:[697,1209],2:[697,1336],3:[697,1477],4:[770,1209],5:[770,1336],6:[770,1477],7:[852,1209],8:[852,1336],9:[852,1477],0:[941,1336]};
+const tuned=(raw)=>R()<.5?raw:mtof(deg(ri(0,7),S.root+48)); // sometimes the notification is in the scene's key
+const NET={
+  'ta-tan':d=>{const f=tuned(pick([880,988,1047,1175,1319])),iv=Math.pow(2,pick([4,5,7,12])/12),t=ctx.currentTime+.05;mallet(f,t,.09,d,rr(-.5,.5),.8);mallet(f*iv,t+rr(.1,.16),.09,d,rr(-.5,.5),1.2)},
+  'message':d=>{const f=tuned(pick([1047,1319,1568])),t=ctx.currentTime+.05;bell(f,t,1.2,.07,d,rr(-.4,.4))},
+  'three notes':d=>{const f=tuned(pick([784,880,1047])),t=ctx.currentTime+.05;[0,4,7].forEach((s,i)=>mallet(f*Math.pow(2,s/12),t+i*.09,.07,d,0,.7))},
+  'uh-oh':d=>{const f=tuned(pick([700,820,900])),t=ctx.currentTime+.05;tone(f,t,.22,{type:'square',gain:.04,attack:.01,cutoff:2500,dest:d});tone(f*.75,t+.25,.35,{type:'square',gain:.04,attack:.01,cutoff:2500,dest:d})},
+  'pop':d=>{const t=ctx.currentTime+.05,o=ctx.createOscillator();o.frequency.setValueAtTime(rr(800,1300),t);o.frequency.exponentialRampToValueAtTime(rr(180,320),t+.07);const g=ctx.createGain();g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);o.connect(g);g.connect(d);o.start(t);o.stop(t+.15)},
+  'whoosh (sent)':d=>{const t=ctx.currentTime+.05;noise(t,.6,{freq:400,to:rr(3000,6000),q:2,gain:.08,attack:.2,release:.3,dest:d})},
+  'group chat':d=>{const n=ri(3,6);for(let i=0;i<n;i++)setTimeout(()=>NET[pick(['ta-tan','message','pop'])](d),i*rr(500,1600))},
+  'dial tone (IT)':d=>{beep([425],ctx.currentTime+.05,rr(2,4),.05,d)},
+  'busy tone':d=>{const t=ctx.currentTime+.05;for(let i=0;i<6;i++)beep([425],t+i*.4,.2,.05,d)},
+  'ringback (IT)':d=>{const t=ctx.currentTime+.05;beep([425],t,1,.05,d);beep([425],t+5,1,.05,d)},
+  'ring (US)':d=>{const t=ctx.currentTime+.05;beep([440,480],t,2,.035,d)},
+  'double ring (UK)':d=>{const t=ctx.currentTime+.05;for(let k=0;k<2;k++){beep([400,450],t+k*3,.4,.035,d);beep([400,450],t+k*3+.6,.4,.035,d)}},
+  'dialling':d=>{const t=ctx.currentTime+.05,n=ri(7,10);let x=t;for(let i=0;i<n;i++){beep(DTMF[ri(0,9)],x,.09,.03,d);x+=rr(.15,.35)}},
+  'old bell phone':d=>{const t=ctx.currentTime+.05;for(let k=0;k<2;k++)for(let i=0;i<30;i++){const tt=t+k*3+i*.05;[1,2.76,5.4].forEach((p,j)=>tone(1100*p,tt,.08,{gain:.03/(j+1),attack:.002,dest:d}))}},
+  'phone vibrating':d=>{const t=ctx.currentTime+.05;for(let i=0;i<3;i++){tone(rr(150,180),t+i*.65,.42,{type:'sawtooth',gain:.07,attack:.02,cutoff:400,dest:d})}},
+  'fax':d=>{const t=ctx.currentTime+.05;for(let i=0;i<3;i++)beep([1100],t+i*3.5,.5,.035,d)},
+  'modem':d=>{const t=ctx.currentTime+.05;let x=t;for(let i=0;i<8;i++){beep(DTMF[ri(0,9)],x,.09,.025,d);x+=.15}
+    beep([2100],x+.4,1.6,.025,d);x+=2.2;for(let i=0;i<10;i++){const o=ctx.createOscillator();o.type='square';o.frequency.setValueAtTime(rr(600,2400),x);o.frequency.linearRampToValueAtTime(rr(600,2400),x+.18);const g=ctx.createGain();g.gain.value=.012;o.connect(g);g.connect(d);o.start(x);o.stop(x+.18);x+=.2}
+    noise(x,2.5,{freq:1800,q:.5,gain:.04,dest:d})}
+};
+const NETW={'ta-tan':5,'message':4,'three notes':2,'uh-oh':1.5,'pop':3,'whoosh (sent)':2,'group chat':1.5,'dial tone (IT)':1,'busy tone':1,'ringback (IT)':1,'ring (US)':1,'double ring (UK)':1,'dialling':1.5,'old bell phone':1,'phone vibrating':1.5,'fax':.6,'modem':.8};
+async function netLoop(){
+  await sleep(rr(10,25)*1000);
+  while(true){
+    if(T.net>.01){const kind=wpick(NETW),fx=wpick({dry:.35,delay:.3,reflected:.35}),bus=L[{dry:'netdry',delay:'netdelay',reflected:'netverb'}[fx]];
+      try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}}
+    await sleep(rr(8,45)*1000);
+  }
+}
+
+/* ============ HUM: the electric murmur of domestic appliances ============ */
+const HUMS={
+  'fridge':(t,dur,d)=>{noise(t,dur,{type:'lowpass',freq:140,gain:.22,attack:6,release:4,dest:d});tone(50,t,dur,{gain:.05,attack:5,dest:d});tone(100,t,dur,{gain:.025,attack:5,dest:d});tone(40,t+dur-.1,1.2,{gain:.12,attack:.01,dest:d})},
+  'fluorescent light':(t,dur,d)=>{tone(100,t,dur,{type:'sawtooth',gain:.03,attack:4,cutoff:500,dest:d});tone(200,t,dur,{gain:.01,attack:4,dest:d});tone(rr(8000,11000),t,dur,{gain:.002,attack:5,dest:d})},
+  'mains hum 50 Hz':(t,dur,d)=>{[50,100,150,250].forEach((f,i)=>tone(f,t,dur,{gain:.05/(i+1),attack:6,dest:d}))},
+  'fan':(t,dur,d)=>{noise(t,dur,{freq:rr(300,700),q:.6,gain:.12,attack:6,release:5,dest:d});tone(rr(110,150),t,dur,{gain:.015,attack:6,dest:d})},
+  'air conditioner':(t,dur,d)=>{noise(t,dur,{type:'lowpass',freq:rr(500,900),gain:.14,attack:7,release:6,dest:d});tone(rr(60,80),t,dur,{type:'triangle',gain:.03,attack:7,dest:d})},
+  'computer':(t,dur,d)=>{noise(t,dur,{freq:rr(1500,3000),q:.8,gain:.035,attack:4,release:4,dest:d});tone(rr(3000,6000),t,dur,{gain:.003,attack:4,dest:d});tone(120,t,dur,{gain:.01,attack:4,dest:d})},
+  'transformer buzz':(t,dur,d)=>{tone(100,t,dur,{type:'square',gain:.012,attack:5,cutoff:900,q:4,dest:d})}
+};
+async function humLoop(){
+  await sleep(rr(5,20)*1000);
+  while(true){
+    if(T.hum<.01){await sleep(8000);continue}
+    const kind=pick(Object.keys(HUMS)),dur=rr(30,90),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+10);g.gain.setValueAtTime(1,t+dur-10);g.gain.linearRampToValueAtTime(0,t+dur);
+    let out=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.7,.7);g.connect(p);out=p}out.connect(L.hum);
+    HUMS[kind](t,dur,g);log('HUM',kind,dur);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+3)*1000);
+    await sleep(rr(dur*.5,dur+40)*1000);
+  }
+}
+
+/* ============ FIELD RECORDINGS: cities and nature from the archive ============ */
+async function fieldDeck(cat,layer,label){
+  await sleep(rr(10,50)*1000);let fails=0;
+  while(true){
+    if(T[layer]<.01){await sleep(8000);continue}
+    const it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
+    const rate=pick([1,1,1,.9,.8,.5]),far=R()<.4;let line=null;
+    const ok=await playMedia(it.url,{dest:L[layer],fadeIn:rr(15,25),hold:rr(30,80),fadeOut:rr(18,28),rate,seek:true,filter:far?{freq:rr(500,1200)}:null,level:.75,pan:rr(-.5,.5),
+      onStart:()=>{line=log(label,`${it.title}${far?' · from far away':''}${slowTag(rate)}`)},onSlow:slowLog(cat,it.title),onEnd:()=>unlive(line)});
+    fails=ok?0:fails+1;await sleep(ok?rr(5,40)*1000:fails>8?30000:2000);
+  }
+}
+
+/* ============ DRONE CARPETS: powerful, slow, wide ============ */
+async function bigDroneLoop(){
+  await sleep(rr(15,40)*1000);
+  while(true){
+    if(T.bigdrone<.01){await sleep(8000);continue}
+    const dur=rr(60,160),t=ctx.currentTime+.05,pa=paInt();
+    const f=ctx.createBiquadFilter();f.type='lowpass';f.Q.value=rr(1,4);f.frequency.setValueAtTime(120,t);f.frequency.linearRampToValueAtTime(rr(500,1500),t+dur*.5);f.frequency.linearRampToValueAtTime(150,t+dur);
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+dur*.3);g.gain.setValueAtTime(.09,t+dur*.7);g.gain.linearRampToValueAtTime(0,t+dur);
+    f.connect(g);g.connect(L.bigdrone);
+    const notes=[S.root-12,S.root-12+pa,S.root,S.root+pa,S.root+12];
+    notes.forEach((m,i)=>{for(let j=0;j<2;j++){const o=ctx.createOscillator();o.type=pick(['sawtooth','sawtooth','square']);o.frequency.value=mtof(m);o.detune.value=rr(-14,14);
+      const og=ctx.createGain();og.gain.value=.12/(1+i*.4);o.connect(og);
+      if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=(j?1:-1)*rr(.3,.9);og.connect(p);p.connect(f)}else og.connect(f);o.start(t);o.stop(t+dur+.2)}});
+    tone(mtof(S.root-24),t,dur,{gain:.12,attack:dur*.3,dest:g});
+    log('DRONE CARPET',`${NOTES[S.root%12]} · ${notes.length*2} voices · ${Math.round(dur)} s`,dur);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+2)*1000);
+    await sleep(rr(dur*.6,dur+60)*1000);
+  }
+}
+
+/* ============ WATER, RAIN, WIND: generated nature ============ */
+function drops(t0,dur,d,rate){const end=t0+dur;const step=()=>{if(ctx.currentTime>end-1)return;const t=ctx.currentTime+.05;
+  for(let i=0,n=Math.round(rate*.25*rr(.5,1.5));i<n;i++)noise(t+rr(0,.25),.02,{freq:rr(2000,7000),q:4,gain:rr(.02,.08),attack:.001,release:.015,dest:d});setTimeout(step,250)};step()}
+function bubbles(t0,dur,d,rate){const end=t0+dur;const step=()=>{if(ctx.currentTime>end-1)return;const t=ctx.currentTime+.05;
+  for(let i=0,n=Math.round(rate*.25*rr(.3,1.7));i<n;i++){const tt=t+rr(0,.25),f=rr(300,1100),o=ctx.createOscillator();o.frequency.setValueAtTime(f,tt);o.frequency.exponentialRampToValueAtTime(f*rr(1.5,2.6),tt+rr(.03,.07));
+    const g=ctx.createGain();g.gain.setValueAtTime(rr(.01,.035),tt);g.gain.exponentialRampToValueAtTime(.0001,tt+.08);o.connect(g);g.connect(d);o.start(tt);o.stop(tt+.1)}setTimeout(step,250)};step()}
+function waves(t0,dur,d){const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;const f=ctx.createBiquadFilter();f.type='lowpass';const g=ctx.createGain();g.gain.setValueAtTime(0,t0);f.frequency.setValueAtTime(300,t0);
+  let t=t0;while(t<t0+dur){const per=rr(7,13);g.gain.linearRampToValueAtTime(rr(.18,.32),t+per*.4);f.frequency.linearRampToValueAtTime(rr(900,2200),t+per*.4);g.gain.linearRampToValueAtTime(.03,t+per);f.frequency.linearRampToValueAtTime(300,t+per);t+=per}
+  s.connect(f);f.connect(g);g.connect(d);s.start(t0);s.stop(t+.1)}
+function wind(t0,dur,d){const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;const f=ctx.createBiquadFilter();f.type='bandpass';f.Q.value=rr(2,5);const g=ctx.createGain();g.gain.setValueAtTime(0,t0);f.frequency.setValueAtTime(400,t0);
+  for(let t=t0;t<t0+dur;t+=3){f.frequency.linearRampToValueAtTime(rr(250,1200),t+3);g.gain.linearRampToValueAtTime(rr(.05,.2),t+3)}
+  s.connect(f);f.connect(g);g.connect(d);s.start(t0);s.stop(t0+dur+3)}
+const NATURE={
+  'rain':(t,dur,d)=>{noise(t,dur,{type:'highpass',freq:rr(1500,3000),gain:.07,attack:5,release:5,dest:d});noise(t,dur,{type:'lowpass',freq:500,gain:.05,attack:5,release:5,dest:d});drops(t,dur,d,rr(6,14))},
+  'heavy rain':(t,dur,d)=>{noise(t,dur,{type:'highpass',freq:1200,gain:.13,attack:6,release:6,dest:d});noise(t,dur,{type:'lowpass',freq:350,gain:.1,attack:6,release:6,dest:d});drops(t,dur,d,rr(18,30))},
+  'rain and distant thunder':(t,dur,d)=>{NATURE.rain(t,dur,d);for(let i=0,n=ri(1,3);i<n;i++)noise(t+rr(8,dur-10),rr(4,8),{type:'lowpass',freq:rr(80,160),gain:.3,attack:1.5,release:4,dest:d})},
+  'stream':(t,dur,d)=>{noise(t,dur,{freq:rr(700,1300),q:.7,gain:.05,attack:5,release:5,dest:d});bubbles(t,dur,d,rr(5,12))},
+  'ocean waves':(t,dur,d)=>waves(t,dur,d),
+  'wind':(t,dur,d)=>wind(t,dur,d),
+  'drops in a cave':(t,dur,d)=>drops(t,dur,d,rr(1,3))
+};
+async function natureLoop(){
+  await sleep(rr(5,25)*1000);
+  while(true){
+    if(T.nature<.01){await sleep(8000);continue}
+    const kind=pick(Object.keys(NATURE)),dur=rr(40,120),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+12);g.gain.setValueAtTime(1,t+dur-12);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.nature);
+    NATURE[kind](t,dur,g);log('WATER · WIND',kind,dur);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+5)*1000);
+    await sleep(rr(dur*.5,dur+50)*1000);
+  }
+}
+
+/* ============ EAST: shakuhachi / nose flute, koto, shō, temple bell, gamelan ============ */
+const isJapan=()=>/Japan|Okinawa/.test(S.scaleName);
+async function fluteLoop(){
+  await sleep(8000);
+  while(true){
+    if(T.flute<.01){await sleep(5000);continue}
+    const jp=isJapan()||(!/Bali|Java/.test(S.scaleName)&&R()<.5),name=jp?'SHAKUHACHI':'NOSE FLUTE';
+    const n=ri(2,5),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,5);
+    for(let k=0;k<n;k++){
+      pos=Math.max(-2,Math.min(9,pos+pick([-1,1,-2,2,0,1,-1])));const f=mtof(deg(pos,S.root+(jp?24:36))),dur=rr(2,6);
+      const o=ctx.createOscillator(),o2=ctx.createOscillator();o.type='sine';o2.type='triangle';
+      [o,o2].forEach(x=>{x.frequency.setValueAtTime(f*(R()<.4?Math.pow(2,-rr(.5,1.5)/12):1),t);x.frequency.setTargetAtTime(f,t+.1,rr(.1,.6))}); // meri: bending into the note
+      const vib=ctx.createOscillator();vib.frequency.value=rr(4,5.5);const vg=ctx.createGain();vg.gain.setValueAtTime(0,t);vg.gain.linearRampToValueAtTime(R()<.6?rr(8,20):0,t+dur*.8);vib.connect(vg);vg.connect(o.detune);vg.connect(o2.detune);
+      const lp=ctx.createBiquadFilter();lp.frequency.value=1500;const o2g=ctx.createGain();o2g.gain.value=.4;o2.connect(o2g);o2g.connect(lp);
+      const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+dur*.25);g.gain.linearRampToValueAtTime(.033,t+dur*.6);g.gain.linearRampToValueAtTime(.045,t+dur*.8);g.gain.linearRampToValueAtTime(0,t+dur);
+      o.connect(g);lp.connect(g);let out=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.3,.3);g.connect(p);out=p}out.connect(L.flute);
+      noise(t,dur,{freq:f*2,q:jp?1.5:.7,gain:jp?.012:.025,attack:dur*.25,release:dur*.4,dest:L.flute}); // breath
+      [o,o2,vib].forEach(x=>{x.start(t);x.stop(t+dur+.1)});
+      t+=dur+rr(.4,2.8); // ma: the silence between
+    }
+    log(name,`${S.scaleName} · ${n} breaths`,t-t0);
+    await sleep((t-ctx.currentTime+rr(5,15))*1000);
+  }
+}
+function kotoPluck(f,t,pan){tone(f,t,rr(2.5,4),{type:'triangle',gain:.06,attack:.002,dest:L.koto,pan});tone(f*2,t,.8,{gain:.025,attack:.002,dest:L.koto,pan});tone(f*3.01,t,.3,{gain:.012,attack:.001,dest:L.koto,pan});noise(t,.015,{freq:3000,q:1,gain:.03,attack:.001,release:.01,dest:L.koto});
+  if(R()<.25)tone(f*Math.pow(2,pick([1,2])/12),t+rr(.4,.8),2,{type:'triangle',gain:.025,attack:.15,dest:L.koto,pan})} // oshide: the pressed bend
+async function kotoLoop(){
+  await sleep(12000);
+  while(true){
+    if(T.koto<.01){await sleep(5000);continue}
+    const n=ri(2,6),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,7);
+    for(let k=0;k<n;k++){pos=Math.max(0,Math.min(12,pos+pick([-2,-1,1,2,3,-3])));const f=mtof(deg(pos,S.root+24)),pan=rr(-.5,.5);kotoPluck(f,t,pan);if(R()<.2)kotoPluck(f*2,t+.02,-pan);t+=rr(.35,1.6)}
+    log('KOTO',`${S.scaleName} · ${n} plucks`,t-t0+2);
+    await sleep((t-ctx.currentTime+rr(4,14))*1000);
+  }
+}
+function templeBell(t){const f=mtof(S.root-12+pick([0,paInt()]))*2,dur=rr(14,22);
+  [1,2,2.76,4.07,5.4].forEach((p,i)=>{tone(f*p,t,dur/(1+i*.5),{gain:.09/(i+1),attack:.005,dest:L.sho,detune:rr(-4,4)});tone(f*p*1.003,t,dur/(1+i*.5),{gain:.05/(i+1),attack:.005,dest:L.sho})});
+  setTimeout(()=>log('TEMPLE BELL',`bonsho · ${NOTES[S.root%12]}`,12),Math.max(0,(t-ctx.currentTime)*1000))}
+async function shoLoop(){
+  await sleep(6000);
+  while(true){
+    if(T.sho<.01){await sleep(6000);continue}
+    const t=ctx.currentTime+.1,hold=rr(8,16),dur=hold+8,degs=shuffle([0,1,2,3,4,5,6]).slice(0,ri(4,6));
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+4);g.gain.setValueAtTime(1,t+4+hold);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.sho);
+    degs.forEach(dd=>{const f=mtof(deg(dd,S.root+48));[['sine',.022],['triangle',.01]].forEach(([ty,gn])=>{const o=ctx.createOscillator();o.type=ty;o.frequency.value=f;o.detune.value=rr(-6,6);const og=ctx.createGain();og.gain.value=gn;o.connect(og);og.connect(g);o.start(t);o.stop(t+dur+.1)})});
+    log('SHŌ',`${degs.length}-note cluster (aitake) · ${S.scaleName}`,dur);
+    if(R()<.3)templeBell(t+dur*.5);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+2)*1000);
+    await sleep((dur+rr(6,20))*1000);
+  }
+}
+function gongAgeng(t){const f=mtof(S.root-12);tone(f,t,18,{gain:.16,attack:.02,dest:L.gamelan});tone(f+1.2,t,18,{gain:.12,attack:.02,dest:L.gamelan});tone(f*2.01,t,9,{gain:.05,attack:.01,dest:L.gamelan});tone(f*2.95,t,5,{gain:.02,attack:.01,dest:L.gamelan})}
+const metallo=(f,t,gain,pan)=>{bell(f,t,rr(3,5),gain,L.gamelan,pan);bell(f+rr(3,7),t,rr(3,5),gain*.8,L.gamelan,-pan)}; // ombak: the beating of paired instruments
+async function gamelanLoop(){
+  await sleep(10000);
+  while(true){
+    if(T.gamelan<.01){await sleep(6000);continue}
+    const n=ri(4,10),beat=rr(1.6,3.2),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,4);
+    gongAgeng(t);
+    for(let k=0;k<n;k++){pos=Math.max(0,Math.min(9,pos+pick([-1,1,-2,2,1,-1])));metallo(mtof(deg(pos,S.root+36)),t,.045,rr(-.6,.6));if(R()<.3)metallo(mtof(deg(pos,S.root+48)),t+beat/2,.025,rr(-.6,.6));t+=beat*rr(.9,1.15)}
+    log('GAMELAN',`${S.scaleName} · slow irama · ${n} strokes`,t-t0);
+    await sleep((t-ctx.currentTime+rr(4,14))*1000);
+  }
+}
+
 /* ============ start ============ */
 document.getElementById('start').addEventListener('click',async()=>{
   if(running)return;running=true;setup();try{await ctx.resume()}catch(e){}
@@ -475,7 +678,7 @@ document.getElementById('start').addEventListener('click',async()=>{
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();
+  radioDeck(3000);radioDeck(50000);archiveDeck(1000);archiveDeck(40000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();
 });
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
