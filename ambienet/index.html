@@ -145,7 +145,7 @@ function piano(f,t,vel,dest,pan){const B=.00035,dur=rr(6,10);for(let n=1;n<=7;n+
 const D={oscs:[],filter:null,lfo:null,ints:[0,7,12,19,24]};
 function startDrone(){
   const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=700;f.Q.value=2;
-  const lfo=ctx.createOscillator();lfo.frequency.value=.025;const lg=ctx.createGain();lg.gain.value=450;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
+  const lfo=ctx.createOscillator();lfo.frequency.value=.012;const lg=ctx.createGain();lg.gain.value=450;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
   const out=ctx.createGain();out.gain.value=.11;f.connect(out);out.connect(L.drone);D.filter=f;D.lfo=lfo;
   ['sawtooth','triangle','sine','triangle','sine'].forEach((ty,i)=>{
     const o=ctx.createOscillator();o.type=ty;o.frequency.value=mtof(S.root+D.ints[i]);o.detune.value=rr(-7,7);
@@ -165,7 +165,7 @@ let loops=[];
 function newLoops(){
   loops.forEach(v=>clearTimeout(v.to));loops=[];
   for(let i=0,n=ri(3,5);i<n;i++){
-    const v={d:ri(0,9),period:+rr(13,34).toFixed(1),pan:rr(-.8,.8),soft:R()<.55};
+    const v={d:ri(0,7),period:+rr(20,50).toFixed(1),pan:rr(-.8,.8),soft:R()<.82};
     const tick=()=>{if(T.loops>.01){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
       if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}
       v.to=setTimeout(tick,v.period*1000)};
@@ -236,7 +236,7 @@ async function alapLoop(){
     g.gain.setTargetAtTime(0,t,1);
     [o1,o2,vib].forEach(x=>{x.start(t0);x.stop(t+6)});
     const line=log('ALAP',`${S.scaleName} · Sa = ${NOTES[S.root%12]} · ${n} notes`,t-t0+2);
-    await sleep((t-ctx.currentTime+rr(4,12))*1000);
+    await sleep((t-ctx.currentTime+rr(10,25))*1000);
   }
 }
 
@@ -283,7 +283,7 @@ function newScene(first){
   const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
   nowEl.textContent=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;
   log('SCENE '+S.scene,`${S.color} — ${key} — ${act.join(', ')}`,0);
-  setTimeout(()=>newScene(false),rr(160,320)*1000);
+  setTimeout(()=>newScene(false),rr(240,420)*1000);
 }
 
 /* ============ LIVE INTERNET DATA ============ */
@@ -295,10 +295,10 @@ function startWiki(){
     es.onmessage=e=>{
       const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;
       let d;try{d=JSON.parse(e.data)}catch(_){return}
-      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(7,18);
+      if(d.type!=='edit'&&d.type!=='new')return;last=now;gap=rr(18,45);
       const diff=d.length?(d.length.new||0)-(d.length.old||0):0,a=Math.abs(diff);
       let h=0;for(const c of (d.title||''))h=(h*31+c.charCodeAt(0))|0;const dg=Math.abs(h)%10;
-      const base=S.root+(a>3000?24:a>300?36:48),t=ctx.currentTime+.05,g=d.bot?.02:.045,pan=rr(-.9,.9);
+      const base=S.root+(a>3000?24:36),t=ctx.currentTime+.05,g=d.bot?.015:.03,pan=rr(-.9,.9);
       if(d.type==='new'){bell(mtof(deg(dg,base)),t,4,g,L.data,pan);bell(mtof(deg(dg+2,base)),t+.12,4,g*.7,L.data,-pan)}
       else if(diff>=0)bell(mtof(deg(dg,base)),t,rr(2,4),g,L.data,pan);
       else tone(mtof(deg(dg,base-12)),t,rr(2,3.5),{type:'triangle',gain:g*.9,attack:.01,cutoff:900,dest:L.data,pan});
@@ -326,10 +326,10 @@ function startBTC(){
   let last=0,gap=6;
   const open=()=>{let ws;try{ws=new WebSocket('wss://ws.blockchain.info/inv')}catch(e){return}
     ws.onopen=()=>{ws.send(JSON.stringify({op:'unconfirmed_sub'}));log('BITCOIN','listening to unconfirmed transactions',0)};
-    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(20,50);
+    ws.onmessage=e=>{const now=performance.now()/1000;if(now-last<gap||T.data<.01)return;last=now;gap=rr(70,180);
       let v=0;try{const x=JSON.parse(e.data).x;v=(x.out||[]).reduce((s,o)=>s+(o.value||0),0)/1e8}catch(_){return}
       const d=Math.max(0,Math.min(9,Math.round(Math.log10(v+1e-4)+4)));
-      tone(mtof(deg(d,S.root+48)),ctx.currentTime+.05,1.4,{gain:.015,attack:.002,dest:L.data,pan:rr(-1,1)});
+      tone(mtof(deg(d,S.root+36)),ctx.currentTime+.05,1.6,{gain:.012,attack:.002,dest:L.data,pan:rr(-1,1)});
       log('BITCOIN',`${v.toFixed(4)} BTC moving`,1.5)};
     ws.onclose=()=>setTimeout(open,30000)};
   open();
@@ -448,7 +448,7 @@ async function radioDeck(delay){
     if(T.radio<.01){await sleep(8000);continue}
     const grp=groupNow(),s=await nextStation(grp);if(!s){await sleep(20000);continue}
     const under=R()<.35,rate=pick([1,1,1,.9,.85,.8]),name=(s.name||'').trim();let line=null;
-    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(25,40),hold:rr(90,200),fadeOut:rr(30,45),rate,filter:under?{freq:rr(350,1100)}:null,level:.8,pan:rr(-.5,.5),
+    const ok=await playMedia(s.url_resolved,{dest:L.radio,fadeIn:rr(25,40),hold:rr(120,260),fadeOut:rr(30,45),rate,filter:under?{freq:rr(350,1100)}:null,level:.8,pan:rr(-.5,.5),
       onStart:()=>{line=log('RADIO · LIVE',`${name} · ${[s.country,(s.tags||'').split(',').slice(0,2).join(' ')].filter(Boolean).join(' · ')}${under?' · underwater':''}${slowTag(rate)}`)},
       onSlow:slowLog('radio',name),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(0,12)*1000:fails>8?30000:1500);
@@ -497,7 +497,7 @@ async function archiveDeck(delay){
     const it=await iaNext(catNow());if(!it){fails++;await sleep(fails>8?30000:1500);continue}
     const rate=pick([1,1,.9,.85,.8,.75,.5]),under=R()<.25;let line=null;
     const sweep=!under&&R()<.35;
-    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(25,40),hold:rr(90,200),fadeOut:rr(30,45),rate,seek:true,sweep,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
+    const ok=await playMedia(it.url,{dest:L.archive,fadeIn:rr(25,40),hold:rr(120,260),fadeOut:rr(30,45),rate,seek:true,sweep,filter:under?{freq:rr(500,1400)}:null,level:.85,pan:rr(-.5,.5),
       onStart:()=>{line=log('ARCHIVE · '+it.cat.toUpperCase(),`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}${under?' · underwater':''}${sweep?' · DJ filter':''}`)},
       onSlow:slowLog(it.cat,it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(0,10)*1000:fails>8?30000:1500);
@@ -534,7 +534,7 @@ async function grainsDeck(){
     let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,2000000))}catch(e){buf=null}
     if(!buf||buf.duration<4){fails++;await sleep(fails>8?30000:1500);continue}
     fails=0;const gn=Math.max(.05,Math.min(3,Math.pow(10,(-22-bufDb(buf))/20)));
-    const dur=rr(60,140),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.06,.16);
+    const dur=rr(90,200),t0=ctx.currentTime,end=t0+dur,drift=rr(-.05,.05),dens=rr(.06,.16);
     const line=log('GRAINS',`new music from the dust of “${it.title}”`,dur);
     const rates=S.scale.map(s=>Math.pow(2,(s-12)/12)).concat([.5,1]);let pos=rr(0,buf.duration-3);
     const dg=ctx.createGain();dg.gain.setValueAtTime(0,t0);dg.gain.linearRampToValueAtTime(gn,t0+12);dg.gain.setValueAtTime(gn,end-12);dg.gain.linearRampToValueAtTime(0,end);dg.connect(L.grains);
@@ -555,10 +555,10 @@ function noise(t,dur,o){const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loo
   s.connect(f);f.connect(g);g.connect(o.dest);s.start(t,rr(0,1.5));s.stop(t+dur+.05);return g}
 const beep=(fs,t,dur,gain,dest,type='sine')=>fs.forEach(f=>{const o=ctx.createOscillator();o.type=type;o.frequency.value=f;const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.008);g.gain.setValueAtTime(gain,t+dur-.01);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.02)});
 const DTMF={1:[697,1209],2:[697,1336],3:[697,1477],4:[770,1209],5:[770,1336],6:[770,1477],7:[852,1209],8:[852,1336],9:[852,1477],0:[941,1336]};
-const tuned=(raw)=>R()<.5?raw:mtof(deg(ri(0,7),S.root+48)); // sometimes the notification is in the scene's key
+const tuned=(raw)=>R()<.5?raw:mtof(deg(ri(0,7),S.root+36)); // sometimes the notification is in the scene's key
 const NET={
-  'ta-tan':d=>{const f=tuned(pick([880,988,1047,1175,1319])),iv=Math.pow(2,pick([4,5,7,12])/12),t=ctx.currentTime+.05;mallet(f,t,.09,d,rr(-.5,.5),.8);mallet(f*iv,t+rr(.1,.16),.09,d,rr(-.5,.5),1.2)},
-  'message':d=>{const f=tuned(pick([1047,1319,1568])),t=ctx.currentTime+.05;bell(f,t,1.2,.07,d,rr(-.4,.4))},
+  'ta-tan':d=>{const f=tuned(pick([659,740,784,880])),iv=Math.pow(2,pick([4,5,7,12])/12),t=ctx.currentTime+.05;mallet(f,t,.09,d,rr(-.5,.5),.8);mallet(f*iv,t+rr(.1,.16),.09,d,rr(-.5,.5),1.2)},
+  'message':d=>{const f=tuned(pick([784,880,988])),t=ctx.currentTime+.05;bell(f,t,1.4,.05,d,rr(-.4,.4))},
   'three notes':d=>{const f=tuned(pick([784,880,1047])),t=ctx.currentTime+.05;[0,4,7].forEach((s,i)=>mallet(f*Math.pow(2,s/12),t+i*.09,.07,d,0,.7))},
   'uh-oh':d=>{const f=tuned(pick([700,820,900])),t=ctx.currentTime+.05;tone(f,t,.22,{type:'square',gain:.04,attack:.01,cutoff:2500,dest:d});tone(f*.75,t+.25,.35,{type:'square',gain:.04,attack:.01,cutoff:2500,dest:d})},
   'pop':d=>{const t=ctx.currentTime+.05,o=ctx.createOscillator();o.frequency.setValueAtTime(rr(800,1300),t);o.frequency.exponentialRampToValueAtTime(rr(180,320),t+.07);const g=ctx.createGain();g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);o.connect(g);g.connect(d);o.start(t);o.stop(t+.15)},
@@ -585,7 +585,7 @@ async function netLoop(){
     const scene=T.net>.01,kind=scene?wpick(NETW):wpick(PINGW),fx=wpick({dry:.4,delay:.3,reflected:.3});
     const bus=L[(scene?'net':'ping')+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
     try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}
-    await sleep((scene?rr(40,100):rr(90,240))*1000);
+    await sleep((scene?rr(90,200):rr(180,420))*1000);
   }
 }
 
@@ -603,7 +603,7 @@ async function humLoop(){
   await sleep(rr(5,20)*1000);
   while(true){
     if(T.hum<.01){await sleep(8000);continue}
-    const kind=pick(Object.keys(HUMS)),dur=rr(50,120),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+10);g.gain.setValueAtTime(1,t+dur-10);g.gain.linearRampToValueAtTime(0,t+dur);
+    const kind=pick(Object.keys(HUMS)),dur=rr(80,180),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+10);g.gain.setValueAtTime(1,t+dur-10);g.gain.linearRampToValueAtTime(0,t+dur);
     let out=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.7,.7);g.connect(p);out=p}out.connect(L.hum);
     HUMS[kind](t,dur,g);log('HUM',kind,dur);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+3)*1000);
@@ -618,7 +618,7 @@ async function fieldDeck(cat,layer,label){
     if(T[layer]<.01){await sleep(8000);continue}
     const it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     const rate=pick([1,1,1,.9,.8,.5]),far=R()<.4;let line=null;
-    const ok=await playMedia(it.url,{dest:L[layer],fadeIn:rr(25,40),hold:rr(90,180),fadeOut:rr(30,45),rate,seek:true,filter:far?{freq:rr(500,1200)}:null,level:.75,pan:rr(-.5,.5),
+    const ok=await playMedia(it.url,{dest:L[layer],fadeIn:rr(25,40),hold:rr(120,240),fadeOut:rr(30,45),rate,seek:true,filter:far?{freq:rr(500,1200)}:null,level:.75,pan:rr(-.5,.5),
       onStart:()=>{line=log(label,`${it.title}${far?' · from far away':''}${slowTag(rate)}`)},onSlow:slowLog(cat,it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(5,40)*1000:fails>8?30000:2000);
   }
@@ -629,7 +629,7 @@ async function bigDroneLoop(){
   await sleep(rr(15,40)*1000);
   while(true){
     if(T.bigdrone<.01){await sleep(8000);continue}
-    const dur=rr(60,160),t=ctx.currentTime+.05,pa=paInt();
+    const dur=rr(90,220),t=ctx.currentTime+.05,pa=paInt();
     const f=ctx.createBiquadFilter();f.type='lowpass';f.Q.value=rr(1,4);f.frequency.setValueAtTime(120,t);f.frequency.linearRampToValueAtTime(rr(500,1500),t+dur*.5);f.frequency.linearRampToValueAtTime(150,t+dur);
     const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+dur*.3);g.gain.setValueAtTime(.09,t+dur*.7);g.gain.linearRampToValueAtTime(0,t+dur);
     f.connect(g);g.connect(L.bigdrone);
@@ -669,7 +669,7 @@ async function natureLoop(){
   await sleep(rr(5,25)*1000);
   while(true){
     if(T.nature<.01){await sleep(8000);continue}
-    const kind=pick(Object.keys(NATURE)),dur=rr(60,150),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+12);g.gain.setValueAtTime(1,t+dur-12);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.nature);
+    const kind=pick(Object.keys(NATURE)),dur=rr(90,200),t=ctx.currentTime+.05,g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+12);g.gain.setValueAtTime(1,t+dur-12);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.nature);
     NATURE[kind](t,dur,g);log('NATURE',kind,dur);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+5)*1000);
     await sleep(rr(dur*.5,dur+50)*1000);
@@ -719,8 +719,8 @@ async function shoLoop(){
   await sleep(6000);
   while(true){
     if(T.sho<.01){await sleep(6000);continue}
-    const t=ctx.currentTime+.1,hold=rr(8,16),dur=hold+8,degs=shuffle([0,1,2,3,4,5,6]).slice(0,ri(4,6));
-    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+4);g.gain.setValueAtTime(1,t+4+hold);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.sho);
+    const t=ctx.currentTime+.1,hold=rr(14,26),dur=hold+12,degs=shuffle([0,1,2,3,4,5,6]).slice(0,ri(4,6));
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+6);g.gain.setValueAtTime(1,t+6+hold);g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.sho);
     degs.forEach(dd=>{const f=mtof(deg(dd,S.root+48));[['sine',.022],['triangle',.01]].forEach(([ty,gn])=>{const o=ctx.createOscillator();o.type=ty;o.frequency.value=f;o.detune.value=rr(-6,6);const og=ctx.createGain();og.gain.value=gn;o.connect(og);og.connect(g);o.start(t);o.stop(t+dur+.1)})});
     log('SHŌ',`${degs.length}-note cluster (aitake) · ${S.scaleName}`,dur);
     if(R()<.3)templeBell(t+dur*.5);
@@ -734,9 +734,9 @@ async function gamelanLoop(){
   await sleep(10000);
   while(true){
     if(T.gamelan<.01){await sleep(6000);continue}
-    const n=ri(4,10),beat=rr(1.6,3.2),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,4);
+    const n=ri(4,9),beat=rr(2.4,4.5),t0=ctx.currentTime+.1;let t=t0,pos=ri(0,4);
     gongAgeng(t);
-    for(let k=0;k<n;k++){pos=Math.max(0,Math.min(9,pos+pick([-1,1,-2,2,1,-1])));metallo(mtof(deg(pos,S.root+36)),t,.045,rr(-.6,.6));if(R()<.3)metallo(mtof(deg(pos,S.root+48)),t+beat/2,.025,rr(-.6,.6));t+=beat*rr(.9,1.15)}
+    for(let k=0;k<n;k++){pos=Math.max(0,Math.min(9,pos+pick([-1,1,-2,2,1,-1])));metallo(mtof(deg(pos,S.root+36)),t,.045,rr(-.6,.6));if(R()<.08)metallo(mtof(deg(pos,S.root+48)),t+beat/2,.02,rr(-.6,.6));t+=beat*rr(.9,1.15)}
     log('GAMELAN',`${S.scaleName} · slow irama · ${n} strokes`,t-t0);
     await sleep((t-ctx.currentTime+rr(15,40))*1000);
   }
@@ -801,7 +801,7 @@ async function phraseDeck(){
     if(v.silent){await sleep(1500);continue}
     let rate=pick([1,1,.75,.5]),dark=R()<.4;if(!v.ok){rate=pick([.5,.4,.33]);dark=true} // rhythmic phrases: slowed and darkened
     const norm=Math.max(.03,Math.min(3,Math.pow(10,(-24-bufDb(lb))/20)));
-    const dur=rr(50,130),t=ctx.currentTime+.1,fi=rr(10,20),fo=rr(12,22);
+    const dur=rr(90,200),t=ctx.currentTime+.1,fi=rr(18,30),fo=rr(20,35);
     const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+fi);out.gain.setValueAtTime(1,t+dur-fo);out.gain.linearRampToValueAtTime(0,t+dur);out.connect(L.phrase);
     const filt=ctx.createBiquadFilter();filt.type=dark?'lowpass':pick(['lowpass','lowpass','highpass','bandpass']);
     const range={lowpass:[300,dark?1800:9000],highpass:[40,1200],bandpass:[300,3000]}[filt.type];if(filt.type==='bandpass')filt.Q.value=1.2;
@@ -838,11 +838,11 @@ async function bowlsLoop(){
   while(true){
     if(T.bowls<.01){await sleep(6000);continue}
     const t=ctx.currentTime+.1;
-    if(R()<.15){tingsha(t);log('TINGSHA','two small cymbals',6)}
+    if(R()<.05){tingsha(t);log('TINGSHA','two small cymbals',6)}
     else{const rubbed=R()<.3,n=rubbed?1:ri(1,3);
       const ns=[];for(let i=0;i<n;i++){const m=deg(ri(0,6),S.root+pick([12,24,24])),dur=rubbed?rr(25,40):rr(18,35);ns.push(NOTES[m%12]);bowl(mtof(m),t+i*rr(2,6),dur,rubbed?.05:.07,rr(-.6,.6),rubbed)}
       log('SINGING BOWL',`${rubbed?'rubbed':'struck'} · ${ns.join(' ')}`,rubbed?25:15)}
-    await sleep(rr(25,60)*1000);
+    await sleep(rr(35,80)*1000);
   }
 }
 async function chantLoop(){
@@ -850,7 +850,7 @@ async function chantLoop(){
   const VOW=[[400,800,2600],[350,600,2700],[700,1100,2500],[500,900,2400]]; // o, u, a, ɔ
   while(true){
     if(T.chant<.01){await sleep(8000);continue}
-    const dur=rr(40,100),t0=ctx.currentTime+.1;let m=S.root-12;if(mtof(m)<50)m+=12;const f0=mtof(m);
+    const dur=rr(60,140),t0=ctx.currentTime+.1;let m=S.root-12;if(mtof(m)<50)m+=12;const f0=mtof(m);
     const sum=ctx.createGain(),out=ctx.createGain();out.gain.setValueAtTime(0,t0);
     const forms=VOW[0].map((fq,i)=>{const b=ctx.createBiquadFilter();b.type='bandpass';b.frequency.value=fq;b.Q.value=[6,8,10][i];const bg=ctx.createGain();bg.gain.value=[1,.6,.25][i];sum.connect(b);b.connect(bg);bg.connect(out);return b});
     const ot=ctx.createBiquadFilter();ot.type='bandpass';ot.Q.value=30;ot.frequency.value=f0*8;const og=ctx.createGain();og.gain.value=.9;sum.connect(ot);ot.connect(og);og.connect(out); // the overtone that sings above
@@ -876,7 +876,7 @@ async function classicalDeck(){
     if(T.classical<.01){await sleep(8000);continue}
     const it=await iaNext('classical');if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     const rate=pick([1,1,.9,.85,.75]);let line=null;
-    const ok=await playMedia(it.url,{dest:L.classical,fadeIn:rr(30,45),hold:rr(90,200),fadeOut:rr(30,45),rate,seek:true,filter:{type:'lowpass',freq:rr(700,1600),q:.5},level:.6,pan:rr(-.6,.6),
+    const ok=await playMedia(it.url,{dest:L.classical,fadeIn:rr(30,45),hold:rr(120,260),fadeOut:rr(30,45),rate,seek:true,filter:{type:'lowpass',freq:rr(700,1600),q:.5},level:.6,pan:rr(-.6,.6),
       onStart:()=>{line=log('CLASSICAL · FAR AWAY',`${it.title}${it.creator?' — '+it.creator:''}${slowTag(rate)}`)},onSlow:slowLog('classical',it.title),onEnd:()=>unlive(line)});
     fails=ok?0:fails+1;await sleep(ok?rr(10,50)*1000:fails>8?30000:2000);
   }
@@ -913,7 +913,7 @@ async function animalsLoop(){
   await sleep(rr(20,50)*1000);
   while(true){
     if(T.animals<.01){await sleep(8000);continue}
-    const kind=pick(Object.keys(AN)),long=AN_LONG.includes(kind),dur=long?rr(30,70):12,t=ctx.currentTime+.1;
+    const kind=pick(Object.keys(AN)),long=AN_LONG.includes(kind),dur=long?rr(50,110):12,t=ctx.currentTime+.1;
     const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+(long?8:.5));g.gain.setValueAtTime(1,t+dur-(long?8:.5));g.gain.linearRampToValueAtTime(0,t+dur);g.connect(L.animals);
     try{AN[kind](t,g,dur)}catch(e){}
     log('ANIMAL',kind,long?dur:6);
