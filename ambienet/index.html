@@ -9,24 +9,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
-#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;z-index:2;background:#000;transition:opacity 4s}
-#start h1{font-weight:400;letter-spacing:.6em;font-size:clamp(28px,6vw,72px);margin:0 0 0 .6em}
-#start p{opacity:.5;letter-spacing:.3em;font-size:12px;margin-top:2em;text-transform:uppercase}
+#tap{position:fixed;top:20px;right:24px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity 2s;pointer-events:none}
+#tap.on{opacity:.75}
 #now{position:fixed;top:20px;left:24px;right:24px;font-size:11px;letter-spacing:.15em;opacity:.55;text-transform:uppercase}
 #stage,#r{font-family:"Archivo","Arial Black","Helvetica Neue",Arial,sans-serif;font-weight:800;font-stretch:125%;white-space:nowrap;text-transform:uppercase;-webkit-user-select:none;user-select:none}
-#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;row-gap:1.2vh;color:#ff2a1a;pointer-events:none}
-#stage div{line-height:.8;flex:none;animation:in 1.2s}
+#stage{position:fixed;inset:40px 0 90px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;row-gap:1.2vh;color:#ff2a1a;pointer-events:none}
+#stage div{line-height:.92;flex:none;animation:in 1.2s}
 #r{position:absolute;left:-99999px;top:0;font-size:100px;visibility:hidden}
-#msg{position:fixed;bottom:40px;left:24px;right:24px;font-size:10px;letter-spacing:.15em;opacity:.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#msg{position:fixed;bottom:58px;left:24px;right:24px;font-size:10px;letter-spacing:.15em;opacity:.45;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @keyframes in{from{opacity:0}to{opacity:1}}
-#foot{position:fixed;bottom:20px;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
+#foot{position:fixed;bottom:14px;line-height:1.8;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
 </style>
 </head>
 <body>
-<div id="start"><h1>AMBIENET</h1><p>click to listen</p></div>
+<div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli</div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span style="color:#ff2a1a">generated</span> · <span style="color:#ffcf1a">remixed from the archive</span> · <span style="color:#22d65a">signals of the internet</span> · <span style="color:#3b7bff">from the archives</span> · <span style="color:#fff">words of SLOGAN</span></div>
 <script>
 'use strict';
 /* ============ utils ============ */
@@ -52,19 +51,19 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,animals:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,binaural:.45,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.15,animals:.2}},
+    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.15,binaural:.3,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:.25,animals:.15}},
+    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,classical:.45,slogan:.25,binaural:.3,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.15,animals:.3}},
+    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.15,binaural:.35,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.15,voices:.1,net:.1,hum:.05,animals:.2}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.15,binaural:.5,voices:.1,net:.1,hum:.05,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,animals:.3}}
+    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,binaural:.4,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,voices:.45,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6,binaural:.6};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
 const ACCENTS=['net','voices','city','airwaves','hum','slogan'];
@@ -76,25 +75,37 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 /* what is sounding right now, in red, as large as possible: one line per sound (like SLOGAN).
    Long-lasting sounds keep their line until they end; short events (an edit, a ping) share one line. */
 const live=new Map();let liveId=0,flash=null;
-const clip=(t,mx=46)=>{t=String(t).replace(/\s+/g,' ').trim();return t.length>mx?t.slice(0,mx-1).trim()+'…':t};
-function log(k,t,liveSec,mx){
-  const text=clip(k+' · '+t,mx);
+/* colour = where the sound comes from:
+   red    — generated here (synthesis): larger
+   yellow — made here from the archive (loops, grains): larger
+   green  — signals of the internet (notifications, phones, Wikipedia, earthquakes, Bitcoin, network)
+   blue   — recordings from the archives (music, field recordings, classical, voices)
+   white  — the words of SLOGAN */
+const CATS=[['gen','#ff2a1a',/^(DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
+  ['mix','#ffcf1a',/^(GRAINS|LOOP)$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
+function log(k,t,liveSec){
+  const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
   if(liveSec===0){msgEl.textContent=text;return null}
-  if(liveSec>0&&liveSec<5){flash={text,until:performance.now()+liveSec*1000};render();setTimeout(render,liveSec*1000+50);return null}
-  const id=++liveId;live.set(id,text);render();
+  if(liveSec>0&&liveSec<5){flash={it,until:performance.now()+liveSec*1000};render();setTimeout(render,liveSec*1000+50);return null}
+  const id=++liveId;live.set(id,it);render();
   if(liveSec>0)setTimeout(()=>unlive(id),liveSec*1000);
   return id;
 }
 const unlive=id=>{if(id!=null&&live.delete(id))render()};
+// always the whole text: long items wrap onto several lines; every line is stretched to the width (as in SLOGAN)
+function wrap(text,per){const w=text.split(' '),n=Math.max(1,Math.round(text.length/per)),target=text.length/n,lines=[];let cur='';
+  for(const x of w){if(cur&&(cur+' '+x).length>target*1.15&&lines.length<n-1){lines.push(cur);cur=x}else cur=cur?cur+' '+x:x}
+  if(cur)lines.push(cur);return lines}
 function render(){
-  const items=[...live.values()];if(flash&&performance.now()<flash.until)items.push(flash.text);
-  const W=innerWidth*.92,H=innerHeight*.8,cap=innerHeight*.22;
-  let sz=items.map(t=>{ruler.textContent=t;return W/(ruler.getBoundingClientRect().width||1)*100});
-  const tot=sz.reduce((a,x)=>a+Math.min(x,cap)*.8,0)+innerHeight*.012*Math.max(0,items.length-1);
-  const f=Math.min(1,H/tot);sz=sz.map(x=>Math.min(x,cap)*f); // fill a lot, never everything
+  const items=[...live.values()];if(flash&&performance.now()<flash.until)items.push(flash.it);
+  const W=innerWidth*.92,H=(innerHeight-130)*.94,cap=innerHeight*.18,gap=innerHeight*.025;
+  const rows=[];items.forEach((it,i)=>wrap(it.text,it.big?24:30).forEach((l,j)=>{ruler.textContent=l;const w=ruler.getBoundingClientRect().width||1;
+    rows.push({l,col:it.col,first:j===0&&i>0,sz:Math.min(cap*(it.big?1:.8),(it.big?W:W*.78)/w*100)})}));
+  const tot=rows.reduce((a,r)=>a+r.sz*.94+(r.first?gap:0),0),f=Math.min(1,H/tot);
   const old=[...stage.children].map(d=>d.textContent);
-  stage.textContent='';
-  items.forEach((t,i)=>{const d=document.createElement('div');d.textContent=t;d.style.fontSize=sz[i]+'px';if(old.includes(t))d.style.animation='none';stage.appendChild(d)});
+  stage.textContent='';stage.style.rowGap='0px';
+  rows.forEach(r=>{const d=document.createElement('div');d.textContent=r.l;d.style.fontSize=r.sz*f+'px';d.style.color=r.col;if(r.first)d.style.marginTop=gap*f+'px';if(old.includes(r.l))d.style.animation='none';stage.appendChild(d)});
 }
 addEventListener('resize',render);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);
 async function fetchJSON(u,ms=12000){const c=new AbortController();const to=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(to)}}
@@ -123,7 +134,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3); // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('binaural',.12,0,1); // binaural beats: almost dry, left and right must stay apart // slogans: a far demonstration, mostly reverb // classical: almost all reverb, far away
   // pings: a message, a ring — always possible, outside the scenes
   mk('pingdry',0,0,1);mk('pingdelay',.25,.9,.5);mk('pingverb',2.2,0,.04);['pingdry','pingdelay','pingverb'].forEach(n=>L[n].gain.value=.4);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1}
@@ -273,7 +284,7 @@ function newScene(first){
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k]));while(acc.length>1)on[acc.pop()]=false}
   {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'],keep=TEX.find(k=>on[k]);
-   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!==keep));const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
+   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep));const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
   if(R()<.3)newLoops();
@@ -965,7 +976,7 @@ async function sloganLoop(){
         t+=buf.duration/rate+rr(1.5,4);
       }
       const total=t-t0+4;
-      log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total,90);
+      log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':''),total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
       await sleep((total+rr(90,220))*1000);
     }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
@@ -977,6 +988,33 @@ async function sloganLoop(){
   }
 }
 
+/* ============ BINAURAL BEATS: low carpets for headphones ============
+   each ear gets a slightly different tone; the brain hears a slow third beat at the difference.
+   Only the low bands: delta (about 1–4 Hz, deep sleep), theta (4–7 Hz, drowsiness, meditation,
+   the threshold of sleep), low alpha (7–10 Hz, relaxed, eyes closed). Usually the beat descends slowly
+   during the carpet (theta → delta). Carriers are low and in the key of the scene.
+   (Research on "entrainment" is mixed; here it is first of all a sound: a slow pulsing inside the head.) */
+const BANDS={delta:[1.5,3.5],theta:[4,7],'low alpha':[7.5,9.5]};
+async function binauralLoop(){
+  await sleep(rr(20,60)*1000);
+  while(true){
+    if(T.binaural<.01){await sleep(8000);continue}
+    const dur=rr(180,360),t=ctx.currentTime+.1,b0n=wpick({theta:.45,delta:.35,'low alpha':.2});
+    const b1n=R()<.7?(b0n==='low alpha'?'theta':'delta'):b0n,b0=rr(...BANDS[b0n]),b1=Math.min(b0,rr(...BANDS[b1n]));
+    const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+30);out.gain.setValueAtTime(1,t+dur-30);out.gain.linearRampToValueAtTime(0,t+dur);out.connect(L.binaural);
+    const c1=mtof(S.root+12),carriers=[[c1,.28],[c1*Math.pow(2,paInt()/12),.14]];
+    carriers.forEach(([c,a])=>{
+      const mg=ctx.createChannelMerger(2),oL=ctx.createOscillator(),oR=ctx.createOscillator(),gL=ctx.createGain(),gR=ctx.createGain();
+      oL.frequency.value=c;oR.frequency.setValueAtTime(c+b0,t);oR.frequency.linearRampToValueAtTime(c+b1,t+dur*.8);
+      gL.gain.value=gR.gain.value=a;oL.connect(gL);oR.connect(gR);gL.connect(mg,0,0);gR.connect(mg,0,1);mg.connect(out);
+      [oL,oR].forEach(o=>{o.start(t);o.stop(t+dur+.2)});
+    });
+    log('BINAURAL',`${b0n} ${b0.toFixed(1)} Hz${b1n!==b0n||Math.abs(b1-b0)>.3?' → '+b1n+' '+b1.toFixed(1)+' Hz':''} · ${Math.round(c1)} Hz · headphones`,dur);
+    setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+2)*1000);
+    await sleep((dur+rr(30,150))*1000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -985,7 +1023,7 @@ async function sloganLoop(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -1004,7 +1042,7 @@ function guardian(){
   const db=rmsDb(masterAn);over=db>-17?over+1:Math.max(0,over-1);
   if(over>=20){
     const lv={};for(const n in LA){const k=n.startsWith('net')?'net':n;if(T[k]>.01)lv[k]=Math.max(lv[k]??-200,rmsDb(LA[n]))}
-    const cand=Object.keys(lv).filter(k=>k!=='drone'&&k!=='bigdrone'),acc=cand.filter(k=>ACCENTS.includes(k)||k==='data'||k==='radio');
+    const cand=Object.keys(lv).filter(k=>k!=='drone'&&k!=='bigdrone'&&k!=='binaural'),acc=cand.filter(k=>ACCENTS.includes(k)||k==='data'||k==='radio');
     const loud=(acc.length?acc:cand).sort((a,b)=>lv[b]-lv[a])[0];
     if(loud){T[loud]=0;(loud==='net'?['netdry','netdelay','netverb']:[loud]).forEach(n=>L[n].gain.setTargetAtTime(0,now,2.5));
       log('VOLUME',`too much at once (${db.toFixed(1)} dB) → ${loud} fades out`,0)}
@@ -1014,15 +1052,23 @@ function guardian(){
 setInterval(guardian,100);
 
 /* ============ start ============ */
-document.getElementById('start').addEventListener('click',async()=>{
-  if(running)return;running=true;setup();try{await ctx.resume()}catch(e){}
-  const st=document.getElementById('start');st.style.opacity=0;setTimeout(()=>st.remove(),4000);
+/* starts at once, no start screen. If the browser keeps the sound locked until the first touch
+   (Safari, phones), everything runs anyway and a small note asks for one click anywhere. */
+async function boot(){
+  if(running)return;running=true;setup();
+  const tap=document.getElementById('tap');
+  const unlock=()=>{ctx.resume().catch(()=>{});if(ctx.state==='running'){tap.classList.remove('on');['pointerdown','keydown','touchstart'].forEach(e=>removeEventListener(e,unlock))}};
+  ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,unlock));
+  try{await Promise.race([ctx.resume(),sleep(700)])}catch(e){}
+  if(ctx.state!=='running')tap.classList.add('on');
+  ctx.onstatechange=()=>{if(ctx.state==='running')tap.classList.remove('on')};
   log('AMBIENET','listening to the internet…',0);
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
-});
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();voicesDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+}
+boot();
 document.addEventListener('keydown',e=>{if(e.key==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
 </script>
 </body>
