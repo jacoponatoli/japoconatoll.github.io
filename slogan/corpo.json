@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-13",
+  "aggiornato": "2026-11-14",
   "parole": {
     "good": [
       "sanità:fs",
@@ -29,7 +29,13 @@
       "pisolino:ms",
       "errore:ms",
       "tenerezza:fs",
-      "siesta:fs"
+      "siesta:fs",
+      "dietrofront:ms",
+      "coriandoli:mp",
+      "divano:ms",
+      "pennichella:fs",
+      "pomeriggio:ms",
+      "dialogo:ms"
     ],
     "bad": [
       "riarmo:ms",
@@ -82,7 +88,12 @@
       "cinghia:fs",
       "listini:mp",
       "fretta:fs",
-      "risposte automatiche:fp"
+      "risposte automatiche:fp",
+      "rating:ms",
+      "superbonus:ms",
+      "straordinari:mp",
+      "scadenze:fp",
+      "ordini:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -102,7 +113,10 @@
       "poeti:mp",
       "agricoltori:mp",
       "sognatori:mp",
-      "presidi:mp"
+      "presidi:mp",
+      "studentesse:fp",
+      "precari:mp",
+      "insegnanti:mp"
     ],
     "place": [
       "licei:mp",
@@ -116,7 +130,10 @@
       "quartieri:mp",
       "condomini:mp",
       "aule:fp",
-      "soffitte:fp"
+      "soffitte:fp",
+      "piazze:fp",
+      "marciapiedi:mp",
+      "centri per l'impiego:mp"
     ]
   },
   "slogan": [
@@ -320,6 +337,54 @@
         "Venerdì 13: porta sfortuna solo alle sveglie",
         "L'errore non si corregge: si festeggia"
       ]
+    },
+    {
+      "d": "2026-11-14",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Dietrofront del governo: finalmente un passo di danza",
+        "Ma non erano tagli. Erano coriandoli",
+        "Il governo apre a modifiche: modifichiamo il lunedì",
+        "Caccia alle risorse: cercate sotto il cuscino",
+        "Rating del pisolino confermato: prospettive stabili",
+        "Tassa per chi lascia il Paese, premio per chi lascia l'ufficio",
+        "Il Garante esclude treni e aerei: scioperiamo a piedi, piano",
+        "L'ozio conferma lo sciopero generale",
+        "Via le misure sulla riduzione del personale: riduciamo l'orario",
+        "Un altro sonno, un altro mondo è possibile",
+        "La repressione non ci ferma. La pennichella sì",
+        "Facciamo come in Francia: pausa pranzo di due ore",
+        "Al centro sei tu. Ai margini si sta meglio",
+        "Un passo alla volta. Poi ci sediamo",
+        "Punti Analogico Facile: spegni e riaccendi il Paese",
+        "Vaccino contro la fretta: dose unica, gratuita",
+        "Lo sciopero che normalizza definitivamente l'ozio",
+        "Els carrers seran sempre nostres. I els sofàs també",
+        "Violencia es el despertador de las seis",
+        "Lavoro precario per l'impresario, ozio stabile per noi",
+        "Queremos vivir, no rendir",
+        "Se busca domingo en la Constitución",
+        "Il sonno dev'essere un diritto reale, non un sogno",
+        "La fretta cambierà campo",
+        "Lottate per ciò che è vostro: il pomeriggio",
+        "Vaga, vaga, vaga generale: vaghiamo senza meta",
+        "On en a ras-le-bol. Remplissez-le de soupe",
+        "Rien ne nous arrêtera. Sauf un banc au soleil",
+        "C'est un rassemblement de plusieurs paresses",
+        "Non «vinceremo?», ma «quanto dormiremo?»",
+        "De la Grèce à la France, une sieste publique et gratuite",
+        "Hanno provato le vacanze: funzionano, ne vogliamo altre",
+        "Sabotiamo guerre e lunedì",
+        "Sotto il selciato, il divano (versione 3.0)",
+        "Vogliamo il pane, le rose e anche la mattina libera",
+        "Vietato vietare. Aggiornamento: vietato affrettare",
+        "La fantasia al potere: nuova versione, senza il potere",
+        "Workers of the world, unwind",
+        "Chi dorme non piglia ordini",
+        "Sbagliando si impara. Sbagliando ancora, si gioca",
+        "Poesia in ritardo: abbiate pazienza, ne vale la pena",
+        "Tenerezza a tempo indeterminato"
+      ]
     }
   ],
   "letti": [
@@ -447,6 +512,48 @@
         "El pueblo unido jamás será vencido (slogan storico)",
         "Lavorare meno, lavorare tutti (slogan storico)",
         "Siate realisti, chiedete l'impossibile (slogan storico)"
+      ]
+    },
+    {
+      "d": "2026-11-14",
+      "t": [
+        "Manovra, governo apre a modifiche: via tagli scuola e caccia a risorse su sanità (titolo)",
+        "Scuola, dietrofront del governo (prima pagina)",
+        "La manovra cambia: via le misure sulla riduzione del personale. «Ma non erano tagli» (prima pagina)",
+        "L'agenzia conferma il rating e le prospettive (prima pagina)",
+        "Verso modifiche sulla tassa per chi lascia il Paese (prima pagina)",
+        "Sciopero generale 20 novembre: il Garante esclude treni e aerei (titolo)",
+        "Il sindacato conferma lo sciopero generale (titolo)",
+        "Un'altra scuola, un altro mondo è possibile (coro degli studenti, Milano)",
+        "Repressione non ci ferma (corteo, Milano)",
+        "Facciamo come in Francia (studenti in piazza)",
+        "Al centro sei tu (claim istituzionale, centri per l'impiego)",
+        "Un posto alla volta (claim di una raccolta fondi, Trento)",
+        "Punti Digitale Facile (campagna istituzionale)",
+        "Campagna antinfluenzale: il ministero punta su dialogo e IA (titolo)",
+        "Lo spot di Natale che normalizza definitivamente l'AI (titolo)",
+        "Els carrers seràn sempre nostres (coro, sciopero generale di València)",
+        "Violencia es no llegar a fin de mes (coro, València)",
+        "Treball precari, per a l'empresari (coro, València)",
+        "Vaga, vaga, vaga general (coro, València)",
+        "Queremos vivir, no sobrevivir (cartello, València)",
+        "Se busca artículo 47 en la Constitución (cartello, València)",
+        "La vivienda tiene que ser un derecho real, no un sueño (cartello, València)",
+        "El miedo va a cambiar de bando (cartello, València)",
+        "Luchad por lo que es vuestro (cartello, València)",
+        "On en a ras-le-bol (titolo sugli scioperi in Francia)",
+        "Rien ne nous arrêtera (frase dal corteo di Parigi)",
+        "C'est un rassemblement de plusieurs colères (frase dal corteo di Parigi)",
+        "La question, c'est pas «est-ce qu'on va gagner» mais «combien va-t-on gagner?» (frase dal corteo di Parigi)",
+        "De la Grèce à la France, nous nous battons pour une éducation publique et gratuite (striscione, Atene)",
+        "Ils ont essayé la répression, ils ont essayé les vacances, ils n'ont pas réussi (frase dagli scioperi in Francia)",
+        "Sabotiamo guerre e patriarcato (slogan dei cortei femministi)",
+        "Sous les pavés, la plage (slogan storico)",
+        "Vogliamo il pane e anche le rose (slogan storico)",
+        "Vietato vietare (slogan storico)",
+        "La fantasia al potere (slogan storico)",
+        "Workers of the world, unite (slogan storico)",
+        "Chi dorme non piglia pesci (proverbio)"
       ]
     }
   ]
