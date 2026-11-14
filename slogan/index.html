@@ -352,7 +352,11 @@ window.SLOGAN = { shot, show(t) { show(t || make()); } };   // per provare dalla
 
 // parte quando ci sono il font e il corpo (o comunque dopo 2,5 secondi)
 let started = false;
-const start = () => { if (!started) { started = true; if (/[?&]fermo/.test(location.search)) show(make()); else next(); } };
+const start = () => {
+  if (started) return; started = true;
+  const fisso = new URLSearchParams(location.search).get('s');   // ?s=TESTO: apre uno slogan dell'archivio
+  if (fisso) show(fisso); else if (/[?&]fermo/.test(location.search)) show(make()); else next();
+};
 Promise.all([load(), document.fonts && document.fonts.load ? document.fonts.load('800 40px Archivo').catch(() => {}) : 0]).then(start);
 setTimeout(start, 2500);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (current) { measure(); layout(); } });

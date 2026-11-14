@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLOGAN — archivio</title>
+<meta name="description" content="SLOGAN — archivio di tutti gli slogan inventati, giorno per giorno. Un lavoro di Jacopo Natoli.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,800&display=swap" rel="stylesheet">
+<style>
+  html { background: #000; color: #fff; }
+  body { margin: 0; padding: 6vw 5vw 12vw; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  h1 { font-weight: 800; font-stretch: 125%; font-size: clamp(48px, 14vw, 220px); line-height: .8; margin: 0 0 .25em; text-transform: uppercase; letter-spacing: -.01em; }
+  .meta { font-size: 15px; opacity: .6; margin: 0 0 2.5em; line-height: 1.5; }
+  .meta a { color: inherit; }
+  input { background: transparent; color: #fff; border: 0; border-bottom: 2px solid #fff; font: 800 22px "Archivo", sans-serif; font-stretch: 110%; text-transform: uppercase; width: 100%; max-width: 560px; padding: 6px 0; outline: none; margin-bottom: 3em; }
+  input::placeholder { color: #fff; opacity: .35; }
+  section { margin: 0 0 4em; }
+  h2 { font-weight: 400; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; opacity: .55; margin: 0 0 1.2em; border-top: 1px solid rgba(255,255,255,.3); padding-top: .8em; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { font-weight: 800; font-stretch: 125%; font-size: clamp(20px, 3.4vw, 40px); line-height: 1.02; text-transform: uppercase; margin: 0 0 .45em; }
+  li a { color: #fff; text-decoration: none; }
+  li a:hover { background: #fff; color: #000; }
+  .empty { opacity: .5; font-size: 18px; }
+</style>
+</head>
+<body>
+<h1>Slogan<br>archivio</h1>
+<p class="meta" id="meta">Il corpo che cresce: tutti gli slogan inventati, giorno per giorno. Nessuno si cancella.<br><a href="../">← torna al generatore</a></p>
+<input id="q" type="search" placeholder="cerca una parola" aria-label="cerca nell'archivio">
+<div id="list"><p class="empty">carico…</p></div>
+<script>
+/* Archivio di SLOGAN: legge ../corpo.json e mostra tutti i blocchi di slogan, dal più recente.
+   Si aggiorna da solo quando corpo.json cresce. Toccando uno slogan lo si apre grande nel generatore. */
+const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const data = s => { const [y, m, d] = (s || '').split('-').map(Number); return y ? `${d} ${MESI[m - 1]} ${y}` : ''; };
+const list = document.getElementById('list'), q = document.getElementById('q'), meta = document.getElementById('meta');
+let blocks = [];
+function render() {
+  const f = q.value.trim().toLowerCase();
+  list.textContent = '';
+  let shown = 0;
+  blocks.forEach(b => {
+    const t = b.t.filter(s => !f || s.toLowerCase().includes(f));
+    if (!t.length) return;
+    const sec = document.createElement('section'), h = document.createElement('h2'), ul = document.createElement('ul');
+    h.textContent = [data(b.d), b.tipo, b.di ? 'di ' + b.di : '', t.length + (t.length === 1 ? ' slogan' : ' slogan')].filter(Boolean).join(' — ');
+    t.forEach(s => {
+      const li = document.createElement('li'), a = document.createElement('a');
+      a.href = '../?s=' + encodeURIComponent(s); a.textContent = s;
+      li.appendChild(a); ul.appendChild(li); shown++;
+    });
+    sec.append(h, ul); list.appendChild(sec);
+  });
+  if (!shown) list.innerHTML = '<p class="empty">niente, per ora.</p>';
+}
+fetch('../corpo.json?' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(c => {
+  blocks = (c.slogan || []).map(b => ({ ...b, t: (b.t || []).filter(Boolean) })).filter(b => b.t.length).reverse();
+  const tot = blocks.reduce((a, b) => a + b.t.length, 0), giorni = new Set(blocks.map(b => b.d)).size;
+  meta.insertAdjacentHTML('afterbegin', `<strong>${tot} slogan in ${giorni} giorni</strong>${c.aggiornato ? ' — aggiornato il ' + data(c.aggiornato) : ''}.<br>`);
+  render();
+}).catch(() => { list.innerHTML = '<p class="empty">archivio non raggiungibile.</p>'; });
+q.addEventListener('input', render);
+</script>
+</body>
+</html>
