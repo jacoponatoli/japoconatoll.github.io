@@ -35,7 +35,12 @@
       "divano:ms",
       "pennichella:fs",
       "pomeriggio:ms",
-      "dialogo:ms"
+      "dialogo:ms",
+      "ricreazione:fs",
+      "merenda:fs",
+      "caramelle:fp",
+      "matite:fp",
+      "rondini:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -93,7 +98,12 @@
       "superbonus:ms",
       "straordinari:mp",
       "scadenze:fp",
-      "ordini:mp"
+      "ordini:mp",
+      "allarmi:mp",
+      "evacuazioni:fp",
+      "bonifiche:fp",
+      "minacce:fp",
+      "motti:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -133,7 +143,8 @@
       "soffitte:fp",
       "piazze:fp",
       "marciapiedi:mp",
-      "centri per l'impiego:mp"
+      "centri per l'impiego:mp",
+      "giardini:mp"
     ]
   },
   "slogan": [
@@ -385,6 +396,48 @@
         "Poesia in ritardo: abbiate pazienza, ne vale la pena",
         "Tenerezza a tempo indeterminato"
       ]
+    },
+    {
+      "d": "2026-11-14",
+      "tipo": "deturnamento della mail di minaccia alle scuole e dei motti fascisti",
+      "t": [
+        "L'edificio è stato minato: da mine di matita",
+        "In questo preciso momento la vostra noia è in pericolo",
+        "Una risata esploderà entro un'ora",
+        "La ricreazione è vicina",
+        "Siamo venuti per annaffiarvi",
+        "Mi sono preparato a lungo per questo: un pisolino",
+        "Nel vostro edificio, in un sacchetto di plastica: la merenda",
+        "Nitrato di abbraccio, potentissimo, a distanza",
+        "Allarme bombolone in 3.800 scuole",
+        "Vilayat di Pigristan: aggiornamento disponibile",
+        "Emirato del Sonnistan, nuova versione senza minacce",
+        "Niente lezioni senza elementi concreti di piacere",
+        "Niente evacuazioni: solo evasioni dalla noia",
+        "Creiamo un caos tenerissimo",
+        "La scuola deve essere un luogo insicuro e aperto: ai dubbi",
+        "Bonifiche in corso: rimossi 3.800 compiti in classe",
+        "Il governo frena. Noi pure, ma con gusto",
+        "Spam del terrore, risposta automatica: siamo in giardino",
+        "Mail di minaccia 2.0: ora contiene solo poesie",
+        "La paura ha cambiato indirizzo: destinatario sconosciuto",
+        "Credere, disobbedire, sonnecchiare",
+        "Me ne frego del me ne frego",
+        "Dio, pigiama e famiglia allargata",
+        "Boia chi non molla: mollate tutto e andate al mare",
+        "Molti amici, poco orario",
+        "Chi si ferma ha trovato una panchina",
+        "Meglio cento giorni da pecora: si dorme di più",
+        "Perdere! E perderemo, con eleganza",
+        "Brot und Bett",
+        "Prima i pisolini, poi gli italiani",
+        "Prima gli ultimi, poi i penultimi, poi tutti",
+        "Remigrazione delle rondini: tornino tutte, a primavera",
+        "Legge e disordine affettuoso",
+        "Fascismo 1.0: versione obsoleta, non installare",
+        "Aggiornamento del manganello: ora è una bacchetta da direttore d'orchestra",
+        "Bismillah c'est les ténèbres, il Misoginistan c'est la sieste"
+      ]
     }
   ],
   "letti": [
@@ -554,6 +607,38 @@
         "La fantasia al potere (slogan storico)",
         "Workers of the world, unite (slogan storico)",
         "Chi dorme non piglia pesci (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-14",
+      "tipo": "la mail falsa di minaccia alle scuole e i motti violenti",
+      "t": [
+        "L'edificio è stato minato e in questo preciso momento la vostra vita è in pericolo (mail falsa inviata a circa 3.800 scuole, 12 novembre)",
+        "Un ordigno esploderà entro un'ora (oggetto della mail falsa, 2 novembre)",
+        "La morte è vicina (oggetto della mail falsa, 19 ottobre)",
+        "Siamo venuti per annientarvi (mail falsa alle scuole)",
+        "Mi sono preparato a lungo per questo (mail falsa alle scuole)",
+        "Ho appena lasciato nel vostro edificio, in un sacchetto di plastica, un potente ordigno (mail falsa)",
+        "Un ordigno con nitrato di ammonio (mail falsa)",
+        "Leader del Vilayat di Misoginistan (firma della mail falsa)",
+        "Niente evacuazioni senza elementi concreti di pericolo (indicazione del governo alle scuole)",
+        "Hanno creato un caos terribile (una dirigente scolastica)",
+        "La scuola deve essere un luogo sicuro e aperto (un presidente di regione)",
+        "Bonifiche in corso (cronache degli allarmi)",
+        "Il governo frena (titolo)",
+        "Credere, obbedire, combattere (motto fascista)",
+        "Me ne frego (motto fascista)",
+        "Dio, patria, famiglia (motto reazionario)",
+        "Boia chi molla (motto fascista)",
+        "Molti nemici, molto onore (motto fascista)",
+        "Chi si ferma è perduto (motto fascista)",
+        "Meglio vivere un giorno da leone che cento da pecora (motto fascista)",
+        "Vincere! E vinceremo (motto fascista)",
+        "Blut und Boden (motto nazista)",
+        "Prima gli italiani (slogan della destra)",
+        "Remigrazione (parola d'ordine dell'estrema destra)",
+        "Legge e ordine (slogan securitario)",
+        "Una risata vi seppellirà (slogan storico)"
       ]
     }
   ]
