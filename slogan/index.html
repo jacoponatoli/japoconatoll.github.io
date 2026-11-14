@@ -143,6 +143,19 @@ const IT = [
   () => { const g = pick(GOOD); return `${d(g)} non ${cop(g)} in vendita`; },       // Greenland is not for sale
   () => `Adesso basta ${pick(BAD).w}`,                                              // Adesso basta
   () => `Tassate ${d(pick(BAD))}, non ${d(pick(GOOD))}`,                            // Tax the rich
+  // --- variazioni di classici italiani ---
+  () => { const s = pick(SUBJ), f = s.g === 'f'; return `Tremate, tremate, ${d(s)} son ${f ? 'tornate' : 'tornati'}`; }, // Tremate, tremate, le streghe son tornate
+  () => `${cap(pick(GOOD).w)} continua`,                                           // Lotta continua
+  () => `Ora e sempre ${pick(GOOD).w}`,                                            // Ora e sempre resistenza
+  () => `Pagherete caro, pagherete ${pick(['in sonno', 'in poesia', 'in ritardo', 'tutto, ma con calma', 'in carezze', 'a rate di ozio'])}`, // Pagherete caro, pagherete tutto
+  () => `Se non ${pick(['dopo pranzo', 'domenica', 'nel sonno', 'piano', 'mai', 'stanotte'])}, quando?`, // Se non ora, quando?
+  () => { const g = pick(GOOD); return `${d(g)} ${g.n === 's' ? (g.g === 'f' ? 'è mia e la' : 'è mio e lo') : (g.g === 'f' ? 'sono mie e le' : 'sono miei e li')} gestisco io`; }, // Il corpo è mio e lo gestisco io
+  () => `Vogliamo tutto${pick([', ma piano', ', anche il pisolino', ': domani, con calma', ', e poi niente'])}`, // Vogliamo tutto
+  () => `Siamo tutti anti${pick(['sveglia', 'fretta', 'lunedì', 'algoritmo', 'manovra', 'straordinario', 'notifica'])}`, // Siamo tutti antifascisti
+  () => `Metti ${ind(pick(sing(GOOD)))} nel motore`,                               // Metti un tigre nel motore
+  () => `Ti piace ${pick(['perdere lentamente', 'dormire facile', 'vincere niente', 'sbagliare bene'])}?`, // Ti piace vincere facile?
+  () => `Credere, disobbedire, ${pick(GOODV.filter(v => v !== 'disobbedire'))}`,                                    // Credere, obbedire, combattere
+  () => `Chi si ferma ${pick(['ha trovato una panchina', 'si riposa', 'guarda il cielo', 'è arrivato'])}`, // Chi si ferma è perduto
 ];
 
 /* ---------- ALTRE LINGUE (inserti più rari) ---------- */
@@ -169,15 +182,41 @@ const EN = [
   () => `${pick(EG)} is not for sale`,
   () => `Make ${pick(EBP)} go away`,
   () => `${pick(EG)} over ${pick(EB)}`,
+  // --- variazioni di classici inglesi ---
+  () => `Keep calm and ${pick(['nap', 'dream', 'strike', 'stay in bed', 'do nothing', 'slow down', 'log off'])}`,
+  () => pick(['Just don\'t do it', `Just ${pick(['nap', 'dream', 'skip', 'float', 'snooze'])} it`]),
+  () => `Think ${pick(['slower', 'softer', 'sideways', 'nothing', 'twice, then nap'])}`,
+  () => `Power to the ${pick(['sleepers', 'idle', 'dreamers', 'slow', 'tired', 'lazy', 'daydreamers'])}`,
+  () => `Hell no, we won't ${pick(['wake up', 'hurry', 'log in', 'work late', 'scroll', 'update'])}`,
+  () => `Yes we ${pick(['nap', 'rest', 'dream', 'stop', 'wait'])}`,
+  () => `Take back ${pick(['the afternoon', 'the night', 'sleep', 'the snooze button', 'Sundays'])}`,
+  () => `Stay ${pick(['sleepy', 'slow', 'soft', 'offline', 'lazy'])}, stay ${pick(['foolish', 'tender', 'useless', 'in bed'])}`,
+  () => `There is no alternative to ${pick(EG)}`,
+  () => `Everybody hates ${pick(EBP)}`,
+  () => `Make ${pick(EG)} great again`,
+  () => `Because you're worth ${pick(['a nap', 'a slow morning', 'a long lunch', 'a day off'])}`,
 ];
 const FR_UNDER = ["les écrans","les données","le béton","les horaires","le bureau","les notifications","les factures","le parking"];
 const FR_GOOD = ["la plage","la nuit","la mer","le sommeil","la fête","le vent","l'herbe","la paresse","la poésie","la lenteur","le silence","l'ennui"];
+const FR_BAD = ["le réveil","les lundis","la police Comic Sans","la police d'assurance","l'algorithme","les heures sup","la paperasse","le bureau","les notifications","la fin du mois","les réunions","le pointage"];
+const FR_GN = ["sommeil","sieste","poésie","rêves","vacances","lenteur","silence","tendresse"];
 const FR = [
   () => `Sous ${pick(FR_UNDER)}, ${pick(FR_GOOD)}`,
   () => `Il est interdit ${pick(["d'obéir","de produire","de se presser","de mesurer","d'optimiser","de se résigner","de scroller","d'arriver à l'heure"])}`,
   () => `${pick(FR_UNDER)} partout, ${pick(FR_GOOD)} nulle part`,
   () => `Soyez ${pick(['paresseux','lents','inutiles','en retard','distraits'])}, demandez ${pick(FR_GOOD)}`,
   () => `${pick(FR_GOOD)} est dans la rue`,
+  // --- variazioni di classici francesi ---
+  () => `Tout le monde déteste ${pick(FR_BAD)}`,                                   // Tout le monde déteste la police
+  () => `Tout le monde aime ${pick(FR_GOOD)}`,
+  () => `${pick(['Métro, boulot', 'Réveil, boulot', 'Écran, boulot', 'Métro, sieste', 'Boulot, boulot'])}, ${pick(['dodo', 'dodo, dodo', 'plage', 'poésie', 'rien'])}`, // Métro, boulot, dodo
+  () => `Cours camarade, le vieux ${pick(['lundi', 'bureau', 'réveil', 'patron', 'pointage'])} est derrière toi`,
+  () => `Prenez vos ${pick(['siestes', 'rêves', 'lenteurs', 'erreurs', 'nuits'])} pour des réalités`,
+  () => `Fin du monde, fin du mois, même ${pick(['sieste', 'sommeil', 'rêve', 'pyjama'])}`,
+  () => `Pas de ${pick(FR_GN)}, pas de paix`,
+  () => `Liberté, égalité, ${pick(['sieste', 'paresse', 'poésie', 'lenteur', 'tendresse', 'grasse matinée'])}`,
+  () => `Tout est à nous, rien n'est à ${pick(['eux', "l'algorithme", 'la banque', 'personne'])}`,
+  () => `On est là, on est là, même si ${pick(['le réveil', 'le patron', "l'algorithme", 'le lundi'])} ne veut pas, nous on est là`,
 ];
 const ES_M = ["sueño","silencio","ocio","error","verano","domingo"], ES_F = ["siesta","poesía","pereza","fiesta","noche","duda"];
 const ES_BAD = ["reloj","patrón","pantalla","frontera","algoritmo","deuda","prisa","lunes","horario","contraseña"];
