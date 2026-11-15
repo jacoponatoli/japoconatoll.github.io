@@ -69,7 +69,7 @@ const COLORS={
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
     prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,binaural:.4,remnant:.35,cosmos:.3,mantra:.35,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.6,binaural:.6,remnant:.7,cosmos:.65,mantra:.6};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.5,binaural:.6,remnant:.7,cosmos:.65,mantra:.6};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
 const ACCENTS=['net','city','airwaves','hum','slogan'];
@@ -151,7 +151,7 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.45;
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.38;
   mk('binaural',.12,0,1);mk('live',1.2,.2,.6);mk('cosmos',.9,.1);mk('mantra',1.1,.15);L.live.gain.value=.7;mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
    L.spoken=g;T.spoken=0;LN.spoken=ng;LNv.spoken=1;const an=ctx.createAnalyser();an.fftSize=2048;ng.connect(an);an.connect(meterSink);LA.spoken=an} // spoken: its own path, in front
   /* slogans: a far demonstration, mostly reverb (also outside the scenes) · classical: almost all reverb, far away ·
@@ -1204,18 +1204,19 @@ async function mantraDeck(){
     fails=0;
     let len=rr(6,16),st=null,lvl=-99;for(let k=0;k<10;k++){const s0=rr(2,buf.duration-len-2),d=rangeDb(buf,s0,len);if(d>-40&&d>lvl){st=s0;lvl=d;if(d>-30)break}}
     if(st==null){await sleep(1500);continue}
-    const lb0=loopBuffer(buf,st,len),rev=R()<.15,lb=rev?reverseBuffer(lb0):lb0,env=bufEnv(lb),v=judge(env,env);
-    let rate=pick([.95,.9,.85,.8,.75]);if(!v.ok)rate=pick([.6,.5]);
-    const norm=Math.max(.03,Math.min(4,Math.pow(10,(-24-bufDb(lb))/20))),dur=rr(90,200),t=ctx.currentTime+.1,fi=rr(20,35),fo=rr(25,40);
+    const flow=R()<.5; // half of the time the mantra just flows on, no loop
+    const lb0=flow?buf:loopBuffer(buf,st,len),rev=!flow&&R()<.12,lb=rev?reverseBuffer(lb0):lb0,env=bufEnv(flow?loopBuffer(buf,st,len):lb),v=judge(env,env);
+    let rate=pick([1,1,.97,.94,.9]);if(!v.ok)rate=pick([.85,.8]);
+    const norm=Math.max(.03,Math.min(4,Math.pow(10,(-24-rangeDb(buf,st,len))/20))),dur=flow?Math.min(rr(90,200),(buf.duration-st-1)/rate):rr(90,200),t=ctx.currentTime+.1,fi=Math.min(rr(20,35),dur/4),fo=Math.min(rr(25,40),dur/3);
     const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+fi);out.gain.setValueAtTime(1,t+dur-fo);out.gain.linearRampToValueAtTime(0,t+dur);out.connect(L.mantra);
     const hp=filt('highpass',100),lp=filt('lowpass',rr(1300,2800),.6),sh=shaper(rr(1.2,2));hp.connect(lp);lp.connect(sh);sh.connect(out);
-    const ghost=R()<.3,n=ghost?2:1;
-    for(let j=0;j<n;j++){const src=ctx.createBufferSource();src.buffer=lb;src.loop=true;src.playbackRate.value=rate*(j?.5:1);
-      const wow=ctx.createOscillator(),wg=ctx.createGain();wow.frequency.value=rr(.15,.4);wg.gain.value=rr(5,12);wow.connect(wg);wg.connect(src.detune);
+    const ghost=R()<.12,n=ghost?2:1;
+    for(let j=0;j<n;j++){const src=ctx.createBufferSource();src.buffer=lb;src.loop=!flow;src.playbackRate.value=rate*(j?.5:1);
+      const wow=ctx.createOscillator(),wg=ctx.createGain();wow.frequency.value=rr(.15,.35);wg.gain.value=rr(2,6);wow.connect(wg);wg.connect(src.detune);
       const g=ctx.createGain();g.gain.value=norm*(j?.35:.85);src.connect(g);
       if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=j?rr(-.6,.6):rr(-.25,.25);g.connect(p);p.connect(hp)}else g.connect(hp);
-      [src,wow].forEach(x=>{x.start(t,0);x.stop(t+dur+.3)})}
-    log('MANTRA',`${it.title}${it.creator?' — '+it.creator:''} · ${Math.round(len)} s loop, far${rev?', reversed':''}${slowTag(rate)}${ghost?' · ghost an octave below':''}`,dur);
+      src.start(t,flow?st:0);wow.start(t);[src,wow].forEach(x=>x.stop(t+dur+.3))}
+    log('MANTRA',`${it.title}${it.creator?' — '+it.creator:''} · ${flow?'flowing':Math.round(len)+' s loop'}, far${rev?', reversed':''}${slowTag(rate)}${ghost?' · ghost an octave below':''}`,dur);
     setTimeout(()=>{try{out.disconnect()}catch(e){}},(dur+1)*1000);
     await sleep(rr(dur*.7,dur+40)*1000);
   }
@@ -1229,7 +1230,7 @@ async function mantraDeck(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={cosmos:-27,mantra:-27,live:-30,remnant:-27,spoken:-27,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={slogan:-33,sloganbase:-33,cosmos:-27,mantra:-27,live:-30,remnant:-27,spoken:-27,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
