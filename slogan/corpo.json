@@ -50,7 +50,12 @@
       "briscola:fs",
       "mezzogiorno:ms",
       "puntini di sospensione:mp",
-      "versi:mp"
+      "versi:mp",
+      "ostinazione:fs",
+      "amicizia:fs",
+      "studio:ms",
+      "timidezza:fs",
+      "clandestinità:fs"
     ],
     "bad": [
       "riarmo:ms",
@@ -126,7 +131,14 @@
       "ringhiere:fp",
       "acquisti:mp",
       "disprezzo:ms",
-      "preoccupazioni:fp"
+      "preoccupazioni:fp",
+      "resilienza:fs",
+      "vulnerabilità:fs",
+      "capitale umano:ms",
+      "spettacolo:ms",
+      "psicofarmaci:mp",
+      "nichilismo:ms",
+      "boreout:ms"
     ],
     "subj": [
       "liceali:mp",
@@ -155,7 +167,9 @@
       "pigri:mp",
       "passanti:mp",
       "adolescenti:mp",
-      "bagnini:mp"
+      "bagnini:mp",
+      "timidi:mp",
+      "amici:mp"
     ],
     "place": [
       "licei:mp",
@@ -739,6 +753,55 @@
         "Sdraiati si vince",
         "Fate piano"
       ]
+    },
+    {
+      "d": "2026-11-16",
+      "tipo": "deturnamento di un testo",
+      "fonte": "Paolo Godani, Sopravvivere alla civiltà del suicidio (su Manuel de survie del Comitato Invisibile)",
+      "t": [
+        "L'insurrezione dei timidi",
+        "Timidi di tutto il mondo, non unitevi troppo",
+        "Il metodo è l'ozio, lo scopo è salvare l'anima",
+        "Sopravvivere alla civiltà, non al lunedì",
+        "Guariamo dalla speranza, non dal desiderio",
+        "Disertare in silenzio, a oltranza",
+        "Quiet quitting generale",
+        "Mille avatar, nessun padrone",
+        "Boreout: la cura è uscire",
+        "Non siamo resilienti, siamo renitenti",
+        "Resilienza è il nome gentile della rassegnazione",
+        "Né resilienti né vulnerabili: ostinati",
+        "Adattatevi voi",
+        "Il capitale è l'ambiente, cambiamo aria",
+        "Sotto il vuoto, gli amici",
+        "Giardini di amici, non reti di contatti",
+        "Spazi di non pubblicità",
+        "Meno opinioni, più silenzio",
+        "Studiare è disertare il tempo vuoto",
+        "Coltiviamo l'ostinazione",
+        "Non siamo capitale umano, siamo umani senza capitale",
+        "Il nostro desiderio non si è estinto, è in sciopero",
+        "Tagliate i legami con ciò che affonda",
+        "La rivoluzione è una miriade di diserzioni",
+        "Non un progetto: una risonanza",
+        "Vita nascosta, festa clandestina",
+        "Il contrario di sinistra è rivoluzionario",
+        "Prendersi cura di sé, non del proprio capitale",
+        "Non vittime: disertori",
+        "Folle solitarie, unitevi in silenzio",
+        "La timidezza al potere",
+        "Il prato è meglio del salario",
+        "Uscire dallo spettacolo senza fare spettacolo",
+        "Lo sconforto è politico",
+        "Nessun palco, nessun Gucci, nessun padrone",
+        "Più amicizia, meno psicofarmaci di Stato",
+        "Hanno occupato il mezzo, riprendiamoci i lati",
+        "Liberi di dire tutto, anche niente",
+        "La survie n'est pas un manuel",
+        "L'insurrection des timides",
+        "Desert quietly, desert forever",
+        "Resilience is not a virtue"
+      ]
     }
   ],
   "letti": [
@@ -1172,6 +1235,19 @@
         "Tra il dire e il fare c'è di mezzo il mare (proverbio)",
         "Uniti si vince (slogan)",
         "Fate presto (titolo celebre)"
+      ]
+    },
+    {
+      "d": "2026-11-16",
+      "tipo": "testo",
+      "t": [
+        "Sopravvivere a una civiltà determinata al suicidio",
+        "L'insurrezione dei timidi",
+        "Il metodo è l'economia; lo scopo è cambiare l'anima",
+        "Resilienza, adattamento, vulnerabilità",
+        "Spazi di non pubblicità",
+        "Giardini di amici",
+        "Una diserzione silenziosa che non finisce più"
       ]
     }
   ]
