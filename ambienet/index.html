@@ -57,19 +57,19 @@ const paInt=()=>S.scale.includes(7)?7:S.scale.includes(5)?5:S.scale[S.scale.leng
 /* scene colours: what each scene leans towards */
 const COLORS={
   ambient:{w:.18,scales:WEST,ia:{ambient:.38,drone:.2,indian:.14,nature:.1,tibet:.08,japan:.06,piano:.04},
-    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,binaural:.45,remnant:.35,cosmos:.35,mantra:.15,animals:.3}},
+    prob:{drone:.8,loops:.7,arp:.1,phase:.08,data:0.24,radio:.5,archive:.6,grains:.45,tanpura:.05,piano:.2,voices:.3,net:.4,hum:.35,city:.4,bigdrone:.5,nature:.35,sho:.1,airwaves:.3,tanpura:.15,phrase:.35,bowls:.25,chant:.08,classical:.3,slogan:.3,binaural:.45,remnant:.35,cosmos:.35,mantra:.15,gen2:.5,animals:.3}},
   indian:{w:.27,raga:true,ia:{indian:.8,drone:.1,ambient:.1},
-    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.2,binaural:.3,remnant:.1,cosmos:.15,mantra:.5,animals:.2}},
+    prob:{drone:.6,loops:.2,data:0.12,radio:.4,archive:.7,grains:.35,tanpura:.95,alap:.7,piano:.08,voices:.2,net:.15,hum:.1,city:.2,bigdrone:.2,nature:.2,airwaves:.2,phrase:.45,bowls:.15,classical:.05,slogan:.2,binaural:.3,remnant:.1,cosmos:.15,mantra:.5,gen2:.25,animals:.2}},
   piano:{w:.1,scales:PIANOSC,ia:{piano:.75,ambient:.15,nature:.1},
-    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,remnant:.7,cosmos:.15,mantra:.05,classical:.3,slogan:.25,binaural:.3,animals:.15}},
+    prob:{drone:.65,loops:.35,phase:.06,data:0.14,radio:.35,archive:.65,grains:.4,piano:.95,voices:.25,net:.25,hum:.3,city:.3,bigdrone:.15,nature:.3,airwaves:.3,phrase:.3,bowls:.1,remnant:.7,cosmos:.15,mantra:.05,gen2:.35,classical:.3,slogan:.25,binaural:.3,animals:.15}},
   east:{w:.16,scales:EAST,ia:{japan:.42,pacific:.3,tibet:.1,nature:.09,ambient:.09},
-    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.2,binaural:.35,remnant:.1,cosmos:.2,mantra:.25,animals:.3}},
+    prob:{drone:.6,loops:.3,data:0.1,radio:.35,archive:.7,grains:.35,piano:.05,voices:.15,net:.15,hum:.1,city:.15,bigdrone:.2,nature:.5,flute:.7,koto:.5,sho:.5,gamelan:.45,airwaves:.2,phrase:.4,bowls:.3,chant:.1,classical:.08,slogan:.2,binaural:.35,remnant:.1,cosmos:.2,mantra:.25,gen2:.35,animals:.3}},
   tibet:{w:.14,scales:TIBET,ia:{tibet:.7,drone:.15,ambient:.15},
-    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.2,binaural:.5,remnant:.12,cosmos:.3,mantra:.4,voices:.1,net:.1,hum:.05,animals:.2}},
+    prob:{drone:.7,bigdrone:.45,bowls:.95,chant:.65,archive:.7,phrase:.35,grains:.35,nature:.35,data:0.08,radio:.3,loops:.2,sho:.15,classical:.1,slogan:.2,binaural:.5,remnant:.12,cosmos:.3,mantra:.4,gen2:.35,voices:.1,net:.1,hum:.05,animals:.2}},
   mixed:{w:.15,raga:true,ia:{indian:.28,ambient:.18,japan:.13,tibet:.1,piano:.08,drone:.13,pacific:.1},
-    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,binaural:.4,remnant:.35,cosmos:.3,mantra:.35,animals:.3}}
+    prob:{drone:.6,loops:.4,data:0.18,radio:.4,archive:.65,grains:.5,tanpura:.6,alap:.3,piano:.6,voices:.35,net:.35,hum:.3,city:.4,bigdrone:.3,nature:.35,flute:.2,koto:.2,sho:.2,gamelan:.2,airwaves:.35,phrase:.45,bowls:.3,chant:.15,classical:.25,slogan:.3,binaural:.4,remnant:.35,cosmos:.3,mantra:.35,gen2:.45,animals:.3}}
 };
-const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.5,binaural:.6,remnant:.7,cosmos:.65,mantra:.6};
+const BASE={drone:.95,loops:.8,arp:.35,phase:.3,data:.4,radio:.5,archive:.7,grains:.65,tanpura:.75,alap:.6,piano:.75,net:.4,hum:.45,city:.45,bigdrone:.85,nature:.6,flute:.55,koto:.5,sho:.6,gamelan:.5,airwaves:.4,phrase:.65,bowls:.7,chant:.55,classical:.35,animals:.55,slogan:.4,binaural:.6,remnant:.7,cosmos:.65,mantra:.6,gen2:.65};
 // the bed: minimal / ambient / drone. Accents: rare, quiet, never more than two at a time
 const NO_RADIO=true;
 const ACCENTS=['net','city','airwaves','hum','slogan'];
@@ -88,7 +88,7 @@ const live=new Map();let liveId=0,flash=null;
    blue   — recordings from the archives (music, field recordings, classical, voices)
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
-const CATS=[['gen','#ff2a1a',/^(DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
+const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
   ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
@@ -151,8 +151,8 @@ function setup(){
   mk('tanpura',.45,0);mk('alap',.7,.2);mk('piano',.9,.05);
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
-  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.38;
-  mk('binaural',.12,0,1);mk('live',1.2,.2,.6);mk('cosmos',.9,.1);mk('mantra',1.1,.15);L.live.gain.value=.7;mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
+  mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.3;
+  mk('binaural',.12,0,1);mk('live',1.2,.2,.6);mk('cosmos',.9,.1);mk('gen2',.9,.25);mk('mantra',1.1,.15);L.live.gain.value=.7;mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
    L.spoken=g;T.spoken=0;LN.spoken=ng;LNv.spoken=1;const an=ctx.createAnalyser();an.fftSize=2048;ng.connect(an);an.connect(meterSink);LA.spoken=an} // spoken: its own path, in front
   /* slogans: a far demonstration, mostly reverb (also outside the scenes) · classical: almost all reverb, far away ·
      binaural beats: almost dry, left and right must stay apart · spoken: rare, outside the scenes, nearly dry */
@@ -304,7 +304,7 @@ function newScene(first){
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>1)on[acc.pop()]=false}
-  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra'],keep=TEX.find(k=>on[k]);
+  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra','gen2'],keep=TEX.find(k=>on[k]);
    const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
@@ -977,12 +977,12 @@ const filt=(type,f,q=.7)=>{const b=ctx.createBiquadFilter();b.type=type;b.freque
 // each slogan gets one of several treatments
 function megaphone(dest){
   const kind=pick(['megaphone','megaphone','underwater','telephone','cathedral','echoes']),out=ctx.createGain();out.connect(dest);let input;
-  if(kind==='megaphone'){const hp=filt('highpass',rr(280,450)),bp=filt('bandpass',rr(900,1600),rr(.8,1.6)),sh=shaper(rr(2,5)),lp=filt('lowpass',rr(1800,3000));
+  if(kind==='megaphone'){const hp=filt('highpass',rr(280,450)),bp=filt('bandpass',rr(900,1600),rr(.8,1.6)),sh=shaper(rr(1.4,2.6)),lp=filt('lowpass',rr(1800,3000));
     const dl=ctx.createDelay(2);dl.delayTime.value=rr(.35,.7);const fb=ctx.createGain();fb.gain.value=rr(.25,.45);
     hp.connect(bp);bp.connect(sh);sh.connect(lp);lp.connect(out);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(out);input=hp}
   else if(kind==='underwater'){const lp=filt('lowpass',rr(350,600),2),ch=ctx.createDelay(.1);ch.delayTime.value=.02;const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=.4;lg.gain.value=.008;lfo.connect(lg);lg.connect(ch.delayTime);lfo.start();
     lp.connect(ch);ch.connect(out);lp.connect(out);input=lp;setTimeout(()=>lfo.stop(),60000)}
-  else if(kind==='telephone'){const hp=filt('highpass',400,1),lp=filt('lowpass',3000,1),sh=shaper(3);hp.connect(lp);lp.connect(sh);sh.connect(out);input=hp}
+  else if(kind==='telephone'){const hp=filt('highpass',400,1),lp=filt('lowpass',3000,1),sh=shaper(1.8);hp.connect(lp);lp.connect(sh);sh.connect(out);input=hp}
   else if(kind==='cathedral'){const lp=filt('lowpass',2500),w=ctx.createGain();w.gain.value=2.5;const d=ctx.createGain();d.gain.value=.15;lp.connect(w);w.connect(reverb);lp.connect(d);d.connect(out);input=lp}
   else{const lp=filt('lowpass',2200);let prev=lp;for(let i=1;i<=4;i++){const dl=ctx.createDelay(4),g=ctx.createGain();dl.delayTime.value=i*rr(.5,.8);g.gain.value=Math.pow(.55,i);lp.connect(dl);dl.connect(g);g.connect(out)}lp.connect(out);input=lp}
   return{input,out,kind};
@@ -1222,6 +1222,45 @@ async function mantraDeck(){
   }
 }
 
+/* ============ MORE GENERATED SOUNDS: a wider palette, same spirit ============ */
+const GEN2={
+  'organ':(t,d,o)=>{const pa=paInt(),th=S.scale[Math.min(2,S.scale.length-1)];[0,pa,12,th+12].forEach((iv,i)=>{const f=mtof(S.root+12+iv);[1,2,3,4,6,8].forEach((h,j)=>{const a=R()<.6?.03/(j+1):0;if(!a)return;
+      const os=ctx.createOscillator(),g=ctx.createGain();os.frequency.value=f*h;os.detune.value=rr(-3,3);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a,t+rr(6,14));g.gain.setValueAtTime(a,t+d-10);g.gain.linearRampToValueAtTime(0,t+d);os.connect(g);g.connect(o);os.start(t);os.stop(t+d+.1)})});
+    const tr=ctx.createOscillator(),tg=ctx.createGain();tr.frequency.value=rr(.6,1.2);tg.gain.value=.15;tr.connect(tg);tg.connect(o.gain);tr.start(t);tr.stop(t+d)},
+  'choir':(t,d,o)=>{const V=[[730,1090,2440],[570,840,2410],[440,1020,2240],[300,870,2240]],sum=ctx.createGain(),fs=V[0].map((fq,i)=>{const b=filt('bandpass',fq,[8,10,12][i]),bg=ctx.createGain();bg.gain.value=[1,.5,.2][i];sum.connect(b);b.connect(bg);bg.connect(o);return b});
+    for(let tt=t;tt<t+d;tt+=rr(5,9)){const v=pick(V);fs.forEach((b,i)=>b.frequency.setTargetAtTime(v[i],tt,1.5))}
+    [0,2,4,7].forEach(dg=>{for(let k=0;k<2;k++){const os=ctx.createOscillator(),g=ctx.createGain(),vb=ctx.createOscillator(),vg=ctx.createGain();os.type='sawtooth';os.frequency.value=mtof(deg(dg,S.root+24));os.detune.value=rr(-10,10);
+      vb.frequency.value=rr(4.5,5.5);vg.gain.value=rr(5,10);vb.connect(vg);vg.connect(os.detune);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.11,t+rr(8,15));g.gain.setValueAtTime(.11,t+d-12);g.gain.linearRampToValueAtTime(0,t+d);
+      os.connect(g);g.connect(sum);[os,vb].forEach(x=>{x.start(t);x.stop(t+d+.1)})}})},
+  'glass':(t,d,o)=>{for(let tt=t;tt<t+d-10;tt+=rr(6,14)){const f=mtof(deg(ri(0,9),S.root+36)),c=ctx.createOscillator(),m=ctx.createOscillator(),mg=ctx.createGain(),g=ctx.createGain(),len=rr(8,14);
+      c.frequency.value=f;m.frequency.value=f*pick([2,3,3.5]);mg.gain.setValueAtTime(f*.6,tt);mg.gain.exponentialRampToValueAtTime(f*.02,tt+len);m.connect(mg);mg.connect(c.frequency);
+      g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.04,tt+rr(2,4));g.gain.linearRampToValueAtTime(0,tt+len);c.connect(g);g.connect(o);[c,m].forEach(x=>{x.start(tt);x.stop(tt+len+.1)})}},
+  'sub swell':(t,d,o)=>{[S.root-24,S.root-12].forEach((m,i)=>{const os=ctx.createOscillator(),g=ctx.createGain();os.frequency.value=mtof(m);g.gain.setValueAtTime(0,t);
+      for(let tt=t;tt<t+d-16;tt+=rr(16,26)){g.gain.linearRampToValueAtTime(.14/(i+1),tt+rr(6,10));g.gain.linearRampToValueAtTime(.01,tt+rr(13,16))}g.gain.linearRampToValueAtTime(0,t+d);os.connect(g);g.connect(o);os.start(t);os.stop(t+d+.1)})},
+  'bowed metal':(t,d,o)=>{for(let tt=t;tt<t+d-15;tt+=rr(10,20)){const f=mtof(deg(ri(0,6),S.root+24)),len=rr(12,20);[1,2.76,5.4,8.9].forEach((p,i)=>[0,rr(.5,1.8)].forEach(off=>{const os=ctx.createOscillator(),g=ctx.createGain();os.frequency.value=f*p+off;
+      g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.03/(i+1),tt+rr(3,6));g.gain.linearRampToValueAtTime(0,tt+len);os.connect(g);g.connect(o);os.start(tt);os.stop(tt+len+.1)}))}},
+  'tape loop (Fripp)':(t,d,o)=>{const dl=ctx.createDelay(6),fb=ctx.createGain(),lp=filt('lowpass',2200);dl.delayTime.value=rr(2.5,4.5);fb.gain.value=.72;dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(o);const inp=ctx.createGain();inp.connect(dl);inp.connect(o);
+      for(let tt=t+1;tt<t+d-20;tt+=rr(3,7))tone(mtof(deg(ri(0,9),S.root+24)),tt,rr(1.5,3),{type:'triangle',gain:.05,attack:.3,cutoff:1800,dest:inp});setTimeout(()=>{try{fb.gain.value=0}catch(e){}},(d+5)*1000)},
+  'wind chimes':(t,d,o)=>{for(let tt=t+2;tt<t+d-8;tt+=rr(6,18)){const n=ri(2,6);for(let k=0;k<n;k++)bell(mtof(deg(ri(0,5),S.root+48)),tt+k*rr(.15,.6),rr(3,5),.018,o,rr(-.8,.8))}},
+  'handpan':(t,d,o)=>{for(let tt=t+1;tt<t+d-6;tt+=rr(2.5,6)){const f=mtof(deg(ri(0,7),S.root+12)),pan=rr(-.5,.5);tone(f,tt,3.5,{gain:.07,attack:.004,dest:o,pan});tone(f*2,tt,1.6,{gain:.025,attack:.004,dest:o,pan});tone(f*3.01,tt,.7,{gain:.01,attack:.003,dest:o,pan})}},
+  'shimmer':(t,d,o)=>{for(let i=0;i<8;i++){const os=ctx.createOscillator(),g=ctx.createGain(),l=ctx.createOscillator(),lg=ctx.createGain();os.frequency.value=mtof(deg(ri(0,9),S.root+48));
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.008,t+15);g.gain.setValueAtTime(.008,t+d-15);g.gain.linearRampToValueAtTime(0,t+d);l.frequency.value=rr(.05,.25);lg.gain.value=.007;l.connect(lg);lg.connect(g.gain);
+      os.connect(g);g.connect(o);[os,l].forEach(x=>{x.start(t);x.stop(t+d+.1)})}}
+};
+async function gen2Loop(){
+  await sleep(rr(15,45)*1000);
+  while(true){
+    if(T.gen2<.01){await sleep(8000);continue}
+    const kind=pick(Object.keys(GEN2)),dur=rr(90,200),t=ctx.currentTime+.1;
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+rr(12,22));g.gain.setValueAtTime(1,t+dur-20);g.gain.linearRampToValueAtTime(0,t+dur);
+    const o=ctx.createGain();o.connect(g);let n=g;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=rr(-.4,.4);g.connect(p);n=p}n.connect(L.gen2);
+    try{GEN2[kind](t,dur,o)}catch(e){}
+    log(kind.toUpperCase(),`${NOTES[S.root%12]} ${S.scaleName} · ${Math.round(dur)} s`,dur);
+    setTimeout(()=>{try{g.disconnect()}catch(e){}},(dur+8)*1000);
+    await sleep(rr(dur*.6,dur+60)*1000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -1230,7 +1269,7 @@ async function mantraDeck(){
    (and every file/stream is already normalised on its own before it enters) */
 const vbuf=new Float32Array(2048);
 const rmsDb=an=>{an.getFloatTimeDomainData(vbuf);let s=0;for(let i=0;i<vbuf.length;i++)s+=vbuf[i]*vbuf[i];return 10*Math.log10(s/vbuf.length+1e-12)};
-const CEIL={slogan:-33,sloganbase:-33,cosmos:-27,mantra:-27,live:-30,remnant:-27,spoken:-27,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
+const CEIL={gen2:-27,slogan:-35,sloganbase:-35,cosmos:-27,mantra:-27,live:-30,remnant:-27,spoken:-27,sloganbase:-31,binaural:-30,slogan:-31,animals:-30,bowls:-27,chant:-28,classical:-34,drone:-24,bigdrone:-23,archive:-25,radio:-27,grains:-26,loops:-27,phrase:-25,airwaves:-32,voices:-30,city:-30,hum:-33,nature:-28,data:-30,tanpura:-26,alap:-28,piano:-26,flute:-28,koto:-28,sho:-28,gamelan:-27,arp:-30,phase:-30};
 let over=0,cool=0,longDb=-40,riderV=.6;
 function guardian(){
   if(!running)return;const now=ctx.currentTime;
@@ -1300,7 +1339,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
