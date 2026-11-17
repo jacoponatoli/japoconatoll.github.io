@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-16",
+  "aggiornato": "2026-11-17",
   "parole": {
     "good": [
       "sanità:fs",
@@ -55,7 +55,13 @@
       "amicizia:fs",
       "studio:ms",
       "timidezza:fs",
-      "clandestinità:fs"
+      "clandestinità:fs",
+      "ninne nanne:fp",
+      "sguardi:mp",
+      "giocattoli:mp",
+      "tavolate:fp",
+      "accoglienza:fs",
+      "presenza:fs"
     ],
     "bad": [
       "riarmo:ms",
@@ -138,7 +144,15 @@
       "spettacolo:ms",
       "psicofarmaci:mp",
       "nichilismo:ms",
-      "boreout:ms"
+      "boreout:ms",
+      "sforbiciate:fp",
+      "emendamenti:mp",
+      "smantellamento:ms",
+      "schermi:mp",
+      "sommerso:ms",
+      "fondi:mp",
+      "notifiche:fp",
+      "dipendenza:fs"
     ],
     "subj": [
       "liceali:mp",
@@ -169,7 +183,10 @@
       "adolescenti:mp",
       "bagnini:mp",
       "timidi:mp",
-      "amici:mp"
+      "amici:mp",
+      "neogenitori:mp",
+      "dormiglioni:mp",
+      "scioperanti:mp"
     ],
     "place": [
       "licei:mp",
@@ -191,7 +208,10 @@
       "rotonde:fp",
       "caselli:mp",
       "piscine:fp",
-      "edicole:fp"
+      "edicole:fp",
+      "cucine:fp",
+      "parrocchie:fp",
+      "sale d'attesa:fp"
     ]
   },
   "slogan": [
@@ -802,6 +822,81 @@
         "Desert quietly, desert forever",
         "Resilience is not a virtue"
       ]
+    },
+    {
+      "d": "2026-11-17",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Quanto resistete se smettiamo tutti di correre?",
+        "On veut montrer qu'on est las",
+        "On dort depuis un mois et on ne va pas s'arrêter",
+        "Remettre la sieste au cœur du contrat social",
+        "Un tournant poétique très inquiétant",
+        "SLEEP EARLY",
+        "Hands off my nap!",
+        "No Kings: NapFest",
+        "È ora di fermare lo smantellamento del pisolino pubblico",
+        "È un grave errore: rifacciamolo",
+        "Non sono ritardi, sono sforbiciate all'orario",
+        "Quota 64 rinviata, quota divano anticipata",
+        "Risparmiate sulle armi, non sull'accoglienza",
+        "Il tempo stringe: allarghiamolo",
+        "Emendamenti al lunedì entro oggi",
+        "Il ministro sapeva? Noi dormivamo",
+        "Aspettiamo i fatti, sdraiati",
+        "Giornata da riscrivere interamente",
+        "La rivoluzione parte in punta di piedi",
+        "Assicuriamo una risposta lenta",
+        "Pagamenti digitali, carezze in contanti",
+        "I numeri smentiscono, i sogni confermano",
+        "Sì al contributo, no alle aggressioni del lunedì",
+        "Prevenire la dipendenza dal lavoro tra i giovani",
+        "Fuori dal lavoro è tutta un'altra vita",
+        "È sempre troppo presto!",
+        "Tu prima dello schermo. Il sonno prima di tutto",
+        "Occhi negli occhi, poi occhi chiusi",
+        "Niente schermo per calmare: una ninna nanna",
+        "Pochissimi schermi, moltissimi scherzi",
+        "Si lotta con giocattoli toccabili e manipolabili",
+        "A tavola insieme, in ufficio nessuno",
+        "Italia domani si fa insieme. Oggi si riposa",
+        "Tireremo tardi",
+        "Libro e pisolino, disertore perfetto",
+        "Taci, il cuscino ti ascolta",
+        "È la matita che traccia il solco, è la gomma che lo perdona",
+        "Travail, famille, patrie 0.1 : version abandonnée",
+        "Tolleranza zero per la fretta",
+        "Padroni a casa nostra? Nessun padrone, tante case"
+      ]
+    },
+    {
+      "d": "2026-11-17",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Plutôt le lit",
+        "L'été, c'est moi",
+        "Après moi, la sieste",
+        "Je rêve, donc je suis en retard",
+        "Qui sème la sieste récolte la tendresse",
+        "Pressé n'est pas français",
+        "The revolution will not be scheduled",
+        "Another nap is possible",
+        "No notification without representation",
+        "Don't wake me",
+        "Just say later",
+        "I want you for a long lunch",
+        "Got time?",
+        "Una mattina mi son svegliato, e mi sono rigirato",
+        "Potere al pomeriggio",
+        "Pane e pisolino",
+        "Chi la dorme la vince",
+        "Meglio tardi. Che mai?",
+        "Dorme bene chi si sveglia ultimo",
+        "Lenta, lentissima o ferma?",
+        "Cosa vuoi di più dalla vita? Un martedì libero",
+        "Slow is megl che fast",
+        "Si vis pacem, para lectum"
+      ]
     }
   ],
   "letti": [
@@ -1248,6 +1343,76 @@
         "Spazi di non pubblicità",
         "Giardini di amici",
         "Una diserzione silenziosa che non finisce più"
+      ]
+    },
+    {
+      "d": "2026-11-17",
+      "t": [
+        "On veut montrer qu'on est là (un manifestante, Parigi)",
+        "On bloque depuis un mois et on ne va pas s'arrêter (una liceale, Parigi)",
+        "Remettre les travailleurs au cœur du contrat social (frase di un politico, Parigi)",
+        "Un tournant sécuritaire très inquiétant (un manifestante, Parigi)",
+        "VOTE EARLY (cartello, Washington)",
+        "HANDS OFF MY VOTE! (cartello, Washington)",
+        "No Kings: VoteFest (nome di un raduno, New York)",
+        "È ora di fermare lo smantellamento del sistema pubblico (sindacato della scuola, verso lo sciopero del 20 novembre)",
+        "È un grave errore (sindacati della scuola sulla manovra)",
+        "La retromarcia sulla scuola: non erano tagli ma sforbiciate (titolo)",
+        "Retromarcia, quota 64 rinviata (titolo)",
+        "La manovra risparmia sull'accoglienza (titolo, 16 novembre)",
+        "Il tempo stringe: emendamenti entro il 17 novembre (titolo)",
+        "Il ministro sapeva? (titoletto)",
+        "Aspettiamo i fatti, manovra da riscrivere interamente (titolo)",
+        "Parte in punta di piedi e assicura una risposta «rapida» (titolo, 16 novembre)",
+        "Le offerte in chiesa? Arrivano i pagamenti digitali (titolo, 16 novembre)",
+        "«I numeri smentiscono» (titolo sulla manovra e le banche)",
+        "Ok al contributo, però no aggressioni (titolo sulla manovra e le banche)",
+        "La sfida di prevenire la dipendenza tra i giovani (titolo)",
+        "Fuori dal sommerso è tutto un altro lavoro (claim di una campagna istituzionale)",
+        "Non è mai troppo presto! (campagna per l'uso consapevole del digitale)",
+        "Tu prima dello schermo (consiglio della campagna)",
+        "Occhi negli occhi (consiglio della campagna)",
+        "Niente schermo per calmare (consiglio della campagna)",
+        "Pochissimi schermi nei primi tre anni (consiglio della campagna)",
+        "Si gioca con giocattoli toccabili e manipolabili (consiglio della campagna)",
+        "A tavola insieme (consiglio della campagna)",
+        "Italia domani si fa insieme (claim di uno spot istituzionale)",
+        "Tireremo dritto (motto fascista)",
+        "Libro e moschetto, fascista perfetto (motto fascista)",
+        "Taci, il nemico ti ascolta (manifesto di guerra)",
+        "È l'aratro che traccia il solco, ma è la spada che lo difende (motto fascista)",
+        "Travail, famille, patrie (motto del regime di Vichy)",
+        "Tolleranza zero (slogan securitario)",
+        "Padroni a casa nostra (slogan della destra)"
+      ]
+    },
+    {
+      "d": "2026-11-17",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Plutôt la vie (Maggio '68)",
+        "L'État, c'est moi (frase celebre)",
+        "Après moi, le déluge (frase celebre)",
+        "Je pense, donc je suis (frase celebre)",
+        "Qui sème la misère récolte la colère (coro)",
+        "Impossible n'est pas français (motto)",
+        "The revolution will not be televised (canzone)",
+        "Another world is possible (slogan altermondialista)",
+        "No taxation without representation (slogan storico)",
+        "Don't tread on me (motto)",
+        "Just say no (campagna)",
+        "I want you (manifesto di reclutamento)",
+        "Got milk? (claim pubblicitario)",
+        "Una mattina mi son svegliato (canto)",
+        "Potere operaio (slogan)",
+        "Pane e lavoro (slogan storico)",
+        "Chi la dura la vince (proverbio)",
+        "Meglio tardi che mai (proverbio)",
+        "Ride bene chi ride ultimo (proverbio)",
+        "Liscia, gassata o…? (claim pubblicitario)",
+        "Cosa vuoi di più dalla vita? (claim pubblicitario)",
+        "Two is megl che one (claim pubblicitario)",
+        "Si vis pacem, para bellum (motto latino)"
       ]
     }
   ]
