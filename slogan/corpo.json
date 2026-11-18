@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-17",
+  "aggiornato": "2026-11-18",
   "parole": {
     "good": [
       "sanità:fs",
@@ -61,7 +61,12 @@
       "giocattoli:mp",
       "tavolate:fp",
       "accoglienza:fs",
-      "presenza:fs"
+      "presenza:fs",
+      "amache:fp",
+      "mutuo soccorso:ms",
+      "filastrocche:fp",
+      "borse di studio:fp",
+      "pigiami:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -152,7 +157,12 @@
       "sommerso:ms",
       "fondi:mp",
       "notifiche:fp",
-      "dipendenza:fs"
+      "dipendenza:fs",
+      "sanatorie:fp",
+      "condoni:mp",
+      "blackout:ms",
+      "tetti numerici:mp",
+      "finanziamenti:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -186,7 +196,9 @@
       "amici:mp",
       "neogenitori:mp",
       "dormiglioni:mp",
-      "scioperanti:mp"
+      "scioperanti:mp",
+      "pendolari:mp",
+      "sonnambuli:mp"
     ],
     "place": [
       "licei:mp",
@@ -211,7 +223,10 @@
       "edicole:fp",
       "cucine:fp",
       "parrocchie:fp",
-      "sale d'attesa:fp"
+      "sale d'attesa:fp",
+      "cantieri:mp",
+      "periferie:fp",
+      "stazioni:fp"
     ]
   },
   "slogan": [
@@ -897,6 +912,75 @@
         "Slow is megl che fast",
         "Si vis pacem, para lectum"
       ]
+    },
+    {
+      "d": "2026-11-18",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Generazione fuori orario",
+        "Generazione fuori sveglia, dentro il sogno",
+        "La siesta è aperta a tutti",
+        "Borsa dell'acqua calda dello studente medio",
+        "Abbonamento unico gratuito Cuscino–Amaca–Nuvola",
+        "Ultima ruota del carro? Fermiamo il carro",
+        "I pisolini proseguiranno a oltranza",
+        "Tagli all'orario: soddisfatti, ma bisogna fare di meno",
+        "In Francia si dorme, ora immobilizziamoci anche in Italia",
+        "Riposo regolare, filastrocche forti",
+        "La lentezza è una scelta che protegge le persone",
+        "Ozio vero, incommensurabile e inverificabile",
+        "Maxi sanatoria dei sogni abusivi",
+        "A volte ritornano: il pisolino riapre con la manovra",
+        "Lavoro fuori dalla giornata: si punta a un sonnellino ad hoc",
+        "Sveglia fermata all'ultimo",
+        "Server down, noi su: sulle nuvole",
+        "Yes, the whole Monday is having major issues right now",
+        "Finanziamento su tutti i sogni a partire da 0 €",
+        "Red Friday, Rest Saturday, Rêve Sunday",
+        "A mano a mano, piano piano",
+        "Da sempre, mutuo soccorso per davvero",
+        "Aquí no hay quien madrugue",
+        "Se ha acabado el tiempo… de trabajar",
+        "La clase soñadora sale en pijama",
+        "Piquetes de almohadas desde los barrios",
+        "Convergence des siestes",
+        "Démobilisation en hausse, beaucoup de bonheur",
+        "Thousands gather to demand a halt to rising early",
+        "Curious, Fearless and Drowsy",
+        "Evacuare o restare? Restare a letto",
+        "Ordine e disciplina? Disordine e discipline artistiche",
+        "Gatt mit uns: il gatto è con noi, sul divano",
+        "Make lunch long again",
+        "Sicurezza prima di tutto? Prima di tutto un sonnellino",
+        "Abusi edilizi no, castelli in aria sì",
+        "Blackout totale: finalmente le stelle"
+      ]
+    },
+    {
+      "d": "2026-11-18",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Il popolo unito non sarà mai sveglio",
+        "La casa è di chi ci sonnecchia",
+        "Io sono mia, e anche il mio pomeriggio",
+        "Il ne faut pas perdre sa sieste à la gagner",
+        "Paris vaut bien une sieste",
+        "Tout est poétique, surtout le dimanche",
+        "Aux lits, citoyens! Formez vos oreillers",
+        "Allons enfants, le jour de sieste est arrivé",
+        "Ça ira… demain",
+        "L'Italia è una Repubblica democratica, fondata sul riposo",
+        "Volemose bene, ma piano",
+        "Il tempo è un fannullone gentile",
+        "Rosso di sera, sciopero si spera",
+        "Chi trova un amico trova un'amaca",
+        "Dove c'è un divano, c'è casa",
+        "Il pisolino ti mette le ali",
+        "Less work is more",
+        "Slow is beautiful",
+        "The medium is the nap",
+        "Knowledge is power, sleep is knowledge"
+      ]
     }
   ],
   "letti": [
@@ -1413,6 +1497,71 @@
         "Cosa vuoi di più dalla vita? (claim pubblicitario)",
         "Two is megl che one (claim pubblicitario)",
         "Si vis pacem, para bellum (motto latino)"
+      ]
+    },
+    {
+      "d": "2026-11-18",
+      "t": [
+        "Generazione fuori classe (sit-in degli studenti davanti a Montecitorio, 14 novembre)",
+        "La scuola è aperta a tutti (principio rivendicato dalla Rete degli Studenti Medi)",
+        "Borsa di studio dello studente medio (proposta degli studenti verso lo sciopero del 20 novembre)",
+        "Abbonamento Unico Gratuito Gomma–Rotaia–Nave (proposta degli studenti)",
+        "Ultima ruota del carro con cui fare cassa (titolo, intervista a una studentessa)",
+        "Le proteste proseguiranno a oltranza (titolo)",
+        "Tagli alla scuola, sindacati soddisfatti ma bisogna fare di più (titolo)",
+        "In Francia i risultati arrivano, ora mobilitiamoci anche in Italia (appello degli studenti)",
+        "Lavoro regolare, filiere forti (claim di una campagna istituzionale)",
+        "La legalità in agricoltura è una scelta che protegge le persone (comunicato istituzionale)",
+        "Valore vero, misurabile e verificabile (comunicato istituzionale)",
+        "Maxi sanatoria edilizia in manovra (titolo, 18 novembre)",
+        "A volte ritornano: il condono edilizio riapre con la manovra (titolo)",
+        "Condono fuori dalla manovra, si punta a un decreto ad hoc (titolo)",
+        "Sanatoria edilizia fermata all'ultimo (titolo)",
+        "Apple down (titolo, 18 novembre)",
+        "Yes, the whole internet is having major issues right now (titolo)",
+        "Finanziamento su tutti gli acquisti a partire da 199 € (claim di una catena di elettronica)",
+        "Red Friday (promozione)",
+        "A mano a mano (claim di una campagna bancaria)",
+        "Da sempre, Mutua per davvero (claim di una compagnia assicurativa)",
+        "Aquí no hay quien viva (lema delle proteste per la casa, Spagna)",
+        "Se ha acabado el tiempo, diputados (titolo sulle proteste per la casa, Spagna)",
+        "La clase trabajadora sale en tromba (titolo sullo sciopero generale per la casa, Spagna)",
+        "Arranca la huelga general con piquetes y acciones desde los barrios (titolo, Spagna)",
+        "Convergence des colères (titolo sulle mobilitazioni in Francia)",
+        "Mobilisation en baisse, peu de heurts (titolo, Francia)",
+        "Thousands gather to demand halt to rise of fascism (titolo, Washington)",
+        "Furious, Fearless and Defiant (titolo sui cartelli dei cortei No Kings)",
+        "Evacuare o restare? (titolo sulle mail di allarme bomba alle scuole)",
+        "Ordine e disciplina (motto autoritario)",
+        "Gott mit uns (motto militare tedesco, poi nazista)",
+        "Make America great again (slogan elettorale)",
+        "Sicurezza prima di tutto (slogan securitario)"
+      ]
+    },
+    {
+      "d": "2026-11-18",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Il popolo unito non sarà mai vinto (coro)",
+        "La casa è di chi la abita (slogan dei movimenti per la casa)",
+        "Io sono mia (slogan femminista)",
+        "Il ne faut pas perdre sa vie à la gagner (Maggio '68)",
+        "Paris vaut bien une messe (frase celebre)",
+        "Tout est politique (slogan)",
+        "Aux armes, citoyens (canto)",
+        "Allons enfants de la patrie, le jour de gloire est arrivé (canto)",
+        "Ça ira (canto rivoluzionario)",
+        "L'Italia è una Repubblica democratica, fondata sul lavoro (Costituzione, art. 1)",
+        "Volemose bene (motto romanesco)",
+        "Il tempo è galantuomo (proverbio)",
+        "Rosso di sera, bel tempo si spera (proverbio)",
+        "Chi trova un amico trova un tesoro (proverbio)",
+        "Dove c'è [pasta], c'è casa (claim pubblicitario)",
+        "Ti mette le ali (claim pubblicitario)",
+        "Less is more (motto)",
+        "Small is beautiful (motto)",
+        "The medium is the message (frase celebre)",
+        "Knowledge is power (motto)"
       ]
     }
   ]
