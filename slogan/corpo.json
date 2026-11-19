@@ -70,7 +70,8 @@
       "astensione:fs",
       "dessert:ms",
       "occupazioni:fp",
-      "guanciali:mp"
+      "guanciali:mp",
+      "briciole:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -171,7 +172,12 @@
       "declino:ms",
       "impoverimento:ms",
       "armamenti:mp",
-      "élite:fp"
+      "élite:fp",
+      "trilaterale:ms",
+      "petrolio raffinato:ms",
+      "immunità:fs",
+      "arsenali:mp",
+      "dichiarazioni:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -240,7 +246,8 @@
       "stazioni:fp",
       "mense:fp",
       "palestre:fp",
-      "corridoi:mp"
+      "corridoi:mp",
+      "tavoli rotondi:mp"
     ]
   },
   "slogan": [
@@ -1067,6 +1074,51 @@
         "Hope not hurry",
         "Peace, love and pillows"
       ]
+    },
+    {
+      "d": "2026-11-19",
+      "tipo": "deturnamento di una notizia",
+      "fonte": "Vertice a tre di Shenzhen tra Cina, Russia e Stati Uniti (19 novembre 2026)",
+      "t": [
+        "Dichiarazione per la pace in quattro punti: punto, punto, punto, punto",
+        "Nessun vincitore in una guerra nucleare, nessun perdente in un pisolino",
+        "Più petrolio raffinato, meno popoli raffinati",
+        "Riformate l'ONU, noi riformiamo la domenica",
+        "Immunità per i funzionari, immunità per i sognatori",
+        "Il tavolo era rotondo, il mondo no",
+        "Tre grandi, nessun piccolo",
+        "Uniti mai saranno vinti: i potenti",
+        "Portata storica: portateci via",
+        "Positivo, costruttivo, fruttuoso: come un esame del sangue",
+        "Responsabilità condivisa per la pace, irresponsabilità condivisa per la festa",
+        "Dodici su dieci: bocciati",
+        "Mio amico, tuo nemico, nostro padrone",
+        "Si è addormentato al vertice: è dei nostri",
+        "Dormire durante i discorsi è un diritto universale",
+        "Il vertice dorme, la base sveglia",
+        "Rinunciare alle armi è molto difficile: provate a rinunciare al lunedì",
+        "L'Ucraina non compare, compariamo noi",
+        "Tre presidenti al tavolo, nessuno in piazza",
+        "A margine del vertice, il mondo",
+        "Gesti calorosi, pianeta caldissimo",
+        "Old school è il potere",
+        "Faccia a faccia a faccia: e le nostre facce?",
+        "Shenzhen: tutto si produce, anche la pace",
+        "Novanta minuti di pace, ottant'anni di guerra",
+        "Bandire le armi nucleari, bandire i vertici",
+        "Un mondo senza nucleare, un vertice senza vertice",
+        "Trilaterale: tre lati, nessun centro, nessun noi",
+        "La pace è troppo seria per lasciarla ai presidenti",
+        "Abbiamo scritto una dichiarazione per la pace: si chiama sciopero",
+        "Il mondo è un tavolo rotondo, noi siamo le briciole",
+        "Non è la fine della storia: è un pisolino",
+        "Peace declaration, oil edition",
+        "No winners in a nuclear war, no sleepers at the summit",
+        "Twelve out of ten, zero out of us",
+        "Old school is the new empire",
+        "La paix en quatre points, la guerre en points de suspension",
+        "Ni Est ni Ouest: la sieste"
+      ]
     }
   ],
   "letti": [
@@ -1714,6 +1766,27 @@
         "Liberi tutti (formula del gioco)",
         "Hope not hate (slogan)",
         "Peace and love (slogan)"
+      ]
+    },
+    {
+      "d": "2026-11-19",
+      "tipo": "notizia: vertice di Shenzhen",
+      "t": [
+        "Dichiarazione per la pace in quattro punti",
+        "Una guerra nucleare non può avere vincitori",
+        "Aumentare la produzione e la fornitura di prodotti petroliferi raffinati",
+        "Riforma dell'ONU",
+        "Immunità dei funzionari di Stato",
+        "Portata storica",
+        "Positivo, costruttivo e fruttuoso",
+        "Responsabilità condivisa per la pace",
+        "Un 12 su una scala da 0 a 10",
+        "Mio amico",
+        "Si appisola durante il discorso ufficiale",
+        "Un tavolo rotondo molto grande",
+        "Old school",
+        "La guerra in Ucraina non compare nel documento finale",
+        "Molto difficile rinunciare alle armi nucleari"
       ]
     }
   ]
