@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-18",
+  "aggiornato": "2026-11-19",
   "parole": {
     "good": [
       "sanità:fs",
@@ -66,7 +66,11 @@
       "mutuo soccorso:ms",
       "filastrocche:fp",
       "borse di studio:fp",
-      "pigiami:mp"
+      "pigiami:mp",
+      "astensione:fs",
+      "dessert:ms",
+      "occupazioni:fp",
+      "guanciali:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -162,7 +166,12 @@
       "condoni:mp",
       "blackout:ms",
       "tetti numerici:mp",
-      "finanziamenti:mp"
+      "finanziamenti:mp",
+      "classi pollaio:fp",
+      "declino:ms",
+      "impoverimento:ms",
+      "armamenti:mp",
+      "élite:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -198,7 +207,9 @@
       "dormiglioni:mp",
       "scioperanti:mp",
       "pendolari:mp",
-      "sonnambuli:mp"
+      "sonnambuli:mp",
+      "occupanti:mp",
+      "fanfare:fp"
     ],
     "place": [
       "licei:mp",
@@ -226,7 +237,10 @@
       "sale d'attesa:fp",
       "cantieri:mp",
       "periferie:fp",
-      "stazioni:fp"
+      "stazioni:fp",
+      "mense:fp",
+      "palestre:fp",
+      "corridoi:mp"
     ]
   },
   "slogan": [
@@ -981,6 +995,78 @@
         "The medium is the nap",
         "Knowledge is power, sleep is knowledge"
       ]
+    },
+    {
+      "d": "2026-11-19",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Combatti per il tuo sonno, non per le loro guerre",
+        "Combats pour ta sieste, pas pour leurs guerres",
+        "Sì alla pace e no al risveglio",
+        "Stop all'inflazione e al caro-sveglia",
+        "Ozio sicuro, dignitoso e non precario",
+        "Siesta davvero pubblica",
+        "Venerdì 20: sciopero generale della sveglia",
+        "Esclusi dall'astensione: solo i gatti",
+        "Cento piazze, cento amache",
+        "Accelera il declino della fretta",
+        "Ce n'est pas la sieste qui déborde, c'est le débordement qui fait la sieste",
+        "Souriez, vous êtes bercés",
+        "La planète brûle, vous regardez vos notifications",
+        "Les feux de joie font peur aux horaires",
+        "La sieste n'est pas une dépense, mais un investissement",
+        "Plus de rêves que d'heures de cours",
+        "Fauchées, fâchées, mais pas pressées",
+        "1789, acte 2, scène 1: la sieste",
+        "Vive la Commune, vive la couette",
+        "Mère et fille pour la grasse matinée",
+        "Fascisme 2.0: errore 404, pagina non trovata",
+        "I have two passions: brass bands and naps",
+        "Licence to chill",
+        "Il pigiama più maxxato di sempre",
+        "Black November? Slow November",
+        "Ritiro gratuito dei sogni in soli 30 minuti",
+        "Pisolino a tasso zero in 10 sbadigli",
+        "Messaggio poetico con finalità non promozionale",
+        "Better Way: lentezza sostenibile",
+        "La convenienza è un elemento centrale? Il centro è il divano",
+        "Classi pollaio no, classi amaca sì",
+        "Un pomeriggio, finalmente, senza padroni",
+        "«Non evacuatele»: riempitele di poesia",
+        "Mail bombing di filastrocche in tutte le scuole",
+        "Allarme in mensa: servito un secondo dessert",
+        "Storico faccia a faccia: la guancia e il cuscino",
+        "Sconto del 100% sui sogni, nessun rischio",
+        "Il piano pisolino guida i quotidiani",
+        "Venerdì il paese si ferma: finalmente",
+        "L'errore è adesso",
+        "Occupiamo le scuole con le coperte"
+      ]
+    },
+    {
+      "d": "2026-11-19",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "God save the siesta",
+        "Addormentiamoci e restate",
+        "Uno su mille si sveglia",
+        "Non è mai troppo tardi per un pisolino",
+        "Festina lente, anzi: lente e basta",
+        "Ognuno è artefice del proprio pisolino",
+        "Le réveil est mort, vive la sieste",
+        "L'union fait la sieste",
+        "Qui dort dîne, qui rêve a le dessert",
+        "Paris ne s'est pas réveillé en un jour",
+        "Siesta is golden",
+        "Hammock sweet hammock",
+        "No pain, no gain, no thanks",
+        "Il sognatore ha sempre ragione",
+        "O la sveglia o la vita",
+        "Mens sana in corpore sdraiato",
+        "Liberi tutti, anche dal lunedì",
+        "Hope not hurry",
+        "Peace, love and pillows"
+      ]
     }
   ],
   "letti": [
@@ -1562,6 +1648,72 @@
         "Small is beautiful (motto)",
         "The medium is the message (frase celebre)",
         "Knowledge is power (motto)"
+      ]
+    },
+    {
+      "d": "2026-11-19",
+      "t": [
+        "Il futuro è adesso (slogan della CGIL per lo sciopero generale del 20 novembre, 100 piazze)",
+        "Accelera il declino e l'impoverimento del Paese (CGIL sulla manovra)",
+        "Lavoro sicuro, dignitoso e non precario (rivendicazione CGIL)",
+        "Sanità davvero pubblica (rivendicazione CGIL)",
+        "Sì alla pace e no al riarmo (rivendicazione CGIL)",
+        "Stop all'inflazione e al carovita (rivendicazione CGIL)",
+        "Esclusi invece dall'astensione (Commissione di garanzia sullo sciopero)",
+        "Combatti per il tuo futuro, non per le loro guerre (slogan dello sciopero internazionale studentesco)",
+        "Classi pollaio (studenti, nuova ondata di occupazioni)",
+        "Un'informazione, finalmente, senza padroni (tagline di un giornale online)",
+        "Ce n'est pas la manif qui déborde, c'est le débordement qui manifeste (pancarte, autunno 2026)",
+        "Souriez, vous êtes gazés (pancarte, Francia)",
+        "La planète brûle, vous regardez les poubelles (pancarte, Francia)",
+        "Les feux de poubelles ça fait peur aux ordures (pancarte, Francia)",
+        "L'éducation n'est pas une dépense, mais un investissement (pancarte, Francia)",
+        "Plus de trous que d'heures de cours (pancarte, liceali, Francia)",
+        "Fauchées, fâchées, mais pas fachos (pancarte, Francia)",
+        "Mère et fille pour la démocratie (pancarte, Francia)",
+        "Fascisme, racisme, tuent (pancarte, Francia)",
+        "1789, acte 2 (pancarte, Francia)",
+        "Vive la Commune (coro, Francia)",
+        "I have two passions: brass bands and revolution (canzone di corteo, Bordeaux)",
+        "Licence to kill (attivisti sulla legge sulla polizia, Francia)",
+        "Il Black Friday più maxxato di sempre (claim di una catena di elettronica, ripreso)",
+        "Black Friday becomes Black November (titolo di settore)",
+        "Ritiro gratuito degli ordini in negozio in soli 30 minuti (claim di una catena di elettronica)",
+        "Finanziamento tasso zero in 10 rate (claim di una catena di elettronica)",
+        "Messaggio pubblicitario con finalità promozionale (dicitura obbligatoria)",
+        "Better Way: tecnologia sostenibile (etichetta di una catena di elettronica)",
+        "La convenienza è un elemento centrale (frase di un direttore marketing)",
+        "Non evacuatele (indicazione sulle scuole dopo le nuove mail di allarme bomba)",
+        "Mail bombing alle scuole (titoli, novembre 2026)",
+        "Rischio di avvelenamento in mensa (nuova mail falsa alle scuole, 16 novembre)",
+        "Storico faccia a faccia a tre oggi (rassegna del 19 novembre)",
+        "Sconto del 50% sui libri digitali a rischio (rassegna del 19 novembre)",
+        "Il piano sanitario guida i quotidiani (rassegna stampa locale del 19 novembre)"
+      ]
+    },
+    {
+      "d": "2026-11-19",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "God save the Queen (inno)",
+        "Armiamoci e partite (motto ironico)",
+        "Uno su mille ce la fa (canzone)",
+        "Non è mai troppo tardi (programma TV storico)",
+        "Festina lente (motto latino)",
+        "Ognuno è artefice del proprio destino (proverbio)",
+        "Le roi est mort, vive le roi (formula)",
+        "L'union fait la force (motto)",
+        "Qui dort dîne (proverbio)",
+        "Paris ne s'est pas fait en un jour (proverbio)",
+        "Silence is golden (proverbio)",
+        "Home sweet home (motto)",
+        "No pain, no gain (motto)",
+        "Il cliente ha sempre ragione (motto commerciale)",
+        "O la borsa o la vita (frase fatta)",
+        "Mens sana in corpore sano (motto latino)",
+        "Liberi tutti (formula del gioco)",
+        "Hope not hate (slogan)",
+        "Peace and love (slogan)"
       ]
     }
   ]
