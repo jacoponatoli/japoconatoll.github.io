@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-19",
+  "aggiornato": "2026-11-20",
   "parole": {
     "good": [
       "sanità:fs",
@@ -71,7 +71,10 @@
       "dessert:ms",
       "occupazioni:fp",
       "guanciali:mp",
-      "briciole:fp"
+      "briciole:fp",
+      "paillettes:fp",
+      "sonnellini:mp",
+      "abbracci:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -177,7 +180,12 @@
       "petrolio raffinato:ms",
       "immunità:fs",
       "arsenali:mp",
-      "dichiarazioni:fp"
+      "dichiarazioni:fp",
+      "allarmismi:mp",
+      "dividendi:mp",
+      "superprofitti:mp",
+      "militarizzazione:fs",
+      "rate:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -215,7 +223,9 @@
       "pendolari:mp",
       "sonnambuli:mp",
       "occupanti:mp",
-      "fanfare:fp"
+      "fanfare:fp",
+      "bidelli:mp",
+      "svogliati:mp"
     ],
     "place": [
       "licei:mp",
@@ -247,7 +257,8 @@
       "mense:fp",
       "palestre:fp",
       "corridoi:mp",
-      "tavoli rotondi:mp"
+      "tavoli rotondi:mp",
+      "cortili:mp"
     ]
   },
   "slogan": [
@@ -1119,6 +1130,78 @@
         "La paix en quatre points, la guerre en points de suspension",
         "Ni Est ni Ouest: la sieste"
       ]
+    },
+    {
+      "d": "2026-11-20",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "À ce stade mon oreiller pèse plus lourd que le futur",
+        "S'il te plaît, dessine-moi une sieste",
+        "Parcoursupprime mes réveils",
+        "Des paillettes dans les yeux et du sommeil aussi",
+        "Le ruissellement ne marche pas, la sieste si",
+        "Fin du mois, fin du monde, fin du réveil",
+        "Le lundi n'est pas une démocratie, c'est un abonnement",
+        "Ils ont le pouvoir, nous avons le sommeil",
+        "Le peuple n'est pas une variable d'ajustement, c'est une variable de rêve",
+        "Taxez les superprofits, pas les superrêves",
+        "Trop jeunes pour voter, assez vieux pour rêver",
+        "On rallume les ronds-points, on éteint les réveils",
+        "Sleep for our future, not their wars",
+        "Un repas à un euro, une sieste à zéro euro",
+        "Augmentez-nous, promis on ramène des rêves",
+        "35 per classe e il problema è la sveglia",
+        "Il futuro è adesso, il pisolino pure",
+        "Esclusi i treni, inclusi i sogni",
+        "Cento piazze, nessuna sveglia",
+        "Black Friday più maxxato, venerdì più rilassato",
+        "Finanziamento a tasso zero sul sonno arretrato",
+        "La convenienza è centrale, la tenerezza pure",
+        "Offerte esclusive in app, abbracci gratuiti in piazza",
+        "Avete ignorato le nostre richieste di pisolino: è un vero peccato",
+        "Buona fortuna, firmato: la merenda",
+        "Nessuna richiesta concreta: solo poesia",
+        "Le verifiche non hanno trovato ordigni, solo merende",
+        "No allarmismi infondati, sì sonnellini fondati",
+        "Gestione delle segnalazioni di desideri diffusi",
+        "Bidelli artificieri di poesia",
+        "Coalizione dei volenterosi del pisolino",
+        "Noi, la coalizione degli svogliati",
+        "Emendiamo il decreto sicurezza con un decreto tenerezza",
+        "Legge di bilancio: bilanciamoci sull'amaca",
+        "Dio, patria e pigiama",
+        "Sciopero generale, sogno particolare",
+        "Lo sciopero è una siesta collettiva con le bandiere"
+      ]
+    },
+    {
+      "d": "2026-11-20",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Power to the pillow",
+        "Ora e sempre resistenza alla sveglia",
+        "Pigri di tutto il mondo, sdraiatevi",
+        "Chi non lavora fa l'amore",
+        "Just snooze it",
+        "Sleep different",
+        "Perché voi valete un pisolino",
+        "Che mondo sarebbe senza lentezza",
+        "Chi dorme non piglia pesci, piglia sogni",
+        "Du réveil faisons table rase",
+        "Sleepers of the world, unite",
+        "Il riposo nobilita l'uomo, il gioco lo regala",
+        "No pasarán... los lunes",
+        "Siamo realisti, chiediamo il pisolino",
+        "Lavoratori di tutto il mondo, riposatevi",
+        "Ce n'est qu'un rêve, continuons le sommeil",
+        "Il pane, le rose e la domenica",
+        "Yes we can sleep",
+        "Hasta la merenda siempre",
+        "Make poems not war",
+        "Siamo tutti precari del sonno",
+        "I bambini ci guardano dormire",
+        "Ne pas se presser, c'est déjà résister"
+      ]
     }
   ],
   "letti": [
@@ -1787,6 +1870,75 @@
         "Old school",
         "La guerra in Ucraina non compare nel documento finale",
         "Molto difficile rinunciare alle armi nucleari"
+      ]
+    },
+    {
+      "d": "2026-11-20",
+      "t": [
+        "A ce stade mon sac de cours pèse moins lourd que le futur (pancarta, Francia)",
+        "S'il te plait, dessine-moi un avenir (pancarta)",
+        "Parcoursupprime mes rêves (pancarta)",
+        "Des paillettes dans les yeux et pas des lacrymos (pancarta)",
+        "Le ruissellement marche si peu qu'on a la sécheresse en Bretagne (pancarta)",
+        "Augmentez-nous. Promis, on ramène la PISA (pancarta)",
+        "35°/35 par classe mais le problème, c'est le téléphone (pancarta)",
+        "Fin du mois, fin du monde : même combat (Gilets jaunes 2026)",
+        "Voter tous les cinq ans, ce n'est pas une démocratie, c'est un abonnement (Gilets jaunes 2026)",
+        "Ils ont le pouvoir, nous avons le nombre (Gilets jaunes 2026)",
+        "Le peuple n'est pas une variable d'ajustement (Gilets jaunes 2026)",
+        "Taxez les superprofits, pas les smicards (Gilets jaunes 2026)",
+        "Trop jeunes pour voter, assez vieux pour payer (Gilets jaunes 2026)",
+        "Le 24, on rallume les ronds-points (Gilets jaunes 2026)",
+        "Fight for Our Future, Not Their Wars (Youth Strike europeo, 20 novembre)",
+        "Garantir réellement l'accès au repas à 1 euro (Union Étudiante)",
+        "Il futuro è adesso (corteo CGIL, Torino, 20 novembre)",
+        "Esclusi invece i trasporti su indicazione della Commissione di Garanzia (titolo)",
+        "Il Black Friday più maxxato di sempre (claim Mediaworld)",
+        "Finanziamento tasso zero in 10 rate (claim Black Friday)",
+        "Ritiro gratuito degli ordini in negozio in soli 30 minuti (claim)",
+        "La convenienza è un elemento centrale (comunicato)",
+        "Offerte esclusive in App (claim)",
+        "Avete ignorato le nostre richieste, ed è un vero peccato (mail falsa alle scuole, 16 novembre)",
+        "Buona fortuna (mail falsa alle scuole)",
+        "Nessuna richiesta concreta è esplicitata (commento)",
+        "Le verifiche non hanno mai trovato ordigni (commento)",
+        "Nessuna emergenza in atto, no allarmismi infondati (Viminale)",
+        "Gestione delle segnalazioni di minacce diffuse (oggetto direttiva)",
+        "Dirigenti usano gli ATA come artificieri (titolo)",
+        "Vertice dei volenterosi a Berlino (titolo QN)",
+        "Emendamento al decreto sicurezza (Avvenire)",
+        "Modifiche alla legge di bilancio (titoli)",
+        "Dio, patria e famiglia (motto reazionario)"
+      ]
+    },
+    {
+      "d": "2026-11-20",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Ce n'est qu'un début, continuons le combat (Maggio '68)",
+        "Lavorare meno, lavorare tutti (slogan sindacale)",
+        "Make love not war (slogan)",
+        "Power to the people (slogan)",
+        "Ora e sempre resistenza (motto)",
+        "Proletari di tutto il mondo, unitevi (Manifesto)",
+        "Vogliamo il pane e anche le rose (slogan)",
+        "Chi non lavora non fa l'amore (canzone)",
+        "Just do it (claim)",
+        "Think different (claim)",
+        "Perché voi valete (claim)",
+        "Che mondo sarebbe senza Nutella (claim)",
+        "Chi dorme non piglia pesci (proverbio)",
+        "Du passé faisons table rase (canto)",
+        "Workers of the world, unite (motto)",
+        "Il lavoro nobilita l'uomo (proverbio)",
+        "Yes we can (slogan elettorale)",
+        "Hasta la victoria siempre (motto)",
+        "No pasarán (motto)",
+        "Soyez réalistes, demandez l'impossible (Maggio '68)",
+        "Proletari di tutto il mondo, unitevi (variante)",
+        "Siamo tutti precari (slogan)",
+        "I bambini ci guardano (titolo di film)",
+        "Résister, c'est exister (slogan)"
       ]
     }
   ]
