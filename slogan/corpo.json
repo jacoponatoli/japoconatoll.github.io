@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-20",
+  "aggiornato": "2026-11-21",
   "parole": {
     "good": [
       "sanità:fs",
@@ -74,7 +74,12 @@
       "briciole:fp",
       "paillettes:fp",
       "sonnellini:mp",
-      "abbracci:mp"
+      "abbracci:mp",
+      "endecasillabi:mp",
+      "sussurri:mp",
+      "balli:mp",
+      "scotch:ms",
+      "rime:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -185,7 +190,12 @@
       "dividendi:mp",
       "superprofitti:mp",
       "militarizzazione:fs",
-      "rate:fp"
+      "rate:fp",
+      "economia di guerra:fs",
+      "circolari:fp",
+      "vademecum:ms",
+      "servizio militare:ms",
+      "quotazioni:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -225,7 +235,9 @@
       "occupanti:mp",
       "fanfare:fp",
       "bidelli:mp",
-      "svogliati:mp"
+      "svogliati:mp",
+      "formatori:mp",
+      "ventenni:mp"
     ],
     "place": [
       "licei:mp",
@@ -258,7 +270,9 @@
       "palestre:fp",
       "corridoi:mp",
       "tavoli rotondi:mp",
-      "cortili:mp"
+      "cortili:mp",
+      "piste da ballo:fp",
+      "stazioni ferroviarie:fp"
     ]
   },
   "slogan": [
@@ -1202,6 +1216,81 @@
         "I bambini ci guardano dormire",
         "Ne pas se presser, c'est déjà résister"
       ]
+    },
+    {
+      "d": "2026-11-21",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "La città è nostra, il cuscino pure",
+        "Riprendiamoci il pomeriggio",
+        "Ci siamo ripresi piazza Duomo, ora il divano",
+        "Siamo il futuro, ma senza sveglia",
+        "The nap is ours",
+        "+ pisolini – razzismo: l'odio fa venire le occhiaie",
+        "Non ci bastano le briciole, vogliamo anche il divano",
+        "Qualità del sonno, non quantità del lavoro",
+        "Diamo fastidio quando alziamo la voce? Allora sussurriamo poesie",
+        "Vediamo i nostri sogni aggiustarsi in piazza",
+        "Le manifestazioni proseguono anche nei sogni",
+        "Dj set, balli e occupazione del lunedì",
+        "Siamo un milione e mezzo di sbadigli, il governo confuso",
+        "Basta economia di guerra, viva l'economia della merenda",
+        "La legge di bilancio va riscritta: in endecasillabi",
+        "Schulstreik? Schlafstreik!",
+        "Austerità per i cannoni, abbondanza per i cuscini",
+        "We will nap back. Thank you for nothing",
+        "Shame, shame, shame... nap, nap, nap",
+        "Human control over AI, pillow control over humans",
+        "Initial Pillow Offering: i sogni non si quotano",
+        "Amici dei cuscini, nemici delle sveglie",
+        "Centomila in tredici amache",
+        "Una scuola di studenti, insegnanti e sognatori",
+        "Vademecum per questori: come si fa un pisolino",
+        "Circolare ministeriale: si circola in pigiama",
+        "Nuovo mail bombing: nessuna evacuazione, solo ricreazione",
+        "La vostra noia è in pericolo: arriva la poesia",
+        "Allerta in mensa: rischio di tenerezza",
+        "Prima di evacuare, googlate una poesia",
+        "Quando c'eravamo noi i treni arrivavano in sogno",
+        "Finché ci sarà la siesta",
+        "Équipe rouge, équipe jaune, équipe sieste",
+        "Acte VI : la sieste contre la vie chère",
+        "La vie chère, le rêve gratuit",
+        "Wehrpflicht? Schlafpflicht!",
+        "Service militaire obligatoire, service sieste facultatif",
+        "Sonno regolare, filiere morbide",
+        "Contrasto al sommerso: emergono i sogni",
+        "Tre italiani su quattro anticipano i regali, noi il riposo",
+        "Molti cuscini, molto onore"
+      ]
+    },
+    {
+      "d": "2026-11-21",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Né un uomo né un soldo per la sveglia",
+        "È ora, è ora, potere a chi riposa",
+        "La siesta è nostra e la gestiamo noi",
+        "Uniti si dorme meglio",
+        "Ti piace dormire facile?",
+        "Chi fa la siesta campa cent'anni",
+        "Dormi irresponsabilmente",
+        "Plus je fais la sieste, plus j'ai envie de faire la révolution",
+        "On lâche rien, sauf le réveil",
+        "Tous ensemble, tous en sieste, ouais!",
+        "Paris s'éveille? Pas nous",
+        "Hey hey, ho ho, the alarm clock has got to go",
+        "No siesta, no peace",
+        "This is what a siesta looks like",
+        "Ban the alarm",
+        "Not in my name, not in my nap",
+        "The best naps in life are free",
+        "¡Que se duerman todos!",
+        "¡Ya basta de despertadores!",
+        "Pan, techo y siesta",
+        "Mai dire lunedì",
+        "Non c'è due senza tre pisolini"
+      ]
     }
   ],
   "letti": [
@@ -1939,6 +2028,75 @@
         "Siamo tutti precari (slogan)",
         "I bambini ci guardano (titolo di film)",
         "Résister, c'est exister (slogan)"
+      ]
+    },
+    {
+      "d": "2026-11-21",
+      "t": [
+        "La città è nostra (coro, Milano, 20 novembre)",
+        "Riprendiamoci la città (coro notturno, Milano)",
+        "Ci siamo ripresi piazza Duomo (studenti, Il Fatto)",
+        "Siamo il futuro ma senza un futuro! (cartello, Milano)",
+        "The future is ours (cartello, Milano)",
+        "+ skincare – razzismo che l'odio fa venire le rughe (cartello, Milano)",
+        "Non ci bastano le briciole (cartello, Milano)",
+        "Possiamo occuparci della qualità e non della quantità? (Articolo21)",
+        "Stanchi di chi ci guarda come se dessimo fastidio (studenti, Il Fatto)",
+        "Vediamo i loro sogni spezzarsi (insegnante, Il Fatto)",
+        "Le manifestazioni proseguono anche di notte: dj set, balli e occupazione dell'ex Macello (Il Fatto)",
+        "Siamo un milione e mezzo, il Governo confuso (CGIL, ANSA)",
+        "Basta con l'economia di guerra (dichiarazione)",
+        "Legge di Bilancio va riscritta (dichiarazione)",
+        "Il governo si accorge dello «schulstreik» (Il Manifesto)",
+        "Austerità e riarmo (Il Manifesto)",
+        "Shame, shame, shame (coro, COP31, Turchia)",
+        "We will fight back, and we say thank you for nothing (Climate Action Network, COP31)",
+        "Protesters demand human control over AI after IPO (Euronews)",
+        "Amici dei padroni (studenti ai sindacati, Milano)",
+        "Centomila in tredici piazze lombarde (CGIL)",
+        "Una scuola di studenti, insegnanti e formatori (corteo Milano)",
+        "Vademecum destinato a questori e prefetti (circolare sugli allarmi bomba)",
+        "Nuovo mail bombing alle scuole, ma stavolta nessuna evacuazione (titolo QN)",
+        "La vostra vita è in pericolo (mail falsa alle scuole, 12 novembre)",
+        "Rischio di avvelenamento in mensa (mail falsa alle scuole, 16 novembre)",
+        "Presidi non evacuano dopo aver googlato l'indirizzo (Tecnica della Scuola)",
+        "Quando c'era lui i treni arrivavano in orario (motto nostalgico) / Quando c'era lei i treni arrivavano in ritardo (manifesti nelle stazioni)",
+        "Finché ci sarà lei (risposta di partito)",
+        "Équipe rouge, équipe jaune (Acte VI, Toulouse)",
+        "Acte VI contre la vie chère (Gilets jaunes, 21 novembre)",
+        "Manifestation à Berlin contre le retour du service militaire obligatoire (Euronews)",
+        "Lavoro regolare, filiere forti (campagna Ministero del Lavoro)",
+        "Contrasto al sommerso nel lavoro domestico (campagna istituzionale)",
+        "Tre italiani su quattro comprano in anticipo i regali di Natale (Sole 24 Ore)",
+        "Molti nemici, molto onore (motto fascista)"
+      ]
+    },
+    {
+      "d": "2026-11-21",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Né un uomo né un soldo per la guerra (slogan antimilitarista)",
+        "È ora, è ora, potere a chi lavora (coro)",
+        "La scuola è nostra e la gestiamo noi (coro studentesco)",
+        "Uniti si vince (slogan)",
+        "Ti piace vincere facile? (claim pubblicitario)",
+        "Chi beve birra campa cent'anni (claim pubblicitario)",
+        "Bevi responsabilmente (formula pubblicitaria)",
+        "Plus je fais l'amour, plus j'ai envie de faire la révolution (Maggio '68)",
+        "On lâche rien (coro)",
+        "Tous ensemble, tous ensemble, ouais! (coro)",
+        "Paris s'éveille (canzone)",
+        "Hey hey, ho ho, ... has got to go (coro)",
+        "No justice, no peace (coro)",
+        "This is what democracy looks like (coro)",
+        "Ban the bomb (slogan)",
+        "Not in my name (slogan)",
+        "The best things in life are free (canzone)",
+        "¡Que se vayan todos! (Argentina 2001)",
+        "¡Ya basta! (zapatisti)",
+        "Pan, techo y trabajo (slogan)",
+        "Mai dire mai (frase fatta)",
+        "Non c'è due senza tre (proverbio)"
       ]
     }
   ]
