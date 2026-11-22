@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-21",
+  "aggiornato": "2026-11-22",
   "parole": {
     "good": [
       "sanità:fs",
@@ -79,7 +79,14 @@
       "sussurri:mp",
       "balli:mp",
       "scotch:ms",
-      "rime:fp"
+      "rime:fp",
+      "ritagli:mp",
+      "lucciole:fp",
+      "biglie:fp",
+      "candeline:fp",
+      "massaggi:mp",
+      "nuvole:fp",
+      "cassetti:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -195,7 +202,13 @@
       "circolari:fp",
       "vademecum:ms",
       "servizio militare:ms",
-      "quotazioni:fp"
+      "quotazioni:fp",
+      "perquisizioni:fp",
+      "pressioni:fp",
+      "combustibili fossili:mp",
+      "mercati:mp",
+      "maxiemendamenti:mp",
+      "agenti artificiali:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -237,7 +250,9 @@
       "bidelli:mp",
       "svogliati:mp",
       "formatori:mp",
-      "ventenni:mp"
+      "ventenni:mp",
+      "pensionate:fp",
+      "nonne:fp"
     ],
     "place": [
       "licei:mp",
@@ -272,7 +287,9 @@
       "tavoli rotondi:mp",
       "cortili:mp",
       "piste da ballo:fp",
-      "stazioni ferroviarie:fp"
+      "stazioni ferroviarie:fp",
+      "camini:mp",
+      "outlet:mp"
     ]
   },
   "slogan": [
@@ -1291,6 +1308,75 @@
         "Mai dire lunedì",
         "Non c'è due senza tre pisolini"
       ]
+    },
+    {
+      "d": "2026-11-22",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Sabotiamo guerre e calendari",
+        "Sabotaggio 2.0: si sabota con la gentilezza",
+        "La merenda è e sarà sempre antifascista",
+        "Ogni panchina è e sarà sempre antifascista",
+        "Remigrazione? Solo delle rondini",
+        "Remigrazione 1.0: aggiornamento rifiutato dal sistema",
+        "Nos poèmes, pas vos profits",
+        "Nos siestes, pas vos dividendes",
+        "Contre l'injustice, pour la lenteur",
+        "Nella nostra bozza nessuna menzione della fretta",
+        "COP31: zero menzioni dei fossili, cento delle nuvole",
+        "Viva il balletto inutile",
+        "Emendamento unico: la manovra si balla",
+        "Una merenda metterà tutti d'accordo con la fiducia",
+        "Fiducia al Parlamento, sfiducia alla sveglia",
+        "Non erano tagli, erano ritagli di carta",
+        "Dietrofront sulla scuola, avanti tutta sulla ricreazione",
+        "50 perquisizioni in 13 città: trovate solo poesie",
+        "Perquisite pure: nei cassetti solo biglie",
+        "Respingiamo le pressioni dei mercati, accettiamo i massaggi",
+        "Cessate il fuoco, accendete le candeline",
+        "La parola dell'anno è umano, quella del giorno è merenda",
+        "Human beats agent. Daydream beats both",
+        "Agenti AI tutti uguali, nuvole tutte diverse",
+        "Il 2027 sarà l'anno dell'ozio astratto",
+        "Niente chatbot che fingono affetto: abbracci veri, beta pubblica",
+        "Prompt rifiutato: troppa tenerezza nel contesto",
+        "AI Act azzoppato, Ozio Act in corsa",
+        "È già Blank Friday: un mese di niente",
+        "Black Friday 2.0: si regala tempo, non si compra",
+        "C'è una strategia per creare ricreazione",
+        "40 minuti per decidere se fare merenda",
+        "Non ci sono pericoli concreti, solo poesie astratte",
+        "Libro e cuscinetto, sognatore perfetto",
+        "Tutto nel gioco, niente al di fuori del gioco",
+        "Les retraités dans la rue, les poètes dans les nuages",
+        "L'errore è un segnale, non erano sbagli"
+      ]
+    },
+    {
+      "d": "2026-11-22",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Tutto il potere alle merende",
+        "El pueblo unido jamás será despertado",
+        "Avanti piano, popolo, alla riscossa",
+        "La poésie, c'est l'ordre moins le pouvoir",
+        "Défense d'affliger",
+        "Hands off my afternoon",
+        "Question authority, answer in rhyme",
+        "Born to be mild",
+        "No future, just a very long present",
+        "Non ci avrete mai svegli come volete voi",
+        "Siamo tutti sulla stessa amaca",
+        "Fatti non foste a lavorar come bruti",
+        "Uno per tutti, tutti a merenda",
+        "Ogni poesia lasciata è persa",
+        "Contro il logorio della vita moderna: una filastrocca",
+        "O così o pomeriggio",
+        "La notte porta consiglio, il pisolino porta l'assemblea",
+        "Le sommeil, c'est la santé, la poésie aussi",
+        "Snooze your television",
+        "¡Ni un paso atrás, salvo para bailar!"
+      ]
     }
   ],
   "letti": [
@@ -2097,6 +2183,61 @@
         "Pan, techo y trabajo (slogan)",
         "Mai dire mai (frase fatta)",
         "Non c'è due senza tre (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-22",
+      "t": [
+        "Sabotiamo guerre e patriarcato (Non Una di Meno, verso il 25 novembre)",
+        "Parma è e sarà sempre antifascista (coro)",
+        "Fuck remigration (corteo, Roma)",
+        "Nos pensions, pas vos profits (retraités, Francia)",
+        "Contre l'injustice (corteo, Tunisi)",
+        "Cop 31, nella bozza nessuna menzione dei combustibili fossili (ANSA, 22 novembre)",
+        "Respinge le pressioni dei mercati e difende la manovra (ANSA)",
+        "Il balletto inutile degli emendamenti (Il Giornale d'Italia)",
+        "Un vertice tra i leader metterà tutti d'accordo con la fiducia (Il Giornale d'Italia)",
+        "Dietrofront del governo sulla scuola: è un segnale ma non erano tagli (ANSA)",
+        "Cortei, in corso 50 perquisizioni in 13 città (Avvenire)",
+        "Cessate il fuoco (titoli)",
+        "La parola dell'anno è umano (Cambridge Dictionary)",
+        "Human beat agent (Digital Trends)",
+        "Agenti AI tutti uguali (Agenda Digitale)",
+        "Il 2026 sarà l'anno del valore concreto (Google)",
+        "Empatia, no manipolazione: i chatbot che fingono affetto (Agenda Digitale)",
+        "AI Act azzoppato (Agenda Digitale)",
+        "Per Mediaworld è già Black Friday: un mese di offerte (titolo)",
+        "C'è una strategia per creare preoccupazione (Avvenire, mail bombing alle scuole)",
+        "Non ci sono pericoli concreti (ministro, allarmi bomba)",
+        "Allarme bomba: 40 minuti per decidere (direttiva Viminale)",
+        "Libro e moschetto, fascista perfetto (motto fascista)",
+        "Tutto nello Stato, niente al di fuori dello Stato (motto fascista)"
+      ]
+    },
+    {
+      "d": "2026-11-22",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Tutto il potere ai soviet (slogan storico)",
+        "El pueblo unido jamás será vencido (coro)",
+        "Avanti popolo, alla riscossa (canto)",
+        "L'anarchie, c'est l'ordre moins le pouvoir (motto anarchico)",
+        "Défense d'afficher (cartello)",
+        "Hands off! (proteste 2025)",
+        "Question authority (slogan)",
+        "Born to be wild (canzone)",
+        "No future (punk)",
+        "Non ci avrete mai come volete voi (slogan)",
+        "Siamo tutti sulla stessa barca (frase fatta)",
+        "Fatti non foste a viver come bruti (Dante)",
+        "Uno per tutti, tutti per uno (motto)",
+        "Ogni lasciata è persa (proverbio)",
+        "Contro il logorio della vita moderna (claim pubblicitario)",
+        "O così o Pomì (claim pubblicitario)",
+        "La notte porta consiglio (proverbio)",
+        "Le travail, c'est la santé (canzone/proverbio)",
+        "Kill your television (slogan)",
+        "¡Ni un paso atrás! (coro)"
       ]
     }
   ]
