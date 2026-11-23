@@ -1396,7 +1396,7 @@ P.rorschach = {
 // la tavola classica: inchiostro nero (a volte rosso, a volte colori pastello) su carta bianca, ferma ma che si trasforma piano
 const INK = { o: {}, on: false };
 function tavolaRorschach() {
-  if (MONO.phase || RIT.phase) return; const o = INK.o; newBlobs(o); o.t = rnd(10); o.mode = pick(['nero', 'nero', 'nero', 'nero', 'nero e rosso', 'nero e rosso', 'colori', 'colori', 'colori']);   // come le dieci tavole: 5 nere, 2 col rosso, 3 a colori
+  if (MONO.phase || RIT.phase || TD.phase) return; const o = INK.o; newBlobs(o); o.t = rnd(10); o.mode = pick(['nero', 'nero', 'nero', 'nero', 'nero e rosso', 'nero e rosso', 'colori', 'colori', 'colori']);   // come le dieci tavole: 5 nere, 2 col rosso, 3 a colori
   o.grain = rnd(.3, 1.1); o.redG = (Math.random() * o.groups) | 0; o.cols = shuffled([[226, 120, 150], [235, 140, 60], [110, 160, 215], [120, 190, 130], [230, 200, 80], [170, 130, 200], [200, 90, 80]]);
   MONO.cv.width = Math.round(view.width / 5); MONO.cv.height = Math.round(view.height / 5); o.fr = 0; MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(6, 12); MONO.mode = 'rorschach'; MONO.pix = false; INK.on = true; drawInk();
 }
@@ -1768,7 +1768,7 @@ function flicker() {
 // oppure il fotogramma del momento si ferma e diventa di un colore solo
 const MONO = { phase: '', a: 0, t: 0, hold: 0, cv: document.createElement('canvas') };
 function monocromo() {
-  if (MONO.phase || RIT.phase) return;
+  if (MONO.phase || RIT.phase || TD.phase) return;
   const cols = Math.round(rnd(10, 160)), rows = Math.max(4, Math.round(cols * H / W)), cv = MONO.cv; cv.width = cols; cv.height = rows;
   const mx = cv.getContext('2d'), im = mx.createImageData(cols, rows), d = im.data;
   const mode = pick(['lineare', 'lineare', 'radiale', 'piatto', 'fasce', 'immagine', 'immagine']);
@@ -1793,7 +1793,7 @@ function monocromo() {
 // sfumature, scacchiere, strisce, puntini, cerchi e quadrati concentrici
 const hsl = (h, s, l) => { const o = [0, 0, 0]; hsl2rgb(h, s, l, o, 0); return `rgb(${o.map(Math.round).join(',')})`; };
 function quadro(kind) {
-  if (MONO.phase || RIT.phase) return;
+  if (MONO.phase || RIT.phase || TD.phase) return;
   kind = kind || pick(['albers', 'albers', 'ruota', 'gradiente', 'gradiente', 'scacchiera', 'strisce', 'puntini', 'cerchi', 'quadrati']);
   const cv = MONO.cv; cv.width = Math.round(view.width / 2); cv.height = Math.round(view.height / 2); const g = cv.getContext('2d'), w = cv.width, h = cv.height, m = Math.min(w, h);
   const H0 = Math.random(), sat = rnd(.45, 1);
@@ -1829,7 +1829,7 @@ function quadro(kind) {
 
 // LETTERA A PIENA PAGINA: una sola lettera, grande, secca, ferma, a colori pieni
 function letteraSecca(ch) {
-  if (MONO.phase || RIT.phase) return;
+  if (MONO.phase || RIT.phase || TD.phase) return;
   const cv = MONO.cv; cv.width = view.width; cv.height = view.height; const g = cv.getContext('2d'), w = cv.width, h = cv.height;
   ch = ch || (Math.random() < .75 ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0] : charOf(anyScript()));
   if (Math.random() < .25 && /[A-Z]/.test(ch)) ch = ch.toLowerCase();
@@ -1845,12 +1845,72 @@ function letteraSecca(ch) {
   MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false;
 }
 
+// ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
+const TD = { phase: '', t: 0, hold: 0, tex: document.createElement('canvas') };
+TD.tex.width = 320; TD.tex.height = 200;
+function mesh(kind) { // facce come poligoni [[x,y,z,u,v],...]
+  const F = [], Q = (...p) => F.push(p);
+  const ring = (n, r, y, ph = 0) => Array.from({ length: n }, (_, i) => { const a = ph + i / n * 6.2832; return [r * Math.cos(a), y, r * Math.sin(a), a]; });
+  if (kind === 'cubo') { const c = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], uv = [[0, 1], [1, 1], [1, 0], [0, 0]];
+    for (const f of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]]) Q(...f.map((k, i) => [...c[k], ...uv[i]])); }
+  else if (kind === 'piramide') { const b = [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]], ap = [0, -1.2, 0]; for (let i = 0; i < 4; i++) Q([...b[i], 0, 1], [...b[(i + 1) % 4], 1, 1], [...ap, .5, 0]); Q(...b.slice().reverse().map((p, i) => [...p, ...[[0, 0], [1, 0], [1, 1], [0, 1]][i]])); }
+  else if (kind === 'tetraedro' || kind === 'ottaedro') { const V = kind === 'tetraedro' ? [[1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]] : [[1.3, 0, 0], [-1.3, 0, 0], [0, 1.3, 0], [0, -1.3, 0], [0, 0, 1.3], [0, 0, -1.3]];
+    const T = kind === 'tetraedro' ? [[0, 1, 2], [0, 3, 1], [0, 2, 3], [1, 3, 2]] : [[0, 2, 4], [4, 2, 1], [1, 2, 5], [5, 2, 0], [4, 3, 0], [1, 3, 4], [5, 3, 1], [0, 3, 5]]; for (const t of T) Q([...V[t[0]], 0, 1], [...V[t[1]], 1, 1], [...V[t[2]], .5, 0]); }
+  else if (kind === 'sfera' || kind === 'toro') { const nu = 16, nv = 10, P = (i, j) => { const u = i / nu * 6.2832, v = j / nv; if (kind === 'sfera') { const th = v * Math.PI; return [Math.sin(th) * Math.cos(u), -Math.cos(th), Math.sin(th) * Math.sin(u), i / nu, v]; }
+      const w = v * 6.2832, R = 1, r = .45; return [(R + r * Math.cos(w)) * Math.cos(u), r * Math.sin(w), (R + r * Math.cos(w)) * Math.sin(u), i / nu, v]; };
+    for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) Q(P(i, j), P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)); }
+  else { // prismi, cilindro, cono
+    const n = kind === 'prisma triangolare' ? 3 : kind === 'prisma pentagonale' ? 5 : 32, top = ring(n, 1, -1, -1.5708), bot = ring(n, 1, 1, -1.5708), cone = kind === 'cono', strip = n > 6;
+    for (let i = 0; i < n; i++) { const j = (i + 1) % n, u0 = strip ? i / n : 0, u1 = strip ? (i + 1) / n : 1;
+      if (cone) Q([...bot[i].slice(0, 3), u0, 1], [...bot[j].slice(0, 3), u1, 1], [0, -1.3, 0, (u0 + u1) / 2, 0]); else Q([...bot[i].slice(0, 3), u0, 1], [...bot[j].slice(0, 3), u1, 1], [...top[j].slice(0, 3), u1, 0], [...top[i].slice(0, 3), u0, 0]); }
+    const cap = (R, flip) => Q(...(flip ? R.slice().reverse() : R).map(p => [p[0], p[1], p[2], .5 + .5 * p[0], .5 + .5 * p[2]]));
+    cap(bot, true); if (!cone) cap(top, false); }
+  return F;
+}
+const SOLIDI3D = ['cubo', 'cubo', 'piramide', 'prisma pentagonale', 'prisma triangolare', 'cilindro', 'cono', 'sfera', 'toro', 'ottaedro', 'tetraedro'];
+function entra3D(kind) {
+  if (TD.phase || MONO.phase) return;
+  TD.kind = kind || pick(SOLIDI3D); TD.F = mesh(TD.kind); TD.phase = 'in'; TD.t = 0; TD.hold = rnd(6, 14);
+  TD.ax = rnd(-.4, .4); TD.wx = rnd(.2, .6) * (Math.random() < .5 ? -1 : 1); TD.wy = rnd(.3, .9) * (Math.random() < .5 ? -1 : 1); TD.wz = gauss() * .15; TD.ang = [0, 0, 0];
+  TD.bg = pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa']);
+}
+function texTri(g, img, s0, s1, s2, d0, d1, d2) { // mappa affine: triangolo della texture → triangolo sullo schermo
+  const den = (s1[0] - s0[0]) * (s2[1] - s0[1]) - (s2[0] - s0[0]) * (s1[1] - s0[1]); if (Math.abs(den) < 1e-6) return;
+  const a = ((d1[0] - d0[0]) * (s2[1] - s0[1]) - (d2[0] - d0[0]) * (s1[1] - s0[1])) / den, b = ((d1[1] - d0[1]) * (s2[1] - s0[1]) - (d2[1] - d0[1]) * (s1[1] - s0[1])) / den;
+  const c2 = ((d2[0] - d0[0]) * (s1[0] - s0[0]) - (d1[0] - d0[0]) * (s2[0] - s0[0])) / den, d = ((d2[1] - d0[1]) * (s1[0] - s0[0]) - (d1[1] - d0[1]) * (s2[0] - s0[0])) / den;
+  const e = d0[0] - a * s0[0] - c2 * s0[1], f = d0[1] - b * s0[0] - d * s0[1];
+  const cx = (d0[0] + d1[0] + d2[0]) / 3, cy = (d0[1] + d1[1] + d2[1]) / 3, ex = p => [p[0] + (p[0] - cx) * .02, p[1] + (p[1] - cy) * .02];   // un filo più grande: niente fessure
+  g.save(); g.beginPath(); g.moveTo(...ex(d0)); g.lineTo(...ex(d1)); g.lineTo(...ex(d2)); g.closePath(); g.clip(); g.setTransform(a, b, c2, d, e, f); g.drawImage(img, 0, 0); g.restore();
+}
+function draw3D(dt) {
+  TD.t += dt; const VW = view.width, VH = view.height, m = Math.min(VW, VH);
+  if (TD.phase === 'in' && TD.t > 2.2) { TD.phase = 'gira'; TD.t = 0; } else if (TD.phase === 'gira' && TD.t > TD.hold) { TD.phase = 'out'; TD.t = 0; } else if (TD.phase === 'out' && TD.t > 2) { TD.phase = ''; return; }
+  const e = TD.phase === 'in' ? ease(clamp(TD.t / 2.2, 0, 1)) : TD.phase === 'out' ? 1 - ease(clamp(TD.t / 2, 0, 1)) : 1;
+  if (TD.phase === 'gira' || TD.phase === 'in') { TD.ang[0] += TD.wx * dt * e; TD.ang[1] += TD.wy * dt * e; TD.ang[2] += TD.wz * dt * e; }
+  const tx = TD.tex.getContext('2d'); tx.drawImage(view, 0, 0, TD.tex.width, TD.tex.height);   // la texture è l'immagine viva
+  vctx.save(); vctx.globalAlpha = e; vctx.fillStyle = TD.bg; vctx.fillRect(0, 0, VW, VH); vctx.globalAlpha = 1;
+  // da piatto a solido: le dimensioni passano dalla pagina intera al solido
+  const S = m * .26, sx = VW / 2 + (S - VW / 2) * e, sy = VH / 2 + (S - VH / 2) * e, sz = S * Math.max(.02, e);
+  const [ax, ay, az] = [TD.ang[0] + TD.ax * e, TD.ang[1], TD.ang[2]], ca = Math.cos(ax), sa = Math.sin(ax), cb = Math.cos(ay), sb = Math.sin(ay), cc = Math.cos(az), sc = Math.sin(az);
+  const R = ([x, y, z]) => { x *= sx; y *= sy; z *= sz; let y1 = y * ca - z * sa, z1 = y * sa + z * ca; let x2 = x * cb + z1 * sb, z2 = -x * sb + z1 * cb; return [x2 * cc - y1 * sc, x2 * sc + y1 * cc, z2]; };
+  const proj = ([x, y, z]) => { const f = 1 / (1 + z / (m * 2.2)); return [VW / 2 + x * f, VH / 2 + y * f]; }, L = [-.4, -.6, -.7];
+  const faces = TD.F.map(poly => { const P3 = poly.map(R), P2 = P3.map(proj); let ar = 0; for (let i = 0; i < P2.length; i++) { const p = P2[i], q = P2[(i + 1) % P2.length]; ar += p[0] * q[1] - q[0] * p[1]; }
+    const zc = P3.reduce((s2, p) => s2 + p[2], 0) / P3.length, A = P3[0], B = P3[1], C = P3[2], u = [B[0] - A[0], B[1] - A[1], B[2] - A[2]], v = [C[0] - A[0], C[1] - A[1], C[2] - A[2]];
+    const nn = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], nl = Math.hypot(...nn) || 1, lit = Math.max(0, (nn[0] * L[0] + nn[1] * L[1] + nn[2] * L[2]) / nl);
+    return { poly, P2, zc, ar, lit }; }).filter(f => f.ar < 0 || TD.kind === 'toro').sort((p, q) => q.zc - p.zc);
+  const tw = TD.tex.width, th = TD.tex.height;
+  for (const f of faces) { const UV = f.poly.map(p => [p[3] * tw, p[4] * th]);
+    for (let i = 1; i < f.P2.length - 1; i++) texTri(vctx, TD.tex, UV[0], UV[i], UV[i + 1], f.P2[0], f.P2[i], f.P2[i + 1]);
+    vctx.beginPath(); f.P2.forEach((p, i) => i ? vctx.lineTo(...p) : vctx.moveTo(...p)); vctx.closePath(); vctx.fillStyle = `rgba(0,0,0,${((1 - f.lit) * .45 * e).toFixed(3)})`; vctx.fill(); }
+  vctx.restore();
+}
+
 function drawMono(alpha) { vctx.save(); vctx.globalAlpha = alpha; vctx.imageSmoothingEnabled = !MONO.pix; vctx.drawImage(MONO.cv, 0, 0, view.width, view.height); vctx.restore(); }
 
 // APPARIZIONE: il resto si dissolve, il mandala resta solo e il tempo si ferma per qualche secondo
 const RIT = { phase: '', t: 0, hold: 0 };
 function apparizione(proc = P.mandala) {
-  if (RIT.phase || MONO.phase) return;
+  if (RIT.phase || MONO.phase || TD.phase) return;
   RIT.proc = proc;
   let a = active.find(x => x.proc === proc);
   if (!a) { enter(proc); a = active[active.length - 1]; a.shape = proc === P.mandala ? 'cerchio' : 'tutto'; a.cx = proc.cx || W / 2; a.cy = proc.cy || H / 2; a.rate = rnd(.25, .45); a.bubble = false; }
@@ -1951,7 +2011,8 @@ const EVENTS = [
   { rate: () => .018, fn: monocromo },
   { rate: () => .016, fn: () => quadro() },
   { rate: () => .014, fn: tavolaRorschach },
-  { rate: () => .018, fn: () => letteraSecca() },                  // una lettera sola, a piena pagina, ferma                       // tavola di Rorschach classica, sempre nuova
+  { rate: () => .018, fn: () => letteraSecca() },
+  { rate: () => TD.phase ? 0 : .015, fn: () => entra3D() },           // l'immagine entra nel 3D                  // una lettera sola, a piena pagina, ferma                       // tavola di Rorschach classica, sempre nuova
   { rate: () => .012, fn: () => apparizione(P.rorschach) },        // macchia di Rorschach psichedelica
   { rate: () => .014, fn: () => apparizione(P.sagome) },           // sagome a colori pieni, ferme                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
@@ -2236,7 +2297,7 @@ function loop(t) {
     if (w.next !== w.type) { w.amt -= dt * .35; if (w.amt <= 0) { w.amt = 0; w.type = w.next; } }
     else if (w.type !== 'nessuna') w.amt = Math.min(1, w.amt + dt * .2); }
   S.acc += 2 * S.tscale; while (S.acc >= 1) { S.acc--; for (const a of active) a.proc.step(); }
-  const f0 = performance.now(); frame(t, dt); window.__ft = .9 * (window.__ft || 0) + .1 * (performance.now() - f0);
+  const f0 = performance.now(); frame(t, dt); if (TD.phase) draw3D(dt); window.__ft = .9 * (window.__ft || 0) + .1 * (performance.now() - f0);
   if (document.body.classList.contains('ui')) updateInfo();
 }
 
@@ -2247,7 +2308,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2276,6 +2337,7 @@ addEventListener('keydown', e => {
   else if (k === '6') { if (Math.random() < .5) tavolaRorschach(); else apparizione(P.rorschach); }
   else if (k === '5') apparizione(P.sagome);
   else if (k === '4') letteraSecca();
+  else if (k === '3') entra3D();
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
@@ -2299,7 +2361,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
