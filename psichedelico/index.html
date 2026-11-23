@@ -679,6 +679,60 @@ P.lettere = {
   }
 };
 
+/* ---------- ARTE ISLAMICA: stelle e girih col metodo dei "poligoni in contatto" (Hankin) ---------- */
+// su una tassellatura regolare, da ogni punto medio dei lati partono due raggi inclinati di θ;
+// i raggi dei lati vicini si incontrano e disegnano stelle e rosoni. θ varia lentamente: le stelle respirano.
+function tiling(kind, s) {
+  const P = [], R3 = Math.sqrt(3);
+  if (kind === 'quadrati') { for (let y = -s; y < H + s; y += s) for (let x = -s; x < W + s; x += s) P.push([[x, y], [x + s, y], [x + s, y + s], [x, y + s]]); }
+  else if (kind === 'esagoni') { const r = s; for (let j = -1; j * 1.5 * r < H + 2 * r; j++) for (let i = -1; i * R3 * r < W + 2 * r; i++) { const cx = R3 * r * (i + (j & 1) * .5), cy = 1.5 * r * j; P.push([0, 1, 2, 3, 4, 5].map(k => [cx + r * Math.cos(Math.PI / 6 + k * Math.PI / 3), cy + r * Math.sin(Math.PI / 6 + k * Math.PI / 3)])); } }
+  else if (kind === 'triangoli') { const h = s * R3 / 2; for (let j = -1; j * h < H + h; j++) for (let i = -2; i * s / 2 < W + s; i++) { const x = i * s / 2, y = j * h; P.push((i + j) & 1 ? [[x, y + h], [x + s / 2, y], [x + s, y + h]] : [[x, y], [x + s, y], [x + s / 2, y + h]]); } }
+  else { // 4.8.8: ottagoni e quadrati
+    const a = s / (1 + Math.SQRT2), w = s, q = a / Math.SQRT2;
+    for (let j = -1; j * w < H + w; j++) for (let i = -1; i * w < W + w; i++) { const cx = i * w, cy = j * w;
+      P.push([0, 1, 2, 3, 4, 5, 6, 7].map(k => { const t = Math.PI / 8 + k * Math.PI / 4, r = s / 2 / Math.cos(Math.PI / 8); return [cx + r * Math.cos(t), cy + r * Math.sin(t)]; }));
+      P.push([[cx + w / 2, cy + w / 2 - q], [cx + w / 2 + q, cy + w / 2], [cx + w / 2, cy + w / 2 + q], [cx + w / 2 - q, cy + w / 2]]); } }
+  return P;
+}
+P.islamica = {
+  get name() { return 'arte islamica: ' + this.kind; },
+  init() {
+    this.kind = pick(['quadrati', 'esagoni', 'triangoli', '4.8.8', '4.8.8', 'rosone']); this.t = rnd(6.28);
+    this.s = Math.min(W, H) * (this.kind === 'esagoni' ? rnd(.07, .14) : rnd(.12, .24));
+    this.base = rnd(.95, 1.35); this.amp = rnd(.1, .35); this.v = rnd(.004, .012); this.delta = Math.random() < .4 ? rnd(.05, .2) : 0; this.showTiles = Math.random() < .3;
+    this.n = pick([8, 10, 12, 16]); this.k = 3 + ((Math.random() * 3) | 0); this.rot = 0; this.vr = gauss() * .001;
+    if (this.kind !== 'rosone') this.tiles = tiling(this.kind, this.s);
+  },
+  step() { this.t += this.v; this.rot += this.vr; },
+  render(c) {
+    c.beginPath();
+    if (this.kind === 'rosone') { // rosone a stella {n/k}, annidato
+      const cx = W / 2, cy = H / 2, R0 = Math.max(W, H) * .6, n = this.n;
+      for (let g = 0; g < 6; g++) { const R = R0 * Math.pow(.62, g), k = Math.min(this.k, Math.floor((n - 1) / 2)), a0 = this.rot * (g % 2 ? -1 : 1) + g * Math.PI / n;
+        for (let i = 0; i <= n; i++) { const a = a0 + ((i * k) % n) * 6.2832 / n; i ? c.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a)) : c.moveTo(cx + R * Math.cos(a), cy + R * Math.sin(a)); }
+        const r2 = R * Math.cos(Math.PI * k / n) / Math.cos(Math.PI * (k - 1) / n) * (.9 + .1 * Math.sin(this.t * 2)); c.moveTo(cx + r2, cy); c.arc(cx, cy, r2, 0, 6.2832); }
+      c.stroke(); return;
+    }
+    const th = this.base + this.amp * Math.sin(this.t), co = Math.cos(th), si = Math.sin(th), dl = this.delta * this.s;
+    for (const poly of this.tiles) {
+      const n = poly.length; let gx = 0, gy = 0; for (const [x, y] of poly) { gx += x; gy += y; } gx /= n; gy /= n;
+      if (gx < -this.s * 2 || gx > W + this.s * 2 || gy < -this.s * 2 || gy > H + this.s * 2) continue;
+      if (this.showTiles) { poly.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); }
+      const E = poly.map((v, i) => { const w = poly[(i + 1) % n], ex = w[0] - v[0], ey = w[1] - v[1], L = Math.hypot(ex, ey), e = [ex / L, ey / L];
+        const m = [(v[0] + w[0]) / 2, (v[1] + w[1]) / 2]; let nn = [-e[1], e[0]]; if ((gx - m[0]) * nn[0] + (gy - m[1]) * nn[1] < 0) nn = [-nn[0], -nn[1]]; return { m, e, nn, L }; });
+      for (let i = 0; i < n; i++) {
+        const A = E[i], B = E[(i + 1) % n];
+        const pa = [A.m[0] + A.e[0] * dl, A.m[1] + A.e[1] * dl], pb = [B.m[0] - B.e[0] * dl, B.m[1] - B.e[1] * dl];
+        const da = [co * A.e[0] + si * A.nn[0], co * A.e[1] + si * A.nn[1]], db = [-co * B.e[0] + si * B.nn[0], -co * B.e[1] + si * B.nn[1]];
+        const X = isect(pa, da, pb, db); if (!isFinite(X[0]) || Math.hypot(X[0] - gx, X[1] - gy) > A.L * 2.5) continue;
+        c.moveTo(...pa); c.lineTo(...X); c.lineTo(...pb);
+        if (dl) { c.moveTo(A.m[0] - A.e[0] * dl, A.m[1] - A.e[1] * dl); c.lineTo(...pa); }   // chiude il varco fra i raggi sdoppiati
+      }
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- ALLA MANIERA DI BOETTI: "tutto" (sagome fitte fino a riempire il quadro) e griglie di lettere ---------- */
 const ICONE = {
   stella(c, s) { for (let i = 0; i <= 10; i++) { const a = -1.5708 + i * .62832, r = i % 2 ? s * .4 : s; i ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(r * Math.cos(a), r * Math.sin(a)); } },
@@ -1173,6 +1227,7 @@ const EVENTS = [
   { rate: () => .022, fn: () => apparizione(P.mandala) },
   { rate: () => .016, fn: () => apparizione(P.illusioni) },        // illusioni ottiche, ferme
   { rate: () => .018, fn: monocromo },
+  { rate: () => .012, fn: () => apparizione(P.islamica) },        // motivi islamici, fermi
   { rate: () => .012, fn: () => apparizione(P.lettere) },          // lettere ferme
   { rate: () => .014, fn: () => apparizione(Math.random() < .5 ? P.boetti : P.fiori) },   // Boetti e fiori, fermi
   { rate: () => active.some(a => a.proc === P.fiori) ? 0 : .015, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.fiori); } },
@@ -1441,7 +1496,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1461,6 +1516,7 @@ addEventListener('keydown', e => {
   else if (k === 'n') monocromo();
   else if (k === 'x') { if (active.length >= 3) leave(); enter(P.lettere); }
   else if (k === 'b') apparizione(P.boetti);
+  else if (k === 'j') apparizione(P.islamica);
   else if (k === 'g') apparizione(P.fiori);
   else if (k === 's') serie();
   else if (k === 'v') toggleCam();
