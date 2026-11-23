@@ -765,6 +765,90 @@ P.yturralde = {
   }
 };
 
+/* ---------- LABIRINTI (da M.-P. Corcuff, "City Paths, Mazes, Intelligence, and Generative Design", GA2024) ---------- */
+// un labirinto è un albero su una griglia che raggiunge ogni cella. Generico (variante di Wilson), costruzione per generazioni,
+// autosimile da un seme 3×3 (FASB), centrato (cartesiano → polare), filo d'Arianna e diffusione alla Physarum, rete veneziana
+function mazeWilson(n) { // percorso unicursale finché si blocca, poi riparte da un punto del percorso già fatto
+  const vis = new Uint8Array(n * n), E = [], gen = new Int32Array(n * n).fill(-1), D = [[1, 0], [-1, 0], [0, 1], [0, -1]], path = [];
+  let cur = ((Math.random() * n) | 0) + ((Math.random() * n) | 0) * n, g = 0; vis[cur] = 1; gen[cur] = 0; path.push(cur);
+  for (;;) { const x = cur % n, y = (cur / n) | 0, opts = D.map(([dx, dy]) => [x + dx, y + dy]).filter(([a, b]) => a >= 0 && b >= 0 && a < n && b < n && !vis[a + b * n]);
+    if (opts.length) { const [a, b] = pick(opts), nx = a + b * n; E.push([cur, nx, g]); vis[nx] = 1; gen[nx] = g; path.push(nx); cur = nx; continue; }
+    const cand = path.filter(c => { const cx = c % n, cy = (c / n) | 0; return D.some(([dx, dy]) => { const a = cx + dx, b = cy + dy; return a >= 0 && b >= 0 && a < n && b < n && !vis[a + b * n]; }); });
+    if (!cand.length) break; cur = pick(cand); g++; }
+  return { n, E, gen, G: g + 1 };
+}
+function mazeSelfSimilar(k) { // stesso seme 3×3 a ogni scala: i blocchi si collegano secondo il seme
+  const seed = mazeWilson(3).E.map(([a, b]) => [a, b]);
+  const build = lv => { const n = Math.pow(3, lv); if (lv === 1) return seed.map(([a, b]) => [a, b, 0]); const sub = build(lv - 1), m = n / 3, E = [];
+    for (let bj = 0; bj < 3; bj++) for (let bi = 0; bi < 3; bi++) for (const [a, b, g] of sub) { const ax = a % m + bi * m, ay = ((a / m) | 0) + bj * m, bx = b % m + bi * m, by = ((b / m) | 0) + bj * m; E.push([ax + ay * n, bx + by * n, g + 1]); }
+    for (const [A, B] of seed) { const ai = A % 3, aj = (A / 3) | 0, bi = B % 3, bj = (B / 3) | 0, mid = (m / 2) | 0; let c1, c2;
+      if (aj === bj) { const L = Math.min(ai, bi); c1 = [(L + 1) * m - 1, aj * m + mid]; c2 = [(L + 1) * m, aj * m + mid]; } else { const T = Math.min(aj, bj); c1 = [ai * m + mid, (T + 1) * m - 1]; c2 = [ai * m + mid, (T + 1) * m]; }
+      E.push([c1[0] + c1[1] * n, c2[0] + c2[1] * n, 0]); }
+    return E; };
+  const E = build(k), n = Math.pow(3, k); return { n, E, gen: new Int32Array(n * n), G: k + 1 };
+}
+function mazeDist(M, root) { const { n, E } = M, adj = Array.from({ length: n * n }, () => []); for (const [a, b] of E) { adj[a].push(b); adj[b].push(a); }
+  const d = new Int32Array(n * n).fill(-1), prev = new Int32Array(n * n).fill(-1), q = [root]; d[root] = 0;
+  while (q.length) { const c = q.shift(); for (const nb of adj[c]) if (d[nb] < 0) { d[nb] = d[c] + 1; prev[nb] = c; q.push(nb); } } return { d, prev }; }
+P.labirinto = {
+  get name() { return 'labirinto: ' + this.mode; },
+  init() {
+    this.mode = pick(['generico (Wilson)', 'costruzione', 'crescita', "filo d'Arianna", "filo d'Arianna", 'autosimile (FASB)', 'autosimile (FASB)', 'centrato (polare)', 'centrato (polare)', 'Venezia', 'Venezia']);
+    this.t = 0; this.hint = true; this.soft = true; this.cols = shuffled([0, 1, 2, 3, 4]); this.cx = W / 2; this.cy = H / 2;
+    if (this.mode === 'Venezia') return this.venice();
+    const self = this.mode.startsWith('autosimile') || (this.mode.startsWith('centrato') && Math.random() < .6);
+    this.M = self ? mazeSelfSimilar(Math.random() < .8 ? 3 : 2) : mazeWilson(pick([15, 21, 25, 31]));
+    const n = this.M.n; this.polar = this.mode.startsWith('centrato');
+    this.root = this.mode === "filo d'Arianna" ? 0 : this.polar ? n * (n - 1) + ((n / 2) | 0) : ((Math.random() * n * n) | 0);
+    const { d, prev } = mazeDist(this.M, this.root); this.d = d; this.maxd = Math.max(...d); this.bandLen = Math.max(2, Math.round(this.maxd / rnd(6, 18))); this.phase = 0; this.v = rnd(.5, 2) * (Math.random() < .3 ? -1 : 1);
+    this.goal = this.mode === "filo d'Arianna" ? n * n - 1 : -1; this.path = new Set(); if (this.goal >= 0) for (let c = this.goal; c >= 0; c = prev[c]) this.path.add(c);
+    this.cs = Math.min(W, H) * .94 / n; this.ox = (W - this.cs * n) / 2; this.oy = (H - this.cs * n) / 2; this.w = rnd(.4, .62); this.grow = this.mode === 'crescita' ? 0 : 1;
+  },
+  venice() { // isole separate da canali ad anelli; in ogni isola calli che finiscono sull'acqua; ponti che legano tutto
+    const k = 3 + ((Math.random() * 3) | 0), kr = Math.max(2, Math.round(k * H / W)); this.vk = [k, kr]; this.vj = Array.from({ length: (k + 1) * (kr + 1) }, () => [gauss() * .18, gauss() * .18]); this.isl = [];
+    for (let j = 0; j < kr; j++) for (let i = 0; i < k; i++) this.isl.push({ i, j, M: mazeWilson(pick([4, 5, 6])), br: [] });
+    const T = mazeWilson(Math.max(k, kr)).E; for (const [a, b] of T) { const n0 = Math.max(k, kr), ai = a % n0, aj = (a / n0) | 0, bi = b % n0, bj = (b / n0) | 0; if (ai < k && bi < k && aj < kr && bj < kr) this.isl[aj * k + ai].br.push([bi - ai, bj - aj]); }
+  },
+  step() { this.t += .01; this.phase += this.v * .15; if (this.grow < 1) this.grow = Math.min(1, this.grow + .0025); else if (this.mode === 'crescita' && Math.random() < .002) this.init(); },
+  P(x, y) { // centro della cella (x, y) sullo schermo; nel modo centrato la griglia si avvolge: x → angolo, y → raggio
+    if (!this.polar) return [this.ox + (x + .5) * this.cs, this.oy + (y + .5) * this.cs];
+    const n = this.M.n, R = Math.min(W, H) * .47, r0 = R * .12, r = r0 + (n - 1 - y + .5) / n * (R - r0), a = (x + .5) / n * 6.2832 - 1.5708; return [W / 2 + r * Math.cos(a), H / 2 + r * Math.sin(a)]; },
+  cellAt(px, py) { const n = this.M.n; if (!this.polar) { const x = Math.floor((px - this.ox) / this.cs), y = Math.floor((py - this.oy) / this.cs); return x < 0 || y < 0 || x >= n || y >= n ? -1 : x + y * n; }
+    const R = Math.min(W, H) * .47, r0 = R * .12, dx = px - W / 2, dy = py - H / 2, r = Math.hypot(dx, dy); if (r < r0 || r > R) return -1;
+    const y = n - 1 - Math.floor((r - r0) / (R - r0) * n), x = Math.floor(mod(Math.atan2(dy, dx) + 1.5708, 6.2832) / 6.2832 * n); return clamp(x, 0, n - 1) + clamp(y, 0, n - 1) * n; },
+  colorAt(x, y) {
+    if (this.mode === 'Venezia') return -1;
+    const c = this.cellAt(x, y); if (c < 0 || this.d[c] < 0) return this.cols[4];
+    if (this.path.has(c)) { const [X, Y] = this.P(c % this.M.n, (c / this.M.n) | 0); if (Math.hypot(x - X, y - Y) < this.cs * this.w * .22 + 2) return this.cols[3]; }
+    if (this.mode === 'costruzione') return this.cols[this.M.gen[c] % 3];
+    return this.cols[mod(Math.floor((this.d[c] - this.phase) / this.bandLen), 3)];   // onde che partono dalla radice: la diffusione nel labirinto
+  },
+  render(c) {
+    if (this.mode === 'Venezia') return this.renderVenice(c);
+    const { n, E, gen, G } = this.M, segs = [], cuts = [], shown = Math.floor(E.length * this.grow), sub = this.polar ? 6 : 1;
+    for (let k = 0; k < shown; k++) { const [a, b, g] = E[k], ax = a % n, ay = (a / n) | 0, bx = b % n, by = (b / n) | 0;
+      const w = this.cs * (this.mode === 'costruzione' ? this.w * Math.max(.25, 1 - g / Math.max(1, G) * .9) : this.w) * (this.polar ? (.4 + .6 * (n - (ay + by) / 2) / n) : 1);
+      let pp = this.P(ax, ay); for (let q = 1; q <= sub; q++) { const f = q / sub; let mx = ax + (bx - ax) * f; if (this.polar && Math.abs(bx - ax) > 1) mx = ax + (bx > ax ? -1 : 1) * f; const np = this.P(mx, ay + (by - ay) * f); segs.push([...pp, ...np, w]); pp = np; }
+      // tagli trasversali dove cambia la banda (o la generazione): il corridoio si divide in tratti colorati
+      const ba = this.mode === 'costruzione' ? gen[a] : Math.floor((this.d[a] - this.phase) / this.bandLen), bb = this.mode === 'costruzione' ? gen[b] : Math.floor((this.d[b] - this.phase) / this.bandLen);
+      if (ba !== bb) { const A = this.P(ax, ay), B = this.P(bx, by), mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2, dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, hw = w / 2 + LW; cuts.push([[mx - dy / L * hw, my + dx / L * hw], [mx + dy / L * hw, my - dx / L * hw]]); } }
+    tubeDraw(c, segs, cuts);
+    if (this.path.size) { const ps = [], arr = [...this.path]; for (let k = 0; k < arr.length - 1; k++) { const a = arr[k], b = arr[k + 1]; ps.push([...this.P(a % n, (a / n) | 0), ...this.P(b % n, (b / n) | 0), this.cs * this.w * .44]); } tubeDraw(c, ps); }   // il filo d'Arianna
+  },
+  renderVenice(c) {
+    const [k, kr] = this.vk, cw = W / k, ch = H / kr, J = (i, j) => { const q = this.vj[j * (k + 1) + i]; return [i * cw + (i > 0 && i < k ? q[0] * cw : 0), j * ch + (j > 0 && j < kr ? q[1] * ch : 0)]; };
+    const segs = [], lines = [], cw2 = Math.min(cw, ch) * .07;
+    for (let j = 0; j <= kr; j++) for (let i = 0; i <= k; i++) { const A = J(i, j); if (i < k) segs.push([...A, ...J(i + 1, j), cw2]); if (j < kr) segs.push([...A, ...J(i, j + 1), cw2]); }   // i canali: tutti anelli, nessun vicolo cieco
+    tubeDraw(c, segs); const ss = [];
+    for (const I of this.isl) { const a = J(I.i, I.j), b = J(I.i + 1, I.j + 1), x0 = a[0] + cw2, y0 = a[1] + cw2, x1 = b[0] - cw2, y1 = b[1] - cw2, n = I.M.n, sx = (x1 - x0) / n, sy = (y1 - y0) / n, w = Math.min(sx, sy) * .32;
+      const C = (cc) => [x0 + (cc % n + .5) * sx, y0 + (((cc / n) | 0) + .5) * sy];
+      for (const [p, q] of I.M.E) ss.push([...C(p), ...C(q), w]);
+      for (let e = 0; e < n; e += 2) { ss.push([...C(e), C(e)[0], y0 - cw2 * .6, w]); }   // calli che finiscono sull'acqua
+      for (const [di, dj] of I.br) { const m = (n / 2) | 0, cc = di ? (di > 0 ? n - 1 : 0) + m * n : m + (dj > 0 ? n - 1 : 0) * n, [px, py] = C(cc); ss.push([px, py, px + di * (sx / 2 + cw2 * 2.2), py + dj * (sy / 2 + cw2 * 2.2), w]); } }   // i ponti
+    tubeDraw(c, ss);
+  }
+};
+
 /* ---------- TESSUTI: tappeti e tessiture tradizionali ---------- */
 // persiano (medaglione, campo, bordure), gul turkmeni, kilim anatolico, eye dazzler navajo, sarape di Saltillo,
 // tocapu andini, ikat, boteh (paisley), kente, tartan (saia), seigaiha e asanoha, mola kuna, quilt di Gee's Bend.
@@ -1920,7 +2004,8 @@ function apparizione(proc = P.mandala) {
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
   RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? rnd(1.5, 4) : rnd(4, 8);
-  if (proc === P.yturralde && proc.mode === 'realizzazione 3D') RIT.hold = .5;   // la realizzazione 3D deve ruotare: sosta breve
+  if (proc === P.yturralde && proc.mode === 'realizzazione 3D') RIT.hold = .5;
+  if (proc === P.labirinto) { RIT.hold = rnd(3, 6); RIT.colorsStill = false; }   // la realizzazione 3D deve ruotare: sosta breve
   RIT.colorsStill = proc === P.mandala ? Math.random() < .5 : Math.random() < .7;
   if (proc === P.solidi) { RIT.colorsStill = Math.random() < .85; S.sym = 'nessuna'; for (const x of active) if (x !== a) x.rate = rnd(.5, .9); }   // a volte si ferma anche il colore, a volte il colore continua a scorrere
 }
@@ -2019,7 +2104,8 @@ const EVENTS = [
   { rate: () => .014, fn: () => apparizione(P.solidi) },
   { rate: () => .016, fn: () => apparizione(P.concreto) },
   { rate: () => .018, fn: () => apparizione(P.tessuti) },
-  { rate: () => .014, fn: () => apparizione(P.yturralde) },       // figure impossibili di Yturralde e paraboloidi rigati         // tappeti e tessiture, fermi
+  { rate: () => .014, fn: () => apparizione(P.yturralde) },
+  { rate: () => .016, fn: () => apparizione(P.labirinto) },        // labirinti (Corcuff, GA2024)       // figure impossibili di Yturralde e paraboloidi rigati         // tappeti e tessiture, fermi
   { rate: () => active.some(a => a.proc === P.tessuti) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.tessuti); } },        // arte concreta: curve, Truchet, Molnar, Albers, Le Parc, Vasarely, Szpakowski
   { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme
   { rate: () => .01, fn: () => apparizione(pick([P.mosaico, P.disco, P.douady])) },   // mosaici romani, dischi polari, spirali emergenti          // tutto si condensa in solidi semplici, fermi
@@ -2308,7 +2394,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2338,6 +2424,8 @@ addEventListener('keydown', e => {
   else if (k === '5') apparizione(P.sagome);
   else if (k === '4') letteraSecca();
   else if (k === '3') entra3D();
+  else if (k === '2') apparizione(P.labirinto);
+  else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
