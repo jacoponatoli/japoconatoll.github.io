@@ -30,7 +30,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
 'use strict';
@@ -89,7 +89,7 @@ const live=new Map();let liveId=0,flash=null;
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -1298,6 +1298,37 @@ async function songDeck(){
   }
 }
 
+/* ============ GAME: video game sounds from different eras — a few seconds, now and then ============
+   all invented here (none copied from real games): arcade bleeps, 8-bit coins, jumps and lasers,
+   16-bit FM chimes, 90s menu sounds, today's "achievement" swells. Like the notifications: brief and rare. */
+function sq(f1,f2,t,len,gain,d,type='square'){const o=ctx.createOscillator(),g=ctx.createGain(),lp=filt('lowpass',3200);o.type=type;o.frequency.setValueAtTime(f1,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+len);
+  g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(lp);lp.connect(g);g.connect(d);o.start(t);o.stop(t+len+.02)}
+const scaleF=(k,b=48)=>R()<.6?mtof(deg(k,S.root+b)):0;
+const GAME={
+  'arcade bleep':(t,d)=>{sq(490,0,t,.09,.05,d,'square');sq(245,0,t+.35,.09,.05,d,'square')},
+  'arcade insert coin':(t,d)=>{sq(988,0,t,.07,.04,d);sq(1319,0,t+.09,.25,.04,d)},
+  '8-bit coin':(t,d)=>{const f=scaleF(4)||988;sq(f,0,t,.08,.04,d);sq(f*1.335,0,t+.08,.35,.04,d)},
+  '8-bit jump':(t,d)=>sq(280,720,t,.18,.045,d),
+  '8-bit laser':(t,d)=>sq(1600,180,t,.25,.04,d),
+  '8-bit explosion':(t,d)=>noise(t,1,{type:'lowpass',freq:900,to:120,gain:.08,attack:.005,release:.9,dest:d}),
+  '8-bit power-up':(t,d)=>{for(let i=0;i<7;i++)sq(scaleF(i,36)||mtof(S.root+36+i*2),0,t+i*.06,.09,.03,d,'triangle')},
+  '8-bit extra life':(t,d)=>{const b=ri(0,3);[0,2,4,7,9].forEach((k,i)=>sq(mtof(deg(b+k,S.root+48)),0,t+i*.1,.12,.03,d))},
+  '8-bit game over':(t,d)=>{[4,3,1,0].forEach((k,i)=>sq(mtof(deg(k,S.root+36)),0,t+i*.28,.35,.04,d,'triangle'))},
+  '16-bit FM chime':(t,d)=>{const f=scaleF(ri(0,6))||880,c=ctx.createOscillator(),m=ctx.createOscillator(),mg=ctx.createGain(),g=ctx.createGain();c.frequency.value=f;m.frequency.value=f*3.5;mg.gain.setValueAtTime(f*2,t);mg.gain.exponentialRampToValueAtTime(f*.05,t+1);
+    m.connect(mg);mg.connect(c.frequency);g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+1.4);c.connect(g);g.connect(d);[c,m].forEach(x=>{x.start(t);x.stop(t+1.5)})},
+  '90s menu select':(t,d)=>{tone(scaleF(2)||1175,t,.35,{gain:.05,attack:.003,dest:d});tone((scaleF(4)||1568),t+.07,.5,{gain:.035,attack:.003,dest:d})},
+  'modern achievement':(t,d)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(400,t);o.frequency.exponentialRampToValueAtTime(1200,t+.4);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.03,t+.2);g.gain.linearRampToValueAtTime(0,t+.5);o.connect(g);g.connect(d);o.start(t);o.stop(t+.55);
+    [0,2,4].forEach((k,i)=>bell(mtof(deg(k,S.root+48)),t+.4+i*.02,1.8,.025,d,rr(-.4,.4)))}
+};
+async function gameLoop(){
+  await sleep(rr(60,140)*1000);
+  while(true){
+    const kind=pick(Object.keys(GAME)),fx=wpick({dry:.4,delay:.3,reflected:.3}),bus=L['ping'+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
+    try{GAME[kind](ctx.currentTime+.05,bus);log('GAME',`${kind} · ${fx}`,3)}catch(e){}
+    await sleep(rr(120,300)*1000);
+  }
+}
+
 /* ============ VOLUME GUARDIAN ============
    three levels of control, ten times a second:
    1. every layer has a ceiling: if it goes over, it is pulled down at once and released slowly;
@@ -1345,6 +1376,7 @@ const LEGEND={
   cosmos:['#ff8a3d','Cosmos','Sounds from space: NASA sonifications of telescope data (black holes, nebulae, galaxies) and radio and plasma waves recorded by space probes around Jupiter, Saturn and the Sun — from NASA’s audio library and the Internet Archive. Barely touched: a little slower, a little reverb.'],
   mantra:['#ff6fb5','Mantra','Sung voices from the archives — Indian mantras above all, sometimes Gregorian chant. A phrase is cut and repeated, a little slowed, muffled, wavering and far away; sometimes reversed, sometimes with a ghost an octave below.'],
   song:['#9ef5d0','Song','Women’s voices singing alone — a cappella songs, lullabies, folk songs, women’s choirs, herding calls — in many languages, from the archives. Only voices in a woman’s range are let in. Barely touched: as if heard from another room, with a little reverb.'],
+  game:['#c0ff00','Game','Video game sounds from different eras — arcade bleeps, 8-bit coins, jumps and lasers, 16-bit FM chimes, 90s menu sounds, today’s achievement swells. All invented here, none copied from real games. A few seconds, now and then, like a notification.'],
   live:['#2ee6e6','Live mic — press to turn on','Press to let AMBIENET listen to the room you are in (your browser will ask for the microphone). The room is never played back as it is: it makes the notes of the scene resonate, and its last seconds become a slow cloud of grains, tuned, filtered and far away. Loud sounds are flattened. Press again to turn it off. The sound never leaves your browser.'],
   word:['#ffffff','Words of SLOGAN','The slogans of SLOGAN (jacoponatoli.net/slogan), invented or read in the streets, spoken by a robotic synthetic voice and heard like a distant demonstration: megaphone, echo, reverb.']
 };
@@ -1377,7 +1409,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
