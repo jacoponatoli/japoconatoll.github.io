@@ -501,6 +501,83 @@ P.julia = {
   }
 };
 
+/* ---------- MANDALA: forme delle tradizioni, anelli che ruotano in sensi opposti ---------- */
+// ogni stile è una sequenza di anelli dal centro verso fuori; misure in frazioni del raggio, variate dal caso
+const ring = (t, r0, r1, n, extra) => Object.assign({ t, r0, r1, n }, extra || {});
+const MSTILI = {
+  tibetano: () => { const g = pick([8, 8, 16]); return [ring('cerchio', .05), ring('loto', .05, .13, 8), ring('cerchio', .14), ring('stella', 0, .24, g, { k: 3 }), ring('cerchio', .25),
+    ring('palazzo', .34, 0, 0), ring('palazzo', .27, 0, 0), ring('cerchio', .5), ring('loto', .5, .6, pick([16, 24])), ring('perle', .61, .66, 48), ring('denti', .67, .77, pick([28, 36, 44])), ring('onde', .78, .84, 40), ring('cerchio', .86)]; },
+  yantra: () => [ring('cerchio', .03), ring('stella', 0, .2, 6, { k: 2 }), ring('stella', 0, .26, 9, { k: 4 }), ring('cerchio', .3), ring('loto', .3, .42, 8), ring('cerchio', .43),
+    ring('loto', .43, .56, 16), ring('cerchio', .58), ring('cerchio', .62), ring('palazzo', .7, 0, 0), ring('palazzo', .78, 0, 0)],
+  rangoli: () => { const n = pick([6, 8, 12]); return [ring('intreccio', .12, .12, n), ring('intreccio', .2, .3, n * 2), ring('cerchio', .5), ring('perle', .52, .58, n * 6),
+    ring('loto', .6, .74, n * 2), ring('onde', .76, .84, n * 4), ring('intreccio', .06, .9, n * 3)]; },
+  andino: () => [ring('cerchio', .07), ring('chakana', .18, 0, 0), ring('chakana', .32, 0, 0), ring('cerchio', .55), ring('celle', .55, .64, 28), ring('denti', .65, .75, 24), ring('cerchio', .76), ring('chakana', .3, 0, 0, { s: 2.6 })],
+  huichol: () => { const a = []; let r = .04; while (r < .92) { const d = rnd(.04, .09); a.push(ring(pick(['raggi', 'raggi', 'perle', 'denti', 'onde']), r, r + d, Math.round(rnd(12, 60) * (r + .3)))); a.push(ring('cerchio', r + d)); r += d; }
+    a.push(ring('spirale', .1, .9, pick([3, 4, 6, 8]))); return a; },
+  azteco: () => [ring('cerchio', .1), ring('quadrato', .19, 0, 4), ring('cerchio', .24), ring('celle', .24, .34, 20), ring('denti', .35, .55, 8), ring('denti', .35, .46, 8, { off: .5 }),
+    ring('cerchio', .56), ring('celle', .56, .64, 40), ring('perle', .65, .7, 60), ring('denti', .71, .8, 40), ring('cerchio', .82), ring('celle', .82, .92, 24)],
+  tappeto: () => [ring('tappeto', 0, 0, 0)],
+};
+
+P.mandala = {
+  name: 'mandala',
+  init() {
+    this.stile = pick(Object.keys(MSTILI)); this.rings = MSTILI[this.stile]();
+    const m = Math.min(W, H); this.R = Math.random() < .25 ? Math.max(W, H) * rnd(.6, .9) : m * rnd(.44, .6);
+    this.cx = Math.random() < .75 ? W / 2 : rnd(W * .3, W * .7); this.cy = Math.random() < .75 ? H / 2 : rnd(H * .3, H * .7);
+    let dir = Math.random() < .5 ? 1 : -1;
+    for (const r of this.rings) { r.rot = rnd(6.28) * (Math.random() < .5 ? 0 : 1); r.w = dir * rnd(.0015, .006); dir = -dir; }
+    this.t = 0; this.breath = rnd(.01, .04);
+  },
+  step() { this.t += .01; for (const r of this.rings) r.rot += r.w; },
+  render(c) {
+    const R = this.R * (1 + this.breath * Math.sin(this.t * 1.7)), cx = this.cx, cy = this.cy;
+    const P2 = (r, a) => [cx + r * R * Math.cos(a), cy + r * R * Math.sin(a)];
+    c.beginPath();
+    for (const g of this.rings) {
+      const n = g.n, rot = g.rot, step = 6.2832 / (n || 1);
+      switch (g.t) {
+        case 'cerchio': c.moveTo(...P2(g.r0, 0)); c.arc(cx, cy, g.r0 * R, 0, 6.2832); break;
+        case 'loto': for (let k = 0; k < n; k++) { const a = rot + k * step, w = step * .5;
+          c.moveTo(...P2(g.r0, a - w)); c.quadraticCurveTo(...P2(g.r0 + (g.r1 - g.r0) * .55, a - w * .95), ...P2(g.r1, a)); c.quadraticCurveTo(...P2(g.r0 + (g.r1 - g.r0) * .55, a + w * .95), ...P2(g.r0, a + w)); } break;
+        case 'denti': { const o = (g.off || 0) * step; for (let k = 0; k <= n; k++) { const a = rot + o + k * step; k ? c.lineTo(...P2(g.r0, a - step / 2)) : c.moveTo(...P2(g.r0, a - step / 2)); c.lineTo(...P2(g.r1, a)); } } break;
+        case 'onde': for (let k = 0; k < n; k++) { const a = rot + k * step; k ? 0 : c.moveTo(...P2(g.r0, a)); c.quadraticCurveTo(...P2(g.r1 + (g.r1 - g.r0), a + step / 2), ...P2(g.r0, a + step)); } break;
+        case 'perle': { const rr = (g.r1 - g.r0) / 2 * R, rm = (g.r0 + g.r1) / 2; for (let k = 0; k < n; k++) { const [x, y] = P2(rm, rot + k * step); c.moveTo(x + rr, y); c.arc(x, y, rr, 0, 6.2832); } } break;
+        case 'raggi': for (let k = 0; k < n; k++) { const a = rot + k * step; c.moveTo(...P2(g.r0, a)); c.lineTo(...P2(g.r1, a)); } break;
+        case 'celle': c.moveTo(...P2(g.r0, 0)); c.arc(cx, cy, g.r0 * R, 0, 6.2832); c.moveTo(...P2(g.r1, 0)); c.arc(cx, cy, g.r1 * R, 0, 6.2832);
+          for (let k = 0; k < n; k++) { const a = rot + k * step; c.moveTo(...P2(g.r0, a)); c.lineTo(...P2(g.r1, a)); } break;
+        case 'stella': for (let k = 0; k <= n; k++) { const a = rot + ((k * g.k) % n) * step; k ? c.lineTo(...P2(g.r1, a)) : c.moveTo(...P2(g.r1, a)); } break;
+        case 'intreccio': { const rr = g.r0 * R; for (let k = 0; k < n; k++) { const [x, y] = P2(g.r1 || 0, rot + k * step); c.moveTo(x + rr, y); c.arc(x, y, rr, 0, 6.2832); } } break;
+        case 'quadrato': for (let k = 0; k <= 4; k++) { const a = rot + Math.PI / 4 + k * Math.PI / 2; k ? c.lineTo(...P2(g.r0 * 1.414, a)) : c.moveTo(...P2(g.r0 * 1.414, a)); } break;
+        case 'spirale': for (let k = 0; k < n; k++) for (let i = 0; i <= 60; i++) { const f = i / 60, r = g.r0 + (g.r1 - g.r0) * f, a = rot + k * step + f * 4; i ? c.lineTo(...P2(r, a)) : c.moveTo(...P2(r, a)); } break;
+        case 'palazzo': case 'chakana': {
+          // palazzo tibetano con quattro porte a T / croce andina a gradini
+          const s = g.r0, u = s / 3, pts = g.t === 'palazzo'
+            ? [[-s, -s], [-s * .35, -s], [-s * .35, -s * 1.12], [-s * .22, -s * 1.12], [-s * .22, -s * 1.22], [s * .22, -s * 1.22], [s * .22, -s * 1.12], [s * .35, -s * 1.12], [s * .35, -s]]
+            : [[-u, -3 * u], [u, -3 * u], [u, -2 * u], [2 * u, -2 * u], [2 * u, -u]];
+          const cs = Math.cos(rot), sn = Math.sin(rot), sc = g.s || 1; let first = true;
+          for (let q = 0; q < 4; q++) for (const [x0, y0] of pts) { const a = q * Math.PI / 2, x1 = x0 * Math.cos(a) - y0 * Math.sin(a), y1 = x0 * Math.sin(a) + y0 * Math.cos(a);
+            const X = cx + (x1 * cs - y1 * sn) * R * sc, Y = cy + (x1 * sn + y1 * cs) * R * sc; first ? c.moveTo(X, Y) : c.lineTo(X, Y); first = false; }
+          c.closePath(); } break;
+        case 'tappeto': { // tappeto: bordure rettangolari annidate, medaglione centrale a rombo, angoli a quarto di medaglione
+          const bw = W * .46, bh = H * .46, X0 = W / 2, Y0 = H / 2, T = this.t;
+          for (const f of [1, .9, .84, .74]) c.rect(X0 - bw * f, Y0 - bh * f, 2 * bw * f, 2 * bh * f);
+          const zz = (f1, f2, m) => { const per = 2 * (bw + bh) * 2, st = per / m; let first = true;
+            for (let i = 0; i <= m; i++) { const d = (i * st + T * 40) % per, f = i % 2 ? f2 : f1; let x, y; const L1 = 2 * bw, L2 = 2 * bh;
+              if (d < L1) { x = -bw + d; y = -bh; } else if (d < L1 + L2) { x = bw; y = -bh + d - L1; } else if (d < 2 * L1 + L2) { x = bw - (d - L1 - L2); y = bh; } else { x = -bw; y = bh - (d - 2 * L1 - L2); }
+              const X = X0 + x * f, Y = Y0 + y * f; first ? c.moveTo(X, Y) : c.lineTo(X, Y); first = false; } };
+          zz(.9, .84, 80);
+          const mr = Math.min(bw, bh) * .62;
+          for (const f of [1, .78, .55, .3]) { c.moveTo(X0, Y0 - mr * f * 1.25); c.lineTo(X0 + mr * f * 1.6, Y0); c.lineTo(X0, Y0 + mr * f * 1.25); c.lineTo(X0 - mr * f * 1.6, Y0); c.closePath(); }
+          for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4 + T * .3; c.moveTo(X0, Y0); c.quadraticCurveTo(X0 + Math.cos(a + .3) * mr * .5, Y0 + Math.sin(a + .3) * mr * .5, X0 + Math.cos(a) * mr * .55, Y0 + Math.sin(a) * mr * .55); }
+          for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const qx = X0 + sx * bw * .74, qy = Y0 + sy * bh * .74; for (const f of [.35, .22]) { c.moveTo(qx, qy - sy * mr * f * -1); c.arc(qx, qy, mr * f, 0, 6.2832); } }
+        } break;
+      }
+    }
+    c.stroke();
+  }
+};
+
 const ALL = Object.values(P);
 
 /* =================== REGIA STOCASTICA =================== */
@@ -516,6 +593,27 @@ function enter(proc) {
   recent.push(proc); if (recent.length > 4) recent.shift();
   active.push({ proc, p: 0, target: 1, rate: rnd(.15, .5), shape: pick(['cerchio', 'cerchio', 'onda', 'tutto']), cx: rnd(W), cy: rnd(H), ang: rnd(6.28), bubble: Math.random() < .5 });
 }
+// APPARIZIONE: il resto si dissolve, il mandala resta solo e il tempo si ferma per qualche secondo
+const RIT = { phase: '', t: 0, hold: 0 };
+function apparizione() {
+  if (RIT.phase) return;
+  let a = active.find(x => x.proc === P.mandala);
+  if (!a) { enter(P.mandala); a = active[active.length - 1]; a.shape = 'cerchio'; a.cx = P.mandala.cx; a.cy = P.mandala.cy; a.rate = rnd(.25, .45); a.bubble = false; }
+  for (const x of active) if (x !== a) { x.target = 0; x.rate = rnd(.35, .6); x.shape = 'cerchio'; x.cx = P.mandala.cx; x.cy = P.mandala.cy; }
+  S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
+  if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
+  RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = rnd(1.5, 4);
+}
+function rituale(dt) {
+  if (!RIT.phase) return false;
+  RIT.t += dt;
+  const m = active.find(x => x.proc === P.mandala);
+  if (!m) { RIT.phase = ''; return false; }
+  if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > 7)) { RIT.phase = 'sosta'; RIT.t = 0; }
+  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = rnd(.05, .12); }
+  return RIT.phase === 'sosta';
+}
+
 function leave() {
   const live = active.filter(a => a.target === 1); if (live.length <= 1) return;
   const a = pick(live); a.target = 0; a.rate = rnd(.12, .4); a.cx = rnd(W); a.cy = rnd(H); a.shape = pick(['cerchio', 'onda']); lastRemoved = a.proc;
@@ -587,6 +685,7 @@ const EVENTS = [
   { rate: () => .05, fn: newWarp },                               // distorsioni: liquido, vortice, tunnel, mandala, lente
   { rate: () => .035, fn: newEcho },                              // eco: il quadro si ripete dentro se stesso
   { rate: () => .07, fn: () => { S.cycVt = Math.random() < .35 ? 0 : rnd(-.6, .6); } },
+  { rate: () => .022, fn: apparizione },                          // apparizione di un mandala, con sosta
 ];
 
 /* =================== MOTORE =================== */
@@ -765,7 +864,7 @@ function frame(t, dt) {
   }
 
   // colorazione: eredità → vincolo dei vicini → caso
-  if (Math.random() < .1) pick(regions).votes.fill(0);
+  if (dt > 0 && Math.random() < .1) pick(regions).votes.fill(0);
   const order = regions.map((r, i) => i).sort((a, b) => regions[b].size - regions[a].size);
   for (const i of order) {
     const r = regions[i], used = new Uint8Array(NC);
@@ -813,8 +912,10 @@ function loop(t) {
   requestAnimationFrame(loop);
   if (paused || t - last < 33) return;
   const dt = Math.min(.1, (t - last) / 1000); last = t;
-  if (!window.__noev) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn();
+  const still = rituale(dt);
+  if (!window.__noev && !RIT.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn();
   // derive lente dei parametri globali
+  if (still) { frame(t, 0); return; }   // sosta: tutto fermo, il mandala si lascia guardare
   S.hueV += (S.hueVt - S.hueV) * dt * .4; S.hue += S.hueV * dt;
   S.spatial += (S.spatialT - S.spatial) * dt * .3;
   S.tscale += (S.tscaleT - S.tscale) * dt * .5;
@@ -834,7 +935,7 @@ const info = document.getElementById('info');
 function updateInfo() {
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · B: bande · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · B: bande · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 addEventListener('mousemove', () => { document.body.classList.add('ui'); updateInfo(); clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 2500); });
@@ -848,6 +949,7 @@ addEventListener('keydown', e => {
   else if (k === 't') newTile();
   else if (k === 'd') newWarp();
   else if (k === 'e') newEcho();
+  else if (k === 'm') apparizione();
   else if (k === 'l') showLines = !showLines;
   else if (k === 'p') paused = !paused;
   else if (k === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}); }
