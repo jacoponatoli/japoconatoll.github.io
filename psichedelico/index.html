@@ -720,6 +720,149 @@ P.disco = {
   }
 };
 
+/* ---------- TESSUTI: tappeti e tessiture tradizionali ---------- */
+// persiano (medaglione, campo, bordure), gul turkmeni, kilim anatolico, eye dazzler navajo, sarape di Saltillo,
+// tocapu andini, ikat, boteh (paisley), kente, tartan (saia), seigaiha e asanoha, mola kuna, quilt di Gee's Bend.
+// Si tessono riga per riga come al telaio, scorrono, respirano; a volte si fermano.
+const fold = (o, x, y, q = 7) => { const a = Math.round(Math.abs(x - o.cx) / q), b = Math.round(Math.abs(y - o.cy) / q); return mod((a * 73856093) ^ (b * 19349663) ^ o.seed, 5); };
+const steppedDiamond = (c, cx, cy, rx, ry, n) => { const pts = []; for (let i = 0; i <= n; i++) { const t = i / n; pts.push([cx + rx * t, cy - ry * (1 - t)]); if (i < n) pts.push([cx + rx * (i + 1) / n, cy - ry * (1 - t)]); }
+  const full = []; for (const [x, y] of pts) full.push([x, y]); for (const [x, y] of pts.slice().reverse()) full.push([x, 2 * cy - y]); for (const [x, y] of pts) full.push([2 * cx - x, 2 * cy - y]); for (const [x, y] of pts.slice().reverse()) full.push([2 * cx - x, y]);
+  full.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); };
+const serrated = (c, cx, cy, rx, ry, teeth, d) => { const V = [[cx, cy - ry], [cx + rx, cy], [cx, cy + ry], [cx - rx, cy]]; c.moveTo(...V[0]);
+  for (let s = 0; s < 4; s++) { const A = V[s], B = V[(s + 1) % 4], nx = (B[1] - A[1]), ny = -(B[0] - A[0]), L = Math.hypot(nx, ny);
+    for (let k = 1; k <= teeth * 2; k++) { const t = k / (teeth * 2), o = k % 2 ? d : 0; c.lineTo(A[0] + (B[0] - A[0]) * t + nx / L * o, A[1] + (B[1] - A[1]) * t + ny / L * o); } } c.closePath(); };
+const TELAIO = ['saia 2-2', 'saia interrotta (Jackson–Nilan)', 'saia interrotta (Jackson–Nilan)', 'automa al telaio', 'pelle di lucertola', 'Bauhaus (Stölzl, Albers)'];
+const TESSUTI = [...TELAIO, 'tappeto persiano', 'tappeto persiano', 'gul turkmeni', 'kilim anatolico', 'eye dazzler navajo', 'sarape di Saltillo', 'tocapu andini', 'ikat', 'boteh (paisley)', 'kente', 'tartan', 'seigaiha', 'asanoha', 'mola kuna', 'quilt di Gee\'s Bend'];
+P.tessuti = {
+  get name() { return 'tessuto: ' + this.mode; },
+  init() {
+    this.mode = pick(TESSUTI); this.t = 0; this.seed = (Math.random() * 1e6) | 0; this.cx = W / 2; this.cy = H / 2; this.hint = Math.random() < .85; this.soft = true;
+    this.weave = Math.random() < .5 ? 0 : 1;   // a volte si tesse riga per riga
+    this.vx = Math.random() < .4 ? gauss() * .4 : 0; this.off = 0; const m = Math.min(W, H); this.m = m;
+    this.cols = shuffled([0, 1, 2, 3, 4]);
+    if (TELAIO.includes(this.mode)) this.loomInit();
+    if (this.mode === 'tartan') { this.soft = false; const k = 4 + ((Math.random() * 4) | 0), sett = []; for (let i = 0; i < k; i++) sett.push([pick(this.cols.slice(0, 4)), 1 + ((Math.random() * 8) | 0)]); this.sett = sett.concat(sett.slice(0, -1).reverse()); this.th = Math.max(3, Math.round(m / rnd(90, 160))); this.setLen = this.sett.reduce((a, b) => a + b[1], 0); }
+    if (this.mode === 'tocapu andini') { this.n = pick([6, 8, 10]); this.cell = Math.max(W, H) / this.n; this.motifs = Array.from({ length: 200 }, () => (Math.random() * 7) | 0); }
+    if (this.mode === 'kente') { this.strips = pick([6, 8, 10, 12]); this.blocks = Array.from({ length: 400 }, () => (Math.random() * 4) | 0); this.soft = false; }
+    if (this.mode === 'ikat') { this.rows = Math.round(H / rnd(4, 7)); this.jit = Array.from({ length: this.rows + 2 }, () => gauss() * m * .012); this.dw = m * rnd(.18, .32); }
+    if (this.mode === 'mola kuna') { this.k = Array.from({ length: 6 }, () => rnd(.7, 1.3)); this.lines = 5 + ((Math.random() * 5) | 0); }
+    if (this.mode === 'quilt di Gee\'s Bend') { this.b = pick([2, 3, 4]); this.w = Array.from({ length: 60 }, () => rnd(.04, .12)); }
+  },
+  // IL TELAIO (da C. Jackson e J. Nilan, GA2023): il tessuto è una matrice binaria; 1 = l'ordito sopra la trama, 0 = sotto
+  loomInit() {
+    this.soft = false; this.hint = true; this.weave = 1; this.vx = 0; this.th = Math.max(4, Math.round(this.m / rnd(45, 90))); this.gw = Math.ceil(W / this.th) + 1; this.gh = Math.ceil(H / this.th) + 1;
+    const two = shuffled([0, 1, 2, 3, 4]); this.wc = [two[0], two[1]]; this.fc = [two[2], two[3]]; this.sw = 2 + ((Math.random() * 10) | 0);   // ordito e trama a righe di due colori
+    this.dir = new Int8Array(this.gw).fill(Math.random() < .5 ? 1 : -1); this.r = 0; this.every = 2 + ((Math.random() * 3) | 0); this.tk = 0;
+    if (this.mode === 'pelle di lucertola') { this.M = Array.from({ length: this.gh }, () => Uint8Array.from({ length: this.gw }, () => Math.random() < .5 ? 1 : 0)); for (let i = 0; i < 6; i++) this.lizard(); return; }
+    if (this.mode === 'Bauhaus (Stölzl, Albers)') { this.blocks = []; let y = 0; while (y < this.gh) { const h = 3 + ((Math.random() * 12) | 0); let x = 0; while (x < this.gw) { const w = 3 + ((Math.random() * 14) | 0); this.blocks.push({ x, y, w, h, k: (Math.random() * 5) | 0, c: shuffled([0, 1, 2, 3, 4]).slice(0, 2) }); x += w; } y += h; } return; }
+    let row = Uint8Array.from({ length: this.gw }, (_, j) => this.mode === 'automa al telaio' ? (Math.random() < .5 ? 1 : 0) : ((j % 4) < 2 ? 1 : 0));
+    this.M = []; for (let i = 0; i < this.gh; i++) { this.M.push(row); row = this.nextRow(row); }
+  },
+  nextRow(prev) { const n = this.gw, a = new Uint8Array(n), g = j => prev[mod(j, n)];   // ai bordi: "punti fantasma" che ricopiano la riga
+    if (this.mode === 'automa al telaio') for (let j = 0; j < n; j++) a[j] = g(j - 1) ^ g(j + 1);   // a(i+1,j) = a(i,j−1) + a(i,j+1) mod 2
+    else for (let j = 0; j < n; j++) a[j] = g(j + this.dir[j]);                                       // la saia: ogni riga copia la vicina in alto, a destra o a sinistra
+    if (this.mode === 'saia interrotta (Jackson–Nilan)' && Math.random() < .08) { const c = (Math.random() * n) | 0, side = Math.random() < .5; for (let j = 0; j < n; j++) if ((j < c) === side) this.dir[j] = -this.dir[j]; }   // a caso una colonna: da un lato la saia cambia verso
+    for (let j = 2; j < n - 2; j++) if (a[j - 2] === a[j - 1] && a[j - 1] === a[j] && a[j] === a[j + 1] && a[j + 1] === a[j + 2]) a[j] = 1 - a[j];   // correzione: mai cinque uguali, la trama resta legata
+    if (this.mode === 'automa al telaio' && Math.random() < .03) a[(Math.random() * n) | 0] ^= 1;
+    return a; },
+  lizard() { const { gw, gh, M } = this, N = M.map(r => r.slice()); // pelle di lucertola: ogni scaglia segue la maggioranza delle vicine, con un po' di rumore
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) { let s2 = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) s2 += M[mod(y + dy, gh)][mod(x + dx, gw)];
+      N[y][x] = Math.random() < .03 ? 1 - M[y][x] : s2 > 4 ? 1 : s2 < 4 ? 0 : M[y][x]; } this.M = N; },
+  loomStep() { if (++this.tk % this.every) return;
+    if (this.mode === 'pelle di lucertola') { this.lizard(); return; }
+    if (this.mode === 'Bauhaus (Stölzl, Albers)') { this.r++; if (Math.random() < .1) { const b = pick(this.blocks); b.k = (Math.random() * 5) | 0; } return; }
+    this.M.shift(); this.M.push(this.nextRow(this.M[this.M.length - 1])); },   // il tessuto avanza come sul subbio
+  loomBit(i, j) { if (this.mode !== 'Bauhaus (Stölzl, Albers)') return this.M[mod(j, this.gh)][mod(i, this.gw)];
+    const b = this.blocks.find(b => i >= b.x && i < b.x + b.w && j >= b.y && j < b.y + b.h); if (!b) return 0; const r = j + this.r;
+    return [(i + r) & 1, mod(i + r, 4) < 2 ? 1 : 0, mod(i - r, 4) < 2 ? 1 : 0, mod(i * 2 + r, 5) === 0 ? 1 : 0, mod(i, 6) < 3 ? 1 : 0][b.k]; },   // tela, saia destra e sinistra, raso, cannellato
+  step() { if (TELAIO.includes(this.mode)) this.loomStep(); this.t += .01; this.off += this.vx; if (this.weave < 1) this.weave = Math.min(1, this.weave + .004); if (this.mode === 'ikat' && Math.random() < .05) this.jit[(Math.random() * this.jit.length) | 0] = gauss() * this.m * .012; },
+  colorAt(x, y) {
+    const C = this.cols;
+    if (TELAIO.includes(this.mode)) { const i = Math.floor(x / this.th), j = Math.floor(y / this.th), bit = this.loomBit(i, j);
+      if (this.mode === 'Bauhaus (Stölzl, Albers)') { const b = this.blocks.find(b => i >= b.x && i < b.x + b.w && j >= b.y && j < b.y + b.h); return b ? b.c[bit] : 0; }
+      return bit ? this.wc[Math.floor(i / this.sw) & 1] : this.fc[Math.floor(j / this.sw) & 1]; }
+    if (this.mode === 'tartan') { // armatura a saia 2/2: ogni incrocio mostra il filo di ordito o quello di trama
+      const th = this.th, i = Math.floor((x - this.off) / th), j = Math.floor(y / th), st = (k) => { let r = mod(k, this.setLen); for (const [col, n] of this.sett) { if (r < n) return col; r -= n; } return 0; };
+      return mod(i + j, 4) < 2 ? st(i) : st(j); }
+    if (this.mode === 'kente') { const sw = W / this.strips, si = Math.floor((x - this.off) / sw), bh = sw * 1.4, bj = Math.floor(y / bh), typ = this.blocks[mod(si * 13 + bj, 400)], fx = mod(x - this.off, sw) / sw, fy = mod(y, bh) / bh;
+      const base = C[mod(si, 2) ? 0 : 1]; if (typ === 0) return base; if (typ === 1) return Math.floor(fy * 6) % 2 ? C[2] : base; if (typ === 2) return (Math.floor(fx * 4) + Math.floor(fy * 6)) % 2 ? C[3] : C[2]; return Math.floor(fx * 5) % 2 ? C[4] : base; }
+    return fold(this, x, y);
+  },
+  render(c) {
+    const m = this.m, cx = this.cx, cy = this.cy, t = this.t, br = 1 + .03 * Math.sin(t * 1.5);
+    c.save(); if (this.weave < 1) { c.beginPath(); c.rect(0, H * (1 - this.weave), W, H * this.weave + 2); c.clip(); }   // il telaio: si tesse dal basso
+    c.beginPath();
+    if (TELAIO.includes(this.mode)) { const th = this.th; for (let x = 0; x <= W; x += th) { c.moveTo(x, 0); c.lineTo(x, H); } for (let y = 0; y <= H; y += th) { c.moveTo(0, y); c.lineTo(W, y); }
+      if (this.mode === 'Bauhaus (Stölzl, Albers)') for (const b of this.blocks) c.rect(b.x * th, b.y * th, b.w * th, b.h * th); }
+    switch (this.mode) {
+      case 'tappeto persiano': { // bordure: guardia, bordura principale con rosette, guardia; campo; medaglione con pendenti; angoli
+        const mg = m * .03, X0 = mg, Y0 = mg, X1 = W - mg, Y1 = H - mg, b = m * .12;
+        for (const d of [0, b * .12, b * .22, b * .78, b * .88, b]) c.rect(X0 + d, Y0 + d, X1 - X0 - 2 * d, Y1 - Y0 - 2 * d);
+        const bm = b * .5, step = b * .62; // rosette nella bordura principale
+        for (let x = X0 + b; x < X1 - b; x += step) for (const yy of [Y0 + bm, Y1 - bm]) { const r = b * .2; c.moveTo(x + r, yy); c.arc(x, yy, r, 0, 6.2832); c.moveTo(x, yy - r * 1.4); c.lineTo(x + r * .8, yy); c.lineTo(x, yy + r * 1.4); c.lineTo(x - r * .8, yy); c.closePath(); }
+        for (let y = Y0 + b; y < Y1 - b; y += step) for (const xx of [X0 + bm, X1 - bm]) { const r = b * .2; c.moveTo(xx + r, y); c.arc(xx, y, r, 0, 6.2832); }
+        const FX0 = X0 + b, FY0 = Y0 + b, FX1 = X1 - b, FY1 = Y1 - b, fw = FX1 - FX0, fh = FY1 - FY0;
+        for (let k = 1; k <= 4; k++) { const R = Math.min(fw, fh) * .42 * k / 4 * br; // medaglione lobato
+          for (let i = 0; i <= 64; i++) { const a = i / 64 * 6.2832, r = R * (1 + .12 * Math.cos(a * 8)); const px = cx + r * Math.cos(a) * fw / fh * .75, py = cy + r * Math.sin(a); i ? c.lineTo(px, py) : c.moveTo(px, py); } c.closePath(); }
+        const R = Math.min(fw, fh) * .42; for (const sg of [-1, 1]) { const py = cy + sg * R * 1.18; c.moveTo(cx, py - R * .14); c.lineTo(cx + R * .12, py); c.lineTo(cx, py + R * .14); c.lineTo(cx - R * .12, py); c.closePath(); }
+        for (const [qx, qy] of [[FX0, FY0], [FX1, FY0], [FX0, FY1], [FX1, FY1]]) for (const f of [.28, .18]) { c.moveTo(qx + R * f, qy); c.arc(qx, qy, R * f, 0, 6.2832); }
+        const g = Math.min(fw, fh) / 7; for (let y = FY0 + g / 2; y < FY1; y += g) for (let x = FX0 + g / 2; x < FX1; x += g) { if (Math.hypot((x - cx) / (fw / fh * .75), y - cy) < R * 1.15) continue; const r = g * .22; c.moveTo(x, y - r); c.lineTo(x + r, y); c.lineTo(x, y + r); c.lineTo(x - r, y); c.closePath(); }
+        break; }
+      case 'gul turkmeni': { const gw = m * .34, gh = gw * .62, mg = m * .04;
+        c.rect(mg, mg, W - 2 * mg, H - 2 * mg); c.rect(mg * 2.2, mg * 2.2, W - 4.4 * mg, H - 4.4 * mg);
+        for (let j = 0; j * gh * 1.3 < H; j++) for (let i = 0; i * gw * 1.05 < W + gw; i++) { const x = mg * 3 + gw / 2 + i * gw * 1.05 - (this.off % (gw * 1.05)), y = mg * 3 + gh / 2 + j * gh * 1.3; if (y > H - mg * 3) continue;
+          const a = gw / 2 * br, b2 = gh / 2 * br, k = .3; c.moveTo(x - a, y - b2 * k); c.lineTo(x - a * k, y - b2); c.lineTo(x + a * k, y - b2); c.lineTo(x + a, y - b2 * k); c.lineTo(x + a, y + b2 * k); c.lineTo(x + a * k, y + b2); c.lineTo(x - a * k, y + b2); c.lineTo(x - a, y + b2 * k); c.closePath();
+          c.moveTo(x - a, y); c.lineTo(x + a, y); c.moveTo(x, y - b2); c.lineTo(x, y + b2); c.moveTo(x, y - b2 * .5); c.lineTo(x + a * .4, y); c.lineTo(x, y + b2 * .5); c.lineTo(x - a * .4, y); c.closePath();
+          const mx = x + gw * .525, my = y + gh * .65; c.moveTo(mx, my - gh * .14); c.lineTo(mx + gw * .1, my); c.lineTo(mx, my + gh * .14); c.lineTo(mx - gw * .1, my); c.closePath(); }
+        break; }
+      case 'kilim anatolico': { const h = m * .42, w = h * .7;
+        for (let j = 0; j * h * .62 < H + h; j++) { const y = j * h * .62, ox = (j % 2) * w / 2 - (this.off % w);
+          for (let x = -w + ox; x < W + w; x += w) for (const f of [1, .66, .33]) steppedDiamond(c, x, y, w / 2 * f * br, h * .31 * f * br, Math.max(2, Math.round(5 * f)));
+          c.moveTo(0, y + h * .31); for (let x = 0; x <= W; x += w / 6) c.lineTo(x, y + h * .31 + ((x / (w / 6)) % 2 ? h * .05 : 0)); }
+        break; }
+      case 'eye dazzler navajo': { const w = m * .5, h = w * 1.2;
+        for (let j = -1; j * h / 2 < H + h; j++) for (let i = -1; i * w < W + w; i++) { const x = i * w + (j % 2 ? w / 2 : 0) - (this.off % w), y = j * h / 2;
+          for (const f of [1, .72, .45, .2]) serrated(c, x, y, w / 2 * f * br, h / 2 * f * br, Math.max(2, Math.round(6 * f)), m * .012); }
+        break; }
+      case 'sarape di Saltillo': { const sh = Math.max(4, m / rnd(30, 60)); for (let y = 0; y < H; y += sh) { c.moveTo(0, y); c.lineTo(W, y); }
+        for (const f of [1, .8, .6, .4, .22]) serrated(c, cx, cy, W * .3 * f * br, H * .44 * f * br, Math.max(3, Math.round(12 * f)), m * .018);
+        c.moveTo(W * .06, 0); c.lineTo(W * .06, H); c.moveTo(W * .94, 0); c.lineTo(W * .94, H); break; }
+      case 'tocapu andini': { const cs = this.cell, n = this.n; for (let j = 0; j * cs < H + cs; j++) for (let i = -1; i * cs < W + cs; i++) {
+        const X = i * cs - (this.off % cs), Y = j * cs, mtf = this.motifs[mod(i * 7 + j * 3, 200)], q = cs / 6; c.rect(X, Y, cs, cs);
+        if (mtf === 0) { c.rect(X + q, Y + q, cs - 2 * q, cs - 2 * q); c.rect(X + 2 * q, Y + 2 * q, cs - 4 * q, cs - 4 * q); }
+        else if (mtf === 1) { c.moveTo(X, Y); c.lineTo(X + cs, Y + cs); c.moveTo(X + cs, Y); c.lineTo(X, Y + cs); }
+        else if (mtf === 2) { for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) if ((a + b) % 2) c.rect(X + a * cs / 3, Y + b * cs / 3, cs / 3, cs / 3); }
+        else if (mtf === 3) { const u = cs / 7; [[2, 1], [5, 1], [5, 2], [6, 2], [6, 5], [5, 5], [5, 6], [2, 6], [2, 5], [1, 5], [1, 2], [2, 2]].forEach(([a, b], k) => k ? c.lineTo(X + a * u, Y + b * u) : c.moveTo(X + a * u, Y + b * u)); c.closePath(); }
+        else if (mtf === 4) { c.moveTo(X, Y + cs); for (let k = 1; k <= 4; k++) { c.lineTo(X + k * cs / 4, Y + cs - (k - 1) * cs / 4); c.lineTo(X + k * cs / 4, Y + cs - k * cs / 4); } }
+        else if (mtf === 5) { c.moveTo(X + cs / 2, Y); c.lineTo(X + cs, Y + cs / 2); c.lineTo(X + cs / 2, Y + cs); c.lineTo(X, Y + cs / 2); c.closePath(); }
+        else { c.moveTo(X, Y + cs / 2); c.lineTo(X + cs, Y + cs / 2); c.moveTo(X + cs / 2, Y); c.lineTo(X + cs / 2, Y + cs); } }
+        break; }
+      case 'ikat': { const rh = H / this.rows, dw = this.dw; for (let r = 0; r < this.rows; r++) { const y0 = r * rh, j = this.jit[r]; c.moveTo(0, y0); c.lineTo(W, y0);
+        for (let x = -dw - (this.off % dw); x < W + dw; x += dw) { const yy = mod(y0 + dw / 2, dw) - dw / 2, half = (dw / 2 - Math.abs(yy)) * .9; if (half > 0) { c.moveTo(x - half + j, y0); c.lineTo(x - half + j, y0 + rh); c.moveTo(x + half + j, y0); c.lineTo(x + half + j, y0 + rh); }
+          const h2 = half * .45; if (h2 > 1) { c.moveTo(x - h2 - j, y0); c.lineTo(x - h2 - j, y0 + rh); c.moveTo(x + h2 - j, y0); c.lineTo(x + h2 - j, y0 + rh); } } }
+        break; }
+      case 'boteh (paisley)': { const s = m * .22; for (let j = -1; j * s < H + s; j++) for (let i = -1; i * s * .9 < W + s; i++) { const x = i * s * .9 + (j % 2 ? s * .45 : 0) - (this.off % (s * .9)), y = j * s, a = (j % 2 ? 1 : -1) * .4 + .1 * Math.sin(t + i);
+        for (const f of [1, .7, .42]) { const r = s * .34 * f * br; c.save(); c.translate(x, y); c.rotate(a); c.moveTo(0, r); c.bezierCurveTo(-r * 1.3, r * .9, -r * 1.1, -r * .9, 0, -r); c.bezierCurveTo(r * .9, -r, r * 1.2, -r * .2, r * .6, -r * 1.7 * (f === 1 ? 1 : .8)); c.bezierCurveTo(r * 1.4, -r * .4, r * 1.2, r * .9, 0, r); c.restore(); } }
+        break; }
+      case 'kente': { const sw = W / this.strips; for (let i = -1; i <= this.strips + 1; i++) { const x = i * sw + mod(this.off, sw); c.moveTo(x, 0); c.lineTo(x, H); }
+        const bh = sw * 1.4; for (let y = 0; y < H; y += bh) { c.moveTo(0, y); c.lineTo(W, y); for (let k = 1; k < 6; k++) { c.moveTo(0, y + k * bh / 6); c.lineTo(W, y + k * bh / 6); } }
+        for (let x = mod(this.off, sw / 5); x < W; x += sw / 5) { c.moveTo(x, 0); c.lineTo(x, H); } break; }
+      case 'tartan': { const th = this.th; for (let x = mod(this.off, th); x < W; x += th) { c.moveTo(x, 0); c.lineTo(x, H); } for (let y = 0; y < H; y += th) { c.moveTo(0, y); c.lineTo(W, y); } break; }
+      case 'seigaiha': { const r = m * .1 * br; for (let j = -1; j * r * .5 < H + r; j++) for (let i = -1; i * r * 2 < W + r * 2; i++) { const x = i * r * 2 + (j % 2 ? r : 0) - (this.off % (r * 2)), y = j * r * .5;
+        for (const f of [1, .75, .5, .25]) { c.moveTo(x + r * f, y); c.arc(x, y, r * f, 0, Math.PI, true); } } break; }
+      case 'asanoha': { const s = m * .16, h = s * Math.sqrt(3) / 2; for (let j = -1; j * h < H + h; j++) for (let i = -1; i * s < W + s; i++) { const x0 = i * s + (j % 2 ? s / 2 : 0) - (this.off % s), y0 = j * h;
+        const A = [x0, y0], B = [x0 + s, y0], Cc = [x0 + s / 2, y0 + h], G = [x0 + s / 2, y0 + h / 3]; c.moveTo(...A); c.lineTo(...B); c.lineTo(...Cc); c.closePath(); for (const P0 of [A, B, Cc]) { c.moveTo(...P0); c.lineTo(...G); }
+        for (const [P1, P2] of [[A, B], [B, Cc], [Cc, A]]) { c.moveTo((P1[0] + P2[0]) / 2, (P1[1] + P2[1]) / 2); c.lineTo(...G); } } break; }
+      case 'mola kuna': { for (let l = this.lines; l >= 1; l--) { const f = l / this.lines; for (let i = 0; i <= 90; i++) { const a = i / 90 * 6.2832; let r = m * .42 * f * (1 + .25 * Math.sin(3 * a + this.k[0] * 3 + t) * this.k[1] * .6 + .15 * Math.sin(5 * a + this.k[2] * 2) + .1 * Math.sin(2 * a - t * .6)); const px = cx + r * Math.cos(a) * 1.3, py = cy + r * Math.sin(a); i ? c.lineTo(px, py) : c.moveTo(px, py); } c.closePath(); }
+        const mg = m * .03; c.rect(mg, mg, W - 2 * mg, H - 2 * mg); break; }
+      case 'quilt di Gee\'s Bend': { const b = this.b, bw = W / b, bh = H / Math.max(1, Math.round(b * H / W)), rows = Math.round(H / bh); let k = 0;
+        for (let j = 0; j < rows; j++) for (let i = 0; i < b; i++) { const X = i * bw, Y = j * bh; let ins = 0; c.rect(X, Y, bw, bh);
+          while (ins < Math.min(bw, bh) / 2 - 4) { ins += Math.min(bw, bh) * this.w[k++ % 60] * (1 + .1 * Math.sin(t + k)); c.rect(X + ins, Y + ins * (bh / bw), bw - 2 * ins, bh - 2 * ins * (bh / bw)); } } break; }
+    }
+    c.stroke(); c.restore();
+  }
+};
+
 /* ---------- ARTE CONCRETA (da J.-F. Rotgé e A. Kummerman, "How to teach Concrete art to a robot?", GA2023) ---------- */
 // curve che riempiono lo spazio, disordine senza caso, Truchet, stencil di Jordan colorati per "densità",
 // meandri (Anni Albers), linee ritmiche (Szpakowski), spirale (Le Parc), quadrati (Vera Molnar), metapixel (Vasarely)
@@ -1626,7 +1769,9 @@ const EVENTS = [
   { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
   { rate: () => .014, fn: () => apparizione(P.solidi) },
-  { rate: () => .016, fn: () => apparizione(P.concreto) },        // arte concreta: curve, Truchet, Molnar, Albers, Le Parc, Vasarely, Szpakowski
+  { rate: () => .016, fn: () => apparizione(P.concreto) },
+  { rate: () => .018, fn: () => apparizione(P.tessuti) },         // tappeti e tessiture, fermi
+  { rate: () => active.some(a => a.proc === P.tessuti) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.tessuti); } },        // arte concreta: curve, Truchet, Molnar, Albers, Le Parc, Vasarely, Szpakowski
   { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme
   { rate: () => .01, fn: () => apparizione(pick([P.mosaico, P.disco, P.douady])) },   // mosaici romani, dischi polari, spirali emergenti          // tutto si condensa in solidi semplici, fermi
   { rate: () => .03, fn: () => glitch() },                        // errore: l'immagine si rompe
@@ -1827,7 +1972,10 @@ function frame(t, dt) {
   const order = regions.map((r, i) => i).sort((a, b) => regions[b].size - regions[a].size);
   for (const i of order) {
     const r = regions[i];
-    if (HP) { const h = HP.colorAt(r.cx, r.cy); if (h >= 0) { r.color = h % NC; continue; } }
+    if (HP) { const h = HP.colorAt(r.cx, r.cy); if (h >= 0) {
+      let col = h % NC;
+      if (HP.soft) { const nb = new Uint8Array(NC); for (const n of r.nb) { const cc = regions[n].color; if (cc >= 0) nb[cc] = 1; } for (let k = 0; k < NC && nb[col]; k++) col = (col + 1) % NC; }
+      r.color = col; continue; } }
     const used = new Uint8Array(NC);
     for (const n of r.nb) { const c = regions[n].color; if (c >= 0) used[c] = 1; }
     let best = -1, bv = 0;
@@ -1911,7 +2059,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1935,6 +2083,8 @@ addEventListener('keydown', e => {
   else if (k === 'q') apparizione(P.solidi);
   else if (k === 'y') quadro();
   else if (k === 'w') apparizione(P.concreto);
+  else if (k === '9') apparizione(P.tessuti);
+  else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
   else if (k === 'z') flicker();
