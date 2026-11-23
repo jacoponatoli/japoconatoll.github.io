@@ -1285,43 +1285,136 @@ P.boetti = {
   }
 };
 
-/* ---------- FIORI STRANI: steli che oscillano, petali impossibili, semi a spirale ---------- */
+/* ---------- FIORI: specie diverse, composizioni diverse ---------- */
+// margherita, girasole, papavero, tulipano, rosa, giglio, soffione, loto, campanula, cosmo, orchidea, fiore strano;
+// in un campo, in un mazzo, in un vaso, a corona, galleggianti, un fiore gigante, un prato basso
+const SPECIE = ['margherita', 'girasole', 'papavero', 'tulipano', 'rosa', 'giglio', 'soffione', 'loto', 'campanula', 'cosmo', 'orchidea', 'strano'];
+function fiore(c, sp, x, y, r, a, t, o) {
+  const P = (rr, th) => [x + rr * Math.cos(th + a), y + rr * Math.sin(th + a)], ring = (rr) => { c.moveTo(x + rr, y); c.arc(x, y, rr, 0, 6.2832); };
+  const petal = (r0, r1, th, w, tip = 1) => { c.moveTo(...P(r0, th - w)); c.quadraticCurveTo(...P(r1 * .8, th - w * 1.3 * tip), ...P(r1, th)); c.quadraticCurveTo(...P(r1 * .8, th + w * 1.3 * tip), ...P(r0, th + w)); };
+  switch (sp) {
+    case 'margherita': { const n = o.n || 24; for (let k = 0; k < n; k++) petal(r * .22, r, k * 6.2832 / n, Math.PI / n * .7, .6); ring(r * .24); break; }
+    case 'cosmo': { const n = 8; for (let k = 0; k < n; k++) { const th = k * 6.2832 / n, w = Math.PI / n * .85; c.moveTo(...P(r * .15, th - w * .5)); c.lineTo(...P(r, th - w)); c.lineTo(...P(r * .9, th - w * .3)); c.lineTo(...P(r, th)); c.lineTo(...P(r * .9, th + w * .3)); c.lineTo(...P(r, th + w)); c.lineTo(...P(r * .15, th + w * .5)); } ring(r * .16); break; }
+    case 'girasole': { for (const [rr, n, off] of [[r, 21, 0], [r * .85, 21, .5]]) for (let k = 0; k < n; k++) petal(r * .45, rr, (k + off) * 6.2832 / n, Math.PI / n * .8, .7); ring(r * .46);
+      for (let k = 1; k < 140; k++) { const rr = r * .44 * Math.sqrt(k / 140), th = k * 2.39996 + t * .1, sx = x + rr * Math.cos(th), sy = y + rr * Math.sin(th), d = r * .018; c.moveTo(sx + d, sy); c.arc(sx, sy, d, 0, 6.2832); } break; }
+    case 'papavero': { for (let k = 0; k < 4; k++) { const th = k * 1.5708 + .3, cxp = x + r * .45 * Math.cos(th + a), cyp = y + r * .45 * Math.sin(th + a); c.moveTo(cxp + r * .58, cyp); c.arc(cxp, cyp, r * .58, 0, 6.2832); }
+      ring(r * .2); for (let k = 0; k < 16; k++) { c.moveTo(...P(r * .2, k * .3927)); c.lineTo(...P(r * .32, k * .3927)); } break; }
+    case 'tulipano': { const h = r * 1.3; c.moveTo(x - r * .6, y - h * .2); c.quadraticCurveTo(x - r * .75, y + h * .45, x, y + h * .5); c.quadraticCurveTo(x + r * .75, y + h * .45, x + r * .6, y - h * .2);
+      c.lineTo(x + r * .35, y + h * .05); c.lineTo(x + r * .2, y - h * .5); c.lineTo(x, y - h * .05); c.lineTo(x - r * .2, y - h * .5); c.lineTo(x - r * .35, y + h * .05); c.closePath(); c.moveTo(x, y - h * .05); c.lineTo(x, y + h * .5); break; }
+    case 'rosa': { for (let k = 0; k < 14; k++) { const rr = r * (.15 + .85 * k / 14), th = k * 2.2 + a; c.moveTo(x + rr * Math.cos(th), y + rr * Math.sin(th)); c.arc(x, y, rr, th, th + 3.6); }
+      ring(r); break; }
+    case 'giglio': { for (let k = 0; k < 6; k++) { const th = k * 1.0472; c.moveTo(...P(r * .1, th - .25)); c.bezierCurveTo(...P(r * .6, th - .45), ...P(r * 1.05, th - .05), ...P(r * 1.1, th + .15)); c.bezierCurveTo(...P(r * .8, th + .25), ...P(r * .5, th + .3), ...P(r * .1, th + .25)); }
+      for (let k = 0; k < 6; k++) { const th = k * 1.0472 + .5; c.moveTo(...P(r * .1, th)); c.lineTo(...P(r * .55, th)); const [ex, ey] = P(r * .58, th); c.moveTo(ex + r * .04, ey); c.arc(ex, ey, r * .04, 0, 6.2832); } break; }
+    case 'soffione': { ring(r * .12); const n = 60; for (let k = 0; k < n; k++) { const th = k * 2.39996, rr = r * (.85 + .15 * Math.sin(k)), [ex, ey] = P(rr, th); c.moveTo(...P(r * .12, th)); c.lineTo(ex, ey); c.moveTo(ex + r * .05, ey); c.arc(ex, ey, r * .05, 0, 6.2832); } break; }
+    case 'loto': { for (const [rr, n, off] of [[r, 8, 0], [r * .72, 8, .5], [r * .45, 6, 0]]) for (let k = 0; k < n; k++) petal(r * .12, rr, (k + off) * 6.2832 / n - 1.5708, Math.PI / n * 1.1, 1.1); ring(r * .14); break; }
+    case 'campanula': { for (let k = 0; k < 4; k++) { const bx = x + (k - 1.5) * r * .55, by = y + r * (.2 + .35 * (k % 2)), w = r * .25, h = r * .45; c.moveTo(bx, by - r * .3); c.lineTo(bx, by - h * .5);
+      c.moveTo(bx - w * .5, by - h * .5); c.quadraticCurveTo(bx - w * .6, by + h * .3, bx - w, by + h * .5); c.lineTo(bx - w * .35, by + h * .35); c.lineTo(bx, by + h * .55); c.lineTo(bx + w * .35, by + h * .35); c.lineTo(bx + w, by + h * .5); c.quadraticCurveTo(bx + w * .6, by + h * .3, bx + w * .5, by - h * .5); c.closePath(); }
+      c.moveTo(x - r * .9, y - r * .3); c.quadraticCurveTo(x, y - r * .55, x + r * .9, y - r * .3); break; }
+    case 'orchidea': { for (const [th, l, w] of [[-1.5708, 1, .35], [-.4, .9, .4], [3.54, .9, .4], [.6, .8, .3], [2.54, .8, .3]]) petal(r * .08, r * l, th, w);
+      c.moveTo(...P(r * .1, 1.2)); c.bezierCurveTo(...P(r * .7, .9), ...P(r * .8, 2.2), ...P(r * .1, 1.9)); ring(r * .1); break; }
+    default: { const n = o.n || 7; for (let g = 2; g >= 1; g--) for (let k = 0; k < n + g; k++) { const th = k * 6.2832 / (n + g) + t * .3 * (g % 2 ? 1 : -1); c.moveTo(...P(r * .25, th - .3)); for (let q = 0; q <= 6; q++) c.lineTo(...P(q % 2 ? r * g / 2 : r * g / 2 * .78, th - .3 + q * .1)); c.lineTo(...P(r * .25, th + .3)); }
+      ring(r * .28); ring(r * .12); }
+  }
+}
+const FOGLIE = ['lanceolata', 'cuore', 'felce', 'tonda'];
+function foglia(lines, segs, x, y, L, a, tipo) {
+  const P = (u, v) => [x + Math.cos(a) * u - Math.sin(a) * v, y + Math.sin(a) * u + Math.cos(a) * v];
+  if (tipo === 'felce') { segs.push([x, y, ...P(L, 0), L * .03]); for (let k = 1; k < 9; k++) { const u = L * k / 9, l = L * .28 * (1 - k / 10); for (const sg of [-1, 1]) lines.push([P(u, 0), P(u + l * .6, sg * l * .35), P(u + l, sg * l * .6), P(u + l * .5, sg * l * .15), P(u, 0)]); } return; }
+  const w = tipo === 'cuore' ? .55 : tipo === 'tonda' ? .5 : .22, pts = [];
+  for (let k = 0; k <= 12; k++) { const u = k / 12, half = tipo === 'cuore' ? Math.sin(Math.PI * Math.pow(u, .6)) * (1 - u * .3) : tipo === 'tonda' ? Math.sin(Math.PI * u) : Math.sin(Math.PI * u) * (1 - u * .2); pts.push(P(L * u, L * w * half)); }
+  for (let k = 12; k >= 0; k--) { const u = k / 12, half = tipo === 'cuore' ? Math.sin(Math.PI * Math.pow(u, .6)) * (1 - u * .3) : tipo === 'tonda' ? Math.sin(Math.PI * u) : Math.sin(Math.PI * u) * (1 - u * .2); pts.push(P(L * u, -L * w * half)); }
+  lines.push(pts); lines.push([P(0, 0), P(L * .85, 0)]);
+}
 P.fiori = {
-  name: 'fiori strani',
+  get name() { return `fiori: ${this.comp} (${[...new Set(this.f.map(f => f.sp))].join(', ')})`; },
   init() {
-    const n = 1 + ((Math.random() * 5) | 0), m = Math.min(W, H); this.f = []; this.t = 0;
-    for (let i = 0; i < n; i++) { const big = n === 1;
-      this.f.push({ x: big ? W / 2 : rnd(W * .1, W * .9), y: H + 10, h: (big ? rnd(.55, .75) : rnd(.35, .8)) * H, r: m * (big ? rnd(.22, .32) : rnd(.08, .18)), np: 3 + ((Math.random() * 11) | 0),
-        shape: pick(['punta', 'tondo', 'lingua', 'doppio', 'frange']), rings: 1 + ((Math.random() * 3) | 0), seeds: Math.random() < .7, eye: Math.random() < .25, lean: gauss() * .15, ph: rnd(6.28), leaves: (Math.random() * 4) | 0, w: m * rnd(.012, .025) }); }
+    const m = Math.min(W, H); this.t = 0; this.vase = null; this.comp = pick(['campo', 'mazzo', 'vaso', 'corona', 'galleggianti', 'gigante', 'prato basso', 'mazzo', 'campo']); this.f = [];
+    const mono = Math.random() < .4, sp0 = pick(SPECIE), SP = () => mono ? sp0 : pick(SPECIE), F = (o) => this.f.push(Object.assign({ sp: SP(), ph: rnd(6.28), a: rnd(6.28), n: 12 + ((Math.random() * 24) | 0), leaf: pick(FOGLIE), nl: (Math.random() * 4) | 0, ll: Array.from({ length: 4 }, () => rnd(.7, 1.15)), w: m * rnd(.008, .018), lean: gauss() * .15, spin: gauss() * .004 }, o));
+    if (this.comp === 'campo') for (let i = 0; i < 6 + poisson(10); i++) F({ x: rnd(W), base: H + 10, h: rnd(.2, .85) * H, r: m * rnd(.05, .13) });
+    else if (this.comp === 'prato basso') for (let i = 0; i < 18 + poisson(14); i++) F({ x: rnd(W), base: H + 10, h: rnd(.05, .3) * H, r: m * rnd(.025, .06), nl: 0 });
+    else if (this.comp === 'mazzo' || this.comp === 'vaso') { const vx = W / 2 + gauss() * W * .05, vy = this.comp === 'vaso' ? H * .72 : H * .95; this.vase = this.comp === 'vaso' ? { x: vx, y: vy, w: m * rnd(.12, .2), h: m * rnd(.22, .32), k: rnd(.6, 1.3) } : null;
+      for (let i = 0; i < 5 + poisson(6); i++) { const ang = -Math.PI / 2 + gauss() * .55, L = m * rnd(.35, .62); F({ x: vx, base: vy, tx: vx + Math.cos(ang) * L, ty: vy + Math.sin(ang) * L, h: L, r: m * rnd(.06, .13) }); } }
+    else if (this.comp === 'corona') { const n = 7 + ((Math.random() * 8) | 0), R = m * rnd(.28, .38); for (let i = 0; i < n; i++) { const th = i * 6.2832 / n; F({ hx: W / 2 + R * Math.cos(th), hy: H / 2 + R * Math.sin(th), r: m * rnd(.09, .15), nostem: true }); } }
+    else if (this.comp === 'galleggianti') for (let i = 0; i < 6 + poisson(8); i++) F({ hx: rnd(W), hy: rnd(H), r: m * rnd(.09, .26), nostem: true, vx: gauss() * .3, vy: gauss() * .3 });
+    else F({ hx: W * rnd(.35, .65), hy: H * rnd(.35, .65), r: m * rnd(.5, .85), nostem: true });   // un solo fiore gigante, tagliato dal bordo
   },
-  step() { this.t += .012; },
+  step() { this.t += .012; for (const f of this.f) { f.a += f.spin; if (f.vx) { f.hx = mod(f.hx + f.vx, W); f.hy = mod(f.hy + f.vy, H); } } },
   render(c) {
     const segs = [], lines = [], heads = [];
+    if (this.vase) { const v = this.vase; lines.push([[v.x - v.w * .4, v.y], [v.x - v.w * v.k, v.y + v.h * .5], [v.x - v.w * .5, v.y + v.h], [v.x + v.w * .5, v.y + v.h], [v.x + v.w * v.k, v.y + v.h * .5], [v.x + v.w * .4, v.y], [v.x - v.w * .4, v.y]]); }
     for (const f of this.f) {
-      const sway = f.lean + .06 * Math.sin(this.t * 1.3 + f.ph), pts = [];
-      for (let k = 0; k <= 10; k++) { const u = k / 10; pts.push([f.x + Math.sin(sway * u * 3) * f.h * .3 * u, f.y - f.h * u]); }
+      if (f.nostem) { heads.push([f, f.hx, f.hy]); continue; }
+      const sway = f.lean + .06 * Math.sin(this.t * 1.3 + f.ph), pts = [], tx = f.tx ?? f.x + Math.sin(sway * 3) * f.h * .3, ty = f.ty ?? f.base - f.h;
+      for (let k = 0; k <= 10; k++) { const u = k / 10, bow = Math.sin(u * Math.PI) * f.h * .08 * Math.sin(this.t + f.ph); pts.push([f.x + (tx - f.x) * u + bow, f.base + (ty - f.base) * u]); }
       for (let k = 0; k < 10; k++) segs.push([...pts[k], ...pts[k + 1], f.w]);
-      for (let l = 0; l < f.leaves; l++) { const p0 = pts[3 + l * 2], d = l % 2 ? 1 : -1, tip = [p0[0] + d * f.r * 1.1, p0[1] - f.r * .5];
-        lines.push([p0, [(p0[0] + tip[0]) / 2, p0[1] - f.r * .6], tip, [(p0[0] + tip[0]) / 2, p0[1] + f.r * .05], p0]); }
-      heads.push({ f, x: pts[10][0], y: pts[10][1], a: this.t * .3 * (f.np % 2 ? 1 : -1) + f.ph });
+      for (let l = 0; l < f.nl; l++) { const p0 = pts[2 + l * 2], d = l % 2 ? 1 : -1; foglia(lines, segs, p0[0], p0[1], f.r * f.ll[l], -Math.PI / 2 + d * (.7 + .2 * Math.sin(this.t + l)), f.leaf); }
+      heads.push([f, tx, ty]);
     }
     tubeDraw(c, segs, lines);
-    c.beginPath();
-    for (const { f, x, y, a } of heads) {
-      for (let g = f.rings; g >= 1; g--) { const R = f.r * g / f.rings, np = f.np + (g - 1) * 2;
-        for (let k = 0; k < np; k++) { const b = a * (g % 2 ? 1 : -1) + k * 6.2832 / np, w = Math.PI / np;
-          const P = (r, t) => [x + r * Math.cos(t), y + r * Math.sin(t)], r0 = R * .25;
-          if (f.shape === 'tondo') { const [px, py] = P(R * .62, b); c.moveTo(px + R * .36, py); c.arc(px, py, R * .36, 0, 6.2832); }
-          else if (f.shape === 'frange') { c.moveTo(...P(r0, b - w)); for (let q = 0; q <= 6; q++) c.lineTo(...P(q % 2 ? R : R * .8, b - w + q * w / 3)); c.lineTo(...P(r0, b + w)); }
-          else { const tipR = f.shape === 'lingua' ? R * 1.05 : R, wid = f.shape === 'punta' ? .9 : f.shape === 'doppio' ? 1.4 : 1.2;
-            c.moveTo(...P(r0, b - w)); c.quadraticCurveTo(...P(R * .75, b - w * wid), ...P(tipR, b)); c.quadraticCurveTo(...P(R * .75, b + w * wid), ...P(r0, b + w));
-            if (f.shape === 'doppio') { c.moveTo(...P(R * .5, b)); c.lineTo(...P(R * .85, b)); } } } }
-      const rc = f.r * .28; c.moveTo(x + rc, y); c.arc(x, y, rc, 0, 6.2832);
-      if (f.seeds) for (let k = 1; k < 60; k++) { const rr = rc * .9 * Math.sqrt(k / 60), t2 = k * 2.39996 + a, sx = x + rr * Math.cos(t2), sy = y + rr * Math.sin(t2), d = rc * .07; c.moveTo(sx + d, sy); c.arc(sx, sy, d, 0, 6.2832); }
-      if (f.eye) { c.moveTo(x + rc * .55, y); c.arc(x, y, rc * .55, 0, 6.2832); c.moveTo(x + rc * .22, y); c.arc(x, y, rc * .22, 0, 6.2832); }
-    }
-    c.stroke();
+    c.beginPath(); for (const [f, x, y] of heads) fiore(c, f.sp, x, y, f.r * (1 + .03 * Math.sin(this.t * 2 + f.ph)), f.a, this.t, f); c.stroke();
   }
+};
+
+/* ---------- MACCHIE DI RORSCHACH: sempre nuove, simmetriche, che si trasformano ---------- */
+function inkField(o, gw, gh, t) { // campo d'inchiostro: gocce che si espandono + spruzzi, specchiato sull'asse verticale
+  const F = o.F && o.F.length === gw * gh ? o.F : (o.F = new Float32Array(gw * gh));
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) { const X = Math.abs(x - gw / 2) / gw, Y = y / gh; let v = 0;
+    for (const b of o.blobs) { const dx = X - (b.x + .02 * Math.sin(t * b.f + b.p)), dy = Y - (b.y + .02 * Math.cos(t * b.f * .8 + b.p)); v += b.r * b.r / (dx * dx * b.sx + dy * dy + 1e-4); }
+    v += .35 * Math.sin(X * o.k1 + t * .3 + Math.sin(Y * o.k2)) * Math.sin(Y * o.k3 - t * .2);   // bordi frastagliati
+    F[y * gw + x] = v; }
+  return F;
+}
+function newBlobs(o) { o.blobs = []; const n = 6 + poisson(8); for (let i = 0; i < n; i++) o.blobs.push({ x: rnd(.0, .38), y: rnd(.12, .88), r: rnd(.03, .1), sx: rnd(.5, 2.5), f: rnd(.2, .8), p: rnd(6.28) });
+  for (let i = 0; i < poisson(6); i++) o.blobs.push({ x: rnd(.05, .45), y: rnd(.05, .95), r: rnd(.006, .018), sx: 1, f: rnd(.2, 1), p: rnd(6.28) });   // spruzzi
+  o.k1 = rnd(20, 60); o.k2 = rnd(3, 9); o.k3 = rnd(15, 45); o.th = rnd(1.6, 2.6); }
+P.rorschach = {
+  name: 'macchia di Rorschach',
+  init() { newBlobs(this); this.t = rnd(10); this.lv = Math.random() < .5 ? 1 : 2; this.cx = W / 2; this.cy = H / 2; },
+  step() { this.t += .01; if (Math.random() < .002) newBlobs(this); },
+  render(c) { if (!this.sc || this.gw !== Math.round(W / 3)) fieldCanvas(this, Math.round(W / 3), Math.round(H / 3)); const { gw, gh } = this, F = inkField(this, gw, gh, this.t), d = this.im.data;
+    const L = v => (v > this.th ? 1 : 0) + (this.lv > 1 && v > this.th * 2.2 ? 1 : 0);
+    for (let i = 0; i < gw * gh; i++) { const x = i % gw, l = L(F[i]); d[i * 4 + 3] = ((x < gw - 1 && L(F[i + 1]) !== l) || (i + gw < gw * gh && L(F[i + gw]) !== l)) ? 255 : 0; }
+    drawField(this, c); }
+};
+// la tavola classica: inchiostro nero (a volte rosso, a volte colori pastello) su carta bianca, ferma ma che si trasforma piano
+const INK = { o: {}, on: false };
+function tavolaRorschach() {
+  if (MONO.phase || RIT.phase) return; const o = INK.o; newBlobs(o); o.t = rnd(10); o.mode = pick(['nero', 'nero', 'nero', 'nero e rosso', 'pastello']);
+  MONO.cv.width = Math.round(view.width / 4); MONO.cv.height = Math.round(view.height / 4); MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(6, 12); MONO.mode = 'rorschach'; MONO.pix = false; INK.on = true; drawInk();
+}
+function drawInk() {
+  const o = INK.o, cv = MONO.cv, w = cv.width, h = cv.height, g = cv.getContext('2d'), im = g.createImageData(w, h), d = im.data; o.t += .004;
+  const F = inkField(o, w, h, o.t), paper = [246, 242, 232];
+  for (let i = 0; i < w * h; i++) { const v = F[i]; let col = paper; const k = clamp((v - o.th) * 1.5, 0, 1);
+    if (k > 0) { if (o.mode === 'nero e rosso') col = (i % w > w * .3 && i % w < w * .7 && Math.floor(i / w) < h * .35) || v > o.th * 3 ? [196, 26, 32] : [18, 16, 18]; else if (o.mode === 'pastello') col = [[230, 120, 150], [120, 170, 220], [240, 190, 90], [130, 200, 150]][Math.floor((Math.floor(i / w) / h) * 4) % 4]; else col = [18, 16, 18];
+      const a = .55 + .45 * k; col = col.map((c2, j) => paper[j] + (c2 - paper[j]) * a); }
+    d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; }
+  g.putImageData(im, 0, 0);
+}
+
+/* ---------- SAGOME A COLORI PIENI: animali e frutti, forme essenziali, ferme ---------- */
+const SAGOME = {
+  mela(c, s) { c.moveTo(0, -s * .55); c.bezierCurveTo(s * .9, -s * 1.05, s * 1.25, s * .4, s * .35, s * .9); c.quadraticCurveTo(0, s * .75, -s * .35, s * .9); c.bezierCurveTo(-s * 1.25, s * .4, -s * .9, -s * 1.05, 0, -s * .55); c.moveTo(0, -s * .55); c.lineTo(s * .08, -s * .95); c.moveTo(s * .08, -s * .85); c.quadraticCurveTo(s * .5, -s * 1.15, s * .55, -s * .8); c.quadraticCurveTo(s * .25, -s * .7, s * .08, -s * .85); },
+  pera(c, s) { c.moveTo(0, -s); c.bezierCurveTo(s * .35, -s * .9, s * .25, -s * .2, s * .65, s * .3); c.bezierCurveTo(s * .9, s * .8, s * .4, s * 1.05, 0, s * 1.05); c.bezierCurveTo(-s * .4, s * 1.05, -s * .9, s * .8, -s * .65, s * .3); c.bezierCurveTo(-s * .25, -s * .2, -s * .35, -s * .9, 0, -s); c.moveTo(0, -s); c.lineTo(-s * .05, -s * 1.25); },
+  ciliegie(c, s) { for (const sx of [-.4, .35]) { c.moveTo(s * sx + s * .38, s * .5); c.arc(s * sx, s * .5, s * .38, 0, 6.2832); } c.moveTo(-s * .4, s * .12); c.quadraticCurveTo(-s * .2, -s * .7, s * .15, -s); c.moveTo(s * .35, s * .12); c.quadraticCurveTo(s * .3, -s * .5, s * .15, -s); },
+  pesce(c, s) { c.moveTo(s, 0); c.bezierCurveTo(s * .5, -s * .7, -s * .4, -s * .6, -s * .6, 0); c.bezierCurveTo(-s * .4, s * .6, s * .5, s * .7, s, 0); c.moveTo(-s * .6, 0); c.lineTo(-s * 1.05, -s * .45); c.lineTo(-s * 1.05, s * .45); c.closePath(); c.moveTo(s * .62, -s * .12); c.arc(s * .55, -s * .12, s * .07, 0, 6.2832); },
+  uccello(c, s) { c.moveTo(s * .55, -s * .35); c.arc(s * .35, -s * .35, s * .32, 0, 6.2832); c.moveTo(s * .65, -s * .4); c.lineTo(s * 1, -s * .3); c.lineTo(s * .65, -s * .22); c.moveTo(s * .1, -s * .2); c.bezierCurveTo(-s * .2, s * .7, s * .6, s * .5, s * .5, -s * .05); c.moveTo(-s * .05, s * .1); c.lineTo(-s * .9, s * .2); c.lineTo(-s * .1, s * .45); c.moveTo(s * .2, s * .55); c.lineTo(s * .15, s * .95); c.moveTo(s * .35, s * .55); c.lineTo(s * .4, s * .95); },
+  gatto(c, s) { c.moveTo(0, -s * .3); c.ellipse(0, s * .35, s * .55, s * .65, 0, -1.5708, 4.7124); c.moveTo(s * .38, -s * .55); c.arc(0, -s * .55, s * .38, 0, 6.2832); c.moveTo(-s * .32, -s * .75); c.lineTo(-s * .3, -s * 1.1); c.lineTo(-s * .08, -s * .9); c.moveTo(s * .32, -s * .75); c.lineTo(s * .3, -s * 1.1); c.lineTo(s * .08, -s * .9); c.moveTo(s * .5, s * .8); c.bezierCurveTo(s * 1.2, s * .9, s * 1.1, s * .1, s * .8, 0); },
+  lumaca(c, s) { for (let i = 0; i <= 80; i++) { const a = i * .16, r = s * .7 * (1 - i / 95); const X = r * Math.cos(a), Y = -s * .1 + r * Math.sin(a); i ? c.lineTo(X, Y) : c.moveTo(X, Y); } c.moveTo(-s, s * .65); c.lineTo(s * .9, s * .65); c.quadraticCurveTo(s * 1.15, s * .4, s * .95, s * .1); c.lineTo(s * .7, s * .55); c.moveTo(s * .95, s * .1); c.lineTo(s * 1.1, -s * .25); c.moveTo(s * .9, s * .12); c.lineTo(s * .85, -s * .25); },
+  fungo(c, s) { c.moveTo(-s, 0); c.bezierCurveTo(-s, -s * .95, s, -s * .95, s, 0); c.closePath(); c.rect(-s * .22, 0, s * .44, s * .9); for (const [x, y, r] of [[-.45, -.3, .12], [.2, -.5, .1], [.55, -.2, .08]]) { c.moveTo(s * (x + r), s * y); c.arc(s * x, s * y, s * r, 0, 6.2832); } },
+  sole(c, s) { c.moveTo(s * .5, 0); c.arc(0, 0, s * .5, 0, 6.2832); for (let k = 0; k < 12; k++) { const a = k * .5236; c.moveTo(Math.cos(a - .1) * s * .62, Math.sin(a - .1) * s * .62); c.lineTo(Math.cos(a) * s, Math.sin(a) * s); c.lineTo(Math.cos(a + .1) * s * .62, Math.sin(a + .1) * s * .62); c.closePath(); } },
+  foglia(c, s) { c.moveTo(-s, s * .1); c.bezierCurveTo(-s * .3, -s * .9, s * .7, -s * .6, s, -s * .2); c.bezierCurveTo(s * .6, s * .5, -s * .3, s * .7, -s, s * .1); c.moveTo(-s, s * .1); c.quadraticCurveTo(0, -s * .1, s, -s * .2); },
+  farfalla(c, s) { c.moveTo(0, -s * .1); c.bezierCurveTo(-s * .4, -s * 1.1, -s * 1.2, -s * .6, -s * .15, 0); c.bezierCurveTo(-s * .9, s * .2, -s * .6, s * .9, 0, s * .1); c.bezierCurveTo(s * .6, s * .9, s * .9, s * .2, s * .15, 0); c.bezierCurveTo(s * 1.2, -s * .6, s * .4, -s * 1.1, 0, -s * .1); c.moveTo(-s * .05, -s * .45); c.lineTo(-s * .25, -s * .8); c.moveTo(s * .05, -s * .45); c.lineTo(s * .25, -s * .8); },
+  balena(c, s) { c.moveTo(s, s * .1); c.bezierCurveTo(s, -s * .7, -s * .5, -s * .7, -s * .7, s * .05); c.lineTo(-s * 1.1, -s * .35); c.lineTo(-s * .95, s * .15); c.lineTo(-s * 1.1, s * .5); c.lineTo(-s * .7, s * .2); c.bezierCurveTo(-s * .3, s * .5, s * .8, s * .5, s, s * .1); c.moveTo(s * .7, -s * .05); c.arc(s * .65, -s * .05, s * .05, 0, 6.2832); },
+};
+P.sagome = {
+  get name() { return 'sagome: ' + this.items.join(', '); },
+  init() { const K = Object.keys(SAGOME); this.n = pick([1, 1, 2, 3, 4, 6]); this.items = Array.from({ length: this.n }, () => pick(K)); this.cx = W / 2; this.cy = H / 2;
+    this.grid = this.n === 1 ? [1, 1] : this.n === 2 ? [2, 1] : this.n === 3 ? [3, 1] : this.n === 4 ? [2, 2] : [3, 2]; },
+  step() {},
+  render(c) { const [gx, gy] = this.grid, cw = W / gx, ch = H / gy; c.beginPath();
+    for (let j = 0; j < gy; j++) for (let i = 0; i < gx; i++) { const k = j * gx + i; if (k >= this.n) continue; c.rect(i * cw, j * ch, cw, ch); c.save(); c.translate((i + .5) * cw, (j + .5) * ch); SAGOME[this.items[k]](c, Math.min(cw, ch) * .4); c.restore(); }
+    c.stroke(); }
 };
 
 /* ---------- FIGURE: corpi fatti di "tubi"; la loro unione dà la sagoma, i dettagli sono linee ---------- */
@@ -1603,7 +1696,7 @@ function serie() {
 function enter(proc) {
   if (SERIE.on && performance.now() > SERIE.until) SERIE.on = false;
   if (!proc && SERIE.on) { proc = pick(SERIE.fam); const a = active.find(x => x.proc === proc); if (a) { a.target = 0; } }
-  proc = proc || pick(ALL.filter(q => !q.persist && q !== P.illusioni && q !== P.solidi && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
+  proc = proc || pick(ALL.filter(q => !q.persist && q !== P.illusioni && q !== P.solidi && q !== P.sagome && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
   if (!proc) proc = pick(ALL.filter(q => !q.persist && !active.some(a => a.proc === q)));
   if (!proc) return;
   proc.init(); for (let i = 0; i < 30; i++) proc.step();
@@ -1812,7 +1905,10 @@ const EVENTS = [
   { rate: () => .022, fn: () => apparizione(P.mandala) },
   { rate: () => .016, fn: () => apparizione(P.illusioni) },        // illusioni ottiche, ferme
   { rate: () => .018, fn: monocromo },
-  { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
+  { rate: () => .016, fn: () => quadro() },
+  { rate: () => .014, fn: tavolaRorschach },                       // tavola di Rorschach classica, sempre nuova
+  { rate: () => .012, fn: () => apparizione(P.rorschach) },        // macchia di Rorschach psichedelica
+  { rate: () => .014, fn: () => apparizione(P.sagome) },           // sagome a colori pieni, ferme                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
   { rate: () => .014, fn: () => apparizione(P.solidi) },
   { rate: () => .016, fn: () => apparizione(P.concreto) },
@@ -2063,7 +2159,7 @@ function frame(t, dt) {
   wctx.putImageData(img, 0, 0);
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(work, 0, 0, view.width, view.height);
-  if (MONO.a > 0) drawMono(MONO.a);
+  if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
 }
 
 /* =================== CICLO =================== */
@@ -2074,7 +2170,7 @@ function loop(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (MONO.phase) {
     if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / 1.4); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
-    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) MONO.phase = 'out'; return; }   // pagina immobile
+    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) MONO.phase = 'out'; if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
     else { MONO.a -= dt / 1.8; if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
   }
   const still = rituale(dt);
@@ -2106,7 +2202,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2132,6 +2228,8 @@ addEventListener('keydown', e => {
   else if (k === 'w') apparizione(P.concreto);
   else if (k === '9') apparizione(P.tessuti);
   else if (k === '7') apparizione(P.yturralde);
+  else if (k === '6') { if (Math.random() < .5) tavolaRorschach(); else apparizione(P.rorschach); }
+  else if (k === '5') apparizione(P.sagome);
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
