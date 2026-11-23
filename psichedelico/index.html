@@ -1356,38 +1356,64 @@ P.fiori = {
 };
 
 /* ---------- MACCHIE DI RORSCHACH: sempre nuove, simmetriche, che si trasformano ---------- */
-function inkField(o, gw, gh, t) { // campo d'inchiostro: gocce che si espandono + spruzzi, specchiato sull'asse verticale
-  const F = o.F && o.F.length === gw * gh ? o.F : (o.F = new Float32Array(gw * gh));
-  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) { const X = Math.abs(x - gw / 2) / gw, Y = y / gh; let v = 0;
-    for (const b of o.blobs) { const dx = X - (b.x + .02 * Math.sin(t * b.f + b.p)), dy = Y - (b.y + .02 * Math.cos(t * b.f * .8 + b.p)); v += b.r * b.r / (dx * dx * b.sx + dy * dy + 1e-4); }
-    v += .35 * Math.sin(X * o.k1 + t * .3 + Math.sin(Y * o.k2)) * Math.sin(Y * o.k3 - t * .2);   // bordi frastagliati
-    F[y * gw + x] = v; }
+// rumore di valore e fbm: danno ai bordi le frange e all'inchiostro la grana
+const vhash = (x, y) => { const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return h - Math.floor(h); };
+function vnoise(x, y) { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = vhash(xi, yi), b = vhash(xi + 1, yi), c = vhash(xi, yi + 1), d = vhash(xi + 1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; }
+const fbm = (x, y, o = 3) => { let s = 0, a = .5, f = 1; for (let i = 0; i < o; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= .5; } return s; };
+// campo d'inchiostro: gocce deformate da un "dominio torto" (fbm), buchi bianchi, spruzzi, piega centrale; restituisce densità e goccia dominante
+function inkField(o, gw, gh, t) {
+  const n = gw * gh, F = o.F && o.F.length === n ? o.F : (o.F = new Float32Array(n)), Id = o.Id && o.Id.length === n ? o.Id : (o.Id = new Uint8Array(n));
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+    let X = Math.abs(x - gw / 2) / gh, Y = y / gh;
+    const wx = fbm(X * 3 + o.s1, Y * 3 + t * .05) - .5, wy = fbm(X * 3 + o.s2, Y * 3 - t * .04) - .5;   // il dominio si torce: forme organiche
+    X += wx * o.warp; Y += wy * o.warp;
+    let v = 0, best = 0, bi = 0;
+    for (let i = 0; i < o.blobs.length; i++) { const b = o.blobs[i], dx = X - (b.x + .015 * Math.sin(t * b.f + b.p)), dy = Y - (b.y + .015 * Math.cos(t * b.f * .8 + b.p)), c = b.r * b.r / (dx * dx * b.sx + dy * dy * b.sy + 1e-4) * b.sgn;
+      v += c; if (c > best) { best = c; bi = b.g; } }
+    v += (fbm(X * o.k1, Y * o.k1) - .5) * o.fray;            // frange e filamenti ai bordi
+    v += o.fold * Math.exp(-((X * gh / gw * 40) ** 2)) * (Y > .15 && Y < .85 ? 1 : 0);   // la piega del foglio
+    F[y * gw + x] = v; Id[y * gw + x] = bi;
+  }
   return F;
 }
-function newBlobs(o) { o.blobs = []; const n = 6 + poisson(8); for (let i = 0; i < n; i++) o.blobs.push({ x: rnd(.0, .38), y: rnd(.12, .88), r: rnd(.03, .1), sx: rnd(.5, 2.5), f: rnd(.2, .8), p: rnd(6.28) });
-  for (let i = 0; i < poisson(6); i++) o.blobs.push({ x: rnd(.05, .45), y: rnd(.05, .95), r: rnd(.006, .018), sx: 1, f: rnd(.2, 1), p: rnd(6.28) });   // spruzzi
-  o.k1 = rnd(20, 60); o.k2 = rnd(3, 9); o.k3 = rnd(15, 45); o.th = rnd(1.6, 2.6); }
+function newBlobs(o) {
+  o.blobs = []; const groups = 2 + ((Math.random() * 4) | 0), n = 8 + poisson(10);
+  for (let i = 0; i < n; i++) o.blobs.push({ x: rnd(.0, .42), y: rnd(.08, .92), r: rnd(.025, .09), sx: rnd(.4, 2.6), sy: rnd(.6, 1.6), f: rnd(.2, .8), p: rnd(6.28), sgn: 1, g: (Math.random() * groups) | 0 });
+  for (let i = 0; i < 2 + poisson(3); i++) o.blobs.push({ x: rnd(.0, .25), y: rnd(.2, .8), r: rnd(.015, .04), sx: rnd(.6, 2), sy: 1, f: .3, p: rnd(6.28), sgn: -1.4, g: 0 });   // buchi bianchi dentro la macchia
+  for (let i = 0; i < poisson(7); i++) o.blobs.push({ x: rnd(.05, .5), y: rnd(.03, .97), r: rnd(.004, .014), sx: 1, sy: 1, f: rnd(.2, 1), p: rnd(6.28), sgn: 1, g: (Math.random() * groups) | 0 });   // spruzzi
+  o.k1 = rnd(8, 22); o.fray = rnd(.8, 2.2); o.warp = rnd(.08, .3); o.s1 = rnd(100); o.s2 = rnd(100); o.fold = rnd(0, 1.2); o.th = rnd(1.4, 2.2); o.groups = groups;
+}
 P.rorschach = {
   name: 'macchia di Rorschach',
-  init() { newBlobs(this); this.t = rnd(10); this.lv = Math.random() < .5 ? 1 : 2; this.cx = W / 2; this.cy = H / 2; },
+  init() { newBlobs(this); this.t = rnd(10); this.lv = 1 + ((Math.random() * 4) | 0); this.cx = W / 2; this.cy = H / 2; },
   step() { this.t += .01; if (Math.random() < .002) newBlobs(this); },
-  render(c) { if (!this.sc || this.gw !== Math.round(W / 3)) fieldCanvas(this, Math.round(W / 3), Math.round(H / 3)); const { gw, gh } = this, F = inkField(this, gw, gh, this.t), d = this.im.data;
-    const L = v => (v > this.th ? 1 : 0) + (this.lv > 1 && v > this.th * 2.2 ? 1 : 0);
+  render(c) { if (!this.sc || this.gw !== Math.round(W / 3)) fieldCanvas(this, Math.round(W / 3), Math.round(H / 3)); if ((this.fr = (this.fr || 0) + 1) % 5 !== 1 && this.ready) { drawField(this, c); return; } this.ready = true; const { gw, gh } = this, F = inkField(this, gw, gh, this.t), d = this.im.data;
+    const L = v => { let l = 0; for (let k = 0; k < this.lv; k++) if (v > this.th * (1 + k * .9)) l++; return l; };   // livelli di densità: le sfumature diventano contorni
     for (let i = 0; i < gw * gh; i++) { const x = i % gw, l = L(F[i]); d[i * 4 + 3] = ((x < gw - 1 && L(F[i + 1]) !== l) || (i + gw < gw * gh && L(F[i + gw]) !== l)) ? 255 : 0; }
     drawField(this, c); }
 };
 // la tavola classica: inchiostro nero (a volte rosso, a volte colori pastello) su carta bianca, ferma ma che si trasforma piano
 const INK = { o: {}, on: false };
 function tavolaRorschach() {
-  if (MONO.phase || RIT.phase) return; const o = INK.o; newBlobs(o); o.t = rnd(10); o.mode = pick(['nero', 'nero', 'nero', 'nero e rosso', 'pastello']);
-  MONO.cv.width = Math.round(view.width / 4); MONO.cv.height = Math.round(view.height / 4); MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(6, 12); MONO.mode = 'rorschach'; MONO.pix = false; INK.on = true; drawInk();
+  if (MONO.phase || RIT.phase) return; const o = INK.o; newBlobs(o); o.t = rnd(10); o.mode = pick(['nero', 'nero', 'nero', 'nero', 'nero e rosso', 'nero e rosso', 'colori', 'colori', 'colori']);   // come le dieci tavole: 5 nere, 2 col rosso, 3 a colori
+  o.grain = rnd(.3, 1.1); o.redG = (Math.random() * o.groups) | 0; o.cols = shuffled([[226, 120, 150], [235, 140, 60], [110, 160, 215], [120, 190, 130], [230, 200, 80], [170, 130, 200], [200, 90, 80]]);
+  MONO.cv.width = Math.round(view.width / 5); MONO.cv.height = Math.round(view.height / 5); o.fr = 0; MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(6, 12); MONO.mode = 'rorschach'; MONO.pix = false; INK.on = true; drawInk();
 }
 function drawInk() {
-  const o = INK.o, cv = MONO.cv, w = cv.width, h = cv.height, g = cv.getContext('2d'), im = g.createImageData(w, h), d = im.data; o.t += .004;
-  const F = inkField(o, w, h, o.t), paper = [246, 242, 232];
-  for (let i = 0; i < w * h; i++) { const v = F[i]; let col = paper; const k = clamp((v - o.th) * 1.5, 0, 1);
-    if (k > 0) { if (o.mode === 'nero e rosso') col = (i % w > w * .3 && i % w < w * .7 && Math.floor(i / w) < h * .35) || v > o.th * 3 ? [196, 26, 32] : [18, 16, 18]; else if (o.mode === 'pastello') col = [[230, 120, 150], [120, 170, 220], [240, 190, 90], [130, 200, 150]][Math.floor((Math.floor(i / w) / h) * 4) % 4]; else col = [18, 16, 18];
-      const a = .55 + .45 * k; col = col.map((c2, j) => paper[j] + (c2 - paper[j]) * a); }
+  const o = INK.o; o.t += .004; if ((o.fr = (o.fr || 0) + 1) % 10 !== 1) return;   // si ricalcola ogni 10 fotogrammi: la trasformazione è lenta
+  const cv = MONO.cv, w = cv.width, h = cv.height, g = cv.getContext('2d'), im = g.createImageData(w, h), d = im.data;
+  const F = inkField(o, w, h, o.t), Id = o.Id, paper = [246, 242, 232];
+  const pal = o.mode === 'colori' ? o.cols : null;
+  for (let i = 0; i < w * h; i++) { const v = F[i], x = i % w, y = (i - x) / w; let col = paper;
+    const k = clamp((v - o.th) / (o.th * 1.6), 0, 1);
+    if (v > o.th) {
+      const grain = vnoise(x * .35 + o.s1, y * .35) * .6 + vnoise(x * .9, y * .9 + o.s2) * .4 - .5, dens = clamp(.45 + .55 * Math.pow(k, .6) + grain * o.grain, .15, 1);   // l'inchiostro non è mai uniforme: grigi, velature, grana
+      let ink = [16, 14, 16];
+      if (o.mode === 'nero e rosso') ink = (Id[i] === o.redG || v > o.th * 3.2) ? [190, 24, 30] : ink;
+      else if (pal) ink = pal[Id[i] % pal.length];
+      col = paper.map((p0, j) => p0 + (ink[j] - p0) * dens);
+    }
     d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255; }
   g.putImageData(im, 0, 0);
 }
@@ -2253,7 +2279,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK;
 }
 </script>
 </body>
