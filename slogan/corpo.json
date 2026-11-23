@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-22",
+  "aggiornato": "2026-11-23",
   "parole": {
     "good": [
       "sanità:fs",
@@ -86,7 +86,12 @@
       "candeline:fp",
       "massaggi:mp",
       "nuvole:fp",
-      "cassetti:mp"
+      "cassetti:mp",
+      "ricamo:ms",
+      "dignità:fs",
+      "pigiama:ms",
+      "aquiloni:mp",
+      "orti:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -208,7 +213,12 @@
       "combustibili fossili:mp",
       "mercati:mp",
       "maxiemendamenti:mp",
-      "agenti artificiali:mp"
+      "agenti artificiali:mp",
+      "licenziamenti:mp",
+      "emissioni:fp",
+      "deficit:ms",
+      "turni:mp",
+      "sanzioni:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -252,7 +262,10 @@
       "formatori:mp",
       "ventenni:mp",
       "pensionate:fp",
-      "nonne:fp"
+      "nonne:fp",
+      "sviluppatori:mp",
+      "lavoratrici:fp",
+      "bidelle:fp"
     ],
     "place": [
       "licei:mp",
@@ -289,7 +302,9 @@
       "piste da ballo:fp",
       "stazioni ferroviarie:fp",
       "camini:mp",
-      "outlet:mp"
+      "outlet:mp",
+      "fabbriche:fp",
+      "dormitori:mp"
     ]
   },
   "slogan": [
@@ -1377,6 +1392,77 @@
         "Snooze your television",
         "¡Ni un paso atrás, salvo para bailar!"
       ]
+    },
+    {
+      "d": "2026-11-23",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Ci vogliamo vive, libere e in pigiama",
+        "Rivendichiamo il nostro presente e il nostro pisolino",
+        "Restare a casa non significa non partire: si parte in sogno",
+        "No al riarmo, sì al ricamo",
+        "No al carovita, vogliamo dignità e merende",
+        "Cacciate fuori le merende",
+        "Tax the rich, untax the naps",
+        "Tax the rich party: dress code pigiama",
+        "Licenziati dall'IA, occupiamo le nuvole",
+        "Occupiamo i software, ricreiamo l'ozio gratis",
+        "Sette nuovi modelli AI, zero nuovi pisolini",
+        "Factory shifts without humans, naps without bosses",
+        "Fabbriche senza umani, umani senza sveglia",
+        "Data center cancellations double, daydreams triple",
+        "Data center cancellati: al loro posto, orti di nuvole",
+        "Obiettivo zero emissioni rinviato, obiettivo zero sveglie anticipato",
+        "COP31 ai supplementari, noi già alla merenda",
+        "Talks go deep into overtime, we go deep into sleep",
+        "Difenderemo ogni centimetro di cuscino",
+        "We will defend every inch of the hammock",
+        "Shorter degrees, longer naps",
+        "Lauree più brevi, ricreazioni più lunghe",
+        "Deficit di bilancio, surplus di fantasie",
+        "Passaggi per bambini? Passaggi per aquiloni",
+        "Il vero valore degli obiettivi è non raggiungerli",
+        "Prima di rispondere al Parlamento, chiedete al gatto",
+        "Database hackerato: dentro solo filastrocche",
+        "Cyber Monday 2.0: si scarica solo sonno",
+        "Ondata di mail minatorie? Ondata di filastrocche",
+        "Allarme poesia in 6300 scuole: evacuare la noia",
+        "Questa mail si autodistruggerà in una risata",
+        "Noi tireremo diritto: verso il divano",
+        "Tolleranza zero, tenerezza infinita",
+        "Austerità 3.0: aggiornamento non compatibile con le merende",
+        "Riarmo.exe ha smesso di funzionare",
+        "Patriarcato 1.0: supporto terminato, disinstallare",
+        "Rivendichiamo il presente, il futuro può dormire",
+        "Lentezza per tutti, fretta per nessuno"
+      ]
+    },
+    {
+      "d": "2026-11-23",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "C'est la sieste finale",
+        "Il faut cultiver notre flemme",
+        "La productivité, c'est le vol de l'après-midi",
+        "Never mind the deadlines",
+        "Chi semina sogni raccoglie pisolini",
+        "Il lupo perde il pelo ma non il pisolino",
+        "Ni una menos, ni una siesta menos",
+        "Basta un poco di poesia e il lunedì va giù",
+        "Je pense, donc je sieste",
+        "Divide et dormi",
+        "Panem et siestas",
+        "Don't be efficient",
+        "Bread, roses and long naps",
+        "Natale con i tuoi, sciopero con chi vuoi",
+        "Il tempo è tenerezza",
+        "Chi sbadiglia dissente",
+        "Tanto va la gatta al lardo che ci fa un pisolino",
+        "Non è un paese per sveglie",
+        "Fight the power nap ban",
+        "Vorsprung durch Faulheit",
+        "Lentius, humilius, dulcius"
+      ]
     }
   ],
   "letti": [
@@ -2238,6 +2324,62 @@
         "Le travail, c'est la santé (canzone/proverbio)",
         "Kill your television (slogan)",
         "¡Ni un paso atrás! (coro)"
+      ]
+    },
+    {
+      "d": "2026-11-23",
+      "t": [
+        "Ci vogliamo vive, libere e felici (Non Una di Meno, La Spezia, verso il 25 novembre)",
+        "Non partire non significa restare a casa (Non Una di Meno, La Spezia)",
+        "Rivendichiamo il nostro presente (Non Una di Meno, Cuneo)",
+        "No al riarmo e alla violenza di genere (Il Manifesto)",
+        "No al carovita, vogliamo dignità. Cacciate fuori i soldi (striscione, Torino)",
+        "Tax the rich party (Milano, Arco della Pace)",
+        "Sviluppatori licenziati per l'IA 'occupano' i software, li ricreano gratis (ANSA, 22 novembre)",
+        "Lancia sette nuovi modelli AI (titoli tech, novembre)",
+        "Increase Factory Shifts Without Humans to Cut Costs (titolo USA)",
+        "Data center cancellations in Q3 double (titolo)",
+        "Reconsiders 2030 net-zero goal amid record emissions from AI data centers (titolo)",
+        "COP31 summit risks failure as talks go deep into overtime (titolo)",
+        "Will defend every inch of territory (dichiarazione NATO)",
+        "The Latest Way to Make College More Affordable: Shorter Degrees (titolo)",
+        "To close 6 schools as it grapples with deficit (titolo)",
+        "Uber Kids, servizio di passaggi per bambini (titolo)",
+        "The real value in setting goals is not in their achievement (citazione del giorno)",
+        "Check with White House before responding to Congress (titolo)",
+        "Apparent hack of a key criminal justice database (titolo)",
+        "Cyber Monday, 30 novembre (claim commerciale)",
+        "Cyber-terrorismo e allarmi bomba: l'ondata di mail minatorie (Orizzonte Insegnanti)",
+        "Allarme bomba in 6300 scuole (ItaliaOggi)",
+        "Noi tireremo diritto (motto fascista)",
+        "Tolleranza zero (slogan securitario)"
+      ]
+    },
+    {
+      "d": "2026-11-23",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "C'est la lutte finale (L'Internationale)",
+        "Il faut cultiver notre jardin (Candide)",
+        "La propriété, c'est le vol (motto anarchico)",
+        "Never mind the bollocks (punk)",
+        "Chi semina vento raccoglie tempesta (proverbio)",
+        "Il lupo perde il pelo ma non il vizio (proverbio)",
+        "Ni una menos (movimento femminista)",
+        "Basta un poco di zucchero e la pillola va giù (canzone)",
+        "Je pense, donc je suis (Cartesio)",
+        "Divide et impera (motto)",
+        "Panem et circenses (motto latino)",
+        "Don't be evil (motto aziendale)",
+        "Bread and roses (slogan operaio, 1912)",
+        "Natale con i tuoi, Pasqua con chi vuoi (proverbio)",
+        "Il tempo è denaro (proverbio)",
+        "Chi tace acconsente (proverbio)",
+        "Tanto va la gatta al lardo che ci lascia lo zampino (proverbio)",
+        "Non è un paese per vecchi (titolo)",
+        "Fight the power (canzone)",
+        "Vorsprung durch Technik (claim pubblicitario)",
+        "Citius, altius, fortius (motto olimpico)"
       ]
     }
   ]
