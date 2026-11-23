@@ -42,7 +42,7 @@ const PALETTES = [
   { name: 'acido', c: ['#FF00D4', '#00FF6A', '#FFF000', '#1400FF', '#000000'] },
   { name: 'incandescente', c: ['#FF0038', '#FF8A00', '#FFE600', '#3A00C8', '#000000'] },
   { name: 'notturno', c: ['#FF2A00', '#FFD000', '#0038FF', '#000000', '#7A00FF'] },
-  { name: 'negativo', c: ['#1CF9EC', '#0029FF', '#FFB854', '#EEEEEE', '#000000'] },
+  { name: 'negativo', c: ['#1CF9EC', '#0029FF', '#FFB854', '#FFFFFF', '#000000'] },
   { name: 'tropicale', c: ['#FF3D00', '#00C8B4', '#FFE000', '#E6007E', '#101010'] },
 ].map(p => ({ name: p.name, c: p.c.map(hex) }));
 const NC = 5;
@@ -406,9 +406,22 @@ function newPalette() {
   let p; do { p = pick(PALETTES); } while (p === S.palTo);
   S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = rnd(3, 8);
 }
+// passaggio fra due colori lungo il cerchio delle tinte: la saturazione non cala mai, niente grigi a metà strada.
+// Nero e bianco cambiano solo di luce, prendendo la tinta dell'altro colore.
+function mixCol(A, B, f) {
+  if (f <= 0) return A; if (f >= 1) return B;
+  const a = rgb2hsl(...A), b = rgb2hsl(...B);
+  const ga = a[1] < .08 || a[2] < .06 || a[2] > .94, gb = b[1] < .08 || b[2] < .06 || b[2] > .94;
+  let h, sat;
+  if (ga && gb) return f < .5 ? A : B;   // bianco ↔ nero: taglio netto, mai grigio
+  else if (ga) { h = b[0]; sat = b[1]; }
+  else if (gb) { h = a[0]; sat = a[1]; }
+  else { let d = b[0] - a[0]; if (d > .5) d -= 1; if (d < -.5) d += 1; h = a[0] + d * f; sat = Math.max(a[1], b[1]); }
+  const out = [0, 0, 0]; hsl2rgb(h, sat, a[2] + (b[2] - a[2]) * f, out, 0); return out;
+}
 function currentPalette() {
   const e = ease(clamp(S.palT, 0, 1));
-  return { name: S.palTo.name, c: S.palTo.c.map((c, i) => c.map((v, k) => S.palFrom.c[i][k] + (v - S.palFrom.c[i][k]) * e)) };
+  return { name: S.palTo.name, c: S.palTo.c.map((c, i) => mixCol(S.palFrom.c[i], c, e)) };
 }
 function newBands() { S.bandM = Math.random() < .4 ? 3 : 2; for (let i = 0; i < NC; i++) S.bands[i] = Math.random() < .4 ? 1 : 0; S.bandW = rnd(4, 16); S.bandV = rnd(.2, 1.4) * (Math.random() < .5 ? -1 : 1); }
 
@@ -622,7 +635,7 @@ function frame(t, dt) {
   // colori correnti: palette in migrazione + rotazione di tinta + iridescenza spaziale
   // giostra: ogni "posto" di colore scivola verso il successivo (i vicini restano sempre diversi)
   const base = currentPalette().c, ci = Math.floor(S.cyc), cf = ease(S.cyc - ci);
-  const pal = []; for (let c = 0; c < NC; c++) { const A = base[(((c + ci) % NC) + NC) % NC], B = base[(((c + ci + 1) % NC) + NC) % NC]; pal.push(rgb2hsl(A[0] + (B[0] - A[0]) * cf, A[1] + (B[1] - A[1]) * cf, A[2] + (B[2] - A[2]) * cf)); }
+  const pal = []; for (let c = 0; c < NC; c++) { const A = base[(((c + ci) % NC) + NC) % NC], B = base[(((c + ci + 1) % NC) + NC) % NC]; pal.push(rgb2hsl(...mixCol(A, B, cf))); }
   const RL = regions.length, R1 = new Uint8ClampedArray(RL * 3), R2 = new Uint8ClampedArray(RL * 3), R3 = new Uint8ClampedArray(RL * 3), BD = new Uint8Array(RL);
   const sw = Math.sin(t * .00013) * S.spatial, hue = S.hue / 6.2832;
   for (let i = 0; i < RL; i++) {
