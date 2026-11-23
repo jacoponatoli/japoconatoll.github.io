@@ -579,6 +579,52 @@ P.mandala = {
   }
 };
 
+/* ---------- SOLIDI: a volte tutto si condensa in forme geometriche semplici, ferme ---------- */
+function prism(n, h, r = 1, top = 1) { // prisma, piramide, cilindro, cono a n lati (i lati del cilindro restano uniti)
+  const V = [], F = [], rot = n === 4 ? Math.PI / 4 : 0;
+  for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + rot; V.push([r * Math.cos(a), -h / 2, r * Math.sin(a)]); }
+  if (top > 0) for (let i = 0; i < n; i++) { const a = i / n * 6.2832 + rot; V.push([r * top * Math.cos(a), h / 2, r * top * Math.sin(a)]); } else V.push([0, h / 2, 0]);
+  F.push({ v: [...Array(n).keys()].reverse(), g: 'base' });
+  if (top > 0) { F.push({ v: [...Array(n).keys()].map(i => i + n), g: 'cima' }); for (let i = 0; i < n; i++) F.push({ v: [i, (i + 1) % n, n + (i + 1) % n, n + i], g: n > 12 ? 'lato' : 'l' + i }); }
+  else for (let i = 0; i < n; i++) F.push({ v: [i, (i + 1) % n, n], g: n > 12 ? 'lato' : 'l' + i });
+  return { V, F };
+}
+const SOLIDI = {
+  parallelepipedo: () => { const s = prism(4, rnd(1.2, 2.4), 1), kx = rnd(.9, 1.5); s.V.forEach(v => { v[0] *= kx; }); return s; },
+  cubo: () => prism(4, 1.414, 1),
+  piramide: () => prism(4, 1.6, 1.1, 0),
+  prisma: () => prism(3, 1.8, 1.1),
+  cilindro: () => prism(48, 1.8, .9),
+  cono: () => prism(48, 1.8, 1, 0),
+  ottaedro: () => ({ V: [[1, 0, 0], [-1, 0, 0], [0, 1.3, 0], [0, -1.3, 0], [0, 0, 1], [0, 0, -1]], F: [[0, 2, 4], [4, 2, 1], [1, 2, 5], [5, 2, 0], [4, 3, 0], [1, 3, 4], [5, 3, 1], [0, 3, 5]].map((v, i) => ({ v, g: 'f' + i })) }),
+  sfera: () => null,
+};
+P.solidi = {
+  get name() { return 'solidi: ' + this.list.map(s => s.k).join(', '); },
+  init() {
+    const n = Math.random() < .6 ? 1 : 2 + ((Math.random() * 2) | 0), m = Math.min(W, H); this.list = [];
+    for (let i = 0; i < n; i++) { const k = pick(Object.keys(SOLIDI));
+      this.list.push({ k, g: SOLIDI[k](), x: n === 1 ? W / 2 : W * (i + .5) / n, y: H / 2 + (n === 1 ? 0 : gauss() * H * .05), s: m * (n === 1 ? rnd(.22, .32) : rnd(.12, .2)) * (k === 'sfera' ? 1.3 : 1), ax: rnd(-.6, -.25), ay: rnd(6.28), vy: rnd(-.006, .006) }); }
+    this.cx = W / 2; this.cy = H / 2;
+  },
+  step() { for (const o of this.list) o.ay += o.vy; },
+  render(c) {
+    c.beginPath();
+    for (const o of this.list) {
+      if (o.k === 'sfera') { const r = o.s; c.moveTo(o.x + r, o.y); c.arc(o.x, o.y, r, 0, 6.2832); c.moveTo(o.x - r * .25 + r * .55, o.y - r * .3); c.ellipse(o.x - r * .25, o.y - r * .3, r * .55, r * .5, -.5, 0, 6.2832); continue; }
+      const { V, F } = o.g, ca = Math.cos(o.ay), sa = Math.sin(o.ay), cb = Math.cos(o.ax), sb = Math.sin(o.ax);
+      const T = V.map(([x, y, z]) => { const x1 = x * ca - z * sa, z1 = x * sa + z * ca; return [x1, y * cb - z1 * sb, y * sb + z1 * cb]; });
+      const P2 = i => [o.x + T[i][0] * o.s, o.y - T[i][1] * o.s];
+      const vis = F.map(f => { const [a, b, d] = f.v.slice(0, 3).map(P2); return ((b[0] - a[0]) * (d[1] - a[1]) - (b[1] - a[1]) * (d[0] - a[0])) > 0; });
+      const E = new Map(); F.forEach((f, fi) => f.v.forEach((v, j) => { const w = f.v[(j + 1) % f.v.length], key = v < w ? v + ',' + w : w + ',' + v; if (!E.has(key)) E.set(key, []); E.get(key).push(fi); }));
+      for (const [key, fs] of E) { if (fs.length < 2) continue; const [a, b] = fs;
+        const draw = (vis[a] !== vis[b]) || (vis[a] && vis[b] && F[a].g !== F[b].g); if (!draw) continue;
+        const [i, j] = key.split(',').map(Number); c.moveTo(...P2(i)); c.lineTo(...P2(j)); }
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- ILLUSIONI: figure ambigue e impossibili (appaiono ferme, come apparizioni) ---------- */
 // intersezione fra due rette (punto + direzione)
 const isect = (p, d, q, e) => { const den = d[0] * e[1] - d[1] * e[0]; const t = ((q[0] - p[0]) * e[1] - (q[1] - p[1]) * e[0]) / den; return [p[0] + d[0] * t, p[1] + d[1] * t]; };
@@ -651,6 +697,39 @@ P.illusioni = {
 
 /* ---------- LETTERE: segni senza senso, di grandezze diverse, che si incastrano ---------- */
 const LET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆŒÇÑØ&§¶?!#%*@abcdefghijklmnopqrstuvwxyzßæœçñøþ';
+// alfabeti e scritture del mondo: i segni compaiono a caso, senza formare frasi
+const rangeChars = (a, b) => () => String.fromCharCode(a + ((Math.random() * (b - a)) | 0));
+const SCRIPTS = {
+  latino: null,
+  greco: 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω',
+  cirillico: 'АБВГҐДЕЄЁЖЗИІЇЙКЛМНОПРСТУЎФХЦЧШЩЪЫЬЭЮЯабвгґдеєжзиіїйклмнопрстуфхцчшщьюяЉЊЋЏ',
+  arabo: 'ابتثجحخدذرزسشصضطظعغفقكلمنهويءةپچژگ',
+  ebraico: 'אבגדהוזחטיכלמנסעפצקרשתךםןףץ',
+  devanagari: 'अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह',
+  bengali: 'অআইঈউঊএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ',
+  tamil: 'அஆஇஈஉஊஎஏஐஒஓஔகஙசஞடணதநபமயரலவழளறன',
+  gurmukhi: 'ਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵੜ',
+  tibetano: 'ཀཁགངཅཆཇཉཏཐདནཔཕབམཙཚཛཝཞཟའཡརལཤསཧཨ',
+  thai: 'กขคฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮ',
+  armeno: 'ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖ',
+  georgiano: 'აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ',
+  etiope: 'ሀለሐመሠረሰሸቀበተቸኀነኘአከኸወዐዘዠየደጀገጠጨጰጸፀፈፐ',
+  runico: 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
+  cinese: rangeChars(0x4E00, 0x9FA5),
+  hiragana: rangeChars(0x3041, 0x3096),
+  katakana: rangeChars(0x30A1, 0x30FA),
+  coreano: rangeChars(0xAC00, 0xD7A3),
+  cherokee: rangeChars(0x13A0, 0x13F4),
+  geroglifici: () => String.fromCodePoint(0x13000 + ((Math.random() * 1070) | 0)),
+};
+const SCRIPT_NAMES = Object.keys(SCRIPTS);
+const charOf = sc => { const S = SCRIPTS[sc]; if (!S) return LET[(Math.random() * LET.length) | 0]; if (typeof S === 'function') return S(); const a = [...S]; return a[(Math.random() * a.length) | 0]; };
+const anyScript = () => Math.random() < .25 ? 'latino' : pick(SCRIPT_NAMES);
+function segni(sc) { // sequenza di segni di una scrittura (per il latino: mai parole)
+  if (sc === 'latino') return nonsense();
+  const n = /cinese|hiragana|katakana|coreano|geroglifici/.test(sc) ? 1 + ((Math.random() * 4) | 0) : 1 + ((Math.random() * 6) | 0);
+  let w = ''; for (let i = 0; i < n; i++) w += charOf(sc); return w;
+}
 const FONTS = ['serif', 'sans-serif', 'monospace', 'Georgia, serif', 'Impact, sans-serif', '"Courier New", monospace', '"Times New Roman", serif', '"Arial Black", sans-serif', 'Didot, "Bodoni 72", serif', 'cursive', 'fantasy'];
 const WEIGHTS = ['400', '700', '900', 'italic 400', 'italic 700'];
 function nonsense() { // mai una parola: al massimo una vocale, e niente sillabe brevi che potrebbero significare qualcosa
@@ -661,17 +740,19 @@ P.lettere = {
   get name() { return 'lettere: ' + this.mode; },
   init() {
     this.mode = pick(['giganti', 'pioggia', 'righe', 'eco']); this.el = []; const m = Math.min(W, H);
-    const L = (txt, size, extra) => this.el.push(Object.assign({ txt, size, font: pick(FONTS), wt: pick(WEIGHTS), x: rnd(W), y: rnd(H), rot: Math.random() < .5 ? 0 : rnd(-.6, .6), vx: gauss() * .3, vy: gauss() * .3, vr: gauss() * .0015, vs: 0 }, extra || {}));
-    if (this.mode === 'giganti') for (let i = 1 + ((Math.random() * 3) | 0); i > 0; i--) L(LET[(Math.random() * LET.length) | 0], m * rnd(.7, 1.6), { vs: gauss() * .002 });
-    else if (this.mode === 'pioggia') for (let i = 15 + poisson(20); i > 0; i--) L(nonsense(), m * Math.pow(Math.random(), 2.2) * .5 + m * .03, { vy: rnd(.3, 1.5), vx: gauss() * .2 });
-    else if (this.mode === 'righe') { let y = 0; while (y < H) { const sz = m * rnd(.05, .3); let row = ''; for (let i = 0; i < 6; i++) row += nonsense() + ' '; L(row, sz, { x: rnd(W), y: y + sz / 2, rot: 0, vx: gauss() * 1.2, vy: 0, vr: 0 }); y += sz * rnd(.6, 1); } }
-    else { const ch = LET[(Math.random() * LET.length) | 0]; for (let i = 0; i < 6; i++) L(ch, m * (.15 + i * .14), { font: pick(FONTS), x: W / 2 + gauss() * 10, y: H / 2 + gauss() * 10, vx: 0, vy: 0, rot: i * .1, vr: (i % 2 ? 1 : -1) * .002 }); }
+    const L = (txt, size, extra) => this.el.push(Object.assign({ txt, size, font: /^[A-Za-zÀ-ÿ&§¶?!#%*@ ]+$/.test(txt) ? pick(FONTS) : pick(['sans-serif', 'serif', 'sans-serif']), wt: pick(WEIGHTS), x: rnd(W), y: rnd(H), rot: Math.random() < .5 ? 0 : rnd(-.6, .6), vx: gauss() * .3, vy: gauss() * .3, vr: gauss() * .0015, vs: 0 }, extra || {}));
+    const mix = Math.random() < .5;   // una sola scrittura per volta, oppure tutte mescolate
+    const sc0 = anyScript(), SC = () => mix ? anyScript() : sc0;
+    if (this.mode === 'giganti') for (let i = 1 + ((Math.random() * 3) | 0); i > 0; i--) L(charOf(SC()), m * rnd(.7, 1.6), { vs: gauss() * .002 });
+    else if (this.mode === 'pioggia') for (let i = 15 + poisson(20); i > 0; i--) { const sc = SC(); L(segni(sc), m * Math.pow(Math.random(), 2.2) * .5 + m * .03, { vy: rnd(.3, 1.5), vx: gauss() * .2, sc }); }
+    else if (this.mode === 'righe') { let y = 0; while (y < H) { const sz = m * rnd(.05, .3), sc = SC(); let row = ''; for (let i = 0; i < 6; i++) row += segni(sc) + ' '; L(row, sz, { x: rnd(W), y: y + sz / 2, rot: 0, vx: gauss() * 1.2, vy: 0, vr: 0 }); y += sz * rnd(.6, 1); } }
+    else { const ch = charOf(SC()); for (let i = 0; i < 6; i++) L(ch, m * (.15 + i * .14), { font: pick(FONTS), x: W / 2 + gauss() * 10, y: H / 2 + gauss() * 10, vx: 0, vy: 0, rot: i * .1, vr: (i % 2 ? 1 : -1) * .002 }); }
   },
   step() {
     for (const e of this.el) { e.x += e.vx; e.y += e.vy; e.rot += e.vr; e.size *= 1 + e.vs;
       if (this.mode === 'righe') { if (e.x < -W) e.x += 2 * W; if (e.x > 2 * W) e.x -= 2 * W; }
-      else { const r = e.size; if (e.y > H + r) { e.y = -r; e.x = rnd(W); if (this.mode === 'pioggia') e.txt = nonsense(); } if (e.y < -r * 1.5) e.y = H + r; if (e.x < -r * 2) e.x = W + r; if (e.x > W + r * 2) e.x = -r; }
-      if (Math.random() < .002 && this.mode !== 'eco') e.txt = e.txt.length === 1 ? LET[(Math.random() * LET.length) | 0] : nonsense(); }
+      else { const r = e.size; if (e.y > H + r) { e.y = -r; e.x = rnd(W); if (this.mode === 'pioggia') e.txt = segni(e.sc || anyScript()); } if (e.y < -r * 1.5) e.y = H + r; if (e.x < -r * 2) e.x = W + r; if (e.x > W + r * 2) e.x = -r; }
+      if (Math.random() < .002 && this.mode === 'pioggia') e.txt = segni(e.sc || anyScript()); }
   },
   render(c) {
     c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -1093,13 +1174,48 @@ function serie() {
 function enter(proc) {
   if (SERIE.on && performance.now() > SERIE.until) SERIE.on = false;
   if (!proc && SERIE.on) { proc = pick(SERIE.fam); const a = active.find(x => x.proc === proc); if (a) { a.target = 0; } }
-  proc = proc || pick(ALL.filter(q => !q.persist && q !== P.illusioni && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
+  proc = proc || pick(ALL.filter(q => !q.persist && q !== P.illusioni && q !== P.solidi && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
   if (!proc) proc = pick(ALL.filter(q => !q.persist && !active.some(a => a.proc === q)));
   if (!proc) return;
   proc.init(); for (let i = 0; i < 30; i++) proc.step();
   recent.push(proc); if (recent.length > 4) recent.shift();
   active.push({ proc, p: 0, target: 1, rate: rnd(.15, .5), shape: pick(['cerchio', 'cerchio', 'onda', 'tutto']), cx: rnd(W), cy: rnd(H), ang: rnd(6.28), bubble: Math.random() < .5 });
 }
+// GLITCH: l'errore della rete. Fette che slittano, canali di colore sfasati, blocchi ripetuti, fotogrammi che si inceppano
+const GL = { until: 0, k: 1 };
+function glitch(dur) { GL.until = performance.now() + (dur || rnd(.2, 2.6)) * 1000; GL.k = rnd(.4, 1); }
+function glitchPost(out) {
+  const o32 = new Uint32Array(out.buffer), k = GL.k;
+  for (let n = 1 + poisson(5 * k); n > 0; n--) { // fette orizzontali che slittano
+    const y0 = (Math.random() * H) | 0, h = 1 + ((Math.random() * H * .12) | 0), dx = ((Math.random() - .5) * W * .5 * k) | 0;
+    for (let y = y0; y < Math.min(H, y0 + h); y++) { const row = o32.slice(y * W, y * W + W); for (let x = 0; x < W; x++) o32[y * W + x] = row[((x - dx) % W + W) % W]; } }
+  if (Math.random() < .7) { // canali sfasati (rosso o blu) su una banda
+    const y0 = (Math.random() * H) | 0, h = (H * rnd(.1, .6)) | 0, dx = ((Math.random() * 30 + 4) * k) | 0, ch = Math.random() < .5 ? 0 : 2;
+    for (let y = y0; y < Math.min(H, y0 + h); y++) for (let x = W - 1; x >= dx; x--) out[(y * W + x) * 4 + ch] = out[(y * W + x - dx) * 4 + ch]; }
+  for (let n = poisson(3 * k); n > 0; n--) { // blocchi copiati altrove
+    const bw = (W * rnd(.03, .2)) | 0, bh = (H * rnd(.02, .12)) | 0, sx = (Math.random() * (W - bw)) | 0, sy = (Math.random() * (H - bh)) | 0, tx = (Math.random() * (W - bw)) | 0, ty = (Math.random() * (H - bh)) | 0;
+    for (let y = 0; y < bh; y++) o32.copyWithin((ty + y) * W + tx, (sy + y) * W + sx, (sy + y) * W + sx + bw); }
+  if (Math.random() < .25) { const y0 = (Math.random() * H) | 0, h = (H * rnd(.01, .08)) | 0; // banda in negativo
+    for (let i = y0 * W * 4; i < Math.min(H, y0 + h) * W * 4; i += 4) { out[i] = 255 - out[i]; out[i + 1] = 255 - out[i + 1]; out[i + 2] = 255 - out[i + 2]; } }
+  if (Math.random() < .2) { const y0 = (Math.random() * H) | 0; for (let y = y0; y < H; y += 2 + ((Math.random() * 3) | 0)) { const r = y * W, c0 = o32[r + ((Math.random() * W) | 0)]; o32.fill(c0, r + ((Math.random() * W) | 0), r + W); } } // righe trascinate
+}
+
+// FLICKER: lampeggio bianco/nero, da 1 Hz fino a metà della frequenza dello schermo (30 Hz su uno schermo da 60 Hz)
+const FL = { on: false, until: 0, f0: 1, f1: 1, t0: 0, ok: !/noflicker/.test(location.search), hz: 60 };
+const flDiv = document.createElement('div'); flDiv.style.cssText = 'position:fixed;inset:0;pointer-events:none;display:none;z-index:5'; document.body.appendChild(flDiv);
+{ let n = 0, t0 = 0; const meas = t => { if (!t0) t0 = t; if (++n < 60) requestAnimationFrame(meas); else FL.hz = Math.round(59000 / (t - t0)); }; requestAnimationFrame(meas); }
+function flicker() {
+  if (!FL.ok || FL.on) return; const max = Math.min(50, Math.floor(FL.hz / 2));
+  FL.f0 = rnd(1, max); FL.f1 = Math.random() < .4 ? rnd(1, max) : FL.f0; FL.t0 = performance.now(); FL.until = FL.t0 + rnd(5, 10) * 1000; FL.on = true; flDiv.style.display = 'block';
+}
+(function flLoop(t) {
+  requestAnimationFrame(flLoop);
+  if (!FL.on) return;
+  if (t > FL.until || !FL.ok) { FL.on = false; flDiv.style.display = 'none'; return; }
+  const dt = (t - FL.t0) / 1000, D = (FL.until - FL.t0) / 1000, ph = FL.f0 * dt + (FL.f1 - FL.f0) * dt * dt / (2 * D);   // la frequenza può scivolare da f0 a f1
+  flDiv.style.background = (Math.floor(ph * 2) & 1) ? '#fff' : '#000';
+})(0);
+
 // MONOCROMO: il flusso si ferma su una pagina di un solo colore, pixelata, dal chiaro allo scuro;
 // oppure il fotogramma del momento si ferma e diventa di un colore solo
 const MONO = { phase: '', a: 0, t: 0, hold: 0, cv: document.createElement('canvas') };
@@ -1123,9 +1239,47 @@ function monocromo() {
     hsl2rgb(h, sat, l1 + (l2 - l1) * f, out, 0); d[i * 4] = out[0]; d[i * 4 + 1] = out[1]; d[i * 4 + 2] = out[2]; d[i * 4 + 3] = 255;
   }
   mx.putImageData(im, 0, 0);
-  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(5, 12); MONO.mode = mode;
+  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(5, 12); MONO.mode = mode; MONO.pix = true;
 }
-function drawMono(alpha) { vctx.save(); vctx.globalAlpha = alpha; vctx.imageSmoothingEnabled = false; vctx.drawImage(MONO.cv, 0, 0, view.width, view.height); vctx.restore(); }
+// QUADRI CLASSICI: immagini ferme con colori veri — omaggio al quadrato (Albers), ruota dei colori,
+// sfumature, scacchiere, strisce, puntini, cerchi e quadrati concentrici
+const hsl = (h, s, l) => { const o = [0, 0, 0]; hsl2rgb(h, s, l, o, 0); return `rgb(${o.map(Math.round).join(',')})`; };
+function quadro(kind) {
+  if (MONO.phase || RIT.phase) return;
+  kind = kind || pick(['albers', 'albers', 'ruota', 'gradiente', 'gradiente', 'scacchiera', 'strisce', 'puntini', 'cerchi', 'quadrati']);
+  const cv = MONO.cv; cv.width = Math.round(view.width / 2); cv.height = Math.round(view.height / 2); const g = cv.getContext('2d'), w = cv.width, h = cv.height, m = Math.min(w, h);
+  const H0 = Math.random(), sat = rnd(.45, 1);
+  switch (kind) {
+    case 'albers': { // tre o quattro quadrati annidati, scesi verso il basso; colori vicini oppure complementari
+      const n = 3 + ((Math.random() * 2) | 0), comp = Math.random() < .35, side = m * .86, x0 = (w - side) / 2, y0 = (h - side) / 2;
+      g.fillStyle = hsl(H0, sat * .6, rnd(.15, .85)); g.fillRect(0, 0, w, h);
+      for (let i = 0; i < n; i++) { const f = 1 - i / n, sd = side * f, hh = comp && i % 2 ? H0 + .5 : H0 + i * rnd(-.04, .04);
+        g.fillStyle = hsl(hh, sat * rnd(.6, 1), clamp(rnd(.2, .8), .1, .9)); g.fillRect(x0 + (side - sd) / 2, y0 + (side - sd) * .75, sd, sd); }
+      break; }
+    case 'ruota': { // ruota dei colori: 12 spicchi, anelli dal chiaro allo scuro
+      g.fillStyle = Math.random() < .5 ? '#fff' : '#111'; g.fillRect(0, 0, w, h);
+      const R = m * .44, rings = 3 + ((Math.random() * 3) | 0), N = pick([12, 12, 24, 6]);
+      for (let r = rings; r >= 1; r--) for (let k = 0; k < N; k++) { const a0 = k / N * 6.2832 - 1.5708, a1 = (k + 1) / N * 6.2832 - 1.5708;
+        g.beginPath(); g.moveTo(w / 2, h / 2); g.arc(w / 2, h / 2, R * r / rings, a0, a1); g.closePath(); g.fillStyle = hsl(k / N, 1, .2 + .6 * (r - .5) / rings); g.fill(); }
+      break; }
+    case 'gradiente': { const t = pick(['spettro', 'due', 'conico']); let gr;
+      if (t === 'conico' && g.createConicGradient) { gr = g.createConicGradient(rnd(6.28), w / 2, h / 2); for (let i = 0; i <= 12; i++) gr.addColorStop(i / 12, hsl(i / 12, 1, .5)); }
+      else { const a = rnd(6.28), L = Math.hypot(w, h) / 2; gr = g.createLinearGradient(w / 2 - Math.cos(a) * L, h / 2 - Math.sin(a) * L, w / 2 + Math.cos(a) * L, h / 2 + Math.sin(a) * L);
+        if (t === 'spettro') for (let i = 0; i <= 12; i++) gr.addColorStop(i / 12, hsl(H0 + i / 12, sat, .5)); else { gr.addColorStop(0, hsl(H0, sat, rnd(.2, .8))); gr.addColorStop(1, hsl(H0 + rnd(.2, .6), sat, rnd(.2, .8))); } }
+      g.fillStyle = gr; g.fillRect(0, 0, w, h); break; }
+    case 'scacchiera': { const n = pick([2, 4, 6, 8, 12, 16, 24]), cs = Math.max(w, h) / n, bw = Math.random() < .5, A = bw ? '#000' : hsl(H0, sat, .45), B = bw ? '#fff' : hsl(H0 + .5, sat, .6);
+      for (let j = 0; j * cs < h; j++) for (let i = 0; i * cs < w; i++) { g.fillStyle = (i + j) & 1 ? A : B; g.fillRect(i * cs, j * cs, cs + 1, cs + 1); } break; }
+    case 'strisce': { const n = 4 + ((Math.random() * 40) | 0), vert = Math.random() < .6, k = 2 + ((Math.random() * 3) | 0), cols = Array.from({ length: k }, (_, i) => i === 0 && Math.random() < .5 ? '#fff' : hsl(H0 + i * rnd(.1, .5), sat, rnd(.25, .7)));
+      const L = vert ? w : h, st = L / n; for (let i = 0; i < n; i++) { g.fillStyle = cols[i % k]; vert ? g.fillRect(i * st, 0, st + 1, h) : g.fillRect(0, i * st, w, st + 1); } break; }
+    case 'puntini': { g.fillStyle = Math.random() < .6 ? '#fff' : hsl(H0, sat * .4, .9); g.fillRect(0, 0, w, h); const n = 5 + ((Math.random() * 10) | 0), st = w / n;
+      for (let j = 0; j * st < h + st; j++) for (let i = 0; i < n; i++) { g.fillStyle = hsl(Math.random(), rnd(.5, 1), rnd(.35, .65)); g.beginPath(); g.arc((i + .5) * st, (j + .5) * st, st * .28, 0, 6.2832); g.fill(); } break; }
+    case 'cerchi': case 'quadrati': { const n = 4 + ((Math.random() * 14) | 0), k = 2 + ((Math.random() * 3) | 0), cols = Array.from({ length: k }, (_, i) => hsl(H0 + i * rnd(.08, .5), sat, rnd(.2, .8))), R = Math.hypot(w, h) / 2;
+      for (let i = n; i >= 1; i--) { const r = R * i / n; g.fillStyle = cols[i % k]; if (kind === 'cerchi') { g.beginPath(); g.arc(w / 2, h / 2, r, 0, 6.2832); g.fill(); } else g.fillRect(w / 2 - r, h / 2 - r, 2 * r, 2 * r); } break; }
+  }
+  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(5, 10); MONO.mode = kind; MONO.pix = kind === 'scacchiera' || kind === 'strisce';
+}
+
+function drawMono(alpha) { vctx.save(); vctx.globalAlpha = alpha; vctx.imageSmoothingEnabled = !MONO.pix; vctx.drawImage(MONO.cv, 0, 0, view.width, view.height); vctx.restore(); }
 
 // APPARIZIONE: il resto si dissolve, il mandala resta solo e il tempo si ferma per qualche secondo
 const RIT = { phase: '', t: 0, hold: 0 };
@@ -1140,7 +1294,8 @@ function apparizione(proc = P.mandala) {
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
   RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? rnd(1.5, 4) : rnd(4, 8);
-  RIT.colorsStill = proc === P.mandala ? Math.random() < .5 : Math.random() < .7;   // a volte si ferma anche il colore, a volte il colore continua a scorrere
+  RIT.colorsStill = proc === P.mandala ? Math.random() < .5 : Math.random() < .7;
+  if (proc === P.solidi) { RIT.colorsStill = Math.random() < .85; S.sym = 'nessuna'; for (const x of active) if (x !== a) x.rate = rnd(.5, .9); }   // a volte si ferma anche il colore, a volte il colore continua a scorrere
 }
 function rituale(dt) {
   if (!RIT.phase) return false;
@@ -1148,7 +1303,7 @@ function rituale(dt) {
   const m = active.find(x => x.proc === RIT.proc);
   if (!m) { RIT.phase = ''; return false; }
   if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > 7)) { RIT.phase = 'sosta'; RIT.t = 0; }
-  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = rnd(.05, .12); if (RIT.proc === P.illusioni) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
+  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = rnd(.05, .12); if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
   return RIT.phase === 'sosta';
 }
 
@@ -1227,12 +1382,16 @@ const EVENTS = [
   { rate: () => .022, fn: () => apparizione(P.mandala) },
   { rate: () => .016, fn: () => apparizione(P.illusioni) },        // illusioni ottiche, ferme
   { rate: () => .018, fn: monocromo },
-  { rate: () => .012, fn: () => apparizione(P.islamica) },        // motivi islamici, fermi
-  { rate: () => .012, fn: () => apparizione(P.lettere) },          // lettere ferme
+  { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
+  { rate: () => .012, fn: () => apparizione(P.islamica) },
+  { rate: () => .014, fn: () => apparizione(P.solidi) },          // tutto si condensa in solidi semplici, fermi
+  { rate: () => .03, fn: () => glitch() },                        // errore: l'immagine si rompe
+  { rate: () => .008, fn: () => flicker() },                      // lampeggio bianco e nero        // motivi islamici, fermi
+  { rate: () => .018, fn: () => apparizione(P.lettere) },          // lettere ferme
   { rate: () => .014, fn: () => apparizione(Math.random() < .5 ? P.boetti : P.fiori) },   // Boetti e fiori, fermi
   { rate: () => active.some(a => a.proc === P.fiori) ? 0 : .015, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.fiori); } },
   { rate: () => SERIE.on ? 0 : .012, fn: serie },                             // pagina di un solo colore
-  { rate: () => active.some(a => a.proc === P.lettere) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.lettere); } },
+  { rate: () => active.some(a => a.proc === P.lettere) ? 0 : .035, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.lettere); } },
   { rate: () => active.some(a => a.proc === P.bestiario) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.bestiario); } },
   { rate: () => active.some(a => a.proc === P.omaggi) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.omaggi); } },                          // apparizione di un mandala, con sosta
 ];
@@ -1441,6 +1600,8 @@ function frame(t, dt) {
   }
 
   const out = img.data, bw3 = S.bandW * 3, off = S.bandOff * 3;
+  const glitching = performance.now() < GL.until;
+  if (glitching && Math.random() < .18) return;   // fotogramma inceppato
   for (let p = 0; p < N; p++) {
     const l = label[p]; prevColor[p] = regions[l].color;
     let C = R1;
@@ -1450,8 +1611,9 @@ function frame(t, dt) {
     else { out[o] = C[q]; out[o + 1] = C[q + 1]; out[o + 2] = C[q + 2]; }
     out[o + 3] = 255;
   }
+  if (glitching) glitchPost(out);
   wctx.putImageData(img, 0, 0);
-  vctx.imageSmoothingEnabled = true; vctx.imageSmoothingQuality = 'high';
+  vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(work, 0, 0, view.width, view.height);
   if (MONO.a > 0) drawMono(MONO.a);
 }
@@ -1496,7 +1658,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1517,6 +1679,11 @@ addEventListener('keydown', e => {
   else if (k === 'x') { if (active.length >= 3) leave(); enter(P.lettere); }
   else if (k === 'b') apparizione(P.boetti);
   else if (k === 'j') apparizione(P.islamica);
+  else if (k === 'q') apparizione(P.solidi);
+  else if (k === 'y') quadro();
+  else if (k === 'r') glitch();
+  else if (k === 'z') flicker();
+  else if (k === '0') { FL.ok = !FL.ok; note(FL.ok ? 'lampeggio attivo' : 'lampeggio disattivato'); }
   else if (k === 'g') apparizione(P.fiori);
   else if (k === 's') serie();
   else if (k === 'v') toggleCam();
@@ -1532,6 +1699,7 @@ let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(res
 
 resize();
 S.palTo = S.palFrom = pick(PALETTES); newBands();
+if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
 window.__S = S; window.__active = active; window.__enter = enter; window.__P = P;
