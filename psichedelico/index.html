@@ -679,6 +679,87 @@ P.lettere = {
   }
 };
 
+/* ---------- ALLA MANIERA DI BOETTI: "tutto" (sagome fitte fino a riempire il quadro) e griglie di lettere ---------- */
+const ICONE = {
+  stella(c, s) { for (let i = 0; i <= 10; i++) { const a = -1.5708 + i * .62832, r = i % 2 ? s * .4 : s; i ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(r * Math.cos(a), r * Math.sin(a)); } },
+  cuore(c, s) { c.moveTo(0, s * .9); c.bezierCurveTo(-s * 1.2, 0, -s * .6, -s, 0, -s * .35); c.bezierCurveTo(s * .6, -s, s * 1.2, 0, 0, s * .9); },
+  luna(c, s) { c.moveTo(s, 0); c.arc(0, 0, s, 0, 6.2832); c.moveTo(s * 1.3, -s * .1); c.arc(s * .4, -s * .1, s * .9, 0, 6.2832); },
+  goccia(c, s) { c.moveTo(0, -s); c.quadraticCurveTo(s * .9, s * .1, 0, s * .8); c.quadraticCurveTo(-s * .9, s * .1, 0, -s); },
+  foglia(c, s) { c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * .8, s, 0); c.quadraticCurveTo(0, s * .8, -s, 0); },
+  pesce(c, s) { c.moveTo(s, 0); c.quadraticCurveTo(0, -s * .7, -s * .5, 0); c.quadraticCurveTo(0, s * .7, s, 0); c.moveTo(-s * .5, 0); c.lineTo(-s, -s * .45); c.lineTo(-s, s * .45); c.closePath(); },
+  aereo(c, s) { c.moveTo(s, 0); c.lineTo(s * .7, -s * .1); c.lineTo(s * .1, -s * .1); c.lineTo(-s * .2, -s * .8); c.lineTo(-s * .4, -s * .8); c.lineTo(-s * .25, -s * .1); c.lineTo(-s * .75, -s * .1); c.lineTo(-s * .9, -s * .35); c.lineTo(-s, -s * .35); c.lineTo(-s * .95, 0);
+    c.lineTo(-s, s * .35); c.lineTo(-s * .9, s * .35); c.lineTo(-s * .75, s * .1); c.lineTo(-s * .25, s * .1); c.lineTo(-s * .4, s * .8); c.lineTo(-s * .2, s * .8); c.lineTo(s * .1, s * .1); c.lineTo(s * .7, s * .1); c.closePath(); },
+  casa(c, s) { c.moveTo(-s * .7, s); c.lineTo(-s * .7, 0); c.lineTo(0, -s); c.lineTo(s * .7, 0); c.lineTo(s * .7, s); c.closePath(); c.rect(-s * .2, s * .4, s * .4, s * .6); },
+  ombrello(c, s) { c.moveTo(-s, 0); c.arc(0, 0, s, Math.PI, 0); for (let i = 0; i < 4; i++) c.quadraticCurveTo(s - (i + .5) * s * .5, -s * .2, s - (i + 1) * s * .5, 0); c.rect(-s * .05, 0, s * .1, s * .9); },
+  chiave(c, s) { c.moveTo(-s * .4, 0); c.arc(-s * .7, 0, s * .3, 0, 6.2832); c.rect(-s * .4, -s * .08, s * 1.3, s * .16); c.rect(s * .6, s * .08, s * .12, s * .25); c.rect(s * .3, s * .08, s * .12, s * .18); },
+  farfalla(c, s) { for (const [x, y, rx, ry] of [[-s * .45, -s * .3, s * .45, s * .35], [s * .45, -s * .3, s * .45, s * .35], [-s * .3, s * .35, s * .3, s * .25], [s * .3, s * .35, s * .3, s * .25]]) { c.moveTo(x + rx, y); c.ellipse(x, y, rx, ry, 0, 0, 6.2832); } },
+  fiore(c, s) { for (let k = 0; k < 6; k++) { const a = k * 1.0472, x = Math.cos(a) * s * .55, y = Math.sin(a) * s * .55; c.moveTo(x + s * .42, y); c.arc(x, y, s * .42, 0, 6.2832); } c.moveTo(s * .3, 0); c.arc(0, 0, s * .3, 0, 6.2832); },
+  freccia(c, s) { c.moveTo(s, 0); c.lineTo(0, -s * .7); c.lineTo(0, -s * .3); c.lineTo(-s, -s * .3); c.lineTo(-s, s * .3); c.lineTo(0, s * .3); c.lineTo(0, s * .7); c.closePath(); },
+  occhio(c, s) { c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * .8, s, 0); c.quadraticCurveTo(0, s * .8, -s, 0); c.moveTo(s * .35, 0); c.arc(0, 0, s * .35, 0, 6.2832); },
+  mano(c, s) { c.rect(-s * .45, -s * .1, s * .9, s * .9); for (let i = 0; i < 4; i++) c.rect(-s * .45 + i * s * .23, -s * .9, s * .2, s * .8); c.rect(s * .45, s * .05, s * .45, s * .2); },
+};
+const PAROLE = ['TUTTO SCORRE', 'OGNI COSA CAMBIA', 'IL CASO DISEGNA', 'NULLA SI RIPETE', 'PSICHEDELICO', 'GUARDARE È CAMBIARE', 'QUI E ORA', 'LUCE E BUIO', 'MAI UGUALE', 'COLORE PURO', 'IL CASO E IL CAOS', 'TEMPO PERSO', 'FORMA E COLORE', 'IL MONDO DENTRO'];
+P.boetti = {
+  get name() { return this.mode === 'tutto' ? 'tutto (alla maniera di Boetti)' : 'parole in griglia (alla maniera di Boetti)'; },
+  init() {
+    this.mode = Math.random() < .5 ? 'tutto' : 'parole'; const m = Math.min(W, H);
+    if (this.mode === 'tutto') { const K = Object.keys(ICONE); this.el = [];
+      for (let i = 0; i < 160 + poisson(80); i++) this.el.push({ k: pick(K), x: rnd(W), y: rnd(H), s: m * rnd(.025, .09), rot: rnd(6.28), vr: gauss() * .002, ph: rnd(6.28) }); }
+    else { // le lettere si leggono per colonne, una lettera per quadrato
+      const ph = pick(PAROLE).replace(/ /g, ''), n = ph.length; let cols = Math.ceil(Math.sqrt(n * W / H)), rows = Math.ceil(n / cols); if (Math.random() < .4) [cols, rows] = [rows, cols];
+      this.ph = ph; this.cols = cols; this.rows = rows; this.font = pick(['"Arial Black", sans-serif', 'Impact, sans-serif', '"Courier New", monospace', 'Georgia, serif', 'sans-serif']); }
+    this.t = 0;
+  },
+  step() { this.t += .01; if (this.mode === 'tutto') for (const e of this.el) e.rot += e.vr; },
+  render(c) {
+    c.beginPath();
+    if (this.mode === 'tutto') { for (const e of this.el) { c.save(); c.translate(e.x, e.y); c.rotate(e.rot); ICONE[e.k](c, e.s * (1 + .06 * Math.sin(this.t * 3 + e.ph))); c.restore(); } c.stroke(); return; }
+    const cw = W / this.cols, ch = H / this.rows, sz = Math.min(cw, ch) * .78;
+    for (let i = 0; i <= this.cols; i++) { c.moveTo(i * cw, 0); c.lineTo(i * cw, H); } for (let j = 0; j <= this.rows; j++) { c.moveTo(0, j * ch); c.lineTo(W, j * ch); }
+    c.stroke(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `900 ${sz}px ${this.font}`;
+    for (let k = 0; k < this.ph.length; k++) { const i = Math.floor(k / this.rows), j = k % this.rows; c.strokeText(this.ph[k], (i + .5) * cw, (j + .54) * ch); }
+  }
+};
+
+/* ---------- FIORI STRANI: steli che oscillano, petali impossibili, semi a spirale ---------- */
+P.fiori = {
+  name: 'fiori strani',
+  init() {
+    const n = 1 + ((Math.random() * 5) | 0), m = Math.min(W, H); this.f = []; this.t = 0;
+    for (let i = 0; i < n; i++) { const big = n === 1;
+      this.f.push({ x: big ? W / 2 : rnd(W * .1, W * .9), y: H + 10, h: (big ? rnd(.55, .75) : rnd(.35, .8)) * H, r: m * (big ? rnd(.22, .32) : rnd(.08, .18)), np: 3 + ((Math.random() * 11) | 0),
+        shape: pick(['punta', 'tondo', 'lingua', 'doppio', 'frange']), rings: 1 + ((Math.random() * 3) | 0), seeds: Math.random() < .7, eye: Math.random() < .25, lean: gauss() * .15, ph: rnd(6.28), leaves: (Math.random() * 4) | 0, w: m * rnd(.012, .025) }); }
+  },
+  step() { this.t += .012; },
+  render(c) {
+    const segs = [], lines = [], heads = [];
+    for (const f of this.f) {
+      const sway = f.lean + .06 * Math.sin(this.t * 1.3 + f.ph), pts = [];
+      for (let k = 0; k <= 10; k++) { const u = k / 10; pts.push([f.x + Math.sin(sway * u * 3) * f.h * .3 * u, f.y - f.h * u]); }
+      for (let k = 0; k < 10; k++) segs.push([...pts[k], ...pts[k + 1], f.w]);
+      for (let l = 0; l < f.leaves; l++) { const p0 = pts[3 + l * 2], d = l % 2 ? 1 : -1, tip = [p0[0] + d * f.r * 1.1, p0[1] - f.r * .5];
+        lines.push([p0, [(p0[0] + tip[0]) / 2, p0[1] - f.r * .6], tip, [(p0[0] + tip[0]) / 2, p0[1] + f.r * .05], p0]); }
+      heads.push({ f, x: pts[10][0], y: pts[10][1], a: this.t * .3 * (f.np % 2 ? 1 : -1) + f.ph });
+    }
+    tubeDraw(c, segs, lines);
+    c.beginPath();
+    for (const { f, x, y, a } of heads) {
+      for (let g = f.rings; g >= 1; g--) { const R = f.r * g / f.rings, np = f.np + (g - 1) * 2;
+        for (let k = 0; k < np; k++) { const b = a * (g % 2 ? 1 : -1) + k * 6.2832 / np, w = Math.PI / np;
+          const P = (r, t) => [x + r * Math.cos(t), y + r * Math.sin(t)], r0 = R * .25;
+          if (f.shape === 'tondo') { const [px, py] = P(R * .62, b); c.moveTo(px + R * .36, py); c.arc(px, py, R * .36, 0, 6.2832); }
+          else if (f.shape === 'frange') { c.moveTo(...P(r0, b - w)); for (let q = 0; q <= 6; q++) c.lineTo(...P(q % 2 ? R : R * .8, b - w + q * w / 3)); c.lineTo(...P(r0, b + w)); }
+          else { const tipR = f.shape === 'lingua' ? R * 1.05 : R, wid = f.shape === 'punta' ? .9 : f.shape === 'doppio' ? 1.4 : 1.2;
+            c.moveTo(...P(r0, b - w)); c.quadraticCurveTo(...P(R * .75, b - w * wid), ...P(tipR, b)); c.quadraticCurveTo(...P(R * .75, b + w * wid), ...P(r0, b + w));
+            if (f.shape === 'doppio') { c.moveTo(...P(R * .5, b)); c.lineTo(...P(R * .85, b)); } } } }
+      const rc = f.r * .28; c.moveTo(x + rc, y); c.arc(x, y, rc, 0, 6.2832);
+      if (f.seeds) for (let k = 1; k < 60; k++) { const rr = rc * .9 * Math.sqrt(k / 60), t2 = k * 2.39996 + a, sx = x + rr * Math.cos(t2), sy = y + rr * Math.sin(t2), d = rc * .07; c.moveTo(sx + d, sy); c.arc(sx, sy, d, 0, 6.2832); }
+      if (f.eye) { c.moveTo(x + rc * .55, y); c.arc(x, y, rc * .55, 0, 6.2832); c.moveTo(x + rc * .22, y); c.arc(x, y, rc * .22, 0, 6.2832); }
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- FIGURE: corpi fatti di "tubi"; la loro unione dà la sagoma, i dettagli sono linee ---------- */
 function tubeDraw(c, segs, lines) {
   for (const [a, b, x, y, w] of segs) { c.lineWidth = w + LW; c.beginPath(); c.moveTo(a, b); c.lineTo(x + .01, y); c.stroke(); }
@@ -765,6 +846,14 @@ const FIGURE = {
     const b = .5 + .5 * Math.sin(t * .8), pz = { amp: 0, al: 1.57 + .5 * b, ar: 1.57 + .5 * b, el: 0, er: 0, ll: .35 * b, lr: .35 * b, kl: 0, kr: 0, h: 0, a: 0, e: 0, l: 0, k: 0 };
     human(B, t, pz); B.ring(0, -.05, .52, 48); B.line([[-.44, -.48], [.44, -.48], [.44, .4], [-.44, .4], [-.44, -.48]]);
   },
+  farfalla(B, t) { // le ali si aprono e si chiudono
+    const o = .25 + .75 * Math.abs(Math.cos(t * 1.6)), segs = [];
+    B.seg(0, -.22, 0, .22, .045); B.dot(0, -.26, .07); B.seg(0, -.28, -.08 * o - .03, -.42, .012); B.seg(0, -.28, .08 * o + .03, -.42, .012);
+    for (const sg of [-1, 1]) {
+      const up = [], lo = []; for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI; up.push([sg * o * .45 * Math.sin(a) * (1.1 - .2 * Math.cos(a)), -.05 - .38 * (.5 - .5 * Math.cos(a)) + .08 * Math.sin(a)]); lo.push([sg * o * .32 * Math.sin(a), .02 + .3 * (.5 - .5 * Math.cos(a))]); }
+      B.line(up); B.line(lo); B.ring(sg * o * .25, -.22, .06 * Math.max(.3, o)); B.ring(sg * o * .25, -.22, .025 * Math.max(.3, o)); B.ring(sg * o * .16, .17, .035 * Math.max(.3, o));
+      B.line([[sg * o * .03, -.06], [sg * o * .38, -.3]]); B.line([[sg * o * .03, -.06], [sg * o * .42, -.12]]); }
+  },
   occhio(B, t) {
     const o = Math.max(.05, Math.abs(Math.sin(t * .5)) ** .3);
     const top = [], bot = []; for (let i = 0; i <= 24; i++) { const u = -.5 + i / 24; top.push([u, -.22 * o * (1 - 4 * u * u)]); bot.push([u, .2 * (1 - 4 * u * u)]); }
@@ -775,8 +864,8 @@ const FIGURE = {
 P.bestiario = {
   get name() { return 'figura: ' + this.kind; },
   init() {
-    this.kind = pick(['tigre', 'tigre', 'cervo', 'elefante', 'uccello', 'pesce', 'serpente', 'figura', 'figura', 'danzatori', 'vitruviano', 'occhio']);
-    const still = ['figura', 'vitruviano', 'occhio', 'danzatori'].includes(this.kind);
+    this.kind = pick(['tigre', 'tigre', 'cervo', 'elefante', 'uccello', 'pesce', 'serpente', 'figura', 'figura', 'danzatori', 'vitruviano', 'occhio', 'farfalla', 'farfalla']);
+    const still = ['figura', 'vitruviano', 'occhio', 'danzatori', 'farfalla'].includes(this.kind);
     this.S = Math.min(W, H) * (still ? rnd(.7, .95) : rnd(.55, .85)) * ({ uccello: 1.9, pesce: 1.5, serpente: 1.1 }[this.kind] || 1); this.dir = Math.random() < .5 ? 1 : -1;
     this.X = still ? rnd(W * .3, W * .7) : (this.dir > 0 ? -this.S * .6 : W + this.S * .6); this.Y = H * rnd(.42, .6);
     this.v = still ? 0 : this.S * rnd(.0025, .005) * this.dir; this.t = rnd(6.28); this.sp = rnd(.04, .08);
@@ -941,7 +1030,15 @@ const active = [];      // {proc, p, target, rate, shape, cx, cy, ang, bubble}
 let lastRemoved = null;
 const recent = [];      // memoria corta: evita ripetizioni ravvicinate
 
+// SERIE: per un po' la palette resta la stessa e le composizioni si somigliano (variazioni su un tema)
+const SERIE = { on: false, until: 0, fam: [] };
+function serie() {
+  const fam = []; while (fam.length < 2) { const q = pick(ALL.filter(q => !q.persist && q !== P.illusioni)); if (!fam.includes(q)) fam.push(q); }
+  Object.assign(SERIE, { on: true, until: performance.now() + rnd(30, 70) * 1000, fam }); note('serie: ' + fam.map(q => q.name).join(' / '));
+}
 function enter(proc) {
+  if (SERIE.on && performance.now() > SERIE.until) SERIE.on = false;
+  if (!proc && SERIE.on) { proc = pick(SERIE.fam); const a = active.find(x => x.proc === proc); if (a) { a.target = 0; } }
   proc = proc || pick(ALL.filter(q => !q.persist && q !== P.illusioni && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
   if (!proc) proc = pick(ALL.filter(q => !q.persist && !active.some(a => a.proc === q)));
   if (!proc) return;
@@ -985,6 +1082,7 @@ function apparizione(proc = P.mandala) {
   if (!a) { enter(proc); a = active[active.length - 1]; a.shape = proc === P.mandala ? 'cerchio' : 'tutto'; a.cx = proc.cx || W / 2; a.cy = proc.cy || H / 2; a.rate = rnd(.25, .45); a.bubble = false; }
   for (const x of active) if (x !== a) { x.target = 0; x.rate = rnd(.35, .6); x.shape = 'cerchio'; x.cx = proc.cx || W / 2; x.cy = proc.cy || H / 2; }
   if (proc !== P.mandala) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
+  if (proc === P.lettere && a.proc === proc && Math.random() < .7) { proc.init(); while (proc.mode === 'pioggia') proc.init(); }
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
   RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? rnd(1.5, 4) : rnd(4, 8);
@@ -1034,6 +1132,7 @@ function newWarp() {
 }
 function newEcho() { S.echo = { on: !S.echo.on || Math.random() < .3, s: rnd(.62, .92), rot: rnd(-.12, .12) }; ectx.clearRect(0, 0, W, H); }
 function newPalette() {
+  if (SERIE.on && performance.now() < SERIE.until) return;
   let p; do { p = pick(PALETTES); } while (p === S.palTo);
   S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = rnd(3, 8);
 }
@@ -1073,7 +1172,11 @@ const EVENTS = [
   { rate: () => .07, fn: () => { S.cycVt = Math.random() < .35 ? 0 : rnd(-.6, .6); } },
   { rate: () => .022, fn: () => apparizione(P.mandala) },
   { rate: () => .016, fn: () => apparizione(P.illusioni) },        // illusioni ottiche, ferme
-  { rate: () => .018, fn: monocromo },                             // pagina di un solo colore
+  { rate: () => .018, fn: monocromo },
+  { rate: () => .012, fn: () => apparizione(P.lettere) },          // lettere ferme
+  { rate: () => .014, fn: () => apparizione(Math.random() < .5 ? P.boetti : P.fiori) },   // Boetti e fiori, fermi
+  { rate: () => active.some(a => a.proc === P.fiori) ? 0 : .015, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.fiori); } },
+  { rate: () => SERIE.on ? 0 : .012, fn: serie },                             // pagina di un solo colore
   { rate: () => active.some(a => a.proc === P.lettere) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.lettere); } },
   { rate: () => active.some(a => a.proc === P.bestiario) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.bestiario); } },
   { rate: () => active.some(a => a.proc === P.omaggi) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.omaggi); } },                          // apparizione di un mandala, con sosta
@@ -1338,7 +1441,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · B: bande · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1349,7 +1452,7 @@ addEventListener('keydown', e => {
   else if (k === 'arrowdown') leave();
   else if (k === 'c') newPalette();
   else if (k === 'k') { let s; do { s = pick(SYMS); } while (s === S.sym); S.sym = s; }
-  else if (k === 'b') newBands();
+  else if (k === 'h') newBands();
   else if (k === 't') newTile();
   else if (k === 'd') newWarp();
   else if (k === 'e') newEcho();
@@ -1357,6 +1460,9 @@ addEventListener('keydown', e => {
   else if (k === 'i') apparizione(P.illusioni);
   else if (k === 'n') monocromo();
   else if (k === 'x') { if (active.length >= 3) leave(); enter(P.lettere); }
+  else if (k === 'b') apparizione(P.boetti);
+  else if (k === 'g') apparizione(P.fiori);
+  else if (k === 's') serie();
   else if (k === 'v') toggleCam();
   else if (k === 'a') { if (active.length >= 3) leave(); enter(P.bestiario); }
   else if (k === 'o') { if (active.length >= 3) leave(); enter(P.omaggi); }
