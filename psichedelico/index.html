@@ -579,30 +579,143 @@ P.mandala = {
   }
 };
 
-/* ---------- SPIRALI FILLOTATTICHE: il modello di Vogel (girasole, pigna, margherita) ---------- */
-// punto n: raggio ∝ √n, angolo = n × angolo di divergenza (vicino all'angolo aureo 137,5°).
-// L'angolo deriva lentamente: le famiglie di spirali (5/8, 8/13, 13/21, 21/34...) si scambiano e si riformano.
-const GOLD = Math.PI * (3 - Math.sqrt(5)), FIB = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
+/* ---------- SPIRALI (dallo studio di M.-P. Corcuff, "Spiralling around", GA2023) ---------- */
+const GOLD = 2 * Math.PI / (((1 + Math.sqrt(5)) / 2) ** 2), PHI = (1 + Math.sqrt(5)) / 2, FIB = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
+const mod = (a, n) => ((a % n) + n) % n;
+const shuffled = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// Voronoi su griglia: ogni pixel appartiene alla particella più vicina; il confine passa dove cambia
+function voronoiField(o, pts, cell) {
+  if (!o.sc || o.gw !== Math.round(W / 2.5)) fieldCanvas(o, Math.round(W / 2.5), Math.round(H / 2.5));
+  const gw = o.gw, gh = o.gh, sx = W / gw, B = new Map(), key = (i, j) => i * 100003 + j;
+  pts.forEach((p, n) => { const k = key(Math.floor(p[0] / cell), Math.floor(p[1] / cell)); if (!B.has(k)) B.set(k, []); B.get(k).push(n); });
+  const id = o.vid && o.vid.length === gw * gh ? o.vid : (o.vid = new Int32Array(gw * gh));
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+    const X = x * sx, Y = y * sx, ci = Math.floor(X / cell), cj = Math.floor(Y / cell); let best = -1, bd = 1e18;
+    for (let R = 1; R <= 3 && best < 0; R++) for (let di = -R; di <= R; di++) for (let dj = -R; dj <= R; dj++) { const L = B.get(key(ci + di, cj + dj)); if (L) for (const n of L) { const d = (pts[n][0] - X) ** 2 + (pts[n][1] - Y) ** 2; if (d < bd) { bd = d; best = n; } } }
+    id[y * gw + x] = best; }
+  const d = o.im.data; for (let i = 0; i < gw * gh; i++) { const x = i % gw; d[i * 4 + 3] = ((x < gw - 1 && id[i + 1] !== id[i]) || (i + gw < gw * gh && id[i + gw] !== id[i])) ? 255 : 0; }
+}
+const nearest = (pts, x, y) => { let b = -1, bd = 1e18; for (let n = 0; n < pts.length; n++) { const d = (pts[n][0] - x) ** 2 + (pts[n][1] - y) ** 2; if (d < bd) { bd = d; b = n; } } return b; };
+// la colorazione che fa emergere le spirali: ogni seme prende il colore del suo indice modulo un numero di Fibonacci
+function spiralColors(o) { o.hint = Math.random() < .75; o.F = pick([13, 21, 34, 55, 89, 144]); o.cols = shuffled([0, 1, 2, 3, 4]).slice(0, 2 + ((Math.random() * 3) | 0)); }
+
+// 1. SPIRALI FILLOTATTICHE: spirale genetica (Fermat, archimedea, logaritmica, esponenziale, aurea) × angolo di divergenza
+const SPIRALI = {
+  Fermat: n => Math.sqrt(n), archimedea: n => n, aurea: n => Math.pow(n, 1 / PHI),
+  logaritmica: (n, N) => Math.pow(1.0025, n * 900 / N) - .9, esponenziale: n => Math.log(1 + n / 4),
+};
+const DIVERGENZE = { aurea: () => GOLD, '65/2048 (mosaico)': () => 2 * Math.PI * 65 / 2048, '13/34': () => 2 * Math.PI * 13 / 34, '21/55': () => 2 * Math.PI * 21 / 55, '1/3': () => 2 * Math.PI / 3 + .004 };
 P.fillotassi = {
-  get name() { return 'spirali fillotattiche: ' + this.mode; },
+  get name() { return `spirali: ${this.tipo}, divergenza ${this.div}, ${this.mode}`; },
   init() {
-    this.mode = pick(['parastiche', 'parastiche', 'semi', 'petali']); this.N = Math.round(rnd(250, 900));
-    this.R = Math.max(W, H) * rnd(.45, .8); this.cx = Math.random() < .7 ? W / 2 : rnd(W * .25, W * .75); this.cy = Math.random() < .7 ? H / 2 : rnd(H * .25, H * .75);
-    this.dev = Math.random() < .6 ? 0 : rnd(-.004, .004); this.vd = gauss() * .000006; this.rot = rnd(6.28); this.vr = gauss() * .002; this.t = 0;
+    this.mode = pick(['parastiche', 'semi', 'semi', 'petali', 'voronoi', 'voronoi']);
+    this.tipo = Math.random() < .55 ? 'Fermat' : pick(Object.keys(SPIRALI)); this.div = Math.random() < .65 ? 'aurea' : pick(Object.keys(DIVERGENZE)); this.trans = this.div !== 'aurea' && Math.random() < .5;
+    this.N = Math.round(rnd(300, this.mode === 'voronoi' ? 1400 : 900)); this.R = Math.max(W, H) * rnd(.45, .8);
+    this.cx = Math.random() < .7 ? W / 2 : rnd(W * .25, W * .75); this.cy = Math.random() < .7 ? H / 2 : rnd(H * .25, H * .75);
+    this.rot = rnd(6.28); this.vr = gauss() * .002; this.t = 0; this.dev = 0; spiralColors(this);
   },
-  step() { this.t += .01; this.rot += this.vr; this.dev += this.vd; if (Math.abs(this.dev) > .006) this.vd *= -1; },
+  step() { this.t += .01; this.rot += this.vr; },
+  angle() { const a0 = DIVERGENZE[this.div](); if (!this.trans) return a0 + .0015 * Math.sin(this.t); const f = .5 - .5 * Math.cos(this.t * .25); return a0 + (GOLD - a0) * f; },   // passaggio razionale ↔ aureo
+  points() {
+    const N = this.N, f = SPIRALI[this.tipo], k = this.R / f(N, N), ang = this.angle(), pts = [];
+    for (let n = 1; n <= N; n++) { const r = k * f(n, N), a = n * ang + this.rot; pts.push([this.cx + r * Math.cos(a), this.cy + r * Math.sin(a), r]); }
+    return pts;
+  },
+  colorAt(x, y) { const pts = this.pts; if (!pts) return -1; const n = nearest(pts, x, y) + 1; return this.cols[mod(n, this.F) % this.cols.length]; },
   render(c) {
-    const N = this.N, k = this.R / Math.sqrt(N), ang = GOLD + this.dev + .0015 * Math.sin(this.t), pts = [];
-    for (let n = 1; n <= N; n++) { const r = k * Math.sqrt(n), a = n * ang + this.rot; pts.push([this.cx + r * Math.cos(a), this.cy + r * Math.sin(a), r]); }
+    const pts = this.pts = this.points(), N = this.N, spacing = this.R / Math.sqrt(N) * 1.75;
+    if (this.mode === 'voronoi') { voronoiField(this, pts, spacing); drawField(this, c); return; }
     c.beginPath();
-    if (this.mode === 'parastiche') { // ogni seme si lega ai suoi due vicini lungo le spirali: nasce il reticolo a losanghe
+    if (this.mode === 'parastiche') {
       for (let i = 0; i < N; i++) { const [x, y] = pts[i], d = [];
         for (const F of FIB) { const j = i + F; if (j < N) d.push([(pts[j][0] - x) ** 2 + (pts[j][1] - y) ** 2, j]); }
-        d.sort((p, q) => p[0] - q[0]); for (const [dd, j] of d.slice(0, 2)) { if (dd > 9 * k * k) continue; c.moveTo(x, y); c.lineTo(pts[j][0], pts[j][1]); } }
-      c.moveTo(this.cx + k * Math.sqrt(N) * 1.02, this.cy); c.arc(this.cx, this.cy, k * Math.sqrt(N) * 1.02, 0, 6.2832);
-    } else if (this.mode === 'semi') { for (const [x, y, r] of pts) { const d = k * .5 * (.6 + .4 * r / this.R); c.moveTo(x + d, y); c.arc(x, y, d, 0, 6.2832); } }
-    else { for (const [x, y, r] of pts) { const a = Math.atan2(y - this.cy, x - this.cx), L = k * 1.5, w = k * .6; // petali che guardano fuori
-      c.moveTo(x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); c.quadraticCurveTo(x - Math.sin(a) * w, y + Math.cos(a) * w, x + Math.cos(a) * L / 2, y + Math.sin(a) * L / 2); c.quadraticCurveTo(x + Math.sin(a) * w, y - Math.cos(a) * w, x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); } }
+        d.sort((p, q) => p[0] - q[0]); for (const [dd, j] of d.slice(0, 2)) { if (dd > (pts[i][2] * .5 + spacing) ** 2) continue; c.moveTo(x, y); c.lineTo(pts[j][0], pts[j][1]); } }
+    } else if (this.mode === 'semi') {
+      for (let i = 0; i < N; i++) { const [x, y] = pts[i], nb = i + 1 < N ? Math.hypot(pts[i][0] - pts[Math.min(N - 1, i + 1)][0], pts[i][1] - pts[Math.min(N - 1, i + 1)][1]) : spacing;
+        const d = Math.min(spacing * .5, Math.max(1.5, Math.min(nb, spacing) * .45)); c.moveTo(x + d, y); c.arc(x, y, d, 0, 6.2832); }
+    } else for (const [x, y] of pts) { const a = Math.atan2(y - this.cy, x - this.cx), L = spacing * .85, w = spacing * .32;
+      c.moveTo(x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); c.quadraticCurveTo(x - Math.sin(a) * w, y + Math.cos(a) * w, x + Math.cos(a) * L / 2, y + Math.sin(a) * L / 2); c.quadraticCurveTo(x + Math.sin(a) * w, y - Math.cos(a) * w, x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); }
+    c.stroke();
+  }
+};
+
+// 2. DOUADY–COUDER: gocce che nascono al centro e si respingono; l'angolo aureo emerge da solo
+P.douady = {
+  get name() { return 'spirali emergenti (Douady–Couder), velocità ' + this.G.toFixed(2); },
+  init() { this.p = []; this.n = 0; this.r0 = Math.min(W, H) * .02; this.G = rnd(.35, 1.4); this.vG = gauss() * .0004; this.Rmax = Math.hypot(W, H) * .55; this.mode = Math.random() < .5 ? 'voronoi' : 'gocce'; spiralColors(this);
+    for (let i = 0; i < 1400; i++) this.tick(); },
+  tick() {
+    const v = this.r0 * .06 * this.G * (1 + 30 * 0);   // velocità radiale costante: spirale archimedea
+    for (const q of this.p) q.r += v * (1 + q.r / (this.r0 * 25)); // un po' più veloci verso fuori: le gocce si allargano
+    if (++this.n % 6 === 0) { let best = 0, be = Infinity;
+      for (let k = 0; k < 120; k++) { const a = k / 120 * 6.2832; let E = 0; const x = this.r0 * Math.cos(a), y = this.r0 * Math.sin(a);
+        for (let j = this.p.length - 1, c = 0; j >= 0 && c < 40; j--, c++) { const q = this.p[j], d = Math.hypot(x - q.r * Math.cos(q.a), y - q.r * Math.sin(q.a)); E += 1 / (d * d * d + 1e-6); }
+        if (E < be) { be = E; best = a; } }
+      this.p.push({ r: this.r0, a: best, id: this.n / 6 }); }
+    while (this.p.length && this.p[0].r > this.Rmax) this.p.shift();
+  },
+  step() { this.G = clamp(this.G + this.vG, .3, 1.6); if (this.G === .3 || this.G === 1.6) this.vG *= -1; for (let i = 0; i < 3; i++) this.tick(); },
+  colorAt(x, y) { const pts = this.pts; if (!pts) return -1; const n = nearest(pts, x, y); return n < 0 ? -1 : this.cols[mod(this.p[n].id, this.F) % this.cols.length]; },
+  render(c) {
+    const cx = W / 2, cy = H / 2; const pts = this.pts = this.p.map(q => [cx + q.r * Math.cos(q.a), cy + q.r * Math.sin(q.a), q.r]);
+    if (this.mode === 'voronoi') { voronoiField(this, pts, Math.min(W, H) * .06); drawField(this, c); return; }
+    c.beginPath(); for (const [x, y, r] of pts) { const d = Math.max(1.5, r * .09); c.moveTo(x + d, y); c.arc(x, y, d, 0, 6.2832); } c.stroke();
+  }
+};
+
+// 3. MOSAICI ROMANI: strati concentrici di triangoli in quinconce, quadrilateri o mattoni; le spirali emergono senza spirale genetica
+P.mosaico = {
+  get name() { return `mosaico romano: ${this.N} ${this.tipo} per strato, profondità ${this.depth}`; },
+  init() {
+    const m = Math.min(W, H); this.tipo = pick(['triangoli', 'triangoli', 'quadrilateri', 'mattoni']); this.N = pick([28, 30, 32, 38, 40, 48, 24, 36, 64]);
+    this.depth = Math.random() < .6 ? 'isometrica' : 'costante'; this.R0 = m * rnd(.05, .16); this.cx = W / 2; this.cy = H / 2;
+    const Rmax = Math.hypot(W, H) / 2 + 10, dc = m * rnd(.025, .05), h = this.tipo === 'triangoli' ? .87 : 1; this.radii = [this.R0];
+    for (let r = this.R0; r < Rmax;) { r += this.depth === 'isometrica' ? r * 6.2832 / this.N * h : dc; this.radii.push(r); }
+    this.rot = 0; this.vr = gauss() * .0008; this.S = 2 + ((Math.random() * 4) | 0); this.dir = Math.random() < .5 ? 1 : -1; this.cols = shuffled([0, 1, 2, 3, 4]); this.hint = Math.random() < .8;
+  },
+  step() { this.rot += this.vr; },
+  strato(r) { const R = this.radii; let lo = 0, hi = R.length - 1; if (r < R[0] || r >= R[hi]) return -1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (R[mid] <= r) lo = mid; else hi = mid; } return lo; },
+  colorAt(x, y) {
+    const dx = x - this.cx, dy = y - this.cy, r = Math.hypot(dx, dy), k = this.strato(r); if (k < 0) return r < this.R0 ? this.cols[4] : -1;
+    const th = mod(Math.atan2(dy, dx) - this.rot, 6.2832), N = this.N, off = this.tipo === 'quadrilateri' ? 0 : .5 * (k & 1), u = th / 6.2832 * N - off, i = Math.floor(u), f = u - i;
+    if (this.tipo === 'triangoli') { const t = (r - this.radii[k]) / (this.radii[k + 1] - this.radii[k]); if (Math.abs(f - .5) >= .5 * (1 - t)) return this.cols[4]; }
+    return this.cols[mod(i + this.dir * k, this.S)];
+  },
+  render(c) {
+    const { cx, cy, N, radii } = this, P2 = (r, a) => [cx + r * Math.cos(a + this.rot), cy + r * Math.sin(a + this.rot)], st = 6.2832 / N;
+    c.beginPath(); c.moveTo(cx + this.R0, cy); c.arc(cx, cy, this.R0, 0, 6.2832);
+    for (let k = 0; k < radii.length - 1; k++) { const r0 = radii[k], r1 = radii[k + 1], off = this.tipo === 'quadrilateri' ? 0 : .5 * (k & 1);
+      if (this.tipo === 'triangoli') for (let i = 0; i < N; i++) { const a0 = (i + off) * st, a1 = a0 + st; c.moveTo(...P2(r0, a0)); c.lineTo(...P2(r0, a1)); c.lineTo(...P2(r1, (a0 + a1) / 2)); c.closePath(); }
+      else { c.moveTo(cx + r1, cy); c.arc(cx, cy, r1, 0, 6.2832); for (let i = 0; i < N; i++) { const a = (i + off) * st; c.moveTo(...P2(r0, a)); c.lineTo(...P2(r1, a)); } } }
+    c.stroke();
+  }
+};
+
+// 4. DA CARTESIANO A POLARE: scacchiere e triangoli avvolti nel disco (x → θ, y → r oppure aʸ → r); le linee oblique diventano spirali
+P.disco = {
+  get name() { return `tassellatura polare: ${this.tipo}, ${this.map}, inclinazione ${this.s.toFixed(2)}`; },
+  init() {
+    this.tipo = pick(['scacchiera', 'scacchiera', 'triangoli']); this.map = Math.random() < .55 ? 'isometrica (aʸ → r)' : 'costante (y → r)'; this.N = pick([8, 12, 16, 24, 32, 48]);
+    this.r0 = Math.min(W, H) * (this.map[0] === 'i' ? rnd(.02, .06) : rnd(.0, .05)); this.d = Math.min(W, H) * rnd(.03, .07); this.s0 = pick([0, 0, 1, -1, 2, .5]); this.amp = Math.random() < .6 ? rnd(.3, 1.5) : 0; this.t = rnd(6.28);
+    this.Rmax = Math.hypot(W, H) / 2 + 10; this.q = 1 + 6.2832 / this.N; this.rot = 0; this.vr = gauss() * .001; this.s = this.s0;
+    this.V = this.map[0] === 'i' ? Math.ceil(Math.log(this.Rmax / Math.max(1, this.r0)) / Math.log(this.q)) : Math.ceil((this.Rmax - this.r0) / this.d);
+    const bw = Math.random() < .5; this.A = bw ? 3 : (Math.random() * 5) | 0; this.B = bw ? 4 : mod(this.A + 1 + ((Math.random() * 4) | 0), 5); this.C = mod(this.B + 1 + (this.B + 1 === this.A ? 1 : 0), 5); this.hint = Math.random() < .85;
+  },
+  step() { this.t += .006; this.s = this.s0 + this.amp * Math.sin(this.t); this.rot += this.vr; },
+  R(v) { return this.map[0] === 'i' ? Math.max(1, this.r0) * Math.pow(this.q, v) : this.r0 + v * this.d; },
+  Vof(r) { return this.map[0] === 'i' ? Math.log(r / Math.max(1, this.r0)) / Math.log(this.q) : (r - this.r0) / this.d; },
+  colorAt(x, y) {
+    const dx = x - W / 2, dy = y - H / 2, r = Math.hypot(dx, dy); if (r < Math.max(1, this.r0)) return -1;
+    const v = this.Vof(r), u = mod((Math.atan2(dy, dx) - this.rot) / 6.2832 * this.N - this.s * v, this.N), iu = Math.floor(u), iv = Math.floor(v);
+    if (this.tipo === 'scacchiera') return (iu + iv) & 1 ? this.A : this.B;
+    const up = (u - iu) > (v - iv); return [this.A, this.B, this.C][mod(iu + iv * 2 + (up ? 1 : 0), 3)];
+  },
+  render(c) {
+    const N = this.N, V = this.V, P2 = (u, v) => { const r = this.R(v), a = (u + this.s * v) / N * 6.2832 + this.rot; return [W / 2 + r * Math.cos(a), H / 2 + r * Math.sin(a)]; };
+    c.beginPath();
+    for (let v = 0; v <= V; v++) { const r = this.R(v); c.moveTo(W / 2 + r, H / 2); c.arc(W / 2, H / 2, r, 0, 6.2832); }   // le orizzontali diventano cerchi
+    for (let u = 0; u < N; u++) { for (let q = 0; q <= V * 6; q++) { const v = q / 6; q ? c.lineTo(...P2(u, v)) : c.moveTo(...P2(u, v)); } }   // le verticali raggi o spirali
+    if (this.tipo === 'triangoli') for (let u = 0; u < N; u++) { for (let q = 0; q <= V * 6; q++) { const v = q / 6; q ? c.lineTo(...P2(u + v, v)) : c.moveTo(...P2(u + v, v)); } }   // le diagonali, spirali
     c.stroke();
   }
 };
@@ -1413,7 +1526,8 @@ const EVENTS = [
   { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
   { rate: () => .014, fn: () => apparizione(P.solidi) },
-  { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme          // tutto si condensa in solidi semplici, fermi
+  { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme
+  { rate: () => .01, fn: () => apparizione(pick([P.mosaico, P.disco, P.douady])) },   // mosaici romani, dischi polari, spirali emergenti          // tutto si condensa in solidi semplici, fermi
   { rate: () => .03, fn: () => glitch() },                        // errore: l'immagine si rompe
   { rate: () => .008, fn: () => flicker() },                      // lampeggio bianco e nero        // motivi islamici, fermi
   { rate: () => .018, fn: () => apparizione(P.lettere) },          // lettere ferme
@@ -1602,9 +1716,18 @@ function frame(t, dt) {
 
   // colorazione: eredità → vincolo dei vicini → caso
   if (dt > 0 && Math.random() < .1) pick(regions).votes.fill(0);
+  // alcuni disegni suggeriscono il colore di ogni zona (es. le spirali dei mosaici e dei girasoli)
+  let HP = null;
+  if (S.sym === 'nessuna' && S.tile.nx === 1 && S.tile.ny === 1 && S.warp.amt < .05 && !S.echo.on) {
+    const live = active.filter(a => a.target === 1 && a.p > .95 && !a.proc.persist);
+    if (RIT.phase === 'sosta' && RIT.proc.colorAt && RIT.proc.hint) HP = RIT.proc;
+    else if (live.length === 1 && live[0].proc.colorAt && live[0].proc.hint) HP = live[0].proc;
+  }
   const order = regions.map((r, i) => i).sort((a, b) => regions[b].size - regions[a].size);
   for (const i of order) {
-    const r = regions[i], used = new Uint8Array(NC);
+    const r = regions[i];
+    if (HP) { const h = HP.colorAt(r.cx, r.cy); if (h >= 0) { r.color = h % NC; continue; } }
+    const used = new Uint8Array(NC);
     for (const n of r.nb) { const c = regions[n].color; if (c >= 0) used[c] = 1; }
     let best = -1, bv = 0;
     for (let c = 0; c < NC; c++) if (r.votes[c] > bv && !used[c]) { bv = r.votes[c]; best = c; }
@@ -1687,7 +1810,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · U: spirali fillotattiche · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1710,7 +1833,7 @@ addEventListener('keydown', e => {
   else if (k === 'j') apparizione(P.islamica);
   else if (k === 'q') apparizione(P.solidi);
   else if (k === 'y') quadro();
-  else if (k === 'u') apparizione(P.fillotassi);
+  else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
   else if (k === 'z') flicker();
   else if (k === '0') { FL.ok = !FL.ok; note(FL.ok ? 'lampeggio attivo' : 'lampeggio disattivato'); }
