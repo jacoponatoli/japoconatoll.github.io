@@ -578,6 +578,50 @@ P.mandala = {
   }
 };
 
+/* ---------- TELECAMERA (tasto V): chi guarda entra nel quadro ---------- */
+// l'immagine viene sfocata e divisa in fasce di luce; i contorni fra le fasce diventano confini come gli altri.
+// Niente viene registrato né inviato: tutto resta nel browser.
+const CAM = { on: false, video: null, stream: null };
+P.camera = {
+  name: 'telecamera', persist: true,
+  init() { fieldCanvas(this, Math.round(W / 3), Math.round(H / 3)); this.L = 3 + ((Math.random() * 3) | 0); this.lev = new Uint8Array(this.gw * this.gh); this.lum = new Float32Array(this.gw * this.gh); },
+  step() { if (Math.random() < .003) this.L = 3 + ((Math.random() * 4) | 0); },
+  render(c) {
+    const v = CAM.video; if (!CAM.on || !v || !v.videoWidth) return;
+    const { gw, gh, sx } = this;
+    // inquadratura "a riempimento", specchiata come uno specchio
+    const k = Math.max(gw / v.videoWidth, gh / v.videoHeight), dw = v.videoWidth * k, dh = v.videoHeight * k;
+    sx.save(); sx.clearRect(0, 0, gw, gh); sx.filter = 'blur(1.5px)'; sx.translate(gw, 0); sx.scale(-1, 1); sx.drawImage(v, (gw - dw) / 2, (gh - dh) / 2, dw, dh); sx.restore();
+    const px = sx.getImageData(0, 0, gw, gh).data, n = gw * gh, lum = this.lum, lev = this.lev;
+    for (let i = 0; i < n; i++) lum[i] = .3 * px[i * 4] + .59 * px[i * 4 + 1] + .11 * px[i * 4 + 2];
+    // soglie adattive: ogni fascia contiene circa la stessa quantità di immagine
+    const sample = []; for (let i = 0; i < n; i += 7) sample.push(lum[i]); sample.sort((a, b) => a - b);
+    const th = []; for (let j = 1; j < this.L; j++) th.push(sample[Math.floor(sample.length * j / this.L)]);
+    for (let i = 0; i < n; i++) { let l = 0; for (const t of th) if (lum[i] > t) l++; lev[i] = l; }
+    const d = this.im.data;
+    for (let i = 0; i < n; i++) { const x = i % gw; d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = 0; d[i * 4 + 3] = ((x < gw - 1 && lev[i + 1] !== lev[i]) || (i + gw < n && lev[i + gw] !== lev[i])) ? 255 : 0; }
+    drawField(this, c);
+  }
+};
+async function toggleCam() {
+  if (CAM.on) {
+    CAM.on = false; if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop());
+    const a = active.find(x => x.proc === P.camera); if (a) { a.target = 0; a.rate = .5; a.shape = 'cerchio'; a.cx = W / 2; a.cy = H / 2; }
+    note('telecamera spenta'); return;
+  }
+  try {
+    const st = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
+    CAM.stream = st;
+    if (!CAM.video) { CAM.video = document.createElement('video'); CAM.video.muted = true; CAM.video.playsInline = true; }
+    CAM.video.srcObject = st; await CAM.video.play(); CAM.on = true; note('telecamera accesa — V per spegnerla');
+  } catch (e) { note('telecamera non disponibile'); }
+}
+function camEnter() {
+  const a = active.find(x => x.proc === P.camera);
+  if (a) { a.target = 1; return; }
+  enter(P.camera); const b = active[active.length - 1]; b.shape = 'cerchio'; b.cx = W / 2; b.cy = H / 2; b.rate = .4; b.bubble = false;
+}
+
 const ALL = Object.values(P);
 
 /* =================== REGIA STOCASTICA =================== */
@@ -586,8 +630,8 @@ let lastRemoved = null;
 const recent = [];      // memoria corta: evita ripetizioni ravvicinate
 
 function enter(proc) {
-  proc = proc || pick(ALL.filter(q => !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
-  if (!proc) proc = pick(ALL.filter(q => !active.some(a => a.proc === q)));
+  proc = proc || pick(ALL.filter(q => !q.persist && !active.some(a => a.proc === q) && q !== lastRemoved && !recent.includes(q)));
+  if (!proc) proc = pick(ALL.filter(q => !q.persist && !active.some(a => a.proc === q)));
   if (!proc) return;
   proc.init(); for (let i = 0; i < 30; i++) proc.step();
   recent.push(proc); if (recent.length > 4) recent.shift();
@@ -615,7 +659,7 @@ function rituale(dt) {
 }
 
 function leave() {
-  const live = active.filter(a => a.target === 1); if (live.length <= 1) return;
+  const live = active.filter(a => a.target === 1 && !a.proc.persist); if (live.length <= 1) return;
   const a = pick(live); a.target = 0; a.rate = rnd(.12, .4); a.cx = rnd(W); a.cy = rnd(H); a.shape = pick(['cerchio', 'onda']); lastRemoved = a.proc;
 }
 
@@ -672,7 +716,7 @@ function newBands() { S.bandM = Math.random() < .4 ? 3 : 2; for (let i = 0; i < 
 
 // eventi: tassi per secondo
 const EVENTS = [
-  { rate: () => active.length < 2 ? .3 : active.length < 3 ? .08 : 0, fn: () => enter() },
+  { rate: () => { const n = active.filter(a => !a.proc.persist).length; return n < 2 ? .3 : n < 3 ? .08 : 0; }, fn: () => enter() },
   { rate: () => active.length > 1 ? .09 : 0, fn: leave },
   { rate: () => .07, fn: newPalette },
   { rate: () => .04, fn: () => { let s; do { s = pick(SYMS); } while (s === S.sym); S.sym = s; } },
@@ -913,6 +957,7 @@ function loop(t) {
   if (paused || t - last < 33) return;
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   const still = rituale(dt);
+  if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
   if (!window.__noev && !RIT.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn();
   // derive lente dei parametri globali
   if (still) { frame(t, 0); return; }   // sosta: tutto fermo, il mandala si lascia guardare
@@ -932,12 +977,15 @@ function loop(t) {
 
 /* =================== INTERAZIONE =================== */
 const info = document.getElementById('info');
+let noteUntil = 0;
 function updateInfo() {
+  if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · B: bande · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · B: bande · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
+function note(msg) { noteUntil = performance.now() + 2500; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 2500); }
 addEventListener('mousemove', () => { document.body.classList.add('ui'); updateInfo(); clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 2500); });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
@@ -950,6 +998,7 @@ addEventListener('keydown', e => {
   else if (k === 'd') newWarp();
   else if (k === 'e') newEcho();
   else if (k === 'm') apparizione();
+  else if (k === 'v') toggleCam();
   else if (k === 'l') showLines = !showLines;
   else if (k === 'p') paused = !paused;
   else if (k === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}); }
