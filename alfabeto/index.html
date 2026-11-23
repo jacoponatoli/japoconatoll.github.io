@@ -4,235 +4,240 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ALFABETO — Jacopo Natoli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#000;--dim:#3c3c3c;--hi:#fff}
-html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg);transition:background 1s;font-family:"Courier New",Courier,ui-monospace,monospace;cursor:default}
-body.idle{cursor:none}
-#field{position:fixed;inset:0;display:grid;place-content:center;user-select:none;transition:opacity .5s}
-#field.fade{opacity:0}
-#field.lower{text-transform:lowercase}
-#field span{display:flex;align-items:center;justify-content:center;line-height:1;color:var(--dim);transition:color .9s}
-#field span.on{color:var(--hi);transition:color .12s}
-#field span.on.glow{text-shadow:0 0 .35em var(--hi)}
-.ui{position:fixed;font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:#777;transition:opacity .8s;pointer-events:none}
-body.idle .ui.auto{opacity:0}
-#hint{left:0;right:0;bottom:22px;text-align:center}
-#live{left:0;right:0;top:22px;text-align:center;letter-spacing:.15em;text-transform:none;font-size:14px;color:#999;min-height:1em}
-#trail{left:22px;bottom:22px;max-width:40vw;text-transform:none;letter-spacing:.1em;color:#666;line-height:1.6}
-#ear{position:fixed;top:18px;right:18px;width:12px;height:12px;border-radius:50%;background:#333;border:0;padding:0;cursor:pointer;transition:opacity .8s}
-#ear.live{background:#f22;animation:p 1.8s ease-in-out infinite}
-@keyframes p{50%{opacity:.25}}
-body.idle #ear:not(.live){opacity:0}
-#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(0,0,0,.72);color:#fff;cursor:pointer;z-index:5;text-align:center}
-#start b{font-size:clamp(32px,7vw,88px);letter-spacing:.35em;font-weight:normal;margin-right:-.35em}
-#start small{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#aaa;max-width:80vw;line-height:1.8}
+/* ALFABETO: griglie di lettere che mutano. Nero, bianco, grigio per il rumore, rosso per l'asse. Nessuna interfaccia. */
+:root{--bg:#000;--fg:#fff;--dim:#363636;--red:#ff1a1a}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg)}
+body{cursor:none}
+#g{position:fixed;inset:0;display:grid;place-content:center;user-select:none;
+ font-family:"Archivo","Arial Black","Helvetica Neue",Arial,sans-serif;font-weight:800;font-stretch:112%;
+ -webkit-font-smoothing:antialiased}
+#g span{display:flex;align-items:center;justify-content:center;line-height:1}
+.k0{color:var(--dim)}.k1{color:var(--fg)}.k2{color:var(--red)}
 </style>
 </head>
 <body>
-<div id="field"></div>
-<div id="live" class="ui"></div>
-<div id="trail" class="ui"></div>
-<div id="hint" class="ui auto"></div>
-<button id="ear" title="microfono on/off" aria-label="microfono"></button>
-<div id="start"><b>ALFABETO</b><small>clicca e di' una parola<br>oppure scrivila e premi invio</small></div>
+<div id="g"></div>
 <script>
 {
-const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const IT={A:11.7,B:.9,C:4.5,D:3.7,E:11.8,F:1,G:1.6,H:1.5,I:11.3,J:.1,K:.1,L:6.5,M:2.5,N:6.9,O:9.8,P:3,Q:.5,R:6.4,S:5,T:5.6,U:3,V:2.1,W:.1,X:.1,Y:.1,Z:.6};
-const SEEDS=['UTOPIA','NIENTE','POESIA','TEMPO','PERSO','PAROLA','SILENZIO','ALFABETO','RUMORE','FESTA'];
-const PERIOD=10000, HOLD=6000;
-const DIRS=[[1,0],[0,1],[1,1],[1,-1],[-1,0],[0,-1],[-1,-1],[-1,1]];
-const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
-const $=id=>document.getElementById(id);
-const field=$('field'),hintEl=$('hint'),liveEl=$('live'),trailEl=$('trail'),ear=$('ear'),startEl=$('start');
+// ————— lessico —————
+const NM='MARE TEMPO VENTO CORPO SOGNO SEGNO FUOCO CIELO MURO PANE NOME VUOTO RUMORE SILENZIO GIORNO MONDO CUORE TRENO LIBRO CANTO GIOCO PONTE FIUME SOLE SANGUE SASSO BUIO NIENTE FIORE SUONO GESTO PUNTO FILO VETRO PIANTO RESPIRO DESIDERIO FUTURO PASSATO PRESENTE POPOLO SCHERMO CODICE ALFABETO SEGRETO MOSTRO CONFINE DESERTO DOLORE NODO PESO CORPO VOLTO MARGINE LIMITE RITMO CAOS FUMO GRIDO SONNO RICORDO VIAGGIO SALE LETTO ALBERO OCCHIO ORO INVERNO UOMO ERRORE ORIZZONTE ANIMALE'.split(' ');
+const NF='LINGUA NOTTE LUCE CASA PAROLA MANO PIETRA TERRA ACQUA ONDA VOCE FESTA MEMORIA UTOPIA LETTERA PAGINA STRADA PIAZZA FINESTRA FERITA FAME PELLE PAURA GIOIA RABBIA NEVE PIOGGIA POESIA RIVOLTA ROSA CENERE RETE MACCHINA PORTA OMBRA ALBA STELLA SABBIA LUNA FORMA FOGLIA FINE FEBBRE GUERRA PACE BOCCA FRONTE FIAMMA NUVOLA SCRITTURA DISTANZA ATTESA ISOLA ESTATE'.split(' ');
+const ADJ='NERO ROSSO BIANCO VUOTO PIENO NUOVO VECCHIO LENTO RAPIDO MUTO CIECO VIVO MORTO ROTTO PERSO NUDO CALDO FREDDO STANCO ALTO BASSO LUNGO CHIARO OSCURO LONTANO VICINO SOLO ULTIMO PRIMO ESATTO INFINITO STORTO SACRO FERMO INUTILE FRAGILE DOLCE GRANDE BREVE FELICE IMMOBILE POSSIBILE IMPOSSIBILE INVISIBILE SEMPLICE CELESTE VERDE'.split(' ');
+const VI='BRUCIA CADE DORME TORNA RESTA PARLA TACE RESPIRA CANTA TREMA GIRA PASSA CRESCE MANCA BRILLA SPARISCE NASCE MUORE ASPETTA RIDE PIANGE CORRE GRIDA SCIVOLA RESISTE DURA FINISCE COMINCIA'.split(' ');
+const VT='CHIAMA SCRIVE DIMENTICA APRE CHIUDE CERCA PERDE MANGIA TOCCA GUARDA ASCOLTA CANCELLA SOGNA RICORDA ATTRAVERSA NASCONDE INVENTA SPEZZA CUCE ABITA DESIDERA TRADISCE'.split(' ');
+const INF='RESTARE ANDARE DIRE TACERE PERDERE GUARDARE LEGGERE ASCOLTARE SCRIVERE DIMENTICARE RESISTERE GIOCARE DORMIRE CADERE TORNARE FUGGIRE CREDERE ABITARE'.split(' ');
+const ADV='ORA QUI ANCORA MAI SEMPRE OLTRE DENTRO FUORI FORSE OGGI ADESSO POI INSIEME PIANO ALTROVE DOMANI IERI'.split(' ');
 
+const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)], chance=p=>Math.random()<p;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 function weighted(t){const k=Object.keys(t),s=k.reduce((a,x)=>a+t[x],0);return()=>{let r=Math.random()*s;for(const x of k){r-=t[x];if(r<=0)return x}return k[0]}}
-function norm(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase()}
+const letter=weighted({A:11.7,B:.9,C:4.5,D:3.7,E:11.8,F:1,G:1.6,H:1.5,I:11.3,L:6.5,M:2.5,N:6.9,O:9.8,P:3,Q:.5,R:6.4,S:5,T:5.6,U:3,V:2.1,Z:.6});
 
-let poem=[];
-const MODES=[
- {w:4,make(){const g=weighted(IT);return()=>g()}},
- {w:1,make(){return()=>pick(A)}},
- {w:1,make(){const g=weighted({A:5,E:5,I:5,O:5,U:3,L:1,M:1,N:1,R:1,S:1,T:1});return()=>g()}},
- {w:1,make(){const k=pick([0,1,2,3,-1,-2,25]),o=rnd(26);return(c,r)=>A[(((c+r*k+o)%26)+26)%26]}},
- {w:1.2,make(){const src=poem.length&&Math.random()<.7?norm(pick(poem.slice(-5))):pick(SEEDS);const set=[...new Set(src.replace(/[^A-Z]/g,''))];return()=>pick(set.length?set:['A'])}},
- {w:1.2,make(){const g=weighted(IT),p=.1+Math.random()*.3;return()=>Math.random()<p?g():' '}},
- {w:1,make(){const a=.08+Math.random()*.5,b=.08+Math.random()*.5,s=2+rnd(9),o=rnd(26);return(c,r)=>A[(Math.floor((Math.sin(c*a)+Math.cos(r*b)+2)*s)+o)%26]}},
- {w:1,make(){const g=weighted(IT),m={};return(c,r,C)=>{const k=Math.min(c,C-1-c)+','+r;return m[k]||(m[k]=g())}}},
- {w:.6,make(){const L=pick(A),O=pick(A),p=.03+Math.random()*.1;return()=>Math.random()<p?O:L}},
- {w:.8,make(){const g=weighted(IT),band=2+rnd(4);return(c,r)=>((r/band|0)%2)?g():' '}}
+const fem=a=>a.endsWith('O')?a.slice(0,-1)+'A':a;
+const ALL=[...new Set([...NM,...NF,...ADJ,...ADJ.map(fem),...VI,...VT,...INF,...ADV])];
+
+// ————— frasi: grammatica minima —————
+function noun(){const f=chance(.5);return{w:pick(f?NF:NM),g:f?'f':'m'}}
+function art(n,def){
+ if(/^[AEIOU]/.test(n.w))return null;
+ if(n.g==='f')return def?'LA':'UNA';
+ if(/^(S[^AEIOU]|Z|GN|PS)/.test(n.w))return def?'LO':'UNO';
+ return def?'IL':'UN';
+}
+function NP(adj=.35){
+ const n=noun(),o=[];
+ if(chance(.7)){const a=art(n,chance(.75));if(a)o.push(a)}
+ o.push(n.w);
+ if(chance(adj))o.push(n.g==='f'?fem(pick(ADJ)):pick(ADJ));
+ return o;
+}
+const T=[
+ ()=>[...NP(1)],
+ ()=>[...NP(),pick(VI)],
+ ()=>[...NP(.2),pick(VT),...NP(.2)],
+ ()=>[noun().w,'DI',noun().w],
+ ()=>['NON',pick(chance(.5)?VI:VT)],
+ ()=>[pick(INF),...NP(.3)],
+ ()=>[pick(ADV),...NP(0),pick(VI)],
+ ()=>[noun().w,'E',noun().w],
+ ()=>[...NP(0),'COME',...NP(.3)],
+ ()=>[pick(chance(.5)?INF:ADV)],
+ ()=>{const a=noun(),b=noun();const x=art(b,false);return['OGNI',a.w,'È',...(x?[x]:[]),b.w]},
+ ()=>[noun().w,'SENZA',noun().w],
+ ()=>['TRA',noun().w,'E',noun().w],
+ ()=>[...NP(.2),pick(VI),pick(ADV)],
+ ()=>{const n=noun(),a=art(n,true);return['NON','È',...(a?[a]:[]),n.w]},
 ];
-const pickMode=weighted(Object.fromEntries(MODES.map((m,i)=>[i,m.w])));
+const phrase=()=>pick(T)();
 
-const PALETTES=[
- {bg:'#000',dim:'#3a3a3a',hi:'#fff',w:5},
- {bg:'#000',dim:'#2a2a2a',hi:'#ff2a1a',w:1},
- {bg:'#000',dim:'#2a2a2a',hi:'#1f5bff',w:1},
- {bg:'#000',dim:'#2e2e2e',hi:'#ffd400',w:1},
- {bg:'#fff',dim:'#c9c9c9',hi:'#000',w:2},
- {bg:'#fff',dim:'#cfcfcf',hi:'#ff2a1a',w:.7}
-];
-const pickPal=weighted(Object.fromEntries(PALETTES.map((p,i)=>[i,p.w])));
-
-let C=0,R=0,cell=0,grid=[],spans=[],locked=new Set(),gen=0,nextChange=0,lastInscribe=0;
-
-function layout(){
+// ————— griglia —————
+const G=document.getElementById('g');
+let C=0,R=0,N=0,spans=[],cur=[];
+const blank=()=>({ch:' ',k:0});
+function build(){
  const W=innerWidth,H=innerHeight;
- let s=pick([20,26,32,40,48,60,76,96]);
- s=Math.min(s,Math.floor(W/7),Math.floor(H/5));s=Math.max(s,14);
- const nc=Math.floor(W/s),nr=Math.floor(H/s);
- const changed=nc!==C||nr!==R||s!==cell;
- C=nc;R=nr;cell=s;
- field.style.gridTemplateColumns=`repeat(${C},${s}px)`;
- field.style.gridTemplateRows=`repeat(${R},${s}px)`;
- field.style.fontSize=Math.round(s*(.55+Math.random()*.3))+'px';
- field.style.fontWeight=Math.random()<.3?'bold':'normal';
- field.classList.toggle('lower',Math.random()<.3);
- if(changed){
-  field.innerHTML='';spans=[];
-  const f=document.createDocumentFragment();
-  for(let i=0;i<C*R;i++){const sp=document.createElement('span');f.appendChild(sp);spans.push(sp)}
-  field.appendChild(f);
- }
- return changed;
+ const s=Math.max(30,Math.min(96,Math.floor(Math.min(W/11,Math.max(W/18,H/9)))));
+ C=Math.floor(W/s);R=Math.floor(H/s);N=C*R;
+ G.style.gridTemplateColumns=`repeat(${C},${s}px)`;G.style.gridTemplateRows=`repeat(${R},${s}px)`;
+ G.style.fontSize=Math.round(s*.62)+'px';
+ G.innerHTML='';spans=[];cur=[];
+ for(let i=0;i<N;i++){const e=document.createElement('span');G.appendChild(e);spans.push(e);cur.push(blank())}
 }
+function set(i,c){cur[i]=c;spans[i].textContent=c.ch;spans[i].className='k'+c.k}
 
-function newPattern(first){
- gen++;locked.clear();
- const pal=PALETTES[pickPal()];
- const glow=pal.bg==='#000'&&Math.random()<.5;
- const doIt=()=>{
-  document.body.style.setProperty('--bg',pal.bg);
-  document.body.style.setProperty('--dim',pal.dim);
-  document.body.style.setProperty('--hi',pal.hi);
-  const rebuilt=layout();
-  const g=MODES[pickMode()].make();
-  grid=[];for(let r=0;r<R;r++)for(let c=0;c<C;c++)grid.push(g(c,r,C));
-  spans.forEach((sp,i)=>{
-   sp.classList.toggle('glow',glow);
-   if(first||rebuilt){sp.textContent=grid[i];sp.classList.remove('on')}
-   else{const my=gen;sp.classList.remove('on');setTimeout(()=>{if(my===gen&&!locked.has(i))sp.textContent=grid[i]},rnd(900))}
+// riempitivo: vuoto, lettere a caso, o lettere delle stesse parole
+function base(fill,src){
+ const t=[];const pool=src?src.join('').replace(/[^A-Z]/g,''):'';
+ for(let i=0;i<N;i++)t.push(fill==='vuoto'?blank():{ch:fill==='eco'&&pool?pool[rnd(pool.length)]:letter(),k:0});
+ return t;
+}
+const idx=(r,c)=>r*C+c;
+
+// ————— composizioni —————
+function flow(vertical){
+ const major=vertical?C:R,minor=vertical?R:C;
+ const words=[];const fill=pick(['vuoto','vuoto','lettere','eco']);
+ let line=chance(.3)?1:0,pos=chance(.4)?rnd(3):0;const t=[];
+ const put=(l,p,ch,k)=>{t[vertical?idx(p,l):idx(l,p)]={ch,k}};
+ let guard=0,ok=true;
+ while(ok&&guard++<200){
+  const ph=phrase();if(ph.some(w=>w.length>minor))continue;
+  ph.forEach((w,j)=>{
+   if(!ok)return;
+   const gap=pos===0?0:(j===0?2:1);
+   if(pos+gap+w.length>minor){line+=(j===0&&chance(.4))?2:1;pos=chance(.25)?rnd(3):0;
+    if(pos+w.length>minor)pos=0}
+   else pos+=gap;
+   if(line>=major){ok=false;return}
+   for(let i=0;i<w.length;i++)put(line,pos+i,w[i],1);
+   pos+=w.length;words.push(w);
   });
-  field.classList.remove('fade');
+ }
+ const b=base(fill,words);for(let i=0;i<N;i++)if(t[i])b[i]=t[i];
+ return b;
+}
+
+function block(){ // blocco continuo: il testo va a capo dentro le parole
+ let s='';while(s.length<N)s+=phrase().join(' ')+(chance(.5)?' ':'  ');
+ s=s.slice(0,N);return [...s].map(ch=>({ch,k:1}));
+}
+
+function cross(){
+ const fill=pick(['vuoto','lettere','vuoto']);
+ const occ=Array(N).fill(null);
+ const pool=shuffle([...phrase(),...phrase(),...phrase()].filter(w=>w.length>=3)).concat(shuffle(ALL)).filter(w=>w.length<=Math.max(C,R)&&w.length>=3);
+ const fits=(w,r,c,dx,dy,first)=>{
+  const L=w.length,er=r+dy*(L-1),ec=c+dx*(L-1);
+  if(r<0||c<0||er>=R||ec>=C)return false;
+  const br=r-dy,bc=c-dx,ar=er+dy,ac=ec+dx;
+  if(br>=0&&bc>=0&&occ[idx(br,bc)])return false;
+  if(ar<R&&ac<C&&occ[idx(ar,ac)])return false;
+  let crossN=0;
+  for(let i=0;i<L;i++){const rr=r+dy*i,cc=c+dx*i,o=occ[idx(rr,cc)];
+   if(o){if(o!==w[i])return false;crossN++;continue}
+   // niente lettere attaccate di lato
+   if(dx){if(rr>0&&occ[idx(rr-1,cc)])return false;if(rr<R-1&&occ[idx(rr+1,cc)])return false}
+   else{if(cc>0&&occ[idx(rr,cc-1)])return false;if(cc<C-1&&occ[idx(rr,cc+1)])return false}}
+  return first||(crossN>0&&crossN<L);
  };
- nextChange=Date.now()+PERIOD;
- if(first){doIt();return}
- // cambio di griglia: dissolvenza breve; stessa griglia: le lettere si rimescolano
- if(Math.random()<.45){field.classList.add('fade');setTimeout(doIt,500)}else doIt();
-}
-
-function findAll(w){
- const out=[],L=w.length;
- for(let r=0;r<R;r++)for(let c=0;c<C;c++){
-  if(grid[r*C+c]!==w[0])continue;
-  for(const [dx,dy] of (L>1?DIRS:[[1,0]])){
-   const ec=c+dx*(L-1),er=r+dy*(L-1);
-   if(ec<0||ec>=C||er<0||er>=R)continue;
-   const p=[];let ok=true;
-   for(let i=0;i<L;i++){const idx=(r+dy*i)*C+(c+dx*i);if(grid[idx]!==w[i]||locked.has(idx)){ok=false;break}p.push(idx)}
-   if(ok)out.push({p,fwd:dx>=0&&!(dx===0&&dy<0)});
-  }
+ const lay=(w,r,c,dx,dy)=>{for(let i=0;i<w.length;i++)occ[idx(r+dy*i,c+dx*i)]=w[i]};
+ const target=4+rnd(8);let n=0;
+ for(const w of pool){
+  if(n>=target)break;
+  if(n===0){const h=w.length<=C;const dx=h?1:0,dy=h?0:1;
+   const r=h?rnd(R):rnd(R-w.length+1),c=h?rnd(C-w.length+1):rnd(C);
+   if(fits(w,r,c,dx,dy,true)){lay(w,r,c,dx,dy);n++}continue}
+  const cand=[];
+  for(let i=0;i<N;i++){const o=occ[i];if(!o)continue;const r=Math.floor(i/C),c=i%C;
+   for(let k=0;k<w.length;k++)if(w[k]===o){
+    if(fits(w,r,c-k,1,0))cand.push([r,c-k,1,0]);
+    if(fits(w,r-k,c,0,1))cand.push([r-k,c,0,1]);}}
+  if(cand.length){lay(w,...pick(cand));n++}
  }
- return out;
+ const b=base(fill);occ.forEach((ch,i)=>{if(ch)b[i]={ch,k:1}});return b;
 }
 
-function place(w){
- const L=w.length,dirs=L>1?DIRS.slice(0,4):[[1,0]];
- let best=null,bs=1e9;
- for(let t=0;t<400&&bs>0;t++){
-  const [dx,dy]=pick(dirs);
-  const c0=dx<0?L-1:0,c1=dx>0?C-L:C-1,r0=dy<0?L-1:0,r1=dy>0?R-L:R-1;
-  if(c1<c0||r1<r0)continue;
-  const c=c0+rnd(c1-c0+1),r=r0+rnd(r1-r0+1),p=[];let s=0;
-  for(let i=0;i<L;i++){const idx=(r+dy*i)*C+(c+dx*i);p.push(idx);if(locked.has(idx)&&grid[idx]!==w[i])s+=100}
-  if(s<bs){bs=s;best=p}
- }
- if(!best||bs>=100){ // parola troppo lunga: scorre come una riga di testo che va a capo
-  const n=C*R;w=w.slice(0,n);const st=rnd(n-w.length+1);best=[];for(let i=0;i<w.length;i++)best.push(st+i);
- }
- return best;
-}
-
-function scramble(sp,ch,my){
- let k=0;const t=setInterval(()=>{if(my!==gen){clearInterval(t);return}
-  if(++k>4){clearInterval(t);sp.textContent=ch;sp.classList.add('on')}else sp.textContent=pick(A)},45);
-}
-
-function inscribe(raw){
- const w=raw.slice(0,C*R);if(!w)return;
- const found=findAll(w);let path,fresh=false;
- if(found.length){const f=found.filter(x=>x.fwd);path=pick(f.length?f:found).p}
- else{path=place(w);fresh=true}
- const my=gen;
- path.forEach((idx,i)=>{
-  const ch=w[i];const changes=grid[idx]!==ch;
-  grid[idx]=ch;locked.add(idx);
-  setTimeout(()=>{if(my!==gen)return;const sp=spans[idx];
-   if(changes)scramble(sp,ch,my);else sp.classList.add('on')},i*(fresh?120:90));
+function axis(meso){
+ const fill=pick(['vuoto','vuoto','lettere']);
+ const ac=meso?Math.floor(C/2):(chance(.5)?0:1);
+ const fitW=(w,L)=>{const i=meso?w.indexOf(L):(w[0]===L?0:-1);return i>=0&&i<=ac&&w.length-i-1<=C-1-ac?i:-1};
+ const spine=shuffle([...NM,...NF]).find(v=>v.length<=R&&v.length>=3&&[...v].every(L=>ALL.some(w=>fitW(w,L)>=0)))||'ALFABETO'.slice(0,R);
+ const top=Math.floor((R-spine.length)/2),b=base(fill),used=new Set();
+ [...spine].forEach((L,r)=>{
+  const cs=shuffle(ALL).filter(w=>!used.has(w)&&fitW(w,L)>=0&&w!==spine);
+  const w=cs[0]||L;used.add(w);const i=cs[0]?fitW(w,L):0;
+  for(let k=0;k<w.length;k++)b[idx(top+r,ac-i+k)]={ch:w[k],k:k===i?2:1};
  });
- lastInscribe=Date.now();
- nextChange=Math.max(nextChange,lastInscribe+HOLD+w.length*120);
+ return b;
 }
 
-function say(text){
- const words=text.split(/[^A-Za-zÀ-ÿ]+/).filter(Boolean);
- let delay=0;
- words.forEach(word=>{
-  const w=norm(word).replace(/[^A-Z]/g,'');if(!w)return;
-  poem.push(word.toLowerCase());
-  setTimeout(()=>inscribe(w),delay);delay+=350+w.length*60;
- });
- if(poem.length>400)poem=poem.slice(-400);
- trailEl.textContent=poem.slice(-14).join(' ');
+function oneWord(){ // una parola ripetuta, e un'intrusa
+ const w=pick([...NM,...NF]),x=pick(ALL.filter(z=>z!==w));
+ let s='';while(s.length<N+w.length)s+=w+' ';
+ const b=[...s.slice(0,N)].map(ch=>({ch,k:0}));
+ const starts=[];for(let i=0;i<N;i++)if((i===0||b[i-1].ch===' ')&&b[i].ch!==' '&&i%C+x.length<=C)starts.push(i);
+ if(starts.length){const p=pick(starts);for(let k=0;k<x.length;k++)b[p+k]={ch:x[k],k:2};for(let k=p+x.length;k<N&&b[k].ch!==' ';k++)b[k]={ch:' ',k:0}}
+ return b;
 }
 
-// —— voce ——
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let rec=null,listening=false,liveT;
-function showLive(t){liveEl.textContent=t;clearTimeout(liveT);liveT=setTimeout(()=>liveEl.textContent='',2500)}
-function micOn(){
- if(!SR){hint('qui la voce non funziona · scrivi una parola e premi invio',6000);return}
- if(!rec){
-  rec=new SR();rec.lang='it-IT';rec.continuous=true;rec.interimResults=true;
-  rec.onresult=e=>{let interim='';
-   for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];
-    if(r.isFinal){say(r[0].transcript);showLive(r[0].transcript.trim())}else interim+=r[0].transcript}
-   if(interim)showLive(interim.trim())};
-  rec.onend=()=>{if(listening)setTimeout(()=>{try{rec.start()}catch(_){}},250)};
-  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture'){listening=false;ear.classList.remove('live');hint('microfono non disponibile · scrivi una parola e premi invio',6000)}};
+function noise(){ // rumore di lettere, da cui affiorano poche parole
+ const b=base('lettere');if(chance(.25))return b;
+ const ws=phrase().filter(w=>w.length>1);
+ ws.forEach(w=>{const h=chance(.6)&&w.length<=C;if(!h&&w.length>R)return;
+  const r=h?rnd(R):rnd(R-w.length+1),c=h?rnd(C-w.length+1):rnd(C);
+  for(let k=0;k<w.length;k++)b[h?idx(r,c+k):idx(r+k,c)]={ch:w[k],k:1}});
+ return b;
+}
+
+function empty(){ // quasi nulla: una frase sola nel vuoto
+ const b=base('vuoto'),ph=phrase().filter(w=>w.length<=C);
+ let r=rnd(Math.max(1,R-ph.length));
+ const stair=chance(.5);let c=rnd(Math.max(1,C-(ph[0]||'').length+1));
+ ph.forEach((w,j)=>{if(r>=R)return;if(c+w.length>C)c=C-w.length;
+  for(let k=0;k<w.length;k++)b[idx(r,c+k)]={ch:w[k],k:j===ph.length-1&&chance(.4)?2:1};
+  if(stair){r++;c=Math.min(c+w.length,C-1)}else{r+=1+rnd(2);c=rnd(Math.max(1,C-((ph[j+1]||'').length)+1))}});
+ return b;
+}
+
+const COMP={righe:[()=>flow(false),3],colonne:[()=>flow(true),2],incrocio:[cross,2.2],acrostico:[()=>axis(false),1.2],mesostico:[()=>axis(true),1.4],parola:[oneWord,1],rumore:[noise,1.6],vuoto:[empty,1],blocco:[block,.8]};
+const nextComp=weighted(Object.fromEntries(Object.entries(COMP).map(([k,v])=>[k,v[1]])));
+
+// ————— transizioni: solo cambi di lettera, cella per cella —————
+let queue=[],hold=0,mutating=false;
+function go(target){
+ const diff=[];for(let i=0;i<N;i++)if(target[i].ch!==cur[i].ch||target[i].k!==cur[i].k)diff.push(i);
+ const mode=pick(['caso','caso','lettura','colonne','netto']);
+ const D=1200+Math.random()*1800,now=performance.now();
+ let ord=diff;
+ if(mode==='caso')ord=shuffle(diff);
+ if(mode==='colonne')ord=diff.slice().sort((a,b)=>(a%C)-(b%C)||a-b);
+ queue=ord.map((i,n)=>({t:now+(mode==='netto'?0:D*n/Math.max(1,ord.length)),i,c:target[i]}));
+ mutating=target.some(c=>c.k===0&&c.ch!==' ');
+ hold=0;
+}
+function tick(now){
+ let n=0;while(n<queue.length&&queue[n].t<=now){set(queue[n].i,queue[n].c);n++}
+ if(n)queue=queue.slice(n);
+ if(!queue.length){
+  if(!hold)hold=now+6500+Math.random()*4500;
+  else if(now>=hold)go(COMP[nextComp()][0]());
  }
- listening=true;ear.classList.add('live');try{rec.start()}catch(_){}
+ requestAnimationFrame(tick);
 }
-function micOff(){listening=false;ear.classList.remove('live');try{rec&&rec.stop()}catch(_){}}
-ear.addEventListener('click',e=>{e.stopPropagation();listening?micOff():micOn()});
+// il rumore grigio non sta mai fermo
+setInterval(()=>{if(!mutating||queue.length)return;
+ for(let n=0;n<1+rnd(3);n++){const i=rnd(N);if(cur[i].k===0&&cur[i].ch!==' ')set(i,{ch:letter(),k:0})}},220);
 
-// —— tastiera ——
-let buf='';
-let hintT;
-function hint(t,ms){hintEl.textContent=t;clearTimeout(hintT);if(ms)hintT=setTimeout(()=>{if(!buf)hintEl.textContent=''},ms)}
-addEventListener('keydown',e=>{
- if(e.metaKey||e.ctrlKey||e.altKey)return;
- if(e.key==='Enter'){if(buf.trim()){say(buf);showLive(buf.trim())}buf='';hint('')}
- else if(e.key==='Backspace'){buf=buf.slice(0,-1);hint(buf)}
- else if(e.key==='Escape'){buf='';hint('')}
- else if(e.key.length===1&&/[A-Za-zÀ-ÿ' ]/.test(e.key)){buf+=e.key;hint(buf);if(!startEl.hidden)startEl.hidden=true}
- else return;
- e.preventDefault();wake();
-});
+G.addEventListener('dblclick',()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(_){}});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{build();go(COMP.righe[0]())},300)});
 
-startEl.addEventListener('click',()=>{startEl.hidden=true;micOn()});
-field.addEventListener('dblclick',()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(_){}});
-
-// —— interfaccia che sparisce ——
-let idleT;
-function wake(){document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>document.body.classList.add('idle'),3000)}
-addEventListener('mousemove',wake);wake();
-
-let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>newPattern(true),300)});
-
-newPattern(true);
-setInterval(()=>{if(Date.now()>=nextChange)newPattern(false)},200);
+build();
+const start=()=>{go(COMP[pick(['righe','incrocio','mesostico'])][0]());requestAnimationFrame(tick)};
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(start);
 }
 </script>
 </body>
