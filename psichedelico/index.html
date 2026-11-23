@@ -1827,6 +1827,24 @@ function quadro(kind) {
   MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(5, 10); MONO.mode = kind; MONO.pix = kind === 'scacchiera' || kind === 'strisce';
 }
 
+// LETTERA A PIENA PAGINA: una sola lettera, grande, secca, ferma, a colori pieni
+function letteraSecca(ch) {
+  if (MONO.phase || RIT.phase) return;
+  const cv = MONO.cv; cv.width = view.width; cv.height = view.height; const g = cv.getContext('2d'), w = cv.width, h = cv.height;
+  ch = ch || (Math.random() < .75 ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0] : charOf(anyScript()));
+  if (Math.random() < .25 && /[A-Z]/.test(ch)) ch = ch.toLowerCase();
+  const P5 = currentPalette().c, lum = c => (.3 * c[0] + .59 * c[1] + .11 * c[2]) / 255, css = c => `rgb(${c.map(Math.round).join(',')})`;
+  let bg, fg; if (Math.random() < .35) { const wh = Math.random() < .5; bg = wh ? '#fff' : '#000'; fg = wh ? '#000' : '#fff'; }
+  else { let A, B, k = 0; do { A = pick(P5); B = pick(P5); k++; } while ((A === B || Math.abs(lum(A) - lum(B)) < .3) && k < 60); if (Math.abs(lum(A) - lum(B)) < .3) B = lum(A) > .5 ? [0, 0, 0] : [255, 255, 255]; bg = css(A); fg = css(B); }   // sempre ben leggibile
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  const font = pick(['"Helvetica Neue", Helvetica, Arial, sans-serif', '"Arial Black", sans-serif', 'Georgia, serif', '"Times New Roman", serif', '"Courier New", monospace', 'Impact, sans-serif', 'Futura, "Century Gothic", sans-serif', 'Didot, "Bodoni 72", serif']);
+  const wt = pick(['400', '700', '900', '700']), size = h * (Math.random() < .7 ? rnd(.85, 1.05) : rnd(1.2, 1.9));   // a volte così grande da uscire dalla pagina
+  g.font = `${wt} ${size}px ${font}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fg;
+  const off = size > h * 1.1 ? [gauss() * w * .1, gauss() * h * .1] : [0, h * .04];
+  g.fillText(ch, w / 2 + off[0], h / 2 + off[1]);
+  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false;
+}
+
 function drawMono(alpha) { vctx.save(); vctx.globalAlpha = alpha; vctx.imageSmoothingEnabled = !MONO.pix; vctx.drawImage(MONO.cv, 0, 0, view.width, view.height); vctx.restore(); }
 
 // APPARIZIONE: il resto si dissolve, il mandala resta solo e il tempo si ferma per qualche secondo
@@ -1932,7 +1950,8 @@ const EVENTS = [
   { rate: () => .016, fn: () => apparizione(P.illusioni) },        // illusioni ottiche, ferme
   { rate: () => .018, fn: monocromo },
   { rate: () => .016, fn: () => quadro() },
-  { rate: () => .014, fn: tavolaRorschach },                       // tavola di Rorschach classica, sempre nuova
+  { rate: () => .014, fn: tavolaRorschach },
+  { rate: () => .018, fn: () => letteraSecca() },                  // una lettera sola, a piena pagina, ferma                       // tavola di Rorschach classica, sempre nuova
   { rate: () => .012, fn: () => apparizione(P.rorschach) },        // macchia di Rorschach psichedelica
   { rate: () => .014, fn: () => apparizione(P.sagome) },           // sagome a colori pieni, ferme                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
@@ -2228,7 +2247,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2256,6 +2275,7 @@ addEventListener('keydown', e => {
   else if (k === '7') apparizione(P.yturralde);
   else if (k === '6') { if (Math.random() < .5) tavolaRorschach(); else apparizione(P.rorschach); }
   else if (k === '5') apparizione(P.sagome);
+  else if (k === '4') letteraSecca();
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
