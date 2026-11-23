@@ -720,6 +720,106 @@ P.disco = {
   }
 };
 
+/* ---------- ARTE CONCRETA (da J.-F. Rotgé e A. Kummerman, "How to teach Concrete art to a robot?", GA2023) ---------- */
+// curve che riempiono lo spazio, disordine senza caso, Truchet, stencil di Jordan colorati per "densità",
+// meandri (Anni Albers), linee ritmiche (Szpakowski), spirale (Le Parc), quadrati (Vera Molnar), metapixel (Vasarely)
+function hilbertXY(n, d) { let x = 0, y = 0; for (let s = 1, t = d; s < n; s *= 2, t = Math.floor(t / 4)) { const rx = 1 & (t / 2), ry = 1 & (t ^ rx); if (!ry) { if (rx) { x = s - 1 - x; y = s - 1 - y; } [x, y] = [y, x]; } x += s * rx; y += s * ry; } return [x, y]; }
+function hilbertD(n, x, y) { let d = 0; for (let s = n / 2; s > 0; s = Math.floor(s / 2)) { const rx = (x & s) > 0 ? 1 : 0, ry = (y & s) > 0 ? 1 : 0; d += s * s * ((3 * rx) ^ ry); if (!ry) { if (rx) { x = s - 1 - x; y = s - 1 - y; } [x, y] = [y, x]; } } return d; }
+function moore(order) { // curva di Moore: la curva di Hilbert chiusa, cioè un poligono di Jordan
+  let str = 'LFL+F+LFL'; for (let i = 1; i < order; i++) str = str.replace(/[LR]/g, ch => ch === 'L' ? '-RF+LFL+FR-' : '+LF-RFR-FL+');
+  const P = [[0, 0]]; let x = 0, y = 0, d = 0; for (const ch of str) { if (ch === 'F') { x += [1, 0, -1, 0][d]; y += [0, 1, 0, -1][d]; P.push([x, y]); } else if (ch === '+') d = (d + 1) % 4; else if (ch === '-') d = (d + 3) % 4; }
+  return P;
+}
+const inPoly = (P, x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+const CONCRETI = ['labirinto di Hilbert', 'disordine senza caso', 'disordine senza caso', 'Truchet', 'Truchet', 'stencil di Jordan', 'stencil di Jordan', 'meandri (Anni Albers)', 'linee ritmiche (Szpakowski)', 'spirale (Le Parc)', 'quadrati (Vera Molnar)', 'croce in linee (Vera Molnar)', 'metapixel (Vasarely)'];
+P.concreto = {
+  get name() { return 'arte concreta: ' + this.mode; },
+  init() {
+    const m = Math.min(W, H); this.mode = pick(CONCRETI); this.t = 0; this.hint = Math.random() < .85; this.cols = shuffled([0, 1, 2, 3, 4]);
+    this.side = m * rnd(.8, .98); this.x0 = (W - this.side) / 2; this.y0 = (H - this.side) / 2;   // quadro quadrato al centro, come un'opera
+    if (this.mode === 'labirinto di Hilbert') { this.n = pick([8, 16, 32]); this.w = rnd(.25, .55); }
+    if (this.mode === 'disordine senza caso') { this.n = pick([16, 32, 64]); this.base = pick(['quadrati concentrici', 'diagonali', 'cerchi']); this.mix = pick(['ordine', 'caos', 'caos', 'attrattore']); this.m = 2 + ((Math.random() * 4) | 0); this.side = Math.max(W, H) * 1.02; this.x0 = (W - this.side) / 2; this.y0 = (H - this.side) / 2; }
+    if (this.mode === 'Truchet') { this.n = pick([6, 8, 12, 16, 24]); this.rule = pick(['caso', 'i+j', 'i·j', 'i xor j', 'blocchi']); this.side = Math.max(W, H) * 1.02; this.x0 = (W - this.side) / 2; this.y0 = (H - this.side) / 2;
+      this.o = []; for (let j = 0; j < this.n; j++) for (let i = 0; i < this.n; i++) this.o.push(this.orient(i, j)); }
+    if (this.mode === 'stencil di Jordan') { this.curves = []; for (let k = 2 + ((Math.random() * 2) | 0); k > 0; k--) { const ord = 2 + ((Math.random() * 3) | 0), P0 = moore(ord), N = Math.pow(2, ord + 1) - 1;
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const [x, y] of P0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      const sc = this.side * rnd(.7, 1.15) / Math.max(x1 - x0, y1 - y0), mx = (x0 + x1) / 2, my = (y0 + y1) / 2, ox = W / 2 + gauss() * this.side * .12, oy = H / 2 + gauss() * this.side * .12, rot = pick([0, 0, Math.PI / 4, Math.PI / 2]);
+      this.curves.push(P0.map(([x, y]) => { const X = (x - mx) * sc, Y = (y - my) * sc; return [ox + X * Math.cos(rot) - Y * Math.sin(rot), oy + X * Math.sin(rot) + Y * Math.cos(rot)]; })); } }
+    if (this.mode === 'meandri (Anni Albers)') { this.u = m * rnd(.025, .05); this.lines = [0, 1, 2].map(i => ({ y: H * (.25 + i * .25) + gauss() * this.u * 2, ph: (Math.random() * 6) | 0, flip: Math.random() < .5 ? 1 : -1, v: gauss() * .3 })); }
+    if (this.mode === 'linee ritmiche (Szpakowski)') { this.n = pick([3, 4, 5, 6]); this.turns = 2 + ((Math.random() * 3) | 0); }
+    if (this.mode === 'spirale (Le Parc)') { this.rings = 8 + ((Math.random() * 14) | 0); this.shift = pick([1, 1, 2, 3]); }
+    if (this.mode === 'quadrati (Vera Molnar)') { this.g = 3 + ((Math.random() * 6) | 0); this.k = 3 + ((Math.random() * 6) | 0); this.dis = rnd(.02, .12); this.sq = [];
+      const c = this.side / this.g; for (let j = 0; j < this.g; j++) for (let i = 0; i < this.g; i++) for (let q = 1; q <= this.k; q++) { const h = c * .46 * q / this.k, cx = this.x0 + (i + .5) * c, cy = this.y0 + (j + .5) * c, J = () => gauss() * c * this.dis * (i + j) / this.g;
+        const Q = [[cx - h + J(), cy - h + J()], [cx + h + J(), cy - h + J()], [cx + h + J(), cy + h + J()], [cx - h + J(), cy + h + J()]]; Q.cell = j * this.g + i; this.sq.push(Q); } }
+    if (this.mode === 'croce in linee (Vera Molnar)') { this.g = pick([5, 7, 9, 11]); this.lpc = 3 + ((Math.random() * 6) | 0); this.flip = Math.random() < .3; }
+    if (this.mode === 'metapixel (Vasarely)') { this.n = pick([10, 12, 16, 20]); this.shape = pick(['quadrato', 'cerchio', 'rombo']); this.side = Math.max(W, H) * 1.02; this.x0 = (W - this.side) / 2; this.y0 = (H - this.side) / 2; }
+  },
+  orient(i, j) { const r = this.rule; return r === 'caso' ? (Math.random() * 4) | 0 : r === 'i+j' ? (i + j) & 3 : r === 'i·j' ? (i * j) & 3 : r === 'i xor j' ? (i ^ j) & 3 : ((i >> 1) + (j >> 1) * 2 + (i & 1) * (j & 1)) & 3; },
+  step() {
+    this.t += .01;
+    if (this.mode === 'Truchet' && Math.random() < .05) { const k = (Math.random() * this.o.length) | 0; this.o[k] = (this.o[k] + 1) & 3; }
+    if (this.mode === 'meandri (Anni Albers)') for (const l of this.lines) l.ph += l.v * .01;
+  },
+  baseVal(x, y, n) { // immagine ordinata da rimescolare
+    const cx = (n - 1) / 2; if (this.base === 'quadrati concentrici') return Math.floor(Math.max(Math.abs(x - cx), Math.abs(y - cx)) / (n / (2 * this.m * 2)));
+    if (this.base === 'diagonali') return Math.floor((x + y) / (n / (this.m * 2))); return Math.floor(Math.hypot(x - cx, y - cx) / (n / (this.m * 3)));
+  },
+  colorAt(x, y) {
+    const C = this.cols, u = (x - this.x0) / this.side, v = (y - this.y0) / this.side;
+    switch (this.mode) {
+      case 'disordine senza caso': { const n = this.n, i = clamp(Math.floor(u * n), 0, n - 1), j = clamp(Math.floor(v * n), 0, n - 1);
+        if (this.mix === 'ordine') return C[mod(this.baseVal(i, j, n), this.m)];
+        if (this.mix === 'attrattore') { const d = hilbertD(n, i, j); return C[mod(Math.floor(d / (n * n) * this.m * 6 + 2 * Math.sin(d * .07) + this.baseVal(i, j, n)), this.m)]; }
+        const d = hilbertD(n, i, j), k = d, yy = Math.floor(k / n), xx = yy & 1 ? n - 1 - k % n : k % n; return C[mod(this.baseVal(xx, yy, n), this.m)]; }   // letta in un ordine, scritta in un altro
+      case 'Truchet': { const n = this.n, fi = u * n, fj = v * n, i = Math.floor(fi), j = Math.floor(fj); if (i < 0 || j < 0 || i >= n || j >= n) return -1; const o = this.o[j * n + i], fx = fi - i, fy = fj - j;
+        const half = o & 1 ? fx + fy < 1 : fx > fy; return (half ? 1 : 0) ^ (o >> 1) ? C[0] : C[1]; }
+      case 'stencil di Jordan': { let k = 0; for (const P of this.curves) if (inPoly(P, x, y)) k++; return C[k % 5]; }   // densità: in quante curve cade il punto
+      case 'spirale (Le Parc)': { const cx = W / 2, cy = H / 2, dx = x - cx, dy = y - cy, ring = Math.floor(Math.max(Math.abs(dx), Math.abs(dy)) / (this.side / 2 / this.rings));
+        if (ring >= this.rings) return C[4]; const side = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0); return C[mod(ring + side * this.shift, 4)]; }
+      case 'quadrati (Vera Molnar)': { const g = this.g, ci = Math.floor(u * g), cj = Math.floor(v * g); let k = 0; for (const q of this.sq) { const qi = q.cell % g, qj = (q.cell / g) | 0; if (Math.abs(qi - ci) <= 1 && Math.abs(qj - cj) <= 1 && inPoly(q, x, y)) k++; } return C[k % 2 ? 0 : 4]; }
+      case 'metapixel (Vasarely)': { const n = this.n, fi = u * n, fj = v * n, i = Math.floor(fi), j = Math.floor(fj), b = this.bulge(i + .5, j + .5), fx = fi - i - .5, fy = fj - j - .5;
+        const inside = this.shape === 'cerchio' ? Math.hypot(fx, fy) < b / 2 : this.shape === 'rombo' ? Math.abs(fx) + Math.abs(fy) < b / 2 : Math.max(Math.abs(fx), Math.abs(fy)) < b / 2;
+        const chk = (i + j) & 1; return inside ? C[chk ? 1 : 0] : C[chk ? 0 : 1]; }
+      default: return -1;
+    }
+  },
+  bulge(i, j) { const n = this.n, cx = n / 2 + Math.cos(this.t * .7) * n * .2, cy = n / 2 + Math.sin(this.t * .5) * n * .2, d = Math.hypot(i - cx, j - cy) / (n * .45); return clamp(.15 + .8 * (1 - d * d), .1, .95); },
+  render(c) {
+    const { x0, y0, side } = this; c.beginPath();
+    const grid = n => { for (let i = 0; i <= n; i++) { c.moveTo(x0 + i * side / n, y0); c.lineTo(x0 + i * side / n, y0 + side); c.moveTo(x0, y0 + i * side / n); c.lineTo(x0 + side, y0 + i * side / n); } };
+    switch (this.mode) {
+      case 'labirinto di Hilbert': { c.stroke(); const n = this.n, cs = side / n, segs = []; let prev = null;
+        for (let d = 0; d < n * n; d++) { const [i, j] = hilbertXY(n, d), p = [x0 + (i + .5) * cs, y0 + (j + .5) * cs]; if (prev) segs.push([...prev, ...p, cs * this.w]); prev = p; }
+        c.rect(x0, y0, side, side); c.stroke(); tubeDraw(c, segs); return; }
+      case 'disordine senza caso': grid(this.n); break;
+      case 'Truchet': { const n = this.n, cs = side / n; grid(n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const o = this.o[j * n + i], X = x0 + i * cs, Y = y0 + j * cs;
+        if (o & 1) { c.moveTo(X + cs, Y); c.lineTo(X, Y + cs); } else { c.moveTo(X, Y); c.lineTo(X + cs, Y + cs); } } break; }
+      case 'stencil di Jordan': for (const P of this.curves) { P.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); } break;
+      case 'meandri (Anni Albers)': { c.stroke(); const u = this.u, segs = [], w = u * .7;
+        for (const l of this.lines) { const per = 6 * u, off = (l.ph % 6) * u; for (let x = -per * 2 + off; x < W + per; x += per) { const Y = (yy) => l.y - l.flip * yy * u;
+          const pts = [[x, Y(0)], [x + per, Y(0)]], hook = [[x + u, Y(0)], [x + u, Y(4)], [x + 5 * u, Y(4)], [x + 5 * u, Y(1.5)], [x + 3 * u, Y(1.5)], [x + 3 * u, Y(2.6)]];
+          segs.push([...pts[0], ...pts[1], w]); for (let k = 0; k < hook.length - 1; k++) segs.push([...hook[k], ...hook[k + 1], w]); } }
+        tubeDraw(c, segs); return; }
+      case 'linee ritmiche (Szpakowski)': { c.stroke(); const n = this.n, cs = side / n, segs = [], w = cs / (this.turns * 4 + 2) * .8; let last = null;
+        for (let j = 0; j < n; j++) for (let ii = 0; ii < n; ii++) { const i = j & 1 ? n - 1 - ii : ii, X = x0 + i * cs, Y = y0 + j * cs, cw = (i + j) & 1, pts = [];
+          for (let k = 0; k < this.turns * 4; k++) { const r = cs * .45 * (1 - k / (this.turns * 4 + 1)), a = (cw ? 1 : -1) * k * Math.PI / 2 + Math.PI * .75, cx = X + cs / 2, cy = Y + cs / 2;
+            pts.push([cx + r * Math.SQRT2 * Math.cos(a) * .72, cy + r * Math.SQRT2 * Math.sin(a) * .72]); }
+          if (last) segs.push([...last, ...pts[0], w]); for (let k = 0; k < pts.length - 1; k++) segs.push([...pts[k], ...pts[k + 1], w]); last = pts[0]; }
+        tubeDraw(c, segs); return; }
+      case 'spirale (Le Parc)': { const cx = W / 2, cy = H / 2, st = side / 2 / this.rings; for (let r = 1; r <= this.rings; r++) c.rect(cx - r * st, cy - r * st, 2 * r * st, 2 * r * st);
+        for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { c.moveTo(cx, cy); c.lineTo(cx + sx * side / 2, cy + sy * side / 2); } break; }
+      case 'quadrati (Vera Molnar)': for (const q of this.sq) { q.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); } break;
+      case 'croce in linee (Vera Molnar)': { const g = this.g, cs = side / g, mid = (g - 1) / 2; grid(g);
+        for (let j = 0; j < g; j++) for (let i = 0; i < g; i++) { const cross = i === mid || j === mid, vert = cross !== this.flip, X = x0 + i * cs, Y = y0 + j * cs, L = this.lpc;
+          for (let k = 1; k < L; k++) { if (vert) { c.moveTo(X + k * cs / L, Y); c.lineTo(X + k * cs / L, Y + cs); } else { c.moveTo(X, Y + k * cs / L); c.lineTo(X + cs, Y + k * cs / L); } } } break; }
+      case 'metapixel (Vasarely)': { const n = this.n, cs = side / n; grid(n);
+        for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const b = this.bulge(i + .5, j + .5) * cs / 2, cx = x0 + (i + .5) * cs, cy = y0 + (j + .5) * cs;
+          if (this.shape === 'cerchio') { c.moveTo(cx + b, cy); c.arc(cx, cy, b, 0, 6.2832); } else if (this.shape === 'rombo') { c.moveTo(cx, cy - b); c.lineTo(cx + b, cy); c.lineTo(cx, cy + b); c.lineTo(cx - b, cy); c.closePath(); } else c.rect(cx - b, cy - b, 2 * b, 2 * b); } break; }
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- SOLIDI: a volte tutto si condensa in forme geometriche semplici, ferme ---------- */
 function prism(n, h, r = 1, top = 1) { // prisma, piramide, cilindro, cono a n lati (i lati del cilindro restano uniti)
   const V = [], F = [], rot = n === 4 ? Math.PI / 4 : 0;
@@ -1526,6 +1626,7 @@ const EVENTS = [
   { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
   { rate: () => .014, fn: () => apparizione(P.solidi) },
+  { rate: () => .016, fn: () => apparizione(P.concreto) },        // arte concreta: curve, Truchet, Molnar, Albers, Le Parc, Vasarely, Szpakowski
   { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme
   { rate: () => .01, fn: () => apparizione(pick([P.mosaico, P.disco, P.douady])) },   // mosaici romani, dischi polari, spirali emergenti          // tutto si condensa in solidi semplici, fermi
   { rate: () => .03, fn: () => glitch() },                        // errore: l'immagine si rompe
@@ -1810,7 +1911,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1833,6 +1934,7 @@ addEventListener('keydown', e => {
   else if (k === 'j') apparizione(P.islamica);
   else if (k === 'q') apparizione(P.solidi);
   else if (k === 'y') quadro();
+  else if (k === 'w') apparizione(P.concreto);
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
   else if (k === 'r') glitch();
   else if (k === 'z') flicker();
