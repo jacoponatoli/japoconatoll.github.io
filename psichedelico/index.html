@@ -579,6 +579,34 @@ P.mandala = {
   }
 };
 
+/* ---------- SPIRALI FILLOTATTICHE: il modello di Vogel (girasole, pigna, margherita) ---------- */
+// punto n: raggio ∝ √n, angolo = n × angolo di divergenza (vicino all'angolo aureo 137,5°).
+// L'angolo deriva lentamente: le famiglie di spirali (5/8, 8/13, 13/21, 21/34...) si scambiano e si riformano.
+const GOLD = Math.PI * (3 - Math.sqrt(5)), FIB = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
+P.fillotassi = {
+  get name() { return 'spirali fillotattiche: ' + this.mode; },
+  init() {
+    this.mode = pick(['parastiche', 'parastiche', 'semi', 'petali']); this.N = Math.round(rnd(250, 900));
+    this.R = Math.max(W, H) * rnd(.45, .8); this.cx = Math.random() < .7 ? W / 2 : rnd(W * .25, W * .75); this.cy = Math.random() < .7 ? H / 2 : rnd(H * .25, H * .75);
+    this.dev = Math.random() < .6 ? 0 : rnd(-.004, .004); this.vd = gauss() * .000006; this.rot = rnd(6.28); this.vr = gauss() * .002; this.t = 0;
+  },
+  step() { this.t += .01; this.rot += this.vr; this.dev += this.vd; if (Math.abs(this.dev) > .006) this.vd *= -1; },
+  render(c) {
+    const N = this.N, k = this.R / Math.sqrt(N), ang = GOLD + this.dev + .0015 * Math.sin(this.t), pts = [];
+    for (let n = 1; n <= N; n++) { const r = k * Math.sqrt(n), a = n * ang + this.rot; pts.push([this.cx + r * Math.cos(a), this.cy + r * Math.sin(a), r]); }
+    c.beginPath();
+    if (this.mode === 'parastiche') { // ogni seme si lega ai suoi due vicini lungo le spirali: nasce il reticolo a losanghe
+      for (let i = 0; i < N; i++) { const [x, y] = pts[i], d = [];
+        for (const F of FIB) { const j = i + F; if (j < N) d.push([(pts[j][0] - x) ** 2 + (pts[j][1] - y) ** 2, j]); }
+        d.sort((p, q) => p[0] - q[0]); for (const [dd, j] of d.slice(0, 2)) { if (dd > 9 * k * k) continue; c.moveTo(x, y); c.lineTo(pts[j][0], pts[j][1]); } }
+      c.moveTo(this.cx + k * Math.sqrt(N) * 1.02, this.cy); c.arc(this.cx, this.cy, k * Math.sqrt(N) * 1.02, 0, 6.2832);
+    } else if (this.mode === 'semi') { for (const [x, y, r] of pts) { const d = k * .5 * (.6 + .4 * r / this.R); c.moveTo(x + d, y); c.arc(x, y, d, 0, 6.2832); } }
+    else { for (const [x, y, r] of pts) { const a = Math.atan2(y - this.cy, x - this.cx), L = k * 1.5, w = k * .6; // petali che guardano fuori
+      c.moveTo(x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); c.quadraticCurveTo(x - Math.sin(a) * w, y + Math.cos(a) * w, x + Math.cos(a) * L / 2, y + Math.sin(a) * L / 2); c.quadraticCurveTo(x + Math.sin(a) * w, y - Math.cos(a) * w, x - Math.cos(a) * L / 2, y - Math.sin(a) * L / 2); } }
+    c.stroke();
+  }
+};
+
 /* ---------- SOLIDI: a volte tutto si condensa in forme geometriche semplici, ferme ---------- */
 function prism(n, h, r = 1, top = 1) { // prisma, piramide, cilindro, cono a n lati (i lati del cilindro restano uniti)
   const V = [], F = [], rot = n === 4 ? Math.PI / 4 : 0;
@@ -1384,7 +1412,8 @@ const EVENTS = [
   { rate: () => .018, fn: monocromo },
   { rate: () => .016, fn: () => quadro() },                        // quadri classici fermi: Albers, ruota dei colori, scacchiere...
   { rate: () => .012, fn: () => apparizione(P.islamica) },
-  { rate: () => .014, fn: () => apparizione(P.solidi) },          // tutto si condensa in solidi semplici, fermi
+  { rate: () => .014, fn: () => apparizione(P.solidi) },
+  { rate: () => .01, fn: () => apparizione(P.fillotassi) },       // spirali fillotattiche, ferme          // tutto si condensa in solidi semplici, fermi
   { rate: () => .03, fn: () => glitch() },                        // errore: l'immagine si rompe
   { rate: () => .008, fn: () => flicker() },                      // lampeggio bianco e nero        // motivi islamici, fermi
   { rate: () => .018, fn: () => apparizione(P.lettere) },          // lettere ferme
@@ -1658,7 +1687,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · U: spirali fillotattiche · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -1681,6 +1710,7 @@ addEventListener('keydown', e => {
   else if (k === 'j') apparizione(P.islamica);
   else if (k === 'q') apparizione(P.solidi);
   else if (k === 'y') quadro();
+  else if (k === 'u') apparizione(P.fillotassi);
   else if (k === 'r') glitch();
   else if (k === 'z') flicker();
   else if (k === '0') { FL.ok = !FL.ok; note(FL.ok ? 'lampeggio attivo' : 'lampeggio disattivato'); }
