@@ -17,6 +17,7 @@
 <canvas id="c"></canvas>
 <div id="info"></div>
 <script>
+if (location.protocol === 'http:' && !/^(localhost|127\.|\[::1\])/.test(location.hostname)) location.replace('https://' + location.host + location.pathname + location.hash);
 {
 /* PSICHEDELICO (Jacopo Natoli, 2026) — astrattismo psichedelico in variazione infinita: processi stocastici
    e sistemi caotici (reazione-diffusione, automi cellulari, attrattori, insiemi di Julia) incrociati,
@@ -578,6 +579,211 @@ P.mandala = {
   }
 };
 
+/* ---------- FIGURE: corpi fatti di "tubi"; la loro unione dà la sagoma, i dettagli sono linee ---------- */
+function tubeDraw(c, segs, lines) {
+  for (const [a, b, x, y, w] of segs) { c.lineWidth = w + LW; c.beginPath(); c.moveTo(a, b); c.lineTo(x + .01, y); c.stroke(); }
+  c.globalCompositeOperation = 'destination-out';
+  for (const [a, b, x, y, w] of segs) { c.lineWidth = Math.max(1, w - LW); c.beginPath(); c.moveTo(a, b); c.lineTo(x + .01, y); c.stroke(); }
+  c.globalCompositeOperation = 'source-over'; c.lineWidth = LW;
+  if (lines && lines.length) { c.beginPath(); for (const pl of lines) pl.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); }
+}
+// corpo: coordinate locali (unità ≈ altezza della figura) → schermo
+function body(X, Y, S, dir) {
+  const B = { segs: [], lines: [], T: (u, v) => [X + dir * u * S, Y + v * S] };
+  B.seg = (u1, v1, u2, v2, w) => { const [a, b] = B.T(u1, v1), [x, y] = B.T(u2, v2); B.segs.push([a, b, x, y, w * S]); };
+  B.dot = (u, v, w) => B.seg(u, v, u, v, w);
+  B.line = pts => B.lines.push(pts.map(([u, v]) => B.T(u, v)));
+  B.ring = (u, v, r, n = 14) => { const p = []; for (let i = 0; i <= n; i++) p.push([u + r * Math.cos(i / n * 6.2832), v + r * Math.sin(i / n * 6.2832)]); B.line(p); };
+  // arto a due segmenti: angoli dal basso (0 = giù, π/2 = avanti)
+  B.limb = (u, v, a1, a2, L1, L2, w1, w2, foot) => { const ku = u + L1 * Math.sin(a1), kv = v + L1 * Math.cos(a1), fu = ku + L2 * Math.sin(a1 + a2), fv = kv + L2 * Math.cos(a1 + a2);
+    B.seg(u, v, ku, kv, w1); B.seg(ku, kv, fu, fv, w2); if (foot) B.seg(fu, fv, fu + foot, fv, w2 * 1.1); return [fu, fv]; };
+  return B;
+}
+function human(B, t, pz, ox = 0, oy = 0) {
+  const sw = (k, f, ph) => pz.amp * pz[k] * Math.sin(t * f + ph);
+  B.dot(ox, oy - .43, .15); B.seg(ox, oy - .35, ox, oy - .31, .07); B.seg(ox, oy - .3, ox + sw('h', 1.3, 0) * .1, oy - .03, .19); B.seg(ox - .05, oy, ox + .05, oy, .13);
+  B.limb(ox - .09, oy - .27, -(pz.al + sw('a', 2.1, 0)), -pz.el - sw('e', 2.7, 1), .17, .16, .07, .055);
+  B.limb(ox + .09, oy - .27, pz.ar + sw('a', 2.3, 2), pz.er + sw('e', 2.5, .5), .17, .16, .07, .055);
+  B.limb(ox - .05, oy + .02, -(pz.ll + sw('l', 1.9, 1)), pz.kl + Math.abs(sw('k', 1.9, 1)), .24, .23, .1, .075, -.05);
+  B.limb(ox + .05, oy + .02, pz.lr + sw('l', 1.9, 4), -(pz.kr + Math.abs(sw('k', 1.9, 4))), .24, .23, .1, .075, .05);
+}
+const pose = () => ({ amp: rnd(.3, 1), h: rnd(.5, 1.5), a: rnd(.5, 1.5), e: rnd(.3, 1.2), l: rnd(.2, .8), k: rnd(.2, .8),
+  al: rnd(.3, 2.8), ar: rnd(.3, 2.8), el: rnd(0, 1.2), er: rnd(0, 1.2), ll: rnd(0, .5), lr: rnd(0, .5), kl: rnd(0, .4), kr: rnd(0, .4) });
+const quadruped = (B, t, o) => { // tigre, cervo, elefante: corpo, zampe che camminano, coda
+  const bob = .012 * Math.sin(2 * t);
+  B.seg(-.3, bob, .22, bob, o.bw); B.seg(.15, bob - .02, .27, bob - .04, o.bw * 1.05);
+  for (const [hu, ph] of [[-.24, 0], [-.2, Math.PI], [.18, Math.PI / 2], [.22, Math.PI * 1.5]]) {
+    const s1 = Math.sin(t + ph); B.limb(hu, .05 + bob, .45 * s1, -o.knee * (1 + Math.sin(t + ph + 1.2)) * .5, o.L1, o.L2, o.lw, o.lw * .7, .04); }
+  const tail = []; for (let k = 0; k <= 8; k++) tail.push([-.3 - o.tl * k / 8, -.03 - .02 * k + .05 * Math.sin(t * 1.4 + k * .6)]);
+  for (let k = 0; k < 8; k++) B.seg(tail[k][0], tail[k][1], tail[k + 1][0], tail[k + 1][1], o.tw * (1 - k / 12));
+  return { bob, tail };
+};
+const FIGURE = {
+  tigre(B, t) {
+    const { bob, tail } = quadruped(B, t, { bw: .3, L1: .2, L2: .19, lw: .12, knee: .5, tl: .42, tw: .055 });
+    B.seg(.28, -.06 + bob, .4, -.1 + bob, .2); B.dot(.47, -.12 + bob, .26); B.seg(.5, -.08 + bob, .6, -.06 + bob, .13);
+    B.dot(.41, -.25 + bob, .08); B.dot(.53, -.26 + bob, .08);
+    // strisce da bordo a bordo: il corpo si divide in bande di colore
+    for (let i = 0; i < 8; i++) { const x = -.27 + i * .066, w = .02 * Math.sin(i * 2.3); B.line([[x, -.2 + bob], [x + .03 + w, -.08 + bob], [x - .005, .02 + bob], [x + .025 - w, .2 + bob]]); }
+    for (const x of [.42, .46, .5]) B.line([[x, -.28 + bob], [x + .02, -.12 + bob], [x - .01, .02 + bob]]);
+    B.ring(.53, -.15 + bob, .02); B.ring(.53, -.15 + bob, .008);
+    for (let k = 2; k < 9; k += 2) B.line([[tail[k][0], tail[k][1] - .035], [tail[k][0], tail[k][1] + .035]]);
+  },
+  cervo(B, t) {
+    const { bob } = quadruped(B, t, { bw: .22, L1: .28, L2: .27, lw: .07, knee: .4, tl: .08, tw: .05 });
+    B.seg(.25, -.05 + bob, .36, -.32 + bob, .1); B.seg(.37, -.36 + bob, .5, -.32 + bob, .1); B.dot(.36, -.4 + bob, .06);
+    for (const s of [-1, 1]) { const a = .36 + s * .02; B.seg(a, -.41 + bob, a + s * .05, -.56 + bob, .025); B.seg(a + s * .05, -.56 + bob, a + s * .02, -.66 + bob, .02); B.seg(a + s * .035, -.5 + bob, a + s * .11, -.56 + bob, .02); B.seg(a + s * .045, -.6 + bob, a + s * .1, -.67 + bob, .018); }
+    B.ring(.44, -.35 + bob, .015); for (let i = 0; i < 6; i++) B.ring(-.2 + i * .07, -.04 + bob + .03 * (i % 2), .022);
+  },
+  elefante(B, t) {
+    const { bob } = quadruped(B, t * .7, { bw: .46, L1: .17, L2: .16, lw: .15, knee: .2, tl: .14, tw: .03 });
+    B.dot(.33, -.12 + bob, .32); B.seg(.24, -.12 + bob, .27, -.06 + bob, .28);
+    const tr = []; for (let k = 0; k <= 7; k++) { const f = k / 7; tr.push([.44 + .08 * Math.sin(f * 2 + Math.sin(t) * .6), -.06 + f * .34 + bob - .1 * f * f * (1 + Math.sin(t * .8))]); }
+    for (let k = 0; k < 7; k++) B.seg(tr[k][0], tr[k][1], tr[k + 1][0], tr[k + 1][1], .1 - k * .007);
+    B.ring(.38, -.17 + bob, .018); B.seg(.42, 0 + bob, .5, .06 + bob, .03); B.seg(.5, .06 + bob, .53, .03 + bob, .025); B.line([[.16, -.4 + bob], [.2, -.14 + bob], [.17, .2 + bob]]);
+  },
+  uccello(B, t) {
+    const f = Math.sin(t * 3); B.seg(-.15, 0, .15, 0, .16); B.dot(.22, -.05, .13); B.seg(.27, -.05, .36, -.03, .035);
+    for (const [o, sc] of [[0, 1], [.05, .8]]) { const e = [-.04 + o, -.03 - .2 * sc * (.45 + .55 * f)], tip = [-.2 + o, -.03 - .34 * sc * (.25 + .75 * f)]; B.seg(o, -.03, e[0], e[1], .1); B.seg(e[0], e[1], tip[0], tip[1], .06); }
+    for (const dv of [-.05, 0, .05]) B.seg(-.15, 0, -.3, dv, .04); B.ring(.24, -.07, .012);
+  },
+  pesce(B, t) {
+    const w = .1 * Math.sin(t * 2.5); B.seg(-.22, w * .3, .18, 0, .3); B.seg(.18, 0, .25, .01, .2);
+    B.seg(-.22, w * .3, -.4, -.14 + w, .09); B.seg(-.22, w * .3, -.4, .14 + w, .09); B.seg(-.02, -.14, -.1, -.24, .07); B.seg(0, .14, -.06, .2, .05);
+    B.ring(.15, -.04, .03); B.ring(.15, -.04, .012); B.line([[.08, -.2], [.11, -.03], [.08, .2]]);
+    for (let i = 0; i < 4; i++) B.line([[-.16 + i * .055, -.2], [-.12 + i * .055, 0], [-.16 + i * .055, .2]]);
+  },
+  serpente(B, t) {
+    const P = []; for (let k = 0; k <= 24; k++) { const u = -.7 + k / 24 * 1.3; P.push([u, .12 * Math.sin(3.2 * u - t * 2)]); }
+    for (let k = 0; k < 24; k++) B.seg(P[k][0], P[k][1], P[k + 1][0], P[k + 1][1], .03 + .07 * k / 24);
+    const h = P[24]; B.dot(h[0] + .03, h[1], .13); B.ring(h[0] + .05, h[1] - .03, .012);
+    B.line([[h[0] + .09, h[1]], [h[0] + .16, h[1]], [h[0] + .19, h[1] - .02]]); B.line([[h[0] + .16, h[1]], [h[0] + .19, h[1] + .02]]);
+    for (let k = 3; k < 22; k += 2) B.line([[P[k][0], P[k][1] - .05], [P[k][0] + .02, P[k][1] + .05]]);
+  },
+  figura(B, t, o) { human(B, t, o.pz); },
+  vitruviano(B, t) { // omaggio a Leonardo: due posizioni sovrapposte, nel cerchio e nel quadrato
+    const b = .5 + .5 * Math.sin(t * .8), pz = { amp: 0, al: 1.57 + .5 * b, ar: 1.57 + .5 * b, el: 0, er: 0, ll: .35 * b, lr: .35 * b, kl: 0, kr: 0, h: 0, a: 0, e: 0, l: 0, k: 0 };
+    human(B, t, pz); B.ring(0, -.05, .52, 48); B.line([[-.44, -.48], [.44, -.48], [.44, .4], [-.44, .4], [-.44, -.48]]);
+  },
+  occhio(B, t) {
+    const o = Math.max(.05, Math.abs(Math.sin(t * .5)) ** .3);
+    const top = [], bot = []; for (let i = 0; i <= 24; i++) { const u = -.5 + i / 24; top.push([u, -.22 * o * (1 - 4 * u * u)]); bot.push([u, .2 * (1 - 4 * u * u)]); }
+    B.line(top); B.line(bot); for (const r of [.16, .1, .045]) if (r * 1.1 < .2 * o + .05) B.ring(Math.sin(t * .7) * .1, 0, r, 30);
+    for (let i = 1; i < 12; i++) { const u = -.5 + i / 12; const v = -.22 * o * (1 - 4 * u * u); B.seg(u, v, u * 1.15, v - .08, .012); }
+  },
+};
+P.bestiario = {
+  get name() { return 'figura: ' + this.kind; },
+  init() {
+    this.kind = pick(['tigre', 'tigre', 'cervo', 'elefante', 'uccello', 'pesce', 'serpente', 'figura', 'figura', 'danzatori', 'vitruviano', 'occhio']);
+    const still = ['figura', 'vitruviano', 'occhio', 'danzatori'].includes(this.kind);
+    this.S = Math.min(W, H) * (still ? rnd(.7, .95) : rnd(.55, .85)) * ({ uccello: 1.9, pesce: 1.5, serpente: 1.1 }[this.kind] || 1); this.dir = Math.random() < .5 ? 1 : -1;
+    this.X = still ? rnd(W * .3, W * .7) : (this.dir > 0 ? -this.S * .6 : W + this.S * .6); this.Y = H * rnd(.42, .6);
+    this.v = still ? 0 : this.S * rnd(.0025, .005) * this.dir; this.t = rnd(6.28); this.sp = rnd(.04, .08);
+    this.pz = pose(); this.dancers = Array.from({ length: 3 + ((Math.random() * 4) | 0) }, pose); this.ring = rnd(6.28);
+  },
+  step() {
+    this.t += this.sp; this.X += this.v; this.ring += .004;
+    if (this.v && (this.X < -this.S || this.X > W + this.S)) this.init();
+  },
+  render(c) {
+    if (this.kind === 'danzatori') { // un cerchio di danzatori che si tengono per mano
+      const n = this.dancers.length, segs = [], lines = [];
+      this.dancers.map((pz, i) => ({ pz, a: this.ring + i * 6.2832 / n })).sort((p, q) => Math.sin(p.a) - Math.sin(q.a)).forEach(({ pz, a }) => {
+        const d = .75 + .25 * Math.sin(a), B = body(W / 2 + Math.cos(a) * W * .3, H * .55 + Math.sin(a) * H * .08, this.S * .5 * d, 1);
+        human(B, this.t, Object.assign({}, pz, { al: 2.1, ar: 2.1, amp: .5 })); segs.push(...B.segs); lines.push(...B.lines); });
+      tubeDraw(c, segs, lines); return;
+    }
+    const B = body(this.X, this.Y, this.S, this.dir); FIGURE[this.kind](B, this.t, this); tubeDraw(c, B.segs, B.lines);
+  }
+};
+
+/* ---------- OMAGGI: vocabolari di forme di maestri del Novecento (non copie di opere) ---------- */
+const OMAGGI = ['Kandinsky', 'Kandinsky', 'Miró', 'Delaunay', 'Mondrian', 'Malevič', 'Matisse', 'Klee', 'Arp'];
+P.omaggi = {
+  get name() { return 'omaggio a ' + this.who; },
+  init() {
+    this.who = pick(OMAGGI); this.el = []; this.bars = []; this.t = 0; const m = Math.min(W, H);
+    const E = (type, s, extra) => this.el.push(Object.assign({ type, x: rnd(W), y: rnd(H), s: s * m, rot: rnd(6.28), vx: gauss() * .15, vy: gauss() * .15, vr: gauss() * .002, ph: rnd(6.28) }, extra || {}));
+    const W6 = this.who;
+    if (W6 === 'Kandinsky') {
+      if (Math.random() < .5) { // quadrati con cerchi concentrici
+        const nx = 3 + ((Math.random() * 3) | 0), ny = Math.max(2, Math.round(nx * H / W)), cw = W / nx, ch = H / ny;
+        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) this.el.push({ type: 'cerchiquadro', x: (i + .5) * cw, y: (j + .5) * ch, w: cw, h: ch, n: 3 + ((Math.random() * 3) | 0), jx: gauss() * .1, jy: gauss() * .1, rot: 0, vx: 0, vy: 0, vr: 0, ph: rnd(6.28), s: Math.min(cw, ch) });
+      } else { // composizione: cerchi, triangoli, linee, scacchiera, onda
+        for (let i = 3 + poisson(3); i > 0; i--) E('conc', rnd(.08, .3), { n: 1 + ((Math.random() * 4) | 0) });
+        for (let i = 2 + poisson(2); i > 0; i--) E('tri', rnd(.1, .3));
+        for (let i = 4 + poisson(4); i > 0; i--) E('linea', rnd(.4, 1.2));
+        E('scacchi', rnd(.15, .3), { n: 3 + ((Math.random() * 4) | 0) }); E('onda', rnd(.4, .8)); for (let i = 0; i < 3; i++) E('arco', rnd(.1, .4));
+      }
+    } else if (W6 === 'Miró') {
+      for (let i = 3 + poisson(3); i > 0; i--) E('macchia', rnd(.1, .3), { k: Array.from({ length: 7 }, () => rnd(.6, 1.4)) });
+      for (let i = 2 + poisson(2); i > 0; i--) E('stella', rnd(.05, .14), { n: pick([5, 6, 8]) });
+      E('luna', rnd(.08, .16)); E('spirale', rnd(.08, .2)); E('scala', rnd(.25, .5)); E('occhio', rnd(.06, .12)); E('costellazione', rnd(.3, .6), { p: Array.from({ length: 6 }, () => [rnd(-1, 1), rnd(-1, 1)]) });
+    } else if (W6 === 'Delaunay') {
+      for (let i = 1 + ((Math.random() * 3) | 0); i > 0; i--) E('disco', rnd(.25, .6), { n: 4 + ((Math.random() * 5) | 0), vx: gauss() * .05, vy: gauss() * .05, x: rnd(W * .2, W * .8), y: rnd(H * .25, H * .75) });
+    } else if (W6 === 'Mondrian') {
+      this.xs = Array.from({ length: 3 + poisson(2) }, () => rnd(W)); this.ys = Array.from({ length: 3 + poisson(2) }, () => rnd(H));
+    } else if (W6 === 'Malevič') {
+      for (let i = 4 + poisson(5); i > 0; i--) E('rett', rnd(.05, .3), { r: rnd(.15, 1) }); E('croce', rnd(.15, .3)); if (Math.random() < .6) E('cerchio', rnd(.08, .2));
+    } else if (W6 === 'Matisse') {
+      for (let i = 4 + poisson(4); i > 0; i--) E(Math.random() < .7 ? 'alga' : 'stella', rnd(.08, .22), { n: pick([5, 6, 7, 9]), k: Array.from({ length: 4 }, () => rnd(.6, 1.4)) });
+    } else if (W6 === 'Klee') {
+      const cw = [], rh = []; let x = 0, y = 0; while (x < W) { const d = rnd(.05, .14) * W; cw.push(d); x += d; } while (y < H) { const d = rnd(.06, .16) * H; rh.push(d); y += d; }
+      this.cw = cw; this.rh = rh; if (Math.random() < .6) E('freccia', rnd(.15, .3)); if (Math.random() < .6) E('cerchio', rnd(.06, .12));
+    } else { // Arp: forme organiche morbide
+      for (let i = 3 + poisson(3); i > 0; i--) E('macchia', rnd(.12, .35), { k: Array.from({ length: 7 }, () => rnd(.75, 1.25)) });
+    }
+  },
+  step() {
+    this.t += .01;
+    for (const e of this.el) { e.x += e.vx; e.y += e.vy; e.rot += e.vr; if (e.x < -e.s) e.x = W + e.s; if (e.x > W + e.s) e.x = -e.s; if (e.y < -e.s) e.y = H + e.s; if (e.y > H + e.s) e.y = -e.s; }
+    if (this.who === 'Mondrian' && Math.random() < .01) { const A = Math.random() < .5 ? this.xs : this.ys, L = A === this.xs ? W : H;
+      if (Math.random() < .5 && A.length > 2) A.splice((Math.random() * A.length) | 0, 1); else if (A.length < 8) A.push(rnd(L)); }
+  },
+  render(c) {
+    const t = this.t;
+    if (this.who === 'Mondrian') { // barre spesse: ogni barra è a sua volta una regione
+      const w = Math.min(W, H) * .022, segs = [];
+      this.xs.forEach((x, i) => { const part = i % 3 === 2; segs.push([x, part ? this.ys[0] || 0 : -10, x, H + 10, w]); });
+      this.ys.forEach((y, i) => { const part = i % 3 === 2; segs.push([part ? this.xs[0] || 0 : -10, y, W + 10, y, w]); });
+      tubeDraw(c, segs); return;
+    }
+    c.beginPath();
+    if (this.who === 'Klee') { let x = 0; for (const d of this.cw) { x += d; c.moveTo(x, 0); c.lineTo(x, H); } let y = 0; for (const d of this.rh) { y += d; c.moveTo(0, y); c.lineTo(W, y); } }
+    for (const e of this.el) {
+      c.save(); c.translate(e.x, e.y); c.rotate(e.rot); const s = e.s, br = 1 + .05 * Math.sin(t * 2 + e.ph);
+      switch (e.type) {
+        case 'cerchiquadro': c.rect(-e.w / 2, -e.h / 2, e.w, e.h); for (let k = 1; k <= e.n; k++) { const r = s * .45 * k / e.n * br, ox = e.jx * s * (e.n - k) / e.n * Math.sin(t + e.ph), oy = e.jy * s * (e.n - k) / e.n; c.moveTo(ox + r, oy); c.arc(ox, oy, r, 0, 6.2832); } break;
+        case 'conc': for (let k = 1; k <= e.n; k++) { const r = s * k / e.n * br; c.moveTo(r, 0); c.arc(0, 0, r, 0, 6.2832); } break;
+        case 'cerchio': c.moveTo(s, 0); c.arc(0, 0, s, 0, 6.2832); break;
+        case 'tri': c.moveTo(0, -s); c.lineTo(s * .87, s * .5); c.lineTo(-s * .87, s * .5); c.closePath(); break;
+        case 'linea': c.moveTo(-s / 2, 0); c.lineTo(s / 2, 0); break;
+        case 'arco': c.moveTo(s, 0); c.arc(0, 0, s, 0, Math.PI * .9); break;
+        case 'onda': for (let i = 0; i <= 40; i++) { const u = -s / 2 + s * i / 40, v = s * .06 * Math.sin(i * .6 + t * 3); i ? c.lineTo(u, v) : c.moveTo(u, v); } break;
+        case 'scacchi': { const n = e.n, d = s / n; for (let i = 0; i <= n; i++) { c.moveTo(-s / 2 + i * d, -s / 2); c.lineTo(-s / 2 + i * d, s / 2); c.moveTo(-s / 2, -s / 2 + i * d); c.lineTo(s / 2, -s / 2 + i * d); } } break;
+        case 'macchia': case 'alga': { const N = 90; for (let i = 0; i <= N; i++) { const a = i / N * 6.2832;
+          let r = e.type === 'alga' ? s * (.55 + .45 * Math.abs(Math.sin(a * e.n / 2 + Math.sin(t + e.ph) * .3))) * (.8 + .2 * e.k[i % 4])
+            : s * (.75 + .18 * Math.sin(2 * a + e.k[0] * 3 + t) + .12 * Math.sin(3 * a + e.k[1] * 4 - t * .7) + .08 * Math.sin(5 * a + e.k[2] * 2));
+          i ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(r * Math.cos(a), r * Math.sin(a)); } c.closePath(); } break;
+        case 'stella': for (let k = 0; k < e.n; k++) { const a = k * 6.2832 / e.n; c.moveTo(0, 0); c.lineTo(Math.cos(a) * s, Math.sin(a) * s); } c.moveTo(s * .18, 0); c.arc(0, 0, s * .18, 0, 6.2832); break;
+        case 'luna': c.moveTo(s, 0); c.arc(0, 0, s, 0, 6.2832); c.moveTo(s * 1.3, 0); c.arc(s * .35, 0, s * .95, 0, 6.2832); break;
+        case 'spirale': for (let i = 0; i <= 120; i++) { const a = i * .15, r = s * i / 120; i ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(0, 0); } break;
+        case 'scala': c.moveTo(-s * .1, -s / 2); c.lineTo(-s * .1, s / 2); c.moveTo(s * .1, -s / 2); c.lineTo(s * .1, s / 2); for (let i = 0; i <= 6; i++) { const v = -s / 2 + i * s / 6; c.moveTo(-s * .1, v); c.lineTo(s * .1, v); } break;
+        case 'occhio': c.moveTo(s, 0); c.arc(0, 0, s, 0, 6.2832); c.moveTo(s * .35, 0); c.arc(0, 0, s * .35, 0, 6.2832); break;
+        case 'costellazione': e.p.forEach(([u, v], i) => { const x = u * s, y = v * s; i ? c.lineTo(x, y) : c.moveTo(x, y); }); for (const [u, v] of e.p) { c.moveTo(u * s + s * .04, v * s); c.arc(u * s, v * s, s * .04, 0, 6.2832); } break;
+        case 'disco': { const a = t * .3 + e.ph; for (let k = 1; k <= e.n; k++) { const r = s * k / e.n; c.moveTo(r, 0); c.arc(0, 0, r, 0, 6.2832); }
+          c.moveTo(Math.cos(a) * s, Math.sin(a) * s); c.lineTo(-Math.cos(a) * s, -Math.sin(a) * s); c.moveTo(-Math.sin(a) * s, Math.cos(a) * s); c.lineTo(Math.sin(a) * s, -Math.cos(a) * s); } break;
+        case 'rett': c.rect(-s / 2, -s * e.r / 2, s, s * e.r); break;
+        case 'croce': c.rect(-s / 2, -s / 8, s, s / 4); c.rect(-s / 8, -s / 2, s / 4, s); break;
+        case 'freccia': c.moveTo(-s / 2, 0); c.lineTo(s / 2, 0); c.moveTo(s / 2 - s * .18, -s * .14); c.lineTo(s / 2, 0); c.lineTo(s / 2 - s * .18, s * .14); c.closePath(); break;
+      }
+      c.restore();
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- TELECAMERA (tasto V): chi guarda entra nel quadro ---------- */
 // l'immagine viene sfocata e divisa in fasce di luce; i contorni fra le fasce diventano confini come gli altri.
 // Niente viene registrato né inviato: tutto resta nel browser.
@@ -609,12 +815,18 @@ async function toggleCam() {
     const a = active.find(x => x.proc === P.camera); if (a) { a.target = 0; a.rate = .5; a.shape = 'cerchio'; a.cx = W / 2; a.cy = H / 2; }
     note('telecamera spenta'); return;
   }
+  if (!window.isSecureContext || !navigator.mediaDevices) { note('la telecamera funziona solo da https://jacoponatoli.net'); return; }
+  note('consenti l\'accesso alla telecamera…');
   try {
     const st = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
     CAM.stream = st;
-    if (!CAM.video) { CAM.video = document.createElement('video'); CAM.video.muted = true; CAM.video.playsInline = true; }
+    if (!CAM.video) { const v = CAM.video = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+      v.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(v); }
     CAM.video.srcObject = st; await CAM.video.play(); CAM.on = true; note('telecamera accesa — V per spegnerla');
-  } catch (e) { note('telecamera non disponibile'); }
+  } catch (e) {
+    note(e && e.name === 'NotAllowedError' ? 'accesso negato: consenti la telecamera nelle impostazioni del browser e riprova (V)'
+      : e && e.name === 'NotFoundError' ? 'nessuna telecamera trovata' : e && e.name === 'NotReadableError' ? 'la telecamera è usata da un\'altra applicazione' : 'telecamera non disponibile');
+  }
 }
 function camEnter() {
   const a = active.find(x => x.proc === P.camera);
@@ -647,6 +859,7 @@ function apparizione() {
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
   RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = rnd(1.5, 4);
+  RIT.colorsStill = Math.random() < .5;   // a volte si ferma anche il colore, a volte il colore continua a scorrere
 }
 function rituale(dt) {
   if (!RIT.phase) return false;
@@ -729,7 +942,9 @@ const EVENTS = [
   { rate: () => .05, fn: newWarp },                               // distorsioni: liquido, vortice, tunnel, mandala, lente
   { rate: () => .035, fn: newEcho },                              // eco: il quadro si ripete dentro se stesso
   { rate: () => .07, fn: () => { S.cycVt = Math.random() < .35 ? 0 : rnd(-.6, .6); } },
-  { rate: () => .022, fn: apparizione },                          // apparizione di un mandala, con sosta
+  { rate: () => .022, fn: apparizione },
+  { rate: () => active.some(a => a.proc === P.bestiario) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.bestiario); } },
+  { rate: () => active.some(a => a.proc === P.omaggi) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.omaggi); } },                          // apparizione di un mandala, con sosta
 ];
 
 /* =================== MOTORE =================== */
@@ -960,7 +1175,10 @@ function loop(t) {
   if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
   if (!window.__noev && !RIT.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn();
   // derive lente dei parametri globali
-  if (still) { frame(t, 0); return; }   // sosta: tutto fermo, il mandala si lascia guardare
+  if (still) {   // sosta: la forma è ferma; il colore resta fermo oppure continua a scorrere
+    if (!RIT.colorsStill) { S.hue += S.hueV * dt; S.cyc += (S.cycV || .25) * dt; S.bandOff += S.bandV * 30 * dt; }
+    frame(t, 0); return;
+  }
   S.hueV += (S.hueVt - S.hueV) * dt * .4; S.hue += S.hueV * dt;
   S.spatial += (S.spatialT - S.spatial) * dt * .3;
   S.tscale += (S.tscaleT - S.tscale) * dt * .5;
@@ -982,10 +1200,10 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · B: bande · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · B: bande · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
-function note(msg) { noteUntil = performance.now() + 2500; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 2500); }
+function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
 addEventListener('mousemove', () => { document.body.classList.add('ui'); updateInfo(); clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 2500); });
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
@@ -999,6 +1217,8 @@ addEventListener('keydown', e => {
   else if (k === 'e') newEcho();
   else if (k === 'm') apparizione();
   else if (k === 'v') toggleCam();
+  else if (k === 'a') { if (active.length >= 3) leave(); enter(P.bestiario); }
+  else if (k === 'o') { if (active.length >= 3) leave(); enter(P.omaggi); }
   else if (k === 'l') showLines = !showLines;
   else if (k === 'p') paused = !paused;
   else if (k === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.().catch(() => {}); }
