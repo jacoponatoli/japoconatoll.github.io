@@ -2315,7 +2315,7 @@ function letteraSecca(ch) {
 
 // ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
 const TD = { phase: '', t: 0, hold: 0, tex: document.createElement('canvas') };
-TD.tex.width = 320; TD.tex.height = 200;
+TD.tex.width = 640; TD.tex.height = 400;
 function mesh(kind) { // facce come poligoni [[x,y,z,u,v],...]
   const F = [], Q = (...p) => F.push(p);
   const ring = (n, r, y, ph = 0) => Array.from({ length: n }, (_, i) => { const a = ph + i / n * 6.2832; return [r * Math.cos(a), y, r * Math.sin(a), a]; });
@@ -2338,9 +2338,14 @@ function mesh(kind) { // facce come poligoni [[x,y,z,u,v],...]
 const SOLIDI3D = ['cubo', 'cubo', 'piramide', 'prisma pentagonale', 'prisma triangolare', 'cilindro', 'cono', 'sfera', 'toro', 'ottaedro', 'tetraedro'];
 function entra3D(kind) {
   if (TD.phase || MONO.phase) return;
-  TD.kind = kind || pick(SOLIDI3D); TD.F = mesh(TD.kind); TD.phase = 'in'; TD.t = 0; TD.hold = REGIA.on ? rnd(3, 6) : rnd(6, 14);
-  TD.ax = rnd(-.4, .4); TD.wx = rnd(.2, .6) * (Math.random() < .5 ? -1 : 1); TD.wy = rnd(.3, .9) * (Math.random() < .5 ? -1 : 1); TD.wz = gauss() * .15; TD.ang = [0, 0, 0];
-  TD.bg = pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa']);
+  TD.kind = kind || pick(SOLIDI3D); TD.F = mesh(TD.kind); TD.phase = 'in'; TD.t = 0; TD.hold = REGIA.on ? rnd(2.5, 5.5) : rnd(6, 14);
+  const d = typeof REGIA !== 'undefined' ? REGIA.dis : .5, sp = rnd(1.6, 3.4), sg = () => (Math.random() < .5 ? -1 : 1);
+  TD.ax = rnd(-.4, .4); TD.wx = rnd(.3, .9) * sp * sg(); TD.wy = rnd(.5, 1.3) * sp * sg(); TD.wz = gauss() * .4 * sp; TD.ang = [rnd(-.3, .3), 0, 0];
+  if (d < .3 && Math.random() < .6) { TD.wx = 0; TD.wz = 0; }   // nell'ordine spesso un asse solo, regolare
+  TD.dyn = d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']);   // nel caos la rotazione riceve spinte continue
+  TD.vin = pick(['pagina', 'pagina', 'lancio', 'zoom', 'piega', 'spirale']); TD.vout = pick(['pagina', 'punto', 'via', 'zoom']);
+  TD.tin = rnd(.6, 2); TD.tout = rnd(.5, 1.8); TD.sz = rnd(.18, .34); TD.px = rnd(-.15, .15); TD.py = rnd(-.1, .1); TD.vx = gauss() * .04; TD.vy = gauss() * .03; TD.dir = [rnd(-1, 1), rnd(-1, 1)];
+  TD.bg = Math.random() < .3 ? null : pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa']);   // a volte il solido gira sopra l'immagine viva
 }
 function texTri(g, img, s0, s1, s2, d0, d1, d2) { // mappa affine: triangolo della texture → triangolo sullo schermo
   const den = (s1[0] - s0[0]) * (s2[1] - s0[1]) - (s2[0] - s0[0]) * (s1[1] - s0[1]); if (Math.abs(den) < 1e-6) return;
@@ -2352,16 +2357,27 @@ function texTri(g, img, s0, s1, s2, d0, d1, d2) { // mappa affine: triangolo del
 }
 function draw3D(dt) {
   TD.t += dt; const VW = view.width, VH = view.height, m = Math.min(VW, VH);
-  if (TD.phase === 'in' && TD.t > 2.2) { TD.phase = 'gira'; TD.t = 0; } else if (TD.phase === 'gira' && TD.t > TD.hold) { TD.phase = 'out'; TD.t = 0; } else if (TD.phase === 'out' && TD.t > 2) { TD.phase = ''; return; }
-  const e = TD.phase === 'in' ? ease(clamp(TD.t / 2.2, 0, 1)) : TD.phase === 'out' ? 1 - ease(clamp(TD.t / 2, 0, 1)) : 1;
-  if (TD.phase === 'gira' || TD.phase === 'in') { TD.ang[0] += TD.wx * dt * e; TD.ang[1] += TD.wy * dt * e; TD.ang[2] += TD.wz * dt * e; }
+  const tin = TD.tin || 2.2, tout = TD.tout || 2;
+  if (TD.phase === 'in' && TD.t > tin) { TD.phase = 'gira'; TD.t = 0; } else if (TD.phase === 'gira' && TD.t > TD.hold) { TD.phase = 'out'; TD.t = 0; } else if (TD.phase === 'out' && TD.t > tout) { TD.phase = ''; return; }
+  const e = TD.phase === 'in' ? ease(clamp(TD.t / tin, 0, 1)) : TD.phase === 'out' ? 1 - ease(clamp(TD.t / tout, 0, 1)) : 1;
+  const modo = TD.phase === 'out' ? TD.vout : TD.vin;
+  if (TD.dyn === 'caotico') { TD.wx += gauss() * 3 * dt; TD.wy += gauss() * 3 * dt; TD.wz += gauss() * 2 * dt; TD.wx *= .995; TD.wy *= .995; }
+  const osc = TD.dyn === 'oscillante' ? 1 + .8 * Math.sin(TD.t * 1.7) : 1;
+  TD.ang[0] += TD.wx * dt * osc; TD.ang[1] += TD.wy * dt * osc; TD.ang[2] += TD.wz * dt * osc;
+  if (modo === 'spirale' && TD.phase === 'in') TD.ang[2] += (1 - e) * 6 * dt;
+  TD.px += TD.vx * dt; TD.py += TD.vy * dt; if (Math.abs(TD.px) > .25) TD.vx *= -1; if (Math.abs(TD.py) > .18) TD.vy *= -1;
   const tx = TD.tex.getContext('2d'); tx.drawImage(view, 0, 0, TD.tex.width, TD.tex.height);   // la texture è l'immagine viva
-  vctx.save(); vctx.globalAlpha = e; vctx.fillStyle = TD.bg; vctx.fillRect(0, 0, VW, VH); vctx.globalAlpha = 1;
-  // da piatto a solido: le dimensioni passano dalla pagina intera al solido
-  const S = m * .26, sx = VW / 2 + (S - VW / 2) * e, sy = VH / 2 + (S - VH / 2) * e, sz = S * Math.max(.02, e);
+  vctx.save(); if (TD.bg) { vctx.globalAlpha = e; vctx.fillStyle = TD.bg; vctx.fillRect(0, 0, VW, VH); vctx.globalAlpha = 1; }
+  // da piatto a solido, ma ogni volta in un modo diverso: la pagina che si chiude, il lancio da un punto, lo zoom, la piega, il vortice
+  const S = m * (TD.sz || .26); let sx, sy, sz;
+  if (modo === 'pagina' || modo === 'spirale') { sx = VW / 2 + (S - VW / 2) * e; sy = VH / 2 + (S - VH / 2) * e; sz = S * Math.max(.02, e); }
+  else if (modo === 'piega') { const e1 = clamp(e * 2, 0, 1), e2 = clamp(e * 2 - 1, 0, 1); sx = VW / 2 + (S - VW / 2) * e2; sy = VH / 2 + (S - VH / 2) * e2; sz = S * Math.max(.02, e1); }
+  else if (modo === 'zoom') { const k = 1 + (1 - e) * 2.5; sx = sy = sz = S * k; }
+  else { const k = Math.max(.01, e); sx = sy = sz = S * k; }   // lancio, punto, via
+  let ox = TD.px * VW * e, oy = TD.py * VH * e; if (modo === 'via' && TD.phase === 'out') { ox += TD.dir[0] * VW * (1 - e) * 1.2; oy += TD.dir[1] * VH * (1 - e) * 1.2; sx = sy = sz = S; }
   const [ax, ay, az] = [TD.ang[0] + TD.ax * e, TD.ang[1], TD.ang[2]], ca = Math.cos(ax), sa = Math.sin(ax), cb = Math.cos(ay), sb = Math.sin(ay), cc = Math.cos(az), sc = Math.sin(az);
   const R = ([x, y, z]) => { x *= sx; y *= sy; z *= sz; let y1 = y * ca - z * sa, z1 = y * sa + z * ca; let x2 = x * cb + z1 * sb, z2 = -x * sb + z1 * cb; return [x2 * cc - y1 * sc, x2 * sc + y1 * cc, z2]; };
-  const proj = ([x, y, z]) => { const f = 1 / (1 + z / (m * 2.2)); return [VW / 2 + x * f, VH / 2 + y * f]; }, L = [-.4, -.6, -.7];
+  const proj = ([x, y, z]) => { const f = 1 / (1 + z / (m * 2.2)); return [VW / 2 + ox + x * f, VH / 2 + oy + y * f]; }, L = [-.4, -.6, -.7];
   const faces = TD.F.map(poly => { const P3 = poly.map(R), P2 = P3.map(proj); let ar = 0; for (let i = 0; i < P2.length; i++) { const p = P2[i], q = P2[(i + 1) % P2.length]; ar += p[0] * q[1] - q[0] * p[1]; }
     const zc = P3.reduce((s2, p) => s2 + p[2], 0) / P3.length, A = P3[0], B = P3[1], C = P3[2], u = [B[0] - A[0], B[1] - A[1], B[2] - A[2]], v = [C[0] - A[0], C[1] - A[1], C[2] - A[2]];
     const nn = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], nl = Math.hypot(...nn) || 1, lit = Math.max(0, (nn[0] * L[0] + nn[1] * L[1] + nn[2] * L[2]) / nl);
@@ -2902,31 +2918,59 @@ function flFasi(white, t) {   // chiamata a ogni fotogramma del lampeggio
 }
 
 /* =================== PASSAGGI TRA ORDINE E CAOS ===================
-   Anche i cambi seguono l'asse ordine–disordine. Nell'ordine il cambio è spesso uno stacco netto; verso il caos la scena nuova
-   affiora attraverso un campo di rumore ogni volta diverso — chiazze larghe e lente, oppure frammenti fitti e granulosi,
-   a volte spinte da una direzione o da un punto — con durate e accelerazioni imprevedibili. Nessuna forma riconoscibile,
-   nessuna dissolvenza: dove il campo supera la soglia c'è il fotogramma di prima, altrove c'è già il nuovo. */
-const XF = { cv: document.createElement('canvas'), tmp: document.createElement('canvas'), mk: document.createElement('canvas'), on: false, t: 0, dur: 1 };
+   Ogni cambio è un campo che decide dove la scena nuova arriva prima e dove dopo. Il campo mescola due cose:
+   una FORMA (cerchio, più cerchi, rombo, quadrato, ventaglio, spirale, anelli, onda, strisce, quadratini, celle, stella,
+   croce, scacchiera, a volte due forme fuse insieme, con centri, angoli, frequenze sempre nuovi) e un RUMORE (chiazze
+   larghe o frammenti fitti, con il dominio torto). Quanto pesa l'una o l'altro lo decide l'asse ordine–disordine,
+   con uno scarto casuale: quasi sempre si sta nel mezzo, nella complessità di Galanter, dove la forma si intuisce ma
+   non si riconosce; ogni tanto una forma netta, ogni tanto puro rumore, ogni tanto uno stacco secco. */
+const XF = { cv: document.createElement('canvas'), tmp: document.createElement('canvas'), mk: document.createElement('canvas'), on: false, t: 0, dur: 1, ultime: [] };
+const FORME_XF = ['cerchio', 'cerchi', 'rombo', 'quadrato', 'ventaglio', 'spirale', 'anelli', 'onda', 'strisce', 'quadratini', 'celle', 'stella', 'croce', 'scacchiera'];
+function campoForma(k, x, y, Q) {   // x, y in [0..aspetto]×[0..1]; restituisce l'ordine di arrivo
+  const dx = x - Q.c[0][0], dy = y - Q.c[0][1], ca = Math.cos(Q.a), sa = Math.sin(Q.a), u = ca * dx + sa * dy, v = -sa * dx + ca * dy, r = Math.hypot(dx, dy), th = Math.atan2(dy, dx);
+  const h = (i, j) => { const z = Math.sin(i * 127.1 + j * 311.7 + Q.seed) * 43758.5453; return z - Math.floor(z); };
+  switch (k) {
+    case 'cerchio': return r;
+    case 'cerchi': { let m = 9; for (const c of Q.c) m = Math.min(m, Math.hypot(x - c[0], y - c[1])); return m; }
+    case 'rombo': return Math.abs(u) + Math.abs(v);
+    case 'quadrato': return Math.max(Math.abs(u), Math.abs(v));
+    case 'ventaglio': return (((th - Q.a) / 6.2832) % 1 + 1) % 1;
+    case 'spirale': return ((((th - Q.a) / 6.2832 + Q.f * .3 * Math.log(r + .01)) % 1) + 1) % 1 * .8 + r * .2;
+    case 'anelli': return ((r * Q.f) % 1) * .85 + r * .15;
+    case 'onda': return u + Math.sin(v * Q.f * 6 + Q.seed) * .08;
+    case 'strisce': return (((u * Q.f) % 1) + 1) % 1 * .85 + (u + 1) * .1;
+    case 'quadratini': return h(Math.floor(x * Q.f), Math.floor(y * Q.f));
+    case 'celle': { let m = 9, id = 0; for (let i = 0; i < Q.v.length; i++) { const d = Math.hypot(x - Q.v[i][0], y - Q.v[i][1]); if (d < m) { m = d; id = i; } } return h(id, 3) * .8 + m * .5; }
+    case 'stella': return r / (1 + .45 * Math.cos(Q.n * (th - Q.a)));
+    case 'croce': return Math.min(Math.abs(u), Math.abs(v)) + r * .15;
+    default: { const i = Math.floor(x * Q.f), j = Math.floor(y * Q.f); return ((i + j) & 1) * .5 + h(i, j) * .5; }
+  }
+}
 function passaggio(dur) {
   if (!view.width) return;
   const d = REGIA.dis;
-  if (Math.random() < (d < .3 ? .55 : d > .7 ? .12 : .28)) { XF.on = false; return; }   // stacco netto
+  if (Math.random() < (d < .3 ? .4 : d > .7 ? .1 : .18)) { XF.on = false; return; }   // ogni tanto uno stacco secco
   for (const c of [XF.cv, XF.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
   const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
-  const gw = 240, gh = Math.max(60, Math.round(240 * view.height / view.width)); XF.mk.width = gw; XF.mk.height = gh;
-  const sc = d < .3 ? rnd(.8, 2.5) : d > .7 ? rnd(6, 16) : rnd(2, 7), wa = rnd(0, d > .5 ? 2.2 : 1), grain = d > .7 ? rnd(.05, .4) : d < .3 ? 0 : rnd(0, .1);
-  const bias = Math.random() < .5 ? rnd(.2, .8) : 0, radial = Math.random() < .5, bx = rnd(gw), by = rnd(gh), ba = rnd(6.28), ox = rnd(500), oy = rnd(500);
-  const F = new Float32Array(gw * gh); let mn = 1e9, mx = -1e9;
+  const gw = 240, gh = Math.max(60, Math.round(240 * view.height / view.width)), asp = gw / gh; XF.mk.width = gw; XF.mk.height = gh;
+  // quanto rumore: segue l'asse, con uno scarto; agli estremi a volte forma pura o rumore puro
+  let lam = clamp(.15 + .7 * d + gauss() * .18, 0, 1); if (Math.random() < .1) lam = 0; else if (Math.random() < .08) lam = 1;
+  const libere = FORME_XF.filter(k => !XF.ultime.includes(k)), k1 = pick(libere), k2 = Math.random() < .3 ? pick(libere.filter(k => k !== k1)) : null;
+  XF.ultime.push(k1); if (XF.ultime.length > 4) XF.ultime.shift();
+  const nc = 2 + ((Math.random() * 4) | 0), Q = { c: Array.from({ length: nc }, () => [rnd(asp), rnd(1)]), a: rnd(6.28), f: rnd(2, 9), n: 3 + ((Math.random() * 6) | 0), seed: rnd(1000), v: Array.from({ length: 6 + ((Math.random() * 18) | 0) }, () => [rnd(asp), rnd(1)]) };
+  const fuse = pick(['media', 'min', 'max', 'prodotto']), sc = d < .3 ? rnd(.8, 2.5) : d > .7 ? rnd(5, 16) : rnd(2, 7), wa = rnd(0, .15 + .5 * lam), grain = d > .7 ? rnd(0, .3) : rnd(0, .06), ox = rnd(500), oy = rnd(500);
+  const norm = A => { let mn = 1e9, mx = -1e9; for (const v of A) { if (v < mn) mn = v; if (v > mx) mx = v; } for (let i = 0; i < A.length; i++) A[i] = (A[i] - mn) / (mx - mn + 1e-9); return A; };
+  const A = new Float32Array(gw * gh), B = new Float32Array(gw * gh), N2 = new Float32Array(gw * gh);
   for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
-    const X = x / gw * sc + ox, Y = y / gw * sc + oy, w1 = wa * (fbm(X * .7 + 9, Y * .7, 2) - .5);
-    let v = fbm(X + w1, Y - w1, 3) * (1 - bias);
-    if (bias) v += bias * (radial ? Math.hypot(x - bx, y - by) / gw : ((x - gw / 2) * Math.cos(ba) + (y - gh / 2) * Math.sin(ba)) / gw + .5);
-    if (grain) v += grain * Math.random();
-    F[y * gw + x] = v; if (v < mn) mn = v; if (v > mx) mx = v; }
-  for (let i = 0; i < F.length; i++) F[i] = (F[i] - mn) / (mx - mn + 1e-9);
+    const X = x / gh, Y = y / gh, w1 = fbm(X * 3 + ox, Y * 3 + oy, 2) - .5, w2 = fbm(X * 3 + oy, Y * 3 - ox, 2) - .5, i = y * gw + x;
+    A[i] = campoForma(k1, X + wa * w1, Y + wa * w2, Q); if (k2) B[i] = campoForma(k2, X - wa * w2, Y + wa * w1, Q);
+    N2[i] = fbm(X * sc + ox + w1 * 2 * lam, Y * sc + oy - w2 * 2 * lam, 3) + grain * Math.random(); }
+  norm(A); if (k2) { norm(B); for (let i = 0; i < A.length; i++) A[i] = fuse === 'media' ? (A[i] + B[i]) / 2 : fuse === 'min' ? Math.min(A[i], B[i]) : fuse === 'max' ? Math.max(A[i], B[i]) : A[i] * B[i]; norm(A); }
+  norm(N2); const F = new Float32Array(gw * gh); for (let i = 0; i < F.length; i++) F[i] = (1 - lam) * A[i] + lam * N2[i]; norm(F);
+  if (Math.random() < .3) for (let i = 0; i < F.length; i++) F[i] = 1 - F[i];   // a volte dall'esterno verso l'interno
   const base = { lento: 1.6, medio: 1.1, veloce: .75, frenesia: .5 }[REGIA.tempo] || 1;
-  Object.assign(XF, { on: true, t: 0, last: performance.now(), F, gw, gh, id: XF.mk.getContext('2d').createImageData(gw, gh), pw: rnd(.45, 2.2),
-    dur: (dur || base * rnd(.45, 1.7)) * (REGIA.over ? .35 : 1) });
+  Object.assign(XF, { on: true, t: 0, last: performance.now(), F, gw, gh, id: XF.mk.getContext('2d').createImageData(gw, gh), pw: rnd(.45, 2.2), forma: k1 + (k2 ? '+' + k2 : '') + ' · rumore ' + lam.toFixed(2),
+    dur: (dur || base * rnd(.45, 1.8)) * (REGIA.over ? .35 : 1) });
 }
 function passaggioDraw() {
   if (!XF.on) return; const now = performance.now(); XF.t += Math.min(.1, (now - XF.last) / 1000); XF.last = now;
