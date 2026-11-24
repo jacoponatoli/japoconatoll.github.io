@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-23",
+  "aggiornato": "2026-11-24",
   "parole": {
     "good": [
       "sanità:fs",
@@ -91,7 +91,11 @@
       "dignità:fs",
       "pigiama:ms",
       "aquiloni:mp",
-      "orti:mp"
+      "orti:mp",
+      "coccole:fp",
+      "piumoni:mp",
+      "trapunte:fp",
+      "ninnoli:mp"
     ],
     "bad": [
       "riarmo:ms",
@@ -218,7 +222,12 @@
       "emissioni:fp",
       "deficit:ms",
       "turni:mp",
-      "sanzioni:fp"
+      "sanzioni:fp",
+      "promozioni:fp",
+      "rimpasti:mp",
+      "coprifuoco:ms",
+      "chiamate automatiche:fp",
+      "consigli di amministrazione:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -265,7 +274,9 @@
       "nonne:fp",
       "sviluppatori:mp",
       "lavoratrici:fp",
-      "bidelle:fp"
+      "bidelle:fp",
+      "professoresse:fp",
+      "maestri:mp"
     ],
     "place": [
       "licei:mp",
@@ -1463,6 +1474,76 @@
         "Vorsprung durch Faulheit",
         "Lentius, humilius, dulcius"
       ]
+    },
+    {
+      "d": "2026-11-24",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Allarme pace alle porte dell'Italia",
+        "Allarme sonno alle porte dell'ufficio",
+        "Disarmiamo il patriarcato, ricamiamo i pigiami",
+        "No compassione, sì ricreazione",
+        "Le roi est à la rue, la reine est à la sieste",
+        "No future, no pâtes, no réveil",
+        "Lo sciopero più rilassato di sempre",
+        "Tasso zero su tutti i sogni, in dieci rate di sonno",
+        "Pensione gratuita in soli 30 minuti",
+        "Esclusiva in sogno: nessuna offerta",
+        "Better Nap: pigrizia sostenibile",
+        "Cala la voglia di acquisti, sale la voglia di coccole",
+        "Più controlli? Più coccole",
+        "AI assistants make unauthorized calls, we take unauthorized naps",
+        "Gli assistenti IA chiamano senza permesso, noi dormiamo senza permesso",
+        "Rimpasto a sorpresa: tutti i ministeri in pigiama",
+        "Sotto i ferri? Sotto le coperte",
+        "Acte VI du mouvement social: la sieste générale",
+        "On est là, sous la couette",
+        "Vie chère, rêves gratuits",
+        "Couvre-feu? Couvre-lit",
+        "Il preside ha googlato la minaccia: era una filastrocca",
+        "Unico rischio in mensa: troppa merenda",
+        "Minaccia via mail: metteremo in atto una ricreazione",
+        "Il mail bomber colpisce ancora? Anche la merenda",
+        "Gioia chi molla",
+        "Dio, patria, famiglia: aggiornamento rifiutato dall'utente",
+        "Me ne frego 2.0: del PIL e della sveglia",
+        "Legge e ordine.exe non risponde: riavviare con tenerezza",
+        "Le azioni salgono, i pisolini pure",
+        "Ho convinto il consiglio d'amministrazione: tutti a merenda",
+        "Black Friday tutto il mese? Siesta tutto l'anno",
+        "Porte chiuse alla guerra, aperte ai gatti",
+        "Futures professeures de rêverie",
+        "Parcoursieste pour tous",
+        "Shares surge, daydreams surge harder",
+        "Sostegno ai liceali: e ai loro pisolini"
+      ]
+    },
+    {
+      "d": "2026-11-24",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Carpe somnum",
+        "A mali estremi, estremi pisolini",
+        "Veni, vidi, dormii",
+        "Il silenzio è d'oro, la siesta è di diamante",
+        "Il fine settimana giustifica i mezzi",
+        "Fidarsi è bene, dormire è meglio",
+        "Mieux vaut sieste que jamais",
+        "¡No pasarán! Sin merienda",
+        "Chacun sa sieste, et la sieste pour tous",
+        "Keep your friends close and your pillow closer",
+        "Après la pluie, la sieste",
+        "To nap or not to nap: nap",
+        "Time is honey",
+        "Small is beautiful, slow is wonderful",
+        "The sleeper is always right",
+        "Early to bed, late to rise",
+        "Chi fa da sé si stanca per tre",
+        "Roma non fu fatta in un giorno: c'era la pennichella",
+        "Prima il piacere, poi il piacere",
+        "Il pisolino nobilita l'essere umano",
+        "Una siesta al giorno toglie il capo di torno"
+      ]
     }
   ],
   "letti": [
@@ -2380,6 +2461,68 @@
         "Fight the power (canzone)",
         "Vorsprung durch Technik (claim pubblicitario)",
         "Citius, altius, fortius (motto olimpico)"
+      ]
+    },
+    {
+      "d": "2026-11-24",
+      "t": [
+        "Allarme guerra alle porte dell'Italia (Today, 24 novembre)",
+        "Sotto i ferri (titolo, 24 novembre)",
+        "Più controlli a Perugia (rassegna stampa umbra)",
+        "Disarmiamo il patriarcato (Non Una di Meno)",
+        "No compassione, sì rivoluzione (cartello, corteo transfemminista)",
+        "Le roi est à la rue (pancarta, La Réunion)",
+        "No future, no pâtes (pancarta, La Réunion)",
+        "Acte V du mouvement social (titoli, Francia)",
+        "On veut montrer qu'on est là (manifestante, Parigi)",
+        "Vie chère, moyens pour l'éducation (mobilitazione, Francia)",
+        "Despite curfews and protest bans (Le Temps)",
+        "Pancarte de revendication face à Parcoursup (corteo, La Roche-sur-Yon)",
+        "Des futures professeures des écoles dans la rue (corteo, Francia)",
+        "Il Black Friday più maxxato di sempre (claim pubblicitario)",
+        "Finanziamento tasso zero su tutti gli acquisti in 10 rate (claim)",
+        "Ritiro gratuito in negozio in soli 30 minuti (claim)",
+        "Offerte esclusive in App (claim)",
+        "Better Way: tecnologia sostenibile (claim)",
+        "Per il Black Friday cresce la voglia di acquisti (Confcommercio)",
+        "AI Assistants Make Unauthorized Calls (titolo)",
+        "Shares Surge (titolo)",
+        "I Persuaded the Board (dichiarazione)",
+        "Surprise Reshuffle (titolo)",
+        "Alcuni presidi hanno scelto di non evacuare dopo aver googlato l'indirizzo (Tecnica della Scuola)",
+        "Rischio di avvelenamento in mensa (mail falsa alle scuole)",
+        "Colpisce ancora: nuovo mail bombing alle scuole (Quotidiano.net)",
+        "Boia chi molla (motto fascista)",
+        "Me ne frego (motto fascista)",
+        "Dio, patria, famiglia (motto reazionario)",
+        "Legge e ordine (slogan securitario)"
+      ]
+    },
+    {
+      "d": "2026-11-24",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Carpe diem (Orazio)",
+        "A mali estremi, estremi rimedi (proverbio)",
+        "Veni, vidi, vici (Cesare)",
+        "Il silenzio è d'oro (proverbio)",
+        "Il fine giustifica i mezzi (motto)",
+        "Fidarsi è bene, non fidarsi è meglio (proverbio)",
+        "Mieux vaut tard que jamais (proverbio)",
+        "¡No pasarán! (coro)",
+        "Chacun pour soi et Dieu pour tous (proverbio)",
+        "Keep your friends close and your enemies closer (frase celebre)",
+        "Après la pluie, le beau temps (proverbio)",
+        "To be or not to be (Shakespeare)",
+        "Time is money (proverbio)",
+        "Small is beautiful (slogan)",
+        "The customer is always right (motto commerciale)",
+        "Early to bed and early to rise (proverbio)",
+        "Chi fa da sé fa per tre (proverbio)",
+        "Roma non fu fatta in un giorno (proverbio)",
+        "Prima il dovere, poi il piacere (proverbio)",
+        "Il lavoro nobilita l'uomo (proverbio)",
+        "Una mela al giorno toglie il medico di torno (proverbio)"
       ]
     }
   ]
