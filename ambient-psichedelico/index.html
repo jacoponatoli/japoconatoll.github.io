@@ -1325,6 +1325,137 @@ P.caos = {
   }
 };
 
+/* ---------- FOSFENI: le luci che si vedono a occhi chiusi ---------- */
+// Dagli scritti di Oster (1970), Knoll & Kugler (1959), Kellogg, Knoll & Kugler (1965), Smythies (1959–60),
+// Tyler / Tkaczyk (2001), Ermentrout & Cowan, Billock & Tsou (2007), Becker & Elliott (2006), Allefeld (2010).
+const fHash = (s, i) => { const x = Math.sin(s * 12.9898 + i * 78.233) * 43758.5453; return x - Math.floor(x); };
+// LE 15 FORME DI KNOLL: più di mille persone, stimolate con impulsi elettrici alle tempie, disegnano sempre queste
+const KNOLL = ['archi', 'raggi', 'onde', 'linee', 'stella', 'cerchi', 'punti', 'ameba', 'rombo', 'spirale', 'croce', 'reticolo', 'triangolo', 'zigzag', 'uncini'];
+const KNOLL_DRITTE = [1, 3, 4, 8, 10, 11, 12, 13], KNOLL_CURVE = [0, 2, 5, 7, 9, 14, 6];   // Smythies: prima le forme a linee dritte, poi quelle curve
+function knollGlyph(c, k, x, y, s, rot, seed) {
+  c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
+  const arc = (r, a0, a1) => { c.moveTo(r * Math.cos(a0), r * Math.sin(a0)); c.arc(0, 0, r, a0, a1); };
+  switch (k) {
+    case 0: for (const r of [.5 * s, .85 * s]) { arc(r, Math.PI - .75, Math.PI + .75); arc(r, -.75, .75); } break;
+    case 1: arc(.16 * s, 0, 6.2832); for (let j = 0; j < 11; j++) { const a = j * 6.2832 / 11 + fHash(seed, j) * .2; c.moveTo(.24 * s * Math.cos(a), .24 * s * Math.sin(a)); c.lineTo(s * Math.cos(a), s * Math.sin(a)); } break;
+    case 2: for (let j = 0; j < 4; j++) { const yy = (-.6 + j * .4) * s; for (let i = 0; i <= 24; i++) { const xx = (-1 + i / 12) * s, py = yy + .13 * s * Math.sin(i / 24 * 4 * Math.PI); i ? c.lineTo(xx, py) : c.moveTo(xx, py); } } break;
+    case 3: for (let j = 0; j < 5; j++) { const xx = (-.6 + j * .3) * s; c.moveTo(xx, -s); c.lineTo(xx, s); } break;
+    case 4: for (let j = 0; j <= 14; j++) { const a = j * 6.2832 / 14, r = (j & 1 ? .35 : .7 + .3 * fHash(seed, j)) * s; j ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(r * Math.cos(a), r * Math.sin(a)); } break;
+    case 5: for (const r of [.3, .6, .9]) arc(r * s, 0, 6.2832); break;
+    case 6: for (let i = 0; i < 6; i++) for (let j = 0; j < 5; j++) { const px = (-1 + i * .4) * s, py = (-.8 + j * .4) * s; c.moveTo(px + .05 * s, py); c.arc(px, py, .05 * s, 0, 6.2832); } break;
+    case 7: { const n = 9, P2 = []; for (let j = 0; j < n; j++) { const a = j * 6.2832 / n, r = (.5 + .5 * fHash(seed, j)) * s; P2.push([r * Math.cos(a), r * Math.sin(a)]); }
+      for (let j = 0; j <= n; j++) { const p = P2[j % n], q = P2[(j + 1) % n], m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; j ? c.quadraticCurveTo(p[0], p[1], m[0], m[1]) : c.moveTo(m[0], m[1]); } } break;
+    case 8: c.moveTo(0, -s); c.lineTo(.6 * s, 0); c.lineTo(0, s); c.lineTo(-.6 * s, 0); c.closePath(); break;
+    case 9: for (let i = 0; i <= 90; i++) { const a = i / 90 * 3 * 6.2832, r = (.05 + .95 * i / 90) * s; i ? c.lineTo(r * Math.cos(a), r * Math.sin(a)) : c.moveTo(r * Math.cos(a), r * Math.sin(a)); } break;
+    case 10: for (const d of [-.09, .09]) { c.moveTo(-s, -s + d * s * 2); c.lineTo(s, s + d * s * 2); c.moveTo(-s, s + d * s * 2); c.lineTo(s, -s + d * s * 2); } break;
+    case 11: for (let j = -2; j <= 2; j++) { const o = j * .38 * s; c.moveTo(o - s, -s - o); c.lineTo(o + s, s - o); c.moveTo(o - s, s + o); c.lineTo(o + s, -s + o); } break;
+    case 12: c.moveTo(0, -.9 * s); c.lineTo(.85 * s, .7 * s); c.lineTo(-.85 * s, .7 * s); c.closePath(); break;
+    case 13: { const z = [[-1, .7], [-.45, -.5], [-.15, .2], [.2, -.8], [.35, -.05], [.75, -.6], [1, .2]]; z.forEach(([a, b], i) => i ? c.lineTo(a * s, b * s) : c.moveTo(a * s, b * s)); } break;
+    default: for (const sg of [-1, 1]) { const cx = sg * .45 * s; arc(.22 * s, 0, 6.2832); c.moveTo(cx + .22 * s, -.3 * s); c.arc(cx, -.3 * s, .22 * s, 0, 6.2832); c.moveTo(cx + sg * .22 * s, -.3 * s); c.quadraticCurveTo(cx + sg * .3 * s, .4 * s, cx + sg * .05 * s, .9 * s); }
+  }
+  c.restore();
+}
+
+// FOSFENI CORTICALI (Ermentrout & Cowan; Tyler, Tkaczyk): un disegno semplicissimo sulla corteccia — strisce, scacchiera —
+// riportato nel campo visivo dalla mappa logaritmica complessa diventa cerchi, raggi, spirali, la scacchiera "a girasole"
+// dei fosfeni da pressione, fitta al centro e larga ai bordi. Strisce orizzontali → raggi, verticali → cerchi, oblique → spirali.
+// Il movimento segue le regole osservate da Smythies: i cerchi vanno verso l'esterno o verso il centro, raggi e spirali
+// ruotano (la ruota di Caterina), il centro gira in un'orbita. In 'trasformazione' i raggi si piegano in spirali e poi
+// si chiudono in cerchi: il passaggio continuo da una forma all'altra.
+P.fosfeni = {
+  get name() { return 'fosfeni corticali: ' + this.mode; },
+  init() {
+    this.mode = pick(['tunnel', 'imbuto', 'spirale', 'scacchiera', 'girasole', 'favo', 'centro e periferia', 'trasformazione', 'trasformazione']);
+    const fine = typeof REGIA !== 'undefined' ? ({ lento: .8, medio: 1, veloce: 1.25, frenesia: 1.5 }[REGIA.tempo] || 1) : 1;   // flicker più veloce → elementi più fini (Smythies)
+    this.m = Math.round(pick([6, 8, 10, 12, 16, 20]) * fine); this.q = 1 + rnd(.12, .3) / fine; this.a = rnd(.3, 1.1);
+    this.rot = rnd(6.28); this.vr = rnd(.004, .014) * (Math.random() < .5 ? -1 : 1); this.z = 0; this.vz = rnd(.003, .01) * (Math.random() < .5 ? -1 : 1);
+    this.t = rnd(1000); this.orb = rnd(.02, .07); this.hand = Math.random() < .5 ? -1 : 1;
+  },
+  step() { this.t++; this.rot += this.vr * (1 + .4 * Math.sin(this.t * .013)); this.z += this.vz;
+    if (this.mode === 'trasformazione') this.a = .12 + (1.45 - .12) * (.5 + .5 * Math.cos(this.t * .006)); },
+  render(c) {
+    const cx = W / 2 + Math.cos(this.t * .004) * W * this.orb, cy = H / 2 + Math.sin(this.t * .0053) * H * this.orb, R = Math.hypot(W, H) * .8, r0 = 1.5;
+    const L = Math.log(this.q), u1 = Math.log(R);
+    const cerchi = (ua, ub) => { let u = ua + ((((this.z - ua) % L) + L) % L); for (; u < ub; u += L) { const r = Math.exp(u); c.moveTo(cx + r, cy); c.arc(cx, cy, r, 0, 6.2832); } };
+    const raggi = (m, rot, ua, ub) => { for (let j = 0; j < m; j++) { const a = rot + j * 6.2832 / m; c.moveTo(cx + Math.exp(ua) * Math.cos(a), cy + Math.exp(ua) * Math.sin(a)); c.lineTo(cx + Math.exp(ub) * Math.cos(a), cy + Math.exp(ub) * Math.sin(a)); } };
+    const spirali = (m, a, hand, rot, ua, ub) => { const k = 1 / Math.tan(a), du = Math.min(.06, .09 / (k + .01));
+      for (let j = 0; j < m; j++) { const a0 = rot + j * 6.2832 / m; let first = true;
+        for (let u = ua; u <= ub; u += du) { const th = a0 + hand * (u - this.z) * k, r = Math.exp(u), x = cx + r * Math.cos(th), y = cy + r * Math.sin(th); first ? c.moveTo(x, y) : c.lineTo(x, y); first = false; } } };
+    const u0 = Math.log(r0); c.beginPath();
+    switch (this.mode) {
+      case 'tunnel': cerchi(u0, u1); raggi(Math.max(3, this.m >> 2), this.rot * .2, u0, u1); break;
+      case 'imbuto': raggi(this.m * 2, this.rot, u0, u1); cerchi(Math.log(Math.min(W, H) * .28), Math.log(Math.min(W, H) * .29)); break;
+      case 'spirale': spirali(this.m, this.a, this.hand, this.rot, u0, u1); break;
+      case 'scacchiera': cerchi(u0, u1); raggi(this.m * 2, this.rot * .3, u0, u1); break;
+      case 'girasole': spirali(this.m, this.a, 1, this.rot, u0, u1); spirali(this.m, this.a, -1, -this.rot, u0, u1); break;
+      case 'favo': spirali(this.m, .7, 1, this.rot, u0, u1); spirali(this.m, .7, -1, this.rot, u0, u1); cerchi(u0, u1); break;
+      case 'centro e periferia': { const uc = Math.log(Math.min(W, H) * .22);   // un vortice al centro, un mosaico intorno
+        spirali(Math.max(3, this.m >> 1), .35, this.hand, this.rot * 2, u0, uc); cerchi(uc, u1); raggi(this.m * 2, -this.rot * .2, uc, u1); c.moveTo(cx + Math.exp(uc), cy); c.arc(cx, cy, Math.exp(uc), 0, 6.2832); break; }
+      default: spirali(this.m, this.a, this.hand, this.rot, u0, u1);
+    }
+    c.stroke();
+  }
+};
+
+// LE 15 FORME DI KNOLL come motore. 'spettro': come negli esperimenti di Knoll e Kugler, una frequenza scorre fra 5 e 35
+// impulsi al secondo e ogni forma si accende solo nella sua banda stretta (±10%); più alta la frequenza, più fini gli elementi.
+// 'sciame': le forme galleggiano e ruotano, prima quelle dritte poi quelle curve (Smythies).
+// 'Kellogg': lo sviluppo del disegno infantile, che somiglia ai fosfeni — scarabocchi, poi i sei diagrammi
+// (croce, quadrato, cerchio, triangolo, forma strana, X), poi le combinazioni, gli aggregati (mandala, soli), il sole-omino.
+P.knoll = {
+  get name() { return 'le 15 forme di Knoll: ' + this.mode + (this.mode === 'spettro' ? ' ' + this.f.toFixed(1) + ' impulsi/s' : this.mode === 'Kellogg' ? ' · ' + ['scarabocchi', 'diagrammi', 'combinazioni', 'aggregati', 'figura'][this.stage] : ''); },
+  init() {
+    this.mode = pick(['spettro', 'sciame', 'Kellogg']); this.t = 0; this.seed = rnd(1000); this.stage = 0;
+    this.f = rnd(5, 35); this.fv = rnd(.02, .06) * (Math.random() < .5 ? -1 : 1);
+    this.band = KNOLL.map(() => rnd(5, 35));   // lo "spettro" personale: ogni forma ha la sua frequenza
+    this.g = []; const n = 20 + poisson(12);
+    for (let i = 0; i < n; i++) this.g.push({ x: rnd(W), y: rnd(H), s: Math.min(W, H) * rnd(.08, .22), r: rnd(6.28), vr: gauss() * .01, vx: gauss() * .3, vy: gauss() * .3, k: pick(KNOLL_DRITTE), sd: rnd(100), born: rnd(-200, 0) });
+    this.scr = []; for (let i = 0; i < 7; i++) { const p = []; let x = rnd(W), y = rnd(H); for (let j = 0; j < 40; j++) { x += gauss() * 9; y += gauss() * 9; p.push([x, y]); } this.scr.push(p); }
+  },
+  step() {
+    this.t++; this.f += this.fv; if (this.f > 35 || this.f < 5) this.fv *= -1;
+    for (const g of this.g) { g.x = (g.x + g.vx + W * 1.2) % (W * 1.2) - W * .1; g.y = (g.y + g.vy + H * 1.2) % (H * 1.2) - H * .1; g.r += g.vr;
+      if (this.mode === 'sciame' && Math.random() < .004) g.k = this.t > 400 ? pick(KNOLL_CURVE) : pick(KNOLL_DRITTE); }
+    if (this.mode === 'Kellogg') { this.stage = Math.min(4, Math.floor(this.t / 320)); for (const p of this.scr) for (const q of p) { q[0] += gauss() * .4; q[1] += gauss() * .4; } }
+  },
+  render(c) {
+    if (this.mode === 'spettro') {
+      let best = 0, bd = 1e9; const on = [];
+      this.band.forEach((b, k) => { const d = Math.abs(this.f - b) / b; if (d < .1) on.push(k); if (d < bd) { bd = d; best = k; } });
+      if (!on.length) on.push(best);
+      const cell = Math.min(W, H) * clamp(2.6 / this.f, .07, .4);   // frequenza alta → forme più piccole e numerose
+      let i = 0; for (let y = cell / 2; y < H + cell; y += cell) for (let x = cell / 2 + ((y / cell) & 1) * cell / 2; x < W + cell; x += cell) {
+        const k = on[i++ % on.length]; knollGlyph(c, k, x, y, cell * .38, this.t * .004 * ((i & 1) ? 1 : -1), this.seed + k); c.stroke(); }
+      return;
+    }
+    if (this.mode === 'sciame') { for (const g of this.g) { knollGlyph(c, g.k, g.x, g.y, g.s, g.r, g.sd); c.stroke(); } return; }
+    // Kellogg
+    const m = Math.min(W, H), cx = W / 2, cy = H / 2;
+    if (this.stage === 0) { c.beginPath(); for (const p of this.scr) p.forEach(([x, y], j) => j ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); return; }
+    const pos = [[.2, .3], [.5, .25], [.8, .3], [.2, .72], [.5, .75], [.8, .72]];
+    const diagramma = (j, x, y, s, r) => {   // i sei diagrammi: croce, quadrato, cerchio, triangolo, forma strana, X
+      if (j === 4) { knollGlyph(c, 7, x, y, s, r, this.seed + j); c.stroke(); return; }
+      c.save(); c.translate(x, y); c.rotate(r); c.beginPath();
+      if (j === 0) { c.moveTo(-s, 0); c.lineTo(s, 0); c.moveTo(0, -s); c.lineTo(0, s); }
+      else if (j === 1) c.rect(-s * .8, -s * .8, s * 1.6, s * 1.6);
+      else if (j === 2) c.arc(0, 0, s * .85, 0, 6.2832);
+      else if (j === 3) { c.moveTo(0, -s); c.lineTo(s * .9, s * .7); c.lineTo(-s * .9, s * .7); c.closePath(); }
+      else { c.moveTo(-s, -s); c.lineTo(s, s); c.moveTo(-s, s); c.lineTo(s, -s); }
+      c.restore(); c.stroke(); };
+    if (this.stage === 1) { pos.forEach(([a, b], j) => diagramma(j, a * W, b * H, m * .12, Math.sin(this.t * .01 + j) * .2)); return; }
+    if (this.stage === 2) { pos.forEach(([a, b], j) => { diagramma(j, a * W, b * H, m * .12, this.t * .005); diagramma((j + 2) % 6, a * W, b * H, m * .09, -this.t * .007); }); return; }
+    if (this.stage === 3) {   // aggregati: mandala e soli
+      c.beginPath(); for (const r of [.12, .22, .32]) { c.moveTo(cx + r * m, cy); c.arc(cx, cy, r * m, 0, 6.2832); }
+      for (let j = 0; j < 16; j++) { const a = this.t * .004 + j * 6.2832 / 16; c.moveTo(cx + .32 * m * Math.cos(a), cy + .32 * m * Math.sin(a)); c.lineTo(cx + .46 * m * Math.cos(a), cy + .46 * m * Math.sin(a)); }
+      c.moveTo(cx - .32 * m, cy); c.lineTo(cx + .32 * m, cy); c.moveTo(cx, cy - .32 * m); c.lineTo(cx, cy + .32 * m); c.stroke(); return;
+    }
+    // il sole-omino: un cerchio con i raggi che diventano braccia e gambe, due occhi
+    c.beginPath(); c.arc(cx, cy, .2 * m, 0, 6.2832); for (let j = 0; j < 12; j++) { const a = j * 6.2832 / 12 + Math.sin(this.t * .02) * .05, l = j % 3 === 0 ? .5 : .32; c.moveTo(cx + .22 * m * Math.cos(a), cy + .22 * m * Math.sin(a)); c.lineTo(cx + l * m * Math.cos(a), cy + l * m * Math.sin(a)); }
+    c.moveTo(cx - .06 * m + .025 * m, cy - .04 * m); c.arc(cx - .06 * m, cy - .04 * m, .025 * m, 0, 6.2832); c.moveTo(cx + .06 * m + .025 * m, cy - .04 * m); c.arc(cx + .06 * m, cy - .04 * m, .025 * m, 0, 6.2832);
+    c.moveTo(cx - .07 * m, cy + .07 * m); c.quadraticCurveTo(cx, cy + .12 * m, cx + .07 * m, cy + .07 * m); c.stroke();
+  }
+};
+
 /* ---------- ARTE ISLAMICA: stelle e girih col metodo dei "poligoni in contatto" (Hankin) ---------- */
 // su una tassellatura regolare, da ogni punto medio dei lati partono due raggi inclinati di θ;
 // i raggi dei lati vicini si incontrano e disegnano stelle e rosoni. θ varia lentamente: le stelle respirano.
@@ -1890,14 +2021,19 @@ const flDiv = document.createElement('div'); flDiv.style.cssText = 'position:fix
 { let n = 0, t0 = 0; const meas = t => { if (!t0) t0 = t; if (++n < 60) requestAnimationFrame(meas); else FL.hz = Math.round(59000 / (t - t0)); }; requestAnimationFrame(meas); }
 function flicker() {
   if (!FL.ok || FL.on) return; const max = Math.min(50, Math.floor(FL.hz / 2));
-  FL.f0 = rnd(1, max); FL.f1 = Math.random() < .4 ? rnd(1, max) : FL.f0; FL.t0 = performance.now(); FL.until = FL.t0 + rnd(5, 10) * 1000; FL.on = true; flDiv.style.display = 'block';
+  const r = Math.random(), hi = Math.min(25, max);
+  if (r < .45 && hi > 8) { FL.f0 = rnd(8, hi); FL.f1 = Math.random() < .5 ? rnd(8, hi) : FL.f0; FL.tipo = 'banda dei fosfeni'; }   // 8–25 Hz: le forme più nitide (Walter, Smythies, Becker & Elliott)
+  else if (r < .65 && max > 8) { FL.f0 = FL.f1 = rnd(8, Math.min(13, max)); FL.tipo = 'Dream Machine'; }   // la banda alfa della Dream Machine di Gysin e Sommerville
+  else { FL.f0 = rnd(1, max); FL.f1 = Math.random() < .4 ? rnd(1, max) : FL.f0; FL.tipo = 'libero'; }
+  FLF.f = 0; FLF.seeded = Math.random() < .3 ? pick(['cerchi', 'ventaglio']) : ''; FLF.giri = rnd(.75, 1.3) * (Math.random() < .5 ? -1 : 1);
+  FL.t0 = performance.now(); FL.until = FL.t0 + rnd(5, 10) * 1000; FL.on = true; flDiv.style.display = 'block';
 }
 (function flLoop(t) {
   requestAnimationFrame(flLoop);
   if (!FL.on) return;
-  if (t > FL.until || !FL.ok) { FL.on = false; flDiv.style.display = 'none'; return; }
+  if (t > FL.until || !FL.ok) { FL.on = false; flDiv.style.display = 'none'; flFasi(false, t); if (FL.ok) foLuce(); return; }
   const dt = (t - FL.t0) / 1000, D = (FL.until - FL.t0) / 1000, ph = FL.f0 * dt + (FL.f1 - FL.f0) * dt * dt / (2 * D);   // la frequenza può scivolare da f0 a f1
-  flDiv.style.background = (Math.floor(ph * 2) & 1) ? '#fff' : '#000';
+  const white = !!(Math.floor(ph * 2) & 1); flDiv.style.background = white ? '#fff' : '#000'; flFasi(white, t);
 })(0);
 
 // MONOCROMO: il flusso si ferma su una pagina di un solo colore, pixelata, dal chiaro allo scuro;
@@ -2068,7 +2204,7 @@ function rituale(dt) {
   const m = active.find(x => x.proc === RIT.proc);
   if (!m) { RIT.phase = ''; return false; }
   if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > (REGIA.on ? 1.8 : 7))) { RIT.phase = 'sosta'; RIT.t = 0; }
-  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = REGIA.on ? rnd(.6, 1.5) : rnd(.05, .12); if (REGIA.on && RIT.proc === P.mandala) { m.target = 0; m.shape = 'cerchio'; m.cx = W / 2; m.cy = H / 2; } if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
+  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; if (REGIA.on) postimmagine(view, rnd(1.2, 2.2)); m.rate = REGIA.on ? rnd(.6, 1.5) : rnd(.05, .12); if (REGIA.on && RIT.proc === P.mandala) { m.target = 0; m.shape = 'cerchio'; m.cx = W / 2; m.cy = H / 2; } if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
   return RIT.phase === 'sosta';
 }
 
@@ -2131,6 +2267,7 @@ function newBands() { S.bandM = Math.random() < .4 ? 3 : 2; for (let i = 0; i < 
 
 // eventi: tassi per secondo
 const EVENTS = [
+  { rate: () => FO.kind ? 0 : .014, fn: () => fosfeni(pick(['chiusi', 'chiusi', 'battito', 'pressione', 'ganzfeld', 'mackay', 'emicrania'])) },
   { rate: () => { const n = active.filter(a => !a.proc.persist).length; return n < 2 ? .3 : n < 3 ? .08 : 0; }, fn: () => enter() },
   { rate: () => active.length > 1 ? .09 : 0, fn: leave },
   { rate: () => .07, fn: newPalette },
@@ -2179,10 +2316,10 @@ const EVENTS = [
    Il TEMPO cambia anche lui: lento, medio, veloce, frenesia. Le soste sono solo su mandala e lettera, brevi.
    Con ?libero nell'indirizzo torna il montaggio casuale di prima. */
 const ENGINES = ['tagli', 'cammini', 'tasselli', 'alberi', 'celle', 'onde', 'cerchi', 'spirali', 'griglia', 'forme', 'raggi', 'turing', 'automi', 'wolfram', 'attrattore', 'julia',
-  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos'];
+  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos', 'fosfeni', 'knoll'];
 // Galanter: i sistemi stanno su un asse dall'ordine al disordine; la complessità effettiva sta nel mezzo
-const ORDINATI = ['griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
-const DISORDINATI = ['tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
+const ORDINATI = ['fosfeni', 'griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
+const DISORDINATI = ['knoll', 'tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
 const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velocità dei passaggi, mosse per taglio
   lento: { cut: [2.2, 4], ts: [1.3, 1.8], tr: [.5, 1], combo: 1 },
   medio: { cut: [1.2, 2.4], ts: [1.8, 2.6], tr: [.8, 1.6], combo: 2 },
@@ -2211,7 +2348,11 @@ function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in
     const k = free[(Math.random() * Math.min(2, free.length)) | 0]; REGIA.seen[k] = now; return P[k]; }
   free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
-function cambiaMotore() {
+function cambiaMotore() {   // a volte il taglio passa attraverso le palpebre: un battito di ciglia
+  if (!FO.kind && !REGIA.over && Math.random() < .16 && performance.now() - FO.lastBlink > 4000 && fosfeni('battito')) return;
+  cambiaMotore0();
+}
+function cambiaMotore0() {
   const live = active.filter(a => a.target === 1 && !a.proc.persist), maxA = REGIA.tempo === 'lento' || asse() === 'ordine' ? 2 : 3;
   if (live.length >= maxA || (live.length > 1 && Math.random() < .5)) { const o = live[0]; o.target = 0; o.rate = rnd(...T().tr); o.shape = pick(['cerchio', 'onda', 'cerchio']); o.cx = rnd(W); o.cy = rnd(H); }
   const q = motoreNuovo(); if (q === P.mandala && Math.random() < .5) { apparizione(P.mandala); return; }
@@ -2234,6 +2375,11 @@ const MOVES = {
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
+  occhi: [.55, () => fosfeni('chiusi')],
+  pressione: [.3, () => fosfeni('pressione')],
+  ganzfeld: [.28, () => fosfeni('ganzfeld')],
+  mackay: [.28, () => fosfeni('mackay')],
+  emicrania: [.22, () => fosfeni('emicrania')],
   sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
 };
 function regiaTick(dt) {
@@ -2241,7 +2387,7 @@ function regiaTick(dt) {
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale; lorenz(dt);
   if ((REGIA.modoT -= dt) <= 0) { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); }
-  if (RIT.phase || MONO.phase || TD.phase) return;
+  if (RIT.phase || MONO.phase || TD.phase || FO.hold) return;
   if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
     if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
     else { if ((REGIA.cut -= dt) <= 0) { REGIA.cut = rnd(.08, .22); REGIA.n++;
@@ -2251,7 +2397,7 @@ function regiaTick(dt) {
       return; }
   }
   if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
-  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : REGIA.tempo === 'lento' ? 14 : 8)) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
   if ((REGIA.cut -= dt) > 0) return;
   REGIA.cut = rnd(...T().cut); REGIA.n++;
   const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
@@ -2259,15 +2405,313 @@ function regiaTick(dt) {
     const w = {}; for (const [m, [v]] of Object.entries(MOVES)) w[m] = REGIA.last.includes(m) ? 0 : v;   // mai la stessa mossa a breve distanza
     if (TD.phase) w.tre = 0;
     const ax = asse();
-    if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
-    if (ax === 'disordine') { w.glitch *= 2.5; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
+    if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; w.ganzfeld *= 1.7; w.mackay *= 1.7; }
+    if (ax === 'disordine') { w.glitch *= 2.5; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; w.pressione *= 1.7; w.emicrania *= 1.7; w.occhi *= 1.3; }
+    if (FO.kind) for (const x of ['occhi', 'pressione', 'ganzfeld', 'mackay', 'emicrania']) w[x] = 0;
     let m;
     if (REGIA.modo === 'caos') {   // la mossa è quella che l'attrattore indica sull'anello delle mosse: vicine fra loro, con memoria
-      const ks = Object.keys(w).filter(x => w[x] > 0), i0 = Math.floor(lzAng() * ks.length) % ks.length; m = ks[(i0 + (Math.random() < .3 ? 1 : 0)) % ks.length];
+      const ks = Object.keys(w).filter(x => w[x] > 0), tot = ks.reduce((a, x) => a + w[x], 0);   // l'anello è diviso in archi proporzionali al peso di ogni mossa
+      let r = ((lzAng() + (Math.random() < .3 ? .04 : 0)) % 1) * tot; m = ks[ks.length - 1]; for (const x of ks) { r -= w[x]; if (r <= 0) { m = x; break; } }
     } else { let r = Object.values(w).reduce((x, y) => x + y, 0) * Math.random(); for (m in w) { r -= w[m]; if (r <= 0) break; } }
     REGIA.last.push(m); if (REGIA.last.length > 3) REGIA.last.shift();
     MOVES[m][1](); if (RIT.phase || MONO.phase || TD.phase) break;
   }
+}
+
+/* =================== FOSFENI: GLI EVENTI ===================
+   Il film ogni tanto chiude gli occhi. OCCHI CHIUSI: le palpebre si abbassano, resta la postimmagine negativa che svanisce,
+   il buio non è mai nero (il "grigio proprio" dell'occhio), la nebbia respira col respiro (Helmholtz), il rumore discreto
+   del buio, poi i fosfeni: le forme di Knoll, prima dritte poi curve (Smythies), gli archi gialli che partono dalla fovea
+   (Nebel), la scacchiera corticale; riaprendo le cose chiare brillano e i fosfeni restano a contrasto invertito.
+   BATTITO: un taglio di montaggio attraverso le palpebre. PRESSIONE (Purkinje, Helmholtz, Oster, Tyler): dal lato opposto
+   un anello luminoso, poi una scacchiera evanescente di punti, al rilascio l'albero dei vasi che pulsa col cuore, i punti
+   gialli e viola, la filigrana che resta. GANZFELD (Wackermann): il campo di un solo colore scivola verso il complementare,
+   punti e zigzag, il vuoto, poi l'immagine nuova affiora dalla nebbia. MACKAY: raggi e rumore dinamico fanno vedere i
+   cerchi che non ci sono. EMICRANIA: lo spettro di fortificazione, una C di zigzag che luccica e si allarga.
+   Dopo il buio l'occhio vede reticoli e linee dritte; dopo la luce mosaici complessi a simmetria quadrupla (Smythies). */
+const EIGENGRAU = '#0c0912';
+const FOSCOL = ['#3d8bff', '#2dff7a', '#ffa21f', '#fff23a', '#b45cff', '#ff3d3d', '#e8f4ff', '#18d8ff'];
+const FOK = ['chiusi', 'pressione', 'ganzfeld', 'mackay', 'emicrania'];
+const BUIO = ['griglia', 'tasselli', 'labirinto', 'raggi', 'concreto', 'fosfeni', 'wolfram'];
+const FONOMI = { chiusi: 'occhi chiusi', battito: 'battito di ciglia', pressione: 'pressione sugli occhi', ganzfeld: 'Ganzfeld', mackay: 'immagine complementare di MacKay', emicrania: 'spettro di fortificazione' };
+const FO = { kind: '', t: 0, dur: 1, hold: false, cv: document.createElement('canvas'), after: [], lastBlink: 0, mid: null, midAt: 1, midDone: false, n: 0, seq: 0 };
+FO.g = FO.cv.getContext('2d');
+function foSize() { const w = Math.max(320, Math.round(view.width / 2)), h = Math.max(200, Math.round(view.height / 2)); if (FO.cv.width !== w || FO.cv.height !== h) { FO.cv.width = w; FO.cv.height = h; } return [w, h]; }
+function foSnapshot(src, neg = true) {   // piccola e sfocata; negativa: la postimmagine ha i colori complementari
+  const c = document.createElement('canvas'), w = 56, h = Math.max(24, Math.round(56 * view.height / view.width)); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.drawImage(src || view, 0, 0, w, h);
+  if (neg) { const d = g.getImageData(0, 0, w, h), a = d.data, o = [0, 0, 0];   // complementare e satura, mai grigia
+    for (let i = 0; i < a.length; i += 4) { const q = rgb2hsl(a[i], a[i + 1], a[i + 2]); hsl2rgb(q[0] + .5, Math.min(1, q[1] * 1.5 + .35), clamp(1 - q[2], .25, .6), o, 0); a[i] = o[0]; a[i + 1] = o[1]; a[i + 2] = o[2]; } g.putImageData(d, 0, 0); }
+  return c;
+}
+function postimmagine(src, dur, mode) { try { FO.after.push({ c: src instanceof HTMLCanvasElement && mode === 'forma' ? src : foSnapshot(src), t: 0, dur: dur || rnd(1, 2), dx: gauss() * .015, dy: gauss() * .015, mode: mode || 'negativo' }); if (FO.after.length > 3) FO.after.shift(); } catch (e) {} }
+function foCambio(list) {   // mentre gli occhi sono chiusi la scena cambia di colpo
+  for (const a of active) if (!a.proc.persist) { a.target = 0; a.rate = 60; }
+  const ks = list ? list.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1)) : null;
+  const q = ks && ks.length ? P[pick(ks)] : motoreNuovo(); enter(q); const a = active[active.length - 1]; a.p = 1; a.shape = 'tutto';
+}
+function foLuce() {   // adattamento alla luce: un mosaico complesso, simmetria quadrupla, colori brillanti (Smythies)
+  if (!REGIA.on || FO.kind || MONO.phase || RIT.phase || TD.phase) return;
+  S.sym = pick(['rotazione 4', 'caleidoscopio']); const n = pick([2, 2, 3, 4]); S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: 'specchio', grid: false };
+  foCambio(['tasselli', 'islamica', 'mosaico', 'tessuti']);
+  const p = PALETTES.find(x => x.name === pick(['acido', 'primari della luce', 'tropicale'])); if (p && p !== S.palTo) { S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = 1.2; }
+}
+const fBreath = t => .5 + .5 * Math.sin(t * 6.2832 * .23);   // il respiro, circa 14 al minuto
+
+function fosfeni(kind, mid) {
+  if (FO.kind || MONO.phase || TD.phase || RIT.phase) return false;
+  kind = kind || pick(FOK); const [w, h] = foSize(), m = Math.min(w, h);
+  Object.assign(FO, { kind, t: 0, mid: null, midAt: 1, midDone: false, side: Math.random() < .5 ? -1 : 1, blobs: [], bOn: false });
+  FO.dur = { chiusi: rnd(3.2, 6.5), battito: rnd(.3, .45), pressione: rnd(4.5, 7), ganzfeld: rnd(5, 8), mackay: rnd(3, 5), emicrania: rnd(5, 8) }[kind];
+  FO.hold = kind !== 'emicrania' && kind !== 'battito'; FO.n++;
+  FO.snapC = foSnapshot(view);
+  if (kind === 'battito') { FO.mid = mid || (() => foCambio(null)); FO.midAt = .5; FO.lastBlink = performance.now(); }
+  if (kind === 'chiusi') {
+    FO.var = pick(['glifi', 'glifi', 'archi', 'corteccia', 'cinema']); FO.mid = () => foCambio(BUIO); FO.midAt = .86;
+    FO.fogCol = pick(['#2a1f5a', '#1d3a4a', '#3a1d3a', '#1f2f5a']);
+    const k1 = pick(KNOLL_DRITTE), k1b = Math.random() < .5 ? k1 : pick(KNOLL_DRITTE), k2 = pick(KNOLL_CURVE), cols = [pick(FOSCOL), pick(FOSCOL)];
+    const n = 3 + poisson(3), ring = Math.random() < .5;
+    FO.glyphs = Array.from({ length: n }, (_, i) => { const a = i * 6.2832 / n + rnd(.3), rr = ring ? m * rnd(.22, .34) : m * rnd(0, .4);
+      return { x: w / 2 + Math.cos(a) * rr * (w / m) * .8, y: h / 2 + Math.sin(a) * rr, s: m * rnd(.05, .14), r: rnd(6.28), vr: gauss() * .5, k1: i & 1 ? k1b : k1, k2, col: cols[i & 1], sd: rnd(100), b: rnd(0, .15), vx: gauss() * 6, vy: gauss() * 6 }; });
+    FO.arcs = Array.from({ length: 14 }, () => ({ a: rnd(6.28), w: rnd(.5, 1.6), ph: rnd(1), col: pick(['#fff23a', '#ffd21f', '#ffa21f', '#fff7b0']) }));
+    FO.cort = { m: pick([8, 10, 12, 16]), a: rnd(.35, .9), rot: rnd(6.28), col: pick(FOSCOL) };
+  }
+  if (kind === 'pressione') {
+    FO.var = Math.random() < .5 ? 'Purkinje' : 'Tyler'; FO.var2 = Math.random() < .3 ? 'coroide' : 'retina'; FO.mid = () => foCambio(BUIO); FO.midAt = .84;
+    FO.chCol = pick(['#fff23a', '#8fb8ff', '#b45cff', '#2dff7a']);
+    // l'albero dei vasi della retina: parte dal disco ottico e gira intorno alla fovea
+    const v = [], dx = w / 2 + FO.side * w * .16, dy = h / 2;
+    const ramo = (x, y, a, len, d) => { const pts = [[x, y]]; let bend = (Math.random() < .5 ? -1 : 1) * rnd(.02, .07);
+      for (let i = 0; i < 9; i++) { a += bend + gauss() * .08; x += Math.cos(a) * len / 9; y += Math.sin(a) * len / 9; pts.push([x, y]); } v.push({ pts, d });
+      if (d < 5) { ramo(x, y, a + rnd(.25, .6), len * rnd(.55, .75), d + 1); ramo(x, y, a - rnd(.25, .6), len * rnd(.55, .75), d + 1); } };
+    const fov = FO.side > 0 ? Math.PI : 0;   // le arcate temporali girano intorno alla fovea, i rami nasali sono più corti
+    for (const [a0, l] of [[fov - 1, .38], [fov + 1, .38], [fov + Math.PI - .7, .24], [fov + Math.PI + .7, .24]]) ramo(dx, dy, a0 + gauss() * .12, m * l * rnd(.85, 1.1), 1);
+    FO.vessels = v;
+    FO.pt1 = Array.from({ length: 160 }, () => [rnd(w), rnd(h)]);
+    FO.pt2 = Array.from({ length: 110 }, () => { const x = rnd(w), y = rnd(h); return [x, y, 1 + 5 * Math.hypot(x - w / 2, y - h / 2) / m]; });
+  }
+  if (kind === 'ganzfeld') {
+    const c = currentPalette().c.filter(x => { const l = rgb2hsl(...x); return l[1] > .3 && l[2] > .15 && l[2] < .85; });
+    FO.gc = c.length ? pick(c) : [230, 40, 40]; const hs = rgb2hsl(...FO.gc), comp = [0, 0, 0]; hsl2rgb(hs[0] + .5, hs[1], hs[2], comp, 0); FO.gcComp = comp;
+    FO.holes = Array.from({ length: 9 }, () => ({ x: rnd(w), y: rnd(h), r: rnd(.25, .6) }));
+    FO.elem = Array.from({ length: 7 }, () => ({ t0: rnd(.25, .52), kind: Math.random() < .5 ? 'punti' : 'zigzag', x: rnd(w), y: rnd(h), s: m * rnd(.05, .15), a: rnd(6.28) }));
+    FO.mid = () => foCambio(Math.random() < .25 ? ['bestiario', 'fiori', 'omaggi'] : null); FO.midAt = .7;
+  }
+  if (kind === 'mackay') {
+    FO.var = Math.random() < .7 ? 'raggi' : 'cerchi';
+    const pc = document.createElement('canvas'); pc.width = w; pc.height = h; const g = pc.getContext('2d');
+    const bw = Math.random() < .55, cols = bw ? ['#000', '#fff'] : (() => { const c = currentPalette().c.slice().sort((a, b) => rgb2hsl(...a)[2] - rgb2hsl(...b)[2]); return [`rgb(${c[0].join(',')})`, `rgb(${c[4].join(',')})`]; })();
+    g.fillStyle = cols[1]; g.fillRect(0, 0, w, h); g.fillStyle = cols[0];
+    if (FO.var === 'raggi') { const n = 60, R = Math.hypot(w, h); for (let j = 0; j < n; j++) { const a0 = j * 6.2832 / n; g.beginPath(); g.moveTo(w / 2, h / 2); g.arc(w / 2, h / 2, R, a0, a0 + Math.PI / n); g.closePath(); g.fill(); } }
+    else { const st = m * .035; let i = 0; for (let r = Math.hypot(w, h); r > 0; r -= st, i++) { g.fillStyle = cols[i & 1]; g.beginPath(); g.arc(w / 2, h / 2, r, 0, 6.2832); g.fill(); } }
+    FO.pat = pc; FO.noise = document.createElement('canvas'); FO.noise.width = Math.round(w / 3); FO.noise.height = Math.round(h / 3); FO.ng = FO.noise.getContext('2d'); FO.nd = FO.ng.createImageData(FO.noise.width, FO.noise.height);
+  }
+  if (kind === 'emicrania') { FO.mx = rnd(.35, .65); FO.my = rnd(.35, .65); FO.gap = rnd(.9, 1.7); FO.ang = rnd(6.28); }
+  return true;
+}
+
+// il buio con i suoi rumori: pochi punti di luce che nascono e muoiono (il "rumore discreto" della retina al buio)
+function foNoise(g, w, h, n, a) { for (let i = 0; i < n; i++) { g.globalAlpha = a * rnd(.3, 1); g.fillStyle = pick(['#ffffff', '#9fc4ff', '#c79bff', '#7affd0']); const s = Math.random() < .85 ? 1 : 2; g.fillRect(rnd(w), rnd(h), s, s); } g.globalAlpha = 1; }
+function foGlow(g, path, col, lw, a) { g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = col; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.globalAlpha = a * .16; g.lineWidth = lw * 5; path(); g.stroke(); g.globalAlpha = a * .9; g.lineWidth = lw; path(); g.stroke(); g.restore(); }
+function foFog(g, w, h, t, col, a) { g.save(); g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 5; i++) { const x = w * (.5 + .42 * Math.sin(t * .11 + i * 2.1)), y = h * (.5 + .42 * Math.cos(t * .09 + i * 1.7)), r = h * (.35 + .15 * Math.sin(t * .2 + i));
+    const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = a; g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); } g.restore(); }
+function foApri(g, w, h, open) {   // le palpebre: si apre un'ellisse morbida al centro
+  if (open <= 0) return; if (open >= 1) { g.clearRect(0, 0, w, h); return; }
+  g.save(); g.globalCompositeOperation = 'destination-out'; g.translate(w / 2, h / 2); const rx = w * .78, ry = Math.max(1, h * .72 * open); g.scale(1, ry / rx);
+  const gr = g.createRadialGradient(0, 0, rx * .55, 0, 0, rx); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 6.2832); g.fill(); g.restore();
+}
+function foCorteccia(g, w, h, t, P2, a) {   // la scacchiera corticale, a girasole, vista nel buio
+  const cx = w / 2, cy = h / 2, R = Math.hypot(w, h) * .7, k = 1 / Math.tan(P2.a), rot = P2.rot + t * .35;
+  foGlow(g, () => { g.beginPath(); for (const hand of [1, -1]) for (let j = 0; j < P2.m; j++) { const a0 = hand * rot + j * 6.2832 / P2.m; let f = true;
+    for (let u = .5; u < Math.log(R); u += .05) { const th = a0 + hand * u * k, r = Math.exp(u); const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th); f ? g.moveTo(x, y) : g.lineTo(x, y); f = false; } } }, P2.col, 1.2, a);
+}
+const FO_DRAW = {
+  chiusi(g, w, h, u, t) {
+    const open = u < .07 ? 1 - ease(u / .07) : u > .86 ? ease((u - .86) / .14) : 0;
+    g.fillStyle = EIGENGRAU; g.fillRect(0, 0, w, h);
+    const ka = Math.exp(-t / .9); if (ka > .02) { g.save(); g.globalAlpha = .45 * ka; g.imageSmoothingEnabled = true; g.globalCompositeOperation = 'lighter'; g.drawImage(FO.snapC, -w * .02, -h * .02, w * 1.04, h * 1.04); g.restore(); }
+    const b = fBreath(t); foFog(g, w, h, t, FO.fogCol, .55 * (.35 + .65 * b));
+    if (b > .97 && !FO.bOn) { FO.bOn = true; for (let i = 0; i < 2 + poisson(1); i++) FO.blobs.push({ x: rnd(w), y: rnd(h), r: h * rnd(.05, .14), t0: t, col: pick(FOSCOL) }); } if (b < .5) FO.bOn = false;
+    for (const q of FO.blobs) { const k = 1 - (t - q.t0) / 1.8; if (k <= 0) continue; const gr = g.createRadialGradient(q.x, q.y, 0, q.x, q.y, q.r); gr.addColorStop(0, q.col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = .35 * k; g.fillStyle = gr; g.fillRect(q.x - q.r, q.y - q.r, 2 * q.r, 2 * q.r); g.restore(); }
+    foNoise(g, w, h, 70, .9);
+    const e = clamp((u - .16) / .14, 0, 1) * (1 - clamp((u - .8) / .06, 0, 1));
+    if (e > 0) {
+      if (FO.var === 'glifi') for (const q of FO.glyphs) {   // le forme di Knoll: prima quelle dritte, poi quelle curve
+        const ee = e * clamp((u - .16 - q.b) / .1, 0, 1), sw = clamp((u - .45) / .12, 0, 1), sc = q.s * (1 + .08 * Math.sin(t * 3 + q.sd)), x = q.x + q.vx * t, y = q.y + q.vy * t, r = q.r + q.vr * t;
+        if (sw < 1) foGlow(g, () => knollGlyph(g, q.k1, x, y, sc, r, q.sd), q.col, 1.6, ee * (1 - sw));
+        if (sw > 0) foGlow(g, () => knollGlyph(g, q.k2, x, y, sc, r, q.sd), q.col, 1.6, ee * sw);
+      }
+      else if (FO.var === 'archi') {   // gli archi gialli che partono dalla fovea (Nebel)
+        for (const q of FO.arcs) { const k = (t * .32 + q.ph) % 1, r = h * (.03 + .7 * k); foGlow(g, () => { g.beginPath(); g.arc(w / 2, h / 2, r, q.a, q.a + q.w); }, q.col, 1.5 + 2 * k, e * (1 - k)); }
+      }
+      else if (FO.var === 'corteccia') foCorteccia(g, w, h, t, FO.cort, e * .9);
+      else {   // il "cinema del prigioniero": onde lente che si incontrano, chiazze rosse e verdi come olio sull'acqua (Smythies, fase scura)
+        g.save(); g.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 6; i++) { const a = t * .4 * (i & 1 ? 1 : -1) + i, x = w / 2 + Math.cos(a) * w * .22, y = h / 2 + Math.sin(a * 1.3) * h * .2, r = h * (.18 + .06 * Math.sin(t + i));
+          const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, i & 1 ? '#ff2a40' : '#20ff80'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .22 * e; g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }
+        g.globalAlpha = .5 * e; g.fillStyle = '#ffffff'; for (let i = 0; i < 90; i++) { const a = i * 2.4 + t * (.2 + (i % 5) * .05), rr = (i * 7.3 % 1) * h * .5 + 20 * Math.sin(t * 2 + i); g.fillRect(w / 2 + Math.cos(a) * rr, h / 2 + Math.sin(a) * rr, 1.5, 1.5); }   // un "formicaio" di oggetti minuscoli
+        g.restore();
+      }
+    }
+    foApri(g, w, h, open);
+    if (u > .86) {   // riaprendo: le cose chiare brillano, i fosfeni restano scuri sulle cose
+      const k = 1 - open; g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = .2 * k; g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h); g.restore();
+      if (FO.var === 'glifi') { g.save(); g.globalAlpha = .45 * k; g.strokeStyle = '#000'; g.lineWidth = 2.2; for (const q of FO.glyphs) { knollGlyph(g, q.k2, q.x + q.vx * t, q.y + q.vy * t, q.s, q.r + q.vr * t, q.sd); g.stroke(); } g.restore(); }
+    }
+  },
+  battito(g, w, h, u) {
+    const open = u < .42 ? 1 - ease(u / .42) : u > .58 ? ease((u - .58) / .42) : 0;
+    g.fillStyle = EIGENGRAU; g.fillRect(0, 0, w, h);
+    g.save(); g.globalAlpha = .4; g.globalCompositeOperation = 'lighter'; g.drawImage(FO.snapC, 0, 0, w, h); g.restore(); foNoise(g, w, h, 40, .8);
+    foApri(g, w, h, open);
+  },
+  pressione(g, w, h, u, t) {
+    const env = clamp(u / .15, 0, 1) * (1 - clamp((u - .84) / .16, 0, 1)), m = Math.min(w, h);
+    g.globalAlpha = .92 * env; g.fillStyle = EIGENGRAU; g.fillRect(0, 0, w, h); g.globalAlpha = 1;   // la vista si spegne e si confonde
+    g.save(); g.globalCompositeOperation = 'lighter';
+    // il fosfene compare dal lato opposto alla pressione: un centro chiaro, un anello scuro, un anello chiaro (Helmholtz)
+    const ringE = env * (1 - clamp((u - .55) / .1, 0, 1)), p = .85 + .15 * Math.sin(t * 6.2832 * .7), px = w / 2 - FO.side * w * .3, py = h * .52, R = m * .16 * p;
+    if (ringE > 0) { const gr = g.createRadialGradient(px, py, 0, px, py, R * .4); gr.addColorStop(0, '#d8c4ff'); gr.addColorStop(1, 'rgba(90,40,200,0)'); g.globalAlpha = .9 * ringE; g.fillStyle = gr; g.fillRect(px - R, py - R, 2 * R, 2 * R);
+      g.globalAlpha = 1; foGlow(g, () => { g.beginPath(); g.arc(px, py, R * .8, 0, 6.2832); }, '#8a5cff', R * .1, ringE); }
+    // poi il campo si illumina, e appare una scacchiera evanescente di punti luminosi
+    const ch = clamp((u - .15) / .1, 0, 1) * (1 - clamp((u - .48) / .1, 0, 1));
+    if (ch > 0) {
+      g.globalAlpha = .1 * ch; g.fillStyle = '#6a4cff'; g.fillRect(0, 0, w, h); g.fillStyle = FO.chCol;
+      if (FO.var === 'Purkinje') {   // quadratini in fila, stelle a otto raggi o rombi, fasce chiare e scure
+        const s = m / 26, rot = t * .05, ca = Math.cos(rot), sa = Math.sin(rot);
+        for (let j = -16; j <= 16; j++) for (let i = -26; i <= 26; i++) { const X = i * s, Y = j * s, x = w / 2 + ca * X - sa * Y, y = h / 2 + sa * X + ca * Y; if (x < -s || x > w + s || y < -s || y > h + s) continue;
+          const band = .5 + .5 * Math.cos(Math.hypot(X, Y) / (m * .09) * 6.2832 - t * 2); g.globalAlpha = ch * band * .8;
+          if (!(i % 4) && !(j % 4)) { g.save(); g.strokeStyle = FO.chCol; g.lineWidth = 1; g.beginPath(); for (let k = 0; k < 8; k++) { const a = k * .785 + rot; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * s * 1.3, y + Math.sin(a) * s * 1.3); } g.stroke(); g.restore(); }
+          else g.fillRect(x - s * .17, y - s * .17, s * .34, s * .34); }
+      } else {   // Tyler: la scacchiera "a girasole", fitta al centro e larga ai bordi
+        const q = 1.12, mm = 28; let n = 0;
+        for (let r = 4; r < Math.hypot(w, h) * .6; r *= q, n++) for (let k = 0; k < mm; k++) { if ((k + n) & 1) continue; const a = (k + n * .5) * 6.2832 / mm + t * .08, x = w / 2 + r * Math.cos(a), y = h / 2 + r * Math.sin(a), s = r * .1;
+          g.globalAlpha = ch * .75; g.fillRect(x - s / 2, y - s / 2, s, s); }
+      }
+    }
+    // il rilascio: resta una luce al centro, poi l'albero dei vasi pulsa col cuore; punti gialli tutti uguali, punti viola più grandi ai bordi
+    const rel = clamp((u - .48) / .08, 0, 1) * (1 - clamp((u - .86) / .1, 0, 1));
+    if (rel > 0) {
+      const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, m * .35); gr.addColorStop(0, '#f0e8ff'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .45 * rel * clamp(1 - (u - .48) / .3, 0, 1); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      const hb = .45 + .55 * Math.pow(.5 + .5 * Math.sin(t * 6.2832 * 1.15), 4), col = FO.var2 === 'coroide' ? '#ff3030' : '#ffe2b8';
+      g.globalAlpha = 1; foGlow(g, () => { g.beginPath(); for (const v of FO.vessels) v.pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); }, col, 1.4, rel * hb);
+      g.globalAlpha = .8 * rel; g.fillStyle = '#ffe94a'; for (const [x, y] of FO.pt1) g.fillRect(x, y, 2, 2);
+      g.fillStyle = '#b06bff'; for (const [x, y, s] of FO.pt2) g.fillRect(x, y, s, s);
+    }
+    g.restore();
+    if (u > .84) { const k = (1 - u) / .16; g.save(); g.globalAlpha = .35 * k; g.strokeStyle = '#000'; g.lineWidth = 1.3; g.beginPath(); for (const v of FO.vessels) v.pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); g.restore(); }   // la filigrana resta
+  },
+  ganzfeld(g, w, h, u, t) {
+    const inn = ease(clamp(u / .15, 0, 1)), drift = clamp((u - .15) / .5, 0, 1), col = mixCol(FO.gc, FO.gcComp, drift * .6), dim = 1 - .22 * drift;
+    g.globalAlpha = inn; g.fillStyle = `rgb(${col.map(v => Math.round(v * dim)).join(',')})`; g.fillRect(0, 0, w, h); g.globalAlpha = 1;
+    // la nebbia non è mai del tutto uniforme
+    g.save(); g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 4; i++) { const x = w * (.5 + .4 * Math.sin(t * .13 + i * 1.9)), y = h * (.5 + .4 * Math.cos(t * .1 + i * 2.3)), r = h * .45; const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgb(${col.map(v => Math.round(v * .25)).join(',')})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .6 * inn; g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }
+    // percetti elementari: punti, zigzag
+    for (const q of FO.elem) { const k = (u - q.t0) / .12; if (k < 0 || k > 1) continue; const a = Math.sin(k * Math.PI) * .5;
+      if (q.kind === 'punti') { g.globalAlpha = a; g.fillStyle = '#ffffff'; for (let i = 0; i < 12; i++) g.fillRect(q.x + Math.cos(i * 2.4 + q.a) * q.s * (i / 12), q.y + Math.sin(i * 2.4 + q.a) * q.s * (i / 12), 2, 2); }
+      else foGlow(g, () => { g.beginPath(); for (let i = 0; i <= 8; i++) { const x = q.x + (i - 4) * q.s * .25, y = q.y + (i & 1 ? -1 : 1) * q.s * .15; i ? g.lineTo(x, y) : g.moveTo(x, y); } }, '#ffffff', 1.2, a); }
+    g.restore();
+    // l'immagine nuova affiora dalla nebbia, a chiazze
+    const em = clamp((u - .7) / .3, 0, 1);
+    if (em > 0) { g.save(); g.globalCompositeOperation = 'destination-out';
+      for (const q of FO.holes) { const r = q.r * Math.max(w, h) * ease(em) * 1.3; if (r < 1) continue; const gr = g.createRadialGradient(q.x, q.y, 0, q.x, q.y, r); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(q.x - r, q.y - r, 2 * r, 2 * r); }
+      g.globalAlpha = em * em; g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.restore(); }
+  },
+  mackay(g, w, h, u) {
+    const env = clamp(u / .06, 0, 1) * (1 - clamp((u - .9) / .1, 0, 1));
+    g.globalAlpha = env; g.drawImage(FO.pat, 0, 0, w, h);
+    const a = FO.nd.data; for (let i = 0; i < a.length; i += 4) { const v = Math.random() < .5 ? 0 : 255; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = 255; }   // il rumore del televisore senza canale
+    FO.ng.putImageData(FO.nd, 0, 0); g.imageSmoothingEnabled = false; g.globalAlpha = .42 * env; g.drawImage(FO.noise, 0, 0, w, h); g.imageSmoothingEnabled = true; g.globalAlpha = 1;
+  },
+  emicrania(g, w, h, u, t) {
+    const env = clamp(u / .1, 0, 1) * (1 - clamp((u - .85) / .15, 0, 1)), m = Math.min(w, h), R = m * (.05 + 1.1 * ease(u)), cx = FO.mx * w, cy = FO.my * h;
+    const sc = g.createRadialGradient(cx, cy, 0, cx, cy, R); sc.addColorStop(0, 'rgba(12,9,18,0)'); sc.addColorStop(.75, 'rgba(12,9,18,.55)'); sc.addColorStop(1, 'rgba(12,9,18,0)');   // lo scotoma: dentro la C la vista si spegne
+    g.globalAlpha = env; g.fillStyle = sc; g.fillRect(0, 0, w, h); g.globalAlpha = 1;
+    const a0 = FO.ang + FO.gap / 2, a1 = FO.ang + 6.2832 - FO.gap / 2, amp = m * .02 * (1 + R / m), n = Math.max(12, Math.round((a1 - a0) * R / (amp * 1.6)));
+    for (const row of [0, 1]) { const rr = R + row * amp * 1.8;
+      for (let i = 0; i < n; i++) { const b0 = a0 + (a1 - a0) * i / n, b1 = a0 + (a1 - a0) * (i + 1) / n, r0 = rr + (i & 1 ? amp : -amp), r1 = rr + (i & 1 ? -amp : amp), col = FOSCOL[(i + row * 3 + Math.floor(t * 8)) % FOSCOL.length];
+        foGlow(g, () => { g.beginPath(); g.moveTo(cx + r0 * Math.cos(b0), cy + r0 * Math.sin(b0)); g.lineTo(cx + r1 * Math.cos(b1), cy + r1 * Math.sin(b1)); }, col, 1.6, env * (.7 + .3 * Math.sin(t * 20 + i))); } }
+  },
+};
+function foFine(k) {
+  if (k === 'mackay') {   // dopo i raggi resta l'immagine complementare: cerchi ondulati (e viceversa)
+    const [w, h] = foSize(), c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.strokeStyle = '#ffffff'; g.lineWidth = 2;
+    if (FO.var === 'raggi') for (let r = 8; r < Math.hypot(w, h) / 2; r += Math.min(w, h) * .03) { g.beginPath(); for (let i = 0; i <= 120; i++) { const a = i / 120 * 6.2832, rr = r + 3 * Math.sin(a * 9 + r); i ? g.lineTo(w / 2 + rr * Math.cos(a), h / 2 + rr * Math.sin(a)) : g.moveTo(w / 2 + rr * Math.cos(a), h / 2 + rr * Math.sin(a)); } g.stroke(); }
+    else { g.beginPath(); for (let j = 0; j < 60; j++) { const a = j * 6.2832 / 60; g.moveTo(w / 2, h / 2); g.lineTo(w / 2 + Math.cos(a) * w, h / 2 + Math.sin(a) * w); } g.stroke(); }
+    FO.after.push({ c, t: 0, dur: 1.6, dx: 0, dy: 0, mode: 'forma' });
+  }
+  if (k === 'chiusi' || k === 'pressione') postimmagine(FO.cv, 1.2);
+  REGIA.cut = Math.min(REGIA.cut, rnd(.3, 1.2));
+}
+function fosfeniDraw() {
+  const now = performance.now(), dt = Math.min(.1, (now - (FO.lastDraw || now)) / 1000); FO.lastDraw = now;
+  if (FO.after.length) {
+    for (const a of FO.after) { a.t += dt; const k = 1 - a.t / a.dur; if (k <= 0) continue; vctx.save(); vctx.imageSmoothingEnabled = true; vctx.imageSmoothingQuality = 'high';
+      vctx.globalCompositeOperation = a.mode === 'forma' ? 'lighter' : 'screen'; vctx.globalAlpha = (a.mode === 'forma' ? .35 : .5) * k * k;
+      vctx.drawImage(a.c, a.dx * a.t * view.width, a.dy * a.t * view.height, view.width, view.height); vctx.restore(); }
+    FO.after = FO.after.filter(a => a.t < a.dur);
+  }
+  if (!FO.kind) return;
+  FO.t += dt; const u = FO.t / FO.dur;
+  if (FO.mid && !FO.midDone && u >= FO.midAt) { FO.midDone = true; try { FO.mid(); } catch (e) {} }
+  if (u >= 1) { const k = FO.kind; FO.kind = ''; FO.hold = false; foFine(k); return; }
+  const [w, h] = foSize(), g = FO.g; g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, w, h);
+  FO_DRAW[FO.kind](g, w, h, u, FO.t);
+  vctx.drawImage(FO.cv, 0, 0, view.width, view.height);
+}
+
+// IL FLICKER E LE SUE FORME. Mentre lo schermo lampeggia, l'occhio vede forme e colori che non ci sono; qui ne compare l'ombra,
+// scelta dalla frequenza secondo Becker & Elliott (2006): rettangoli ~9 Hz, linee e raggi ~12, punti ~13, reticoli e zigzag ~14,
+// spirali ~17, cerchi ~21; blu ~10, rosso ~11, giallo ~13, verde e viola ~14. Più alta la frequenza, più fini gli elementi (Smythies).
+// Nelle fasi scure, chiazze rosse e verdi come olio sull'acqua (la fase scura di Smythies). A volte il flicker è "seminato"
+// (Billock & Tsou, 2007): al centro un disegno fermo, intorno compare la forma opposta — cerchi → pale che girano, pale → anelli.
+const FL_FORME = [['rettangoli', 9], ['linee', 12], ['raggi', 12], ['punti', 13], ['reticolo', 14], ['zigzag', 14], ['spirali', 17], ['cerchi', 21]];
+const FL_COLORI = [['#2f6bff', 10], ['#ff2a2a', 11], ['#ffe82a', 13], ['#22e06a', 14], ['#a24dff', 14]];
+const FLF = { cv: document.createElement('canvas'), dk: document.createElement('canvas'), seme: document.createElement('canvas'), ind: document.createElement('canvas'), f: 0, forma: '', seeded: '', t0: 0 };
+for (const c of [FLF.dk, FLF.cv, FLF.ind, FLF.seme]) { c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none'; flDiv.appendChild(c); }
+const flPick = (L, f) => { let tot = 0; const w = L.map(([, p]) => { const v = Math.exp(-(((f - p) / 3) ** 2)) + .02; tot += v; return v; }); let r = Math.random() * tot; for (let i = 0; i < L.length; i++) { r -= w[i]; if (r <= 0) return L[i][0]; } return L[0][0]; };
+function flDisegna(f) {
+  const w = Math.round(innerWidth / 2), h = Math.round(innerHeight / 2), m = Math.min(w, h);
+  for (const c of [FLF.cv, FLF.dk, FLF.seme, FLF.ind]) { c.width = w; c.height = h; }
+  FLF.f = f; FLF.forma = flPick(FL_FORME, f); const col = flPick(FL_COLORI, f), g = FLF.cv.getContext('2d'), cell = m * clamp(1.9 / f, .05, .35);
+  g.strokeStyle = col; g.fillStyle = col; g.lineWidth = Math.max(1.5, cell * .12); g.beginPath();
+  const cx = w / 2, cy = h / 2, R = Math.hypot(w, h) / 2;
+  switch (FLF.forma) {
+    case 'rettangoli': for (let y = 0; y < h; y += cell) for (let x = ((y / cell) & 1) * cell / 2; x < w; x += cell) g.rect(x + cell * .15, y + cell * .15, cell * .7, cell * .7); break;
+    case 'linee': for (let x = cell / 2; x < w; x += cell) { g.moveTo(x, 0); g.lineTo(x, h); } break;
+    case 'raggi': for (let j = 0, n = Math.round(6.2832 * m / cell / 2); j < n; j++) { const a = j * 6.2832 / n; g.moveTo(cx, cy); g.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a)); } break;
+    case 'punti': for (let y = cell / 2; y < h; y += cell) for (let x = cell / 2; x < w; x += cell) { g.moveTo(x + cell * .12, y); g.arc(x, y, cell * .12, 0, 6.2832); } g.fill(); break;
+    case 'reticolo': for (let x = -h; x < w + h; x += cell) { g.moveTo(x, 0); g.lineTo(x + h, h); g.moveTo(x + h, 0); g.lineTo(x, h); } break;
+    case 'zigzag': for (let y = cell / 2; y < h; y += cell) for (let x = 0; x <= w; x += cell / 2) { const yy = y + ((x / (cell / 2)) & 1 ? cell * .3 : -cell * .3); x ? g.lineTo(x, yy) : g.moveTo(x, yy); } break;
+    case 'spirali': for (let j = 0; j < 4; j++) { let first = true; for (let a = 0; a < 40; a += .05) { const r = a * cell / 6.2832 * 1.2, th = a + j * Math.PI / 2; if (r > R) break; const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th); first ? g.moveTo(x, y) : g.lineTo(x, y); first = false; } } break;
+    default: for (let r = cell; r < R; r += cell) { g.moveTo(cx + r, cy); g.arc(cx, cy, r, 0, 6.2832); }
+  }
+  if (FLF.forma !== 'punti') g.stroke();
+  const d = FLF.dk.getContext('2d'); d.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 9; i++) { const x = rnd(w), y = rnd(h), r = m * rnd(.12, .3), gr = d.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, i & 1 ? '#ff2040' : '#20ff70'); gr.addColorStop(1, 'rgba(0,0,0,0)'); d.fillStyle = gr; d.fillRect(x - r, y - r, 2 * r, 2 * r); }
+  if (FLF.seeded) {   // il seme fermo al centro e, intorno, la forma opposta che si induce
+    const s = FLF.seme.getContext('2d'), rs = m * .2; s.fillStyle = '#fff'; s.beginPath(); s.arc(cx, cy, rs, 0, 6.2832); s.fill(); s.fillStyle = '#000';
+    if (FLF.seeded === 'cerchi') { let i = 0; for (let r = rs; r > 0; r -= rs / 6, i++) { s.fillStyle = i & 1 ? '#000' : '#fff'; s.beginPath(); s.arc(cx, cy, r, 0, 6.2832); s.fill(); } }
+    else for (let j = 0; j < 12; j++) { const a = j * 6.2832 / 12; s.beginPath(); s.moveTo(cx, cy); s.arc(cx, cy, rs, a, a + Math.PI / 12); s.closePath(); s.fill(); }
+    const q = FLF.ind.getContext('2d'); q.strokeStyle = col; q.lineWidth = 3; q.beginPath();
+    if (FLF.seeded === 'cerchi') for (let j = 0; j < 12; j++) { const a = j * 6.2832 / 12; q.moveTo(cx + rs * Math.cos(a), cy + rs * Math.sin(a)); q.arc(cx, cy, R, a, a + .12); q.lineTo(cx + rs * Math.cos(a + .12), cy + rs * Math.sin(a + .12)); }
+    else for (let r = rs * 1.15; r < R; r += m * .05) { q.moveTo(cx + r, cy); q.arc(cx, cy, r, 0, 6.2832); }
+    q.stroke();
+  }
+}
+function flFasi(white, t) {   // chiamata a ogni fotogramma del lampeggio
+  if (!FL.on) { for (const c of [FLF.cv, FLF.dk, FLF.seme, FLF.ind]) c.style.opacity = 0; return; }
+  const dtF = (t - FL.t0) / 1000, D = Math.max(.1, (FL.until - FL.t0) / 1000), fi = FL.f0 + (FL.f1 - FL.f0) * dtF / D;
+  if (!FLF.f || Math.abs(fi - FLF.f) > 2) flDisegna(fi);
+  const grow = clamp(dtF / 2.5, 0, 1);   // le forme non arrivano subito
+  FLF.cv.style.opacity = white ? .5 * grow : 0; FLF.dk.style.opacity = white ? 0 : .35 * grow;
+  FLF.dk.style.transform = `rotate(${(dtF * 14) % 360}deg) scale(1.3)`;
+  if (FLF.seeded) { FLF.seme.style.opacity = 1; FLF.ind.style.opacity = .35 * grow;
+    FLF.ind.style.transform = FLF.seeded === 'cerchi' ? `rotate(${(dtF * 360 * FLF.giri) % 360}deg)` : `scale(${1 + .08 * Math.sin(dtF * 6)})`; }
+  else { FLF.seme.style.opacity = 0; FLF.ind.style.opacity = 0; }
 }
 
 /* =================== MOTORE =================== */
@@ -2502,6 +2946,7 @@ function frame(t, dt) {
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(work, 0, 0, view.width, view.height);
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
+  fosfeniDraw();
 }
 
 /* =================== CICLO =================== */
@@ -2512,7 +2957,7 @@ function loop(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (MONO.phase) {
     if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / (REGIA.on ? .35 : 1.4)); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
-    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) MONO.phase = 'out'; if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
+    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) { MONO.phase = 'out'; if (REGIA.on) postimmagine(MONO.cv, rnd(1, 1.8)); } if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
     else { MONO.a -= dt / (REGIA.on ? .5 : 1.8); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
   }
   const still = rituale(dt);
@@ -2542,9 +2987,9 @@ const info = document.getElementById('info');
 let noteUntil = 0;
 function updateInfo() {
   if (performance.now() < noteUntil) return;
-  info.textContent = (REGIA.on ? `${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
+  info.textContent = (REGIA.on ? `${FO.kind ? 'fosfeni: ' + FONOMI[FO.kind] + ' · ' : ''}${FL.on ? 'lampeggio ' + (FL.tipo || '') + (FLF.forma ? ' → ' + FLF.forma : '') + ' · ' : ''}${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ' fosfeni (occhi chiusi, battito, pressione, Ganzfeld, MacKay, emicrania) · + motore dei fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2577,6 +3022,8 @@ addEventListener('keydown', e => {
   else if (k === '2') apparizione(P.labirinto);
   else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
+  else if (k === "'") { FO.seq = (FO.seq || 0) + 1; const kk = ['chiusi', 'battito', 'pressione', 'ganzfeld', 'mackay', 'emicrania'][FO.seq % 6]; if (fosfeni(kk)) note('fosfeni: ' + FONOMI[kk]); }
+  else if (k === '+') { const q = Math.random() < .5 ? P.fosfeni : P.knoll; if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
   else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
   else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
   else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
@@ -2603,7 +3050,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
@@ -2747,6 +3194,29 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
     livPrec = livPrec * .7 + db * .3;
   }
 
+  // ---------- FOSFENI ----------
+  // battimenti binaurali (Oster): un tono per orecchio, il cervello sente la differenza come un battito; nascono solo sotto
+  // i 1000 Hz e per differenze fino a circa 30 Hz. Qui il battito ha la frequenza del lampeggio, oppure l'alfa a occhi chiusi.
+  let bin = null;
+  function binaurale(on, fb, fc, gn) {
+    const c = A.ctx, t = c.currentTime;
+    if (on) { if (!bin) { const mk = p => { const o = c.createOscillator(), e = c.createGain(), pn = c.createStereoPanner(); pn.pan.value = p; e.gain.value = 0; o.frequency.value = fc; o.connect(e); e.connect(pn); pn.connect(N.out); o.start(); return { o, e }; }; bin = { L: mk(-1), R: mk(1) }; }
+      bin.L.o.frequency.setTargetAtTime(fc, t, .2); bin.R.o.frequency.setTargetAtTime(fc + fb, t, .2); bin.L.e.gain.setTargetAtTime(gn, t, .4); bin.R.e.gain.setTargetAtTime(gn, t, .4); }
+    else if (bin) { bin.L.e.gain.setTargetAtTime(0, t, .4); bin.R.e.gain.setTargetAtTime(0, t, .4); const b = bin; bin = null; setTimeout(() => { try { b.L.o.stop(); b.R.o.stop(); } catch (e) {} }, 3000); }
+  }
+  // fruscii continui: la cascata del Ganzfeld (Wackermann la fa ascoltare in cuffia), la neve del televisore di MacKay, il respiro nel buio
+  const fru = {};
+  function rumoreBuf() { const c = A.ctx; return A.noise || (A.noise = (() => { const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return nb; })()); }
+  function fruscio(nome, on, type, fq, gn, q) {
+    const c = A.ctx, t = c.currentTime; let x = fru[nome];
+    if (on && !x) { const b = c.createBufferSource(); b.buffer = rumoreBuf(); b.loop = true; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = fq; fl.Q.value = q || .7; const e = c.createGain(); e.gain.value = 0; b.connect(fl); fl.connect(e); e.connect(N.out); b.start(); x = fru[nome] = { b, fl, e }; }
+    if (!x) return;
+    if (on) { x.fl.frequency.setTargetAtTime(fq, t, .3); x.e.gain.setTargetAtTime(gn, t, .4); }
+    else { x.e.gain.setTargetAtTime(0, t, .5); delete fru[nome]; setTimeout(() => { try { x.b.stop(); } catch (e) {} }, 3000); }
+  }
+  let cuoreNext = 0;
+  const cuore = t0 => { osc('sine', 62, t0, .16, .55, null, 38); osc('sine', 55, t0 + .22, .14, .35, null, 34); };   // il cuore: i vasi pulsano col suo battito
+
   function regola() {
     if (!N || !window.__PS) return; ({ REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv } = window.__PS);
     const c = A.ctx, t = c.currentTime, k = .15;
@@ -2782,6 +3252,23 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
       N.gate.gain.cancelScheduledValues(t); for (let i = 0; i < 6; i++) N.gate.gain.setValueAtTime(i & 1 ? .05 : 1, t + i * .017); }
     else if (glOn) { N.gate.gain.cancelScheduledValues(t); N.gate.gain.setValueAtTime(1, t); N.dl.delayTime.setTargetAtTime(dtBase, t, .05); }
     glOn = gl;
+    // FOSFENI: occhi chiusi → il suono si chiude e si scurisce, scintille minime nel buio, il respiro, il battimento alfa;
+    // pressione → ovattato, poi il cuore in sincrono con i vasi; Ganzfeld → la cascata; MacKay → la neve; emicrania → luccichii
+    const fo = window.__PS.FO, fk = fo && fo.kind, fu = fk ? fo.t / fo.dur : 0;
+    if (fk === 'chiusi') { duck = Math.min(duck, .35); f = Math.min(f, 650); wet = Math.max(wet, .5); tr = 0; if (Math.random() < .5) osc('sine', R(2500, 7000), t + R(0, .1), .012, .03); }
+    if (fk === 'battito') duck = Math.min(duck, .25);
+    if (fk === 'pressione') { f = Math.min(f, fu < .48 ? 420 : 700); duck = Math.min(duck, .5); tr = 0;
+      if (fu > .48 && fu < .86) { if (cuoreNext < t) { const ph = (fo.t * 1.15) % 1; cuoreNext = t + ((((.25 - ph) % 1) + 1) % 1) / 1.15; } while (cuoreNext < t + .12) { cuore(cuoreNext); cuoreNext += 1 / 1.15; } } }
+    if (fk === 'ganzfeld' && fu < .72) duck = Math.min(duck, .3);
+    if (fk === 'mackay') duck = Math.min(duck, .6);
+    if (fk === 'emicrania') for (let i = 0; i < 2; i++) if (Math.random() < .35) osc('sine', R(2000, 6000), t + R(0, .1), R(.03, .09), .018);
+    fruscio('ganzfeld', fk === 'ganzfeld' && fu < .78, 'lowpass', 900, .16);
+    fruscio('tv', fk === 'mackay', 'highpass', 3000, .06);
+    fruscio('respiro', fk === 'chiusi', 'bandpass', 500, fk === 'chiusi' ? .06 * (.3 + .7 * (.5 + .5 * Math.sin(fo.t * 6.2832 * .23))) : 0, 1.2);
+    { let on = false, bf = 10, bc = 200, bg = .035;
+      if (FL.on) { const dtF = (performance.now() - FL.t0) / 1000, D = Math.max(.1, (FL.until - FL.t0) / 1000), fi = FL.f0 + (FL.f1 - FL.f0) * dtF / D; if (fi <= 30) { on = true; bf = fi; bc = 330; bg = .045; } }
+      else if (fk === 'chiusi' || (fk === 'ganzfeld' && fu < .72)) on = true;
+      binaurale(on, bf, bc, bg); }
     // ogni taglio del montaggio: uno scatto del filtro e un salto dell'eco (lo stiramento del nastro)
     if (REGIA.n !== ultimoTaglio) {
       if (ultimoTaglio >= 0 && !m && !l) {
