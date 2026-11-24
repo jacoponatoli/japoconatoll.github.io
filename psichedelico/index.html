@@ -1273,6 +1273,58 @@ P.lettere = {
   }
 };
 
+/* ---------- GALANTER (GA2003, "What is Generative Art?"): ordine, disordine, complessità effettiva ---------- */
+// CANALE DI SHANNON: righe di testo a diversa entropia — AAAA (ordine totale, nessuna informazione), pseudo-parole
+// (ridondanza della lingua, ma senza senso), parole compresse senza vocali, lettere a caso (disordine totale).
+// Il livello di ogni riga segue l'asse ordine–disordine della regia.
+const VOC = 'AEIOU', CONS = 'LNRTSCDMPVGBFZ';
+function pseudo() { let w = ''; const n = 1 + ((Math.random() * 3) | 0); for (let i = 0; i < n; i++) { if (Math.random() < .85) w += CONS[(Math.random() * CONS.length) | 0]; w += VOC[(Math.random() * 5) | 0]; if (Math.random() < .18) w += CONS[(Math.random() * 6) | 0]; } return w; }
+function rigaShannon(lv, n) {
+  if (lv <= 0) { const ch = Math.random() < .7 ? 'A' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0]; return ch.repeat(n); }
+  if (lv === 1) { let r = ''; while (r.length < n) r += pseudo() + ' '; return r; }
+  if (lv === 2) { let r = ''; while (r.length < n) { const w = pseudo(); r += w[0] + w.slice(1).replace(/[AEIOU]/g, '') + ' '; } return r; }
+  let r = ''; for (let i = 0; i < n; i++) r += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0]; return r;
+}
+P.canale = {
+  name: 'canale di Shannon',
+  init() { this.r = []; let y = 0; const m = Math.min(W, H); this.font = pick(['"Courier New", monospace', '"Helvetica Neue", Helvetica, Arial, sans-serif', 'Georgia, serif', '"Arial Black", sans-serif']);
+    while (y < H * 1.05) { const sz = m * rnd(.06, .2); this.r.push(this.nr(y + sz / 2, sz)); y += sz * rnd(.95, 1.25); } },
+  lv() { const d = typeof REGIA !== 'undefined' ? REGIA.dis : .5; return clamp(Math.round(d * 3 + gauss() * .7), 0, 3); },
+  nr(y, sz) { const lv = this.lv(); return { y, sz, lv, txt: rigaShannon(lv, 60), x: rnd(-W, 0), v: (Math.random() < .5 ? -1 : 1) * rnd(.3, 2) * (1 + lv * .4) }; },
+  step() { for (const r of this.r) { r.x += r.v; if (r.x > 0 || r.x < -W * 2) { const n = this.nr(r.y, r.sz); r.lv = n.lv; r.txt = n.txt; r.x = r.v > 0 ? -W * 2 + 1 : -1; } if (Math.random() < .004) { const n = this.nr(r.y, r.sz); r.lv = n.lv; r.txt = n.txt; } } },
+  render(c) { c.textAlign = 'left'; c.textBaseline = 'middle'; for (const r of this.r) { c.font = `700 ${r.sz}px ${this.font}`; c.strokeText(r.txt, r.x, r.y); } }
+};
+// GIOCO DEL CAOS: un frattale (algoritmo minimo, dettaglio infinito) che nasce da scelte casuali —
+// il caso, iterato, produce ordine. Le mappe ruotano piano: il frattale respira.
+P.caos = {
+  get name() { return 'gioco del caos: ' + this.kind; },
+  init() {
+    this.kind = pick(['Sierpiński', 'tappeto', 'Vicsek', 'fiocco pentagonale', 'drago']); const m = [];
+    const poly = (n, r, a0) => Array.from({ length: n }, (_, k) => [r * Math.cos(a0 + k * 2 * Math.PI / n), r * Math.sin(a0 + k * 2 * Math.PI / n)]);
+    if (this.kind === 'Sierpiński') { this.base = poly(3, 1, -Math.PI / 2); for (const v of this.base) m.push({ c: [v[0] / 2, v[1] / 2], s: .5 }); this.depth = 6; }
+    else if (this.kind === 'tappeto') { this.base = [[-1, -1], [1, -1], [1, 1], [-1, 1]]; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) if (i || j) m.push({ c: [i * 2 / 3, j * 2 / 3], s: 1 / 3 }); this.depth = 3; }
+    else if (this.kind === 'Vicsek') { this.base = [[-1, -1], [1, -1], [1, 1], [-1, 1]]; for (const [i, j] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) m.push({ c: [i * 2 / 3, j * 2 / 3], s: 1 / 3 }); this.depth = 4; }
+    else if (this.kind === 'fiocco pentagonale') { this.base = poly(5, 1, -Math.PI / 2); const s = .382; for (const v of this.base) m.push({ c: [v[0] * (1 - s), v[1] * (1 - s)], s }); m.push({ c: [0, 0], s, r: Math.PI }); this.depth = 3; }
+    else { this.base = [[-1, -.08], [1, -.08], [1, .08], [-1, .08]]; m.push({ c: [-.5, -.5], s: .7071, r: Math.PI / 4 }); m.push({ c: [.5, -.5], s: .7071, r: 3 * Math.PI / 4 }); this.depth = 9; }
+    for (const q of m) { q.r = q.r || 0; q.ph = rnd(6.28); q.amp = rnd(.05, .35); }
+    this.m = m; this.addr = [[]]; this.max = Math.min(700, Math.pow(m.length, this.depth)); this.t = rnd(100); this.rot = rnd(-.002, .002); this.a = 0;
+  },
+  step() { this.t += .006; this.a += this.rot;
+    for (let k = 0; k < 14; k++) { const ad = [], d = 1 + Math.floor(Math.pow(Math.random(), .6) * this.depth); for (let i = 0; i < d; i++) ad.push((Math.random() * this.m.length) | 0); this.addr.push(ad); }
+    if (this.addr.length > this.max) this.addr.splice(0, this.addr.length - this.max); },
+  render(c) {
+    const sc = Math.min(W, H) * .47 * (1 + .06 * Math.sin(this.t * 1.3)), cx = W / 2, cy = H / 2, ca = Math.cos(this.a), sa = Math.sin(this.a);
+    const T = this.m.map(q => { const r = q.r + q.amp * Math.sin(this.t + q.ph); return [Math.cos(r) * q.s, Math.sin(r) * q.s, q.c[0], q.c[1]]; });
+    c.beginPath();
+    for (const ad of this.addr) {
+      let pts = this.base;
+      for (let i = ad.length - 1; i >= 0; i--) { const [a, b, tx, ty] = T[ad[i]]; pts = pts.map(([x, y]) => [a * x - b * y + tx, b * x + a * y + ty]); }
+      pts.forEach(([x, y], i) => { const X = cx + sc * (ca * x - sa * y), Y = cy + sc * (sa * x + ca * y); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.closePath();
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- ARTE ISLAMICA: stelle e girih col metodo dei "poligoni in contatto" (Hankin) ---------- */
 // su una tassellatura regolare, da ogni punto medio dei lati partono due raggi inclinati di θ;
 // i raggi dei lati vicini si incontrano e disegnano stelle e rosoni. θ varia lentamente: le stelle respirano.
@@ -2127,24 +2179,40 @@ const EVENTS = [
    Il TEMPO cambia anche lui: lento, medio, veloce, frenesia. Le soste sono solo su mandala e lettera, brevi.
    Con ?libero nell'indirizzo torna il montaggio casuale di prima. */
 const ENGINES = ['tagli', 'cammini', 'tasselli', 'alberi', 'celle', 'onde', 'cerchi', 'spirali', 'griglia', 'forme', 'raggi', 'turing', 'automi', 'wolfram', 'attrattore', 'julia',
-  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi'];
+  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos'];
+// Galanter: i sistemi stanno su un asse dall'ordine al disordine; la complessità effettiva sta nel mezzo
+const ORDINATI = ['griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
+const DISORDINATI = ['tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
 const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velocità dei passaggi, mosse per taglio
   lento: { cut: [2.2, 4], ts: [1.3, 1.8], tr: [.5, 1], combo: 1 },
   medio: { cut: [1.2, 2.4], ts: [1.8, 2.6], tr: [.8, 1.6], combo: 2 },
   veloce: { cut: [.6, 1.4], ts: [2.4, 3.2], tr: [1.2, 2.4], combo: 2 },
   frenesia: { cut: [.25, .7], ts: [2.8, 3.6], tr: [2, 4], combo: 3 },
 };
-const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0, over: 0, voce: false };
+const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0, over: 0, voce: false,
+  lz: [rnd(-5, 5), rnd(-5, 5), rnd(15, 30)], dis: .5, modo: 'caso', modoT: rnd(30, 60) };
+// l'asse ordine–disordine e le scelte "caotiche" seguono un attrattore di Lorenz: il caos ha una storia,
+// i passaggi sono continui, ci sono sorprese ma anche corrispondenze (Galanter); il caso puro no.
+function lorenz(dt) { const [x, y, z] = REGIA.lz, h = Math.min(dt, .1) * .045;
+  for (let i = 0; i < 4; i++) { const [a, b, c] = REGIA.lz; REGIA.lz = [a + h / 4 * 10 * (b - a), b + h / 4 * (a * (28 - c) - b), c + h / 4 * (a * b - 8 / 3 * c)]; }
+  const X = REGIA.lz[0]; REGIA.dis = .5 + .5 * Math.sign(X) * Math.min(1, (Math.abs(X) / 17) ** 2); }
+const asse = () => REGIA.dis < .3 ? 'ordine' : REGIA.dis > .7 ? 'disordine' : 'complessità';
+const lzAng = () => (Math.atan2(REGIA.lz[1] - REGIA.lz[0] * 0, REGIA.lz[2] - 27) + Math.PI) / (2 * Math.PI);
 const T = () => TEMPI[REGIA.tempo];
 function nuovoTempo() { let t; do { t = pick(['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']); } while (t === REGIA.tempo);
   REGIA.tempo = t; REGIA.tT = t === 'frenesia' ? rnd(3, 7) : rnd(5, 12); S.tscaleT = rnd(...T().ts); }
 function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in scena
   if (REGIA.voce && Math.random() < .7) { const t = [P.lettere, P.boetti].filter(q => !active.some(a => a.proc === q && a.target === 1)); if (t.length) return pick(t); }
-  const now = performance.now(), free = ENGINES.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1));
+  const now = performance.now(); let free = ENGINES.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1));
+  const ax = asse(), sub = ax === 'ordine' ? ORDINATI : ax === 'disordine' ? DISORDINATI : null;
+  if (sub && Math.random() < .75) { const f2 = free.filter(k => sub.includes(k)); if (f2.length) free = f2; }
+  if (REGIA.modo === 'caos') {   // il motore vicino, sull'anello, a quello indicato dall'attrattore
+    const i0 = Math.floor(clamp((REGIA.lz[2] - 5) / 42, 0, .999) * ENGINES.length); free.sort((a, b) => Math.abs(ENGINES.indexOf(a) - i0) - Math.abs(ENGINES.indexOf(b) - i0));
+    const k = free[(Math.random() * Math.min(2, free.length)) | 0]; REGIA.seen[k] = now; return P[k]; }
   free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
 function cambiaMotore() {
-  const live = active.filter(a => a.target === 1 && !a.proc.persist), maxA = REGIA.tempo === 'lento' ? 2 : 3;
+  const live = active.filter(a => a.target === 1 && !a.proc.persist), maxA = REGIA.tempo === 'lento' || asse() === 'ordine' ? 2 : 3;
   if (live.length >= maxA || (live.length > 1 && Math.random() < .5)) { const o = live[0]; o.target = 0; o.rate = rnd(...T().tr); o.shape = pick(['cerchio', 'onda', 'cerchio']); o.cx = rnd(W); o.cy = rnd(H); }
   const q = motoreNuovo(); if (q === P.mandala && Math.random() < .5) { apparizione(P.mandala); return; }
   enter(q); const a = active[active.length - 1]; a.rate = rnd(...T().tr); a.shape = pick(['cerchio', 'onda', 'tutto', 'cerchio']);
@@ -2152,8 +2220,10 @@ function cambiaMotore() {
 const MOVES = {
   motore: [8, cambiaMotore],
   palette: [3, () => { newPalette(); S.palDur = rnd(.6, 2.5); }],
-  simmetria: [2, () => { let x; do { x = pick(SYMS); } while (x === S.sym); S.sym = x; }],
-  mosaico: [2, () => newTile()],
+  simmetria: [2, () => { const ax = asse(); if (ax === 'disordine') { S.sym = Math.random() < .8 ? 'nessuna' : 'specchio'; return; }
+    const L = ax === 'ordine' ? ['caleidoscopio', 'rotazione 6', 'rotazione 4', 'specchio doppio', 'rotazione 3'] : SYMS; let x, k = 0; do { x = pick(L); } while (x === S.sym && k++ < 9); S.sym = x; }],
+  mosaico: [2, () => { const ax = asse(); if (ax === 'disordine') { S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; return; }
+    if (ax === 'ordine') { const n = pick([2, 3, 4, 6]); S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: pick(['specchio', 'scacchiera']), grid: Math.random() < .6 }; return; } newTile(); }],
   distorsione: [2, newWarp],
   eco: [1.2, newEcho],
   bande: [1.5, newBands],
@@ -2169,7 +2239,8 @@ const MOVES = {
 function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
-  REGIA.I = S.tscale;
+  REGIA.I = S.tscale; lorenz(dt);
+  if ((REGIA.modoT -= dt) <= 0) { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); }
   if (RIT.phase || MONO.phase || TD.phase) return;
   if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
     if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
@@ -2187,8 +2258,13 @@ function regiaTick(dt) {
   for (let i = 0; i < k; i++) {
     const w = {}; for (const [m, [v]] of Object.entries(MOVES)) w[m] = REGIA.last.includes(m) ? 0 : v;   // mai la stessa mossa a breve distanza
     if (TD.phase) w.tre = 0;
-    let r = Object.values(w).reduce((x, y) => x + y, 0) * Math.random(), m;
-    for (m in w) { r -= w[m]; if (r <= 0) break; }
+    const ax = asse();
+    if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
+    if (ax === 'disordine') { w.glitch *= 2.5; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
+    let m;
+    if (REGIA.modo === 'caos') {   // la mossa è quella che l'attrattore indica sull'anello delle mosse: vicine fra loro, con memoria
+      const ks = Object.keys(w).filter(x => w[x] > 0), i0 = Math.floor(lzAng() * ks.length) % ks.length; m = ks[(i0 + (Math.random() < .3 ? 1 : 0)) % ks.length];
+    } else { let r = Object.values(w).reduce((x, y) => x + y, 0) * Math.random(); for (m in w) { r -= w[m]; if (r <= 0) break; } }
     REGIA.last.push(m); if (REGIA.last.length > 3) REGIA.last.shift();
     MOVES[m][1](); if (RIT.phase || MONO.phase || TD.phase) break;
   }
@@ -2466,9 +2542,9 @@ const info = document.getElementById('info');
 let noteUntil = 0;
 function updateInfo() {
   if (performance.now() < noteUntil) return;
-  info.textContent = (REGIA.on ? `tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
+  info.textContent = (REGIA.on ? `${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2499,6 +2575,9 @@ addEventListener('keydown', e => {
   else if (k === '4') letteraSecca();
   else if (k === '3') entra3D();
   else if (k === '2') apparizione(P.labirinto);
+  else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
+  else if (k === '.') { enter(P.caos); note('gioco del caos'); }
+  else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
   else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
   else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
