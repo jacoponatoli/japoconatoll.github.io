@@ -2553,7 +2553,7 @@ function cambiaMotore() {
 }
 const MOVES = {
   motore: [8, cambiaMotore],
-  palette: [3, () => { newPalette(); S.palDur = rnd(1.5, 3.5); }],
+  palette: [3, () => { newPalette(); S.palDur = rnd(.6, 2.5); }],
   simmetria: [2, () => { passaggio(); const ax = asse(); if (ax === 'disordine') { S.sym = Math.random() < .8 ? 'nessuna' : 'specchio'; return; }
     const L = ax === 'ordine' ? ['caleidoscopio', 'rotazione 6', 'rotazione 4', 'specchio doppio', 'rotazione 3'] : SYMS; let x, k = 0; do { x = pick(L); } while (x === S.sym && k++ < 9); S.sym = x; }],
   mosaico: [2, () => { passaggio(); const ax = asse(); if (ax === 'disordine') { S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; return; }
@@ -2563,7 +2563,7 @@ const MOVES = {
   bande: [1.5, () => { passaggio(); newBands(); }],
   tinta: [1.5, () => { S.hueVt = pick([-1, 1]) * rnd(.15, .7); S.cycVt = pick([-1, 1]) * rnd(.2, .9); S.spatialT = rnd(.5, 2.6); }],
   scossa: [.7, () => { passaggio(); prevColor.fill(255); }],
-  glitch: [.35, () => glitch(rnd(.15, .6))],
+  glitch: [.8, () => glitch(rnd(.15, .9))],
   mandala: [.7, () => apparizione(P.mandala)],
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
@@ -2901,35 +2901,42 @@ function flFasi(white, t) {   // chiamata a ogni fotogramma del lampeggio
   else { FLF.seme.style.opacity = 0; FLF.ind.style.opacity = 0; }
 }
 
-/* =================== PASSAGGI FLUIDI ===================
-   Ogni cambio brusco (simmetria, mosaico, eco, bande, scossa di colori) non salta più: il fotogramma di prima resta e la scena
-   nuova si apre dentro una forma che cresce — un cerchio, un rombo, un'onda, un ventaglio, i quadratini di un blotter.
-   Bordi netti come nel resto del lavoro: nessuna dissolvenza, quindi nessun colore sporco a metà strada. */
-const XF = { cv: document.createElement('canvas'), on: false, t: 0, dur: 1 };
+/* =================== PASSAGGI TRA ORDINE E CAOS ===================
+   Anche i cambi seguono l'asse ordine–disordine. Nell'ordine il cambio è spesso uno stacco netto; verso il caos la scena nuova
+   affiora attraverso un campo di rumore ogni volta diverso — chiazze larghe e lente, oppure frammenti fitti e granulosi,
+   a volte spinte da una direzione o da un punto — con durate e accelerazioni imprevedibili. Nessuna forma riconoscibile,
+   nessuna dissolvenza: dove il campo supera la soglia c'è il fotogramma di prima, altrove c'è già il nuovo. */
+const XF = { cv: document.createElement('canvas'), tmp: document.createElement('canvas'), mk: document.createElement('canvas'), on: false, t: 0, dur: 1 };
 function passaggio(dur) {
   if (!view.width) return;
-  if (XF.cv.width !== view.width || XF.cv.height !== view.height) { XF.cv.width = view.width; XF.cv.height = view.height; }
+  const d = REGIA.dis;
+  if (Math.random() < (d < .3 ? .55 : d > .7 ? .12 : .28)) { XF.on = false; return; }   // stacco netto
+  for (const c of [XF.cv, XF.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
   const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
+  const gw = 240, gh = Math.max(60, Math.round(240 * view.height / view.width)); XF.mk.width = gw; XF.mk.height = gh;
+  const sc = d < .3 ? rnd(.8, 2.5) : d > .7 ? rnd(6, 16) : rnd(2, 7), wa = rnd(0, d > .5 ? 2.2 : 1), grain = d > .7 ? rnd(.05, .4) : d < .3 ? 0 : rnd(0, .1);
+  const bias = Math.random() < .5 ? rnd(.2, .8) : 0, radial = Math.random() < .5, bx = rnd(gw), by = rnd(gh), ba = rnd(6.28), ox = rnd(500), oy = rnd(500);
+  const F = new Float32Array(gw * gh); let mn = 1e9, mx = -1e9;
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+    const X = x / gw * sc + ox, Y = y / gw * sc + oy, w1 = wa * (fbm(X * .7 + 9, Y * .7, 2) - .5);
+    let v = fbm(X + w1, Y - w1, 3) * (1 - bias);
+    if (bias) v += bias * (radial ? Math.hypot(x - bx, y - by) / gw : ((x - gw / 2) * Math.cos(ba) + (y - gh / 2) * Math.sin(ba)) / gw + .5);
+    if (grain) v += grain * Math.random();
+    F[y * gw + x] = v; if (v < mn) mn = v; if (v > mx) mx = v; }
+  for (let i = 0; i < F.length; i++) F[i] = (F[i] - mn) / (mx - mn + 1e-9);
   const base = { lento: 1.6, medio: 1.1, veloce: .75, frenesia: .5 }[REGIA.tempo] || 1;
-  Object.assign(XF, { on: true, t: 0, last: performance.now(), dur: (dur || base * rnd(.8, 1.25)) * (REGIA.over ? .35 : 1), forma: pick(['cerchio', 'cerchio', 'rombo', 'onda', 'ventaglio', 'quadratini']),
-    x: rnd(view.width), y: rnd(view.height), a: rnd(6.28), seed: rnd(1000), n: pick([6, 8, 10, 12]) });
+  Object.assign(XF, { on: true, t: 0, last: performance.now(), F, gw, gh, id: XF.mk.getContext('2d').createImageData(gw, gh), pw: rnd(.45, 2.2),
+    dur: (dur || base * rnd(.45, 1.7)) * (REGIA.over ? .35 : 1) });
 }
 function passaggioDraw() {
   if (!XF.on) return; const now = performance.now(); XF.t += Math.min(.1, (now - XF.last) / 1000); XF.last = now;
   const u = XF.t / XF.dur; if (u >= 1) { XF.on = false; return; }
-  const w = view.width, h = view.height, e = ease(u), R = Math.hypot(w, h);
-  vctx.save(); vctx.beginPath(); vctx.rect(0, 0, w, h);
-  if (XF.forma === 'cerchio') { vctx.moveTo(XF.x + e * R, XF.y); vctx.arc(XF.x, XF.y, e * R, 0, 6.2832); }
-  else if (XF.forma === 'rombo') { const r = e * R * 1.45; vctx.moveTo(XF.x, XF.y - r); vctx.lineTo(XF.x + r, XF.y); vctx.lineTo(XF.x, XF.y + r); vctx.lineTo(XF.x - r, XF.y); vctx.closePath(); }
-  else if (XF.forma === 'onda') {   // un fronte ondulato che attraversa lo schermo
-    const ca = Math.cos(XF.a), sa = Math.sin(XF.a), d = -R / 2 + e * R * 1.15, P2 = [];
-    for (let i = 0; i <= 40; i++) { const s = -R + i / 40 * 2 * R, off = d + Math.sin(s / R * 9 + XF.seed) * R * .04; P2.push([w / 2 + ca * off - sa * s, h / 2 + sa * off + ca * s]); }
-    P2.push([w / 2 - ca * R - sa * R, h / 2 - sa * R + ca * R], [w / 2 - ca * R + sa * R, h / 2 - sa * R - ca * R]);
-    P2.forEach(([x, y], i) => i ? vctx.lineTo(x, y) : vctx.moveTo(x, y)); vctx.closePath(); }
-  else if (XF.forma === 'ventaglio') { vctx.moveTo(w / 2, h / 2); vctx.arc(w / 2, h / 2, R, XF.a, XF.a + e * 6.2832); vctx.closePath(); }
-  else { const n = XF.n, tw = w / n, th = h / Math.max(1, Math.round(n * h / w)), ny = Math.ceil(h / th);   // i quadratini si staccano uno dopo l'altro
-    for (let j = 0; j < ny; j++) for (let i = 0; i < n; i++) { const r = Math.sin((i * 12.9898 + j * 78.233 + XF.seed) * 43758.5453) * .5 + .5; if (r < e) vctx.rect(i * tw, j * th, tw, th); } }
-  vctx.clip('evenodd'); vctx.drawImage(XF.cv, 0, 0); vctx.restore();
+  const e = Math.pow(u, XF.pw), a = XF.id.data, F = XF.F;
+  for (let i = 0; i < F.length; i++) a[i * 4 + 3] = F[i] > e ? 255 : 0;
+  XF.mk.getContext('2d').putImageData(XF.id, 0, 0);
+  const g = XF.tmp.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(XF.cv, 0, 0);
+  g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = false; g.drawImage(XF.mk, 0, 0, XF.tmp.width, XF.tmp.height);
+  vctx.drawImage(XF.tmp, 0, 0);
 }
 function entraMotore(q) {   // un motore entra con il suo passaggio a cerchio o a onda, alla velocità del tempo
   const live = active.filter(a => a.target === 1 && !a.proc.persist);
@@ -3274,7 +3281,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
