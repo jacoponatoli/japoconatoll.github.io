@@ -1926,7 +1926,7 @@ function letteraSecca(ch) {
   g.font = `${wt} ${size}px ${font}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fg;
   const off = size > h * 1.1 ? [gauss() * w * .1, gauss() * h * .1] : [0, h * .04];
   g.fillText(ch, w / 2 + off[0], h / 2 + off[1]);
-  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false;
+  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false;
 }
 
 // ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
@@ -1954,7 +1954,7 @@ function mesh(kind) { // facce come poligoni [[x,y,z,u,v],...]
 const SOLIDI3D = ['cubo', 'cubo', 'piramide', 'prisma pentagonale', 'prisma triangolare', 'cilindro', 'cono', 'sfera', 'toro', 'ottaedro', 'tetraedro'];
 function entra3D(kind) {
   if (TD.phase || MONO.phase) return;
-  TD.kind = kind || pick(SOLIDI3D); TD.F = mesh(TD.kind); TD.phase = 'in'; TD.t = 0; TD.hold = rnd(6, 14);
+  TD.kind = kind || pick(SOLIDI3D); TD.F = mesh(TD.kind); TD.phase = 'in'; TD.t = 0; TD.hold = REGIA.on ? rnd(3, 6) : rnd(6, 14);
   TD.ax = rnd(-.4, .4); TD.wx = rnd(.2, .6) * (Math.random() < .5 ? -1 : 1); TD.wy = rnd(.3, .9) * (Math.random() < .5 ? -1 : 1); TD.wz = gauss() * .15; TD.ang = [0, 0, 0];
   TD.bg = pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa']);
 }
@@ -2003,7 +2003,8 @@ function apparizione(proc = P.mandala) {
   if (proc === P.lettere && a.proc === proc && Math.random() < .7) { proc.init(); while (proc.mode === 'pioggia') proc.init(); }
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
-  RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? rnd(1.5, 4) : rnd(4, 8);
+  RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? (REGIA.on ? rnd(.8, 2.2) : rnd(1.5, 4)) : rnd(4, 8);
+  if (REGIA.on) for (const x of active) if (x !== a) x.rate = rnd(1, 2);
   if (proc === P.yturralde && proc.mode === 'realizzazione 3D') RIT.hold = .5;
   if (proc === P.labirinto) { RIT.hold = rnd(3, 6); RIT.colorsStill = false; }   // la realizzazione 3D deve ruotare: sosta breve
   RIT.colorsStill = proc === P.mandala ? Math.random() < .5 : Math.random() < .7;
@@ -2014,8 +2015,8 @@ function rituale(dt) {
   RIT.t += dt;
   const m = active.find(x => x.proc === RIT.proc);
   if (!m) { RIT.phase = ''; return false; }
-  if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > 7)) { RIT.phase = 'sosta'; RIT.t = 0; }
-  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = rnd(.05, .12); if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
+  if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > (REGIA.on ? 1.8 : 7))) { RIT.phase = 'sosta'; RIT.t = 0; }
+  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = REGIA.on ? rnd(.6, 1.5) : rnd(.05, .12); if (REGIA.on && RIT.proc === P.mandala) { m.target = 0; m.shape = 'cerchio'; m.cx = W / 2; m.cy = H / 2; } if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
   return RIT.phase === 'sosta';
 }
 
@@ -2120,89 +2121,67 @@ const EVENTS = [
   { rate: () => active.some(a => a.proc === P.omaggi) ? 0 : .02, fn: () => { if (active.filter(a => !a.proc.persist && a.target).length >= 3) leave(); enter(P.omaggi); } },                          // apparizione di un mandala, con sosta
 ];
 
-/* =================== REGIA: IL TRIP COME FILM ===================
-   Al posto del caso puro, una drammaturgia ricavata dai resoconti: inizio (salita), geometria (le costanti di forma
-   di Klüver: reticoli, ragnatele, tunnel, spirali), picco a ondate, dissoluzione (il vuoto), rientro, e di nuovo su.
-   Senza sosta: dopo il rientro si risale. L'intensità guida velocità, frequenza dei tagli, colori, distorsioni.
-   Con ?libero nell'indirizzo torna il montaggio casuale. */
-const FAM = {
-  stocastico: ['tagli', 'cammini', 'celle', 'onde', 'cerchi', 'griglia', 'forme', 'raggi', 'alberi', 'tasselli'],
-  organico: ['turing', 'fiori', 'rorschach', 'attrattore', 'automi'],
-  reticolo: ['tasselli', 'islamica', 'tessuti', 'concreto', 'wolfram', 'mosaico'],
-  ragnatela: ['celle', 'labirinto', 'fillotassi', 'julia', 'griglia'],
-  tunnel: ['disco', 'mosaico', 'yturralde', 'cerchi', 'raggi'],
-  spirale: ['spirali', 'fillotassi', 'douady', 'mandala'],
-  figura: ['bestiario', 'omaggi', 'mandala', 'boetti'],
-  segno: ['lettere', 'boetti'],
+/* =================== REGIA: VARIAZIONE MASSIMA ===================
+   Montaggio a variazione continua: ogni pochi istanti cambia qualcosa (motore, colori, simmetria, mosaico,
+   distorsione, eco, velocità), mai la stessa mossa due volte di fila, il motore che torna è sempre quello visto meno di recente.
+   Il TEMPO cambia anche lui: lento, medio, veloce, frenesia. Le soste sono solo su mandala e lettera, brevi.
+   Con ?libero nell'indirizzo torna il montaggio casuale di prima. */
+const ENGINES = ['tagli', 'cammini', 'tasselli', 'alberi', 'celle', 'onde', 'cerchi', 'spirali', 'griglia', 'forme', 'raggi', 'turing', 'automi', 'wolfram', 'attrattore', 'julia',
+  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi'];
+const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velocità dei passaggi, mosse per taglio
+  lento: { cut: [2.2, 4], ts: [1.3, 1.8], tr: [.5, 1], combo: 1 },
+  medio: { cut: [1.2, 2.4], ts: [1.8, 2.6], tr: [.8, 1.6], combo: 2 },
+  veloce: { cut: [.6, 1.4], ts: [2.4, 3.2], tr: [1.2, 2.4], combo: 2 },
+  frenesia: { cut: [.25, .7], ts: [2.8, 3.6], tr: [2, 4], combo: 3 },
 };
-const famOf = proc => Object.keys(FAM).filter(f => FAM[f].some(k => P[k] === proc));
-// concatenazione per somiglianza: da una forma si passa alle sue parenti (il raccordo, il "match cut")
-const TRANS = { stocastico: ['organico', 'reticolo', 'ragnatela'], organico: ['stocastico', 'spirale', 'figura'], reticolo: ['ragnatela', 'tunnel', 'segno'],
-  ragnatela: ['tunnel', 'spirale', 'reticolo'], tunnel: ['spirale', 'tunnel', 'figura'], spirale: ['tunnel', 'figura', 'organico'], figura: ['segno', 'spirale', 'organico'], segno: ['reticolo', 'figura'] };
-const KLUVER = ['reticolo', 'ragnatela', 'tunnel', 'spirale'];
-const PHASES = {
-  inizio: { dur: [50, 70], I: [.05, .28], wave: [.04, 22], fam: { stocastico: 3, organico: 1 }, maxA: 1, cad: [14, 9], trans: ['tutto', .12],
-    moves: { engine: 3, palette: .6, bands: .5, warp: .5 }, sym: ['nessuna'], tile: [1], warp: ['liquido', 'nessuna'], echo: 0, ev: {} },
-  salita: { dur: [80, 110], I: [.28, .58], wave: [.08, 30], fam: { stocastico: 1, organico: 2, reticolo: 2, ragnatela: 1 }, maxA: 2, cad: [10, 6], trans: ['cerchio', .25],
-    moves: { engine: 3, palette: 1, sym: 1, warp: 1, bands: 1, tile: .5, echo: .4 }, sym: ['nessuna', 'nessuna', 'specchio', 'specchio doppio'], tile: [1, 1, 2, 3], warp: ['liquido', 'lente', 'nessuna'], echo: .15,
-    ev: { mandala: .008, tessuti: .008 } },
-  geometria: { dur: [120, 160], I: [.58, .82], wave: [.12, 25], fam: null, maxA: 2, cad: [7, 4], trans: ['onda', .45],
-    moves: { engine: 3, sym: 1.5, tile: 1.5, warp: 1.5, palette: 1, bands: 1, echo: .6 }, sym: SYMS, tile: [1, 2, 3, 4, 6, 8], warp: ['tunnel', 'vortice', 'mandala', 'lente'], echo: .3,
-    ev: { glitch: .012, islamica: .008, labirinto: .008, concreto: .008, spirali: .008 } },
-  picco: { dur: [120, 180], I: [.82, 1], wave: [.2, 16], fam: { spirale: 2, tunnel: 2, reticolo: 1.5, figura: 2, segno: 1.5, organico: 1, ragnatela: 1 }, maxA: 3, cad: [4, 2], trans: ['cerchio', 1],
-    moves: { engine: 3, sym: 2, tile: 2, warp: 2, palette: 2, scossa: .6, echo: 1, bands: 1 }, sym: SYMS, tile: [1, 2, 3, 4, 6, 8, 10, 12, 16], warp: WARPS, echo: .45,
-    ev: { glitch: .07, flicker: .006, tre: .02, lettera: .015, rorsch: .012, illusione: .012, mandala: .008 } },
-  dissoluzione: { dur: [35, 55], I: [1, .3], wave: [0, 1], fam: { spirale: 1 }, maxA: 1, cad: [999, 999], trans: ['cerchio', .3], moves: {}, sym: ['nessuna'], tile: [1], warp: ['nessuna'], echo: 0, ev: {} },
-  rientro: { dur: [60, 90], I: [.35, .3], wave: [.05, 30], fam: { organico: 3, stocastico: 2, figura: 1 }, maxA: 2, cad: [12, 9], trans: ['tutto', .15],
-    moves: { engine: 3, palette: .6, bands: .6, warp: .4 }, sym: ['nessuna', 'specchio'], tile: [1], warp: ['liquido', 'nessuna'], echo: .1, ev: { quadri: .012, sagome: .01, fiori: .01 } },
-};
-const ORDER = ['salita', 'geometria', 'picco', 'dissoluzione', 'rientro'];
-const REGIA = { on: !/libero/.test(location.search), name: 'inizio', t: 0, dur: 60, cut: 3, I: 0, kl: 0, klT: 0, step: 0 };
-function regiaPhase(name) { const ph = PHASES[name]; REGIA.name = name; REGIA.t = 0; REGIA.dur = rnd(...ph.dur); REGIA.cut = 1; REGIA.step = 0;
-  if (name === 'geometria') { REGIA.kl = 0; REGIA.klT = 0; }
-  if (name === 'dissoluzione') { for (const a of active) if (!a.proc.persist) { a.target = 0; a.rate = .3; a.shape = 'cerchio'; a.cx = W / 2; a.cy = H / 2; } S.warp.next = 'nessuna'; S.echo.on = false; S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; S.sym = 'nessuna'; }
-  if (name === 'inizio' || name === 'rientro') { S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; S.sym = 'nessuna'; S.echo.on = false; } }
-function famWeights() {
-  const ph = PHASES[REGIA.name]; if (REGIA.name === 'geometria') return { [KLUVER[REGIA.kl]]: 1 };   // le quattro costanti di forma, una dopo l'altra
-  const cur = active.filter(a => a.target === 1 && !a.proc.persist).flatMap(a => famOf(a.proc)), w = {};
-  for (const [f, v] of Object.entries(ph.fam)) w[f] = v * (cur.some(c => TRANS[c] && TRANS[c].includes(f)) ? 2.2 : 1) * (cur.includes(f) ? .6 : 1);
-  return w;
+const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0 };
+const T = () => TEMPI[REGIA.tempo];
+function nuovoTempo() { let t; do { t = pick(['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']); } while (t === REGIA.tempo);
+  REGIA.tempo = t; REGIA.tT = t === 'frenesia' ? rnd(3, 7) : rnd(5, 12); S.tscaleT = rnd(...T().ts); }
+function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in scena
+  const now = performance.now(), free = ENGINES.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1));
+  free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
-function wpick(w) { const e = Object.entries(w).filter(([, v]) => v > 0); let s2 = e.reduce((a, [, v]) => a + v, 0) * Math.random(); for (const [k, v] of e) { s2 -= v; if (s2 <= 0) return k; } return e.length ? e[e.length - 1][0] : null; }
-function regiaEngine() {
-  const ph = PHASES[REGIA.name], f = wpick(famWeights()); if (!f) return;
-  const cands = FAM[f].map(k => P[k]).filter(q => q && !active.some(a => a.proc === q && a.target === 1)); if (!cands.length) return;
-  const live = active.filter(a => a.target === 1 && !a.proc.persist);
-  if (live.length >= ph.maxA) { const old = live[0]; old.target = 0; old.rate = ph.trans[1] * rnd(.8, 1.3); old.shape = ph.trans[0] === 'tutto' ? 'cerchio' : ph.trans[0]; old.cx = rnd(W); old.cy = rnd(H); }
-  enter(pick(cands)); const a = active[active.length - 1]; a.shape = ph.trans[0]; a.rate = ph.trans[1] * rnd(.8, 1.3);
+function cambiaMotore() {
+  const live = active.filter(a => a.target === 1 && !a.proc.persist), maxA = REGIA.tempo === 'lento' ? 2 : 3;
+  if (live.length >= maxA || (live.length > 1 && Math.random() < .5)) { const o = live[0]; o.target = 0; o.rate = rnd(...T().tr); o.shape = pick(['cerchio', 'onda', 'cerchio']); o.cx = rnd(W); o.cy = rnd(H); }
+  const q = motoreNuovo(); if (q === P.mandala && Math.random() < .5) { apparizione(P.mandala); return; }
+  enter(q); const a = active[active.length - 1]; a.rate = rnd(...T().tr); a.shape = pick(['cerchio', 'onda', 'tutto', 'cerchio']);
 }
-const setWarp = t => { newWarp(); S.warp.next = t; };
 const MOVES = {
-  engine: regiaEngine, palette: newPalette, bands: newBands, scossa: () => prevColor.fill(255),
-  sym: () => { S.sym = pick(PHASES[REGIA.name].sym); },
-  tile: () => { const n = pick(PHASES[REGIA.name].tile); S.tile = { nx: n, ny: n === 1 ? 1 : Math.max(1, Math.round(n * H / W)), mode: pick(['specchio', 'specchio', 'scacchiera', 'ripeti']), grid: Math.random() < .3 }; },
-  warp: () => setWarp(pick(PHASES[REGIA.name].warp)),
-  echo: () => { S.echo = { on: Math.random() < PHASES[REGIA.name].echo * 2, s: rnd(.62, .92), rot: rnd(-.12, .12) }; ectx.clearRect(0, 0, W, H); },
+  motore: [8, cambiaMotore],
+  palette: [3, () => { newPalette(); S.palDur = rnd(.6, 2.5); }],
+  simmetria: [2, () => { let x; do { x = pick(SYMS); } while (x === S.sym); S.sym = x; }],
+  mosaico: [2, () => newTile()],
+  distorsione: [2, newWarp],
+  eco: [1.2, newEcho],
+  bande: [1.5, newBands],
+  tinta: [1.5, () => { S.hueVt = pick([-1, 1]) * rnd(.15, .7); S.cycVt = pick([-1, 1]) * rnd(.2, .9); S.spatialT = rnd(.5, 2.6); }],
+  scossa: [.7, () => prevColor.fill(255)],
+  glitch: [.8, () => glitch(rnd(.15, .9))],
+  mandala: [.7, () => apparizione(P.mandala)],
+  lettera: [.6, () => letteraSecca()],
+  tre: [.35, () => entra3D()],
+  lampeggio: [.12, () => flicker()],
 };
-const REV = { glitch: () => glitch(rnd(.2, 1.6)), flicker: () => flicker(), tre: () => entra3D(), lettera: () => letteraSecca(), rorsch: () => (Math.random() < .5 ? tavolaRorschach() : apparizione(P.rorschach)),
-  illusione: () => apparizione(P.illusioni), mandala: () => apparizione(P.mandala), tessuti: () => apparizione(P.tessuti), islamica: () => apparizione(P.islamica), labirinto: () => apparizione(P.labirinto),
-  concreto: () => apparizione(P.concreto), spirali: () => apparizione(pick([P.fillotassi, P.mosaico, P.disco, P.douady])), quadri: () => quadro(), sagome: () => apparizione(P.sagome), fiori: () => apparizione(P.fiori) };
 function regiaTick(dt) {
-  const ph = PHASES[REGIA.name]; REGIA.t += dt;
-  if (REGIA.t > REGIA.dur) { const i = ORDER.indexOf(REGIA.name); regiaPhase(ORDER[(i + 1) % ORDER.length]); return; }
-  const u = REGIA.t / REGIA.dur, I = clamp(ph.I[0] + (ph.I[1] - ph.I[0]) * u + ph.wave[0] * Math.sin(REGIA.t / ph.wave[1] * 6.2832), 0, 1); REGIA.I = I;   // l'intensità arriva a ondate
-  // l'intensità guida il corpo dell'immagine: velocità, rotazione dei colori, iridescenza, giostra
-  S.tscaleT = .4 + 1.9 * Math.pow(I, 1.3); S.hueVt = Math.sign(S.hueVt || 1) * (.02 + .45 * I * I); S.spatialT = 2.2 * I; S.cycVt = Math.sign(S.cycVt || 1) * .6 * I * I;
-  if (REGIA.name === 'geometria' && (REGIA.klT += dt) > REGIA.dur / 4) { REGIA.klT = 0; REGIA.kl = (REGIA.kl + 1) % 4; REGIA.cut = 0;   // cambia costante di forma: e con lei la distorsione
-    const k = KLUVER[REGIA.kl]; setWarp(k === 'tunnel' ? 'tunnel' : k === 'spirale' ? 'vortice' : k === 'ragnatela' ? 'lente' : 'nessuna'); if (k === 'reticolo') MOVES.tile(); }
-  if (RIT.phase || MONO.phase || TD.phase) return;   // durante una visione ferma non si taglia
-  if (REGIA.name === 'dissoluzione') { // tutto converge in un centro, poi il vuoto
-    if (REGIA.step === 0 && REGIA.t > 2) { REGIA.step = 1; apparizione(pick([P.mandala, P.mandala, P.fillotassi, P.islamica])); RIT.hold = rnd(6, 10); RIT.colorsStill = false; }
-    else if (REGIA.step === 1 && REGIA.t > REGIA.dur * .55) { REGIA.step = 2; if (Math.random() < .7) monocromo(); else tavolaRorschach(); MONO.hold = rnd(6, 10); }
-    return; }
-  if (!active.some(a => a.target === 1 && !a.proc.persist)) regiaEngine();
-  if ((REGIA.cut -= dt) <= 0) { REGIA.cut = (ph.cad[0] + (ph.cad[1] - ph.cad[0]) * I) * rnd(.6, 1.4); const mv = wpick(ph.moves); if (mv) MOVES[mv](); }
-  for (const [k, r] of Object.entries(ph.ev)) if (Math.random() < r * dt * (.5 + I)) { REV[k](); break; }
+  S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
+  if ((REGIA.tT -= dt) <= 0) nuovoTempo();
+  REGIA.I = S.tscale;
+  if (RIT.phase || MONO.phase || TD.phase) return;
+  if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  if ((REGIA.cut -= dt) > 0) return;
+  REGIA.cut = rnd(...T().cut); REGIA.n++;
+  const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
+  for (let i = 0; i < k; i++) {
+    const w = {}; for (const [m, [v]] of Object.entries(MOVES)) w[m] = REGIA.last.includes(m) ? 0 : v;   // mai la stessa mossa a breve distanza
+    if (TD.phase) w.tre = 0;
+    let r = Object.values(w).reduce((x, y) => x + y, 0) * Math.random(), m;
+    for (m in w) { r -= w[m]; if (r <= 0) break; }
+    REGIA.last.push(m); if (REGIA.last.length > 3) REGIA.last.shift();
+    MOVES[m][1](); if (RIT.phase || MONO.phase || TD.phase) break;
+  }
 }
 
 /* =================== MOTORE =================== */
@@ -2446,9 +2425,9 @@ function loop(t) {
   if (paused || t - last < 33) return;
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (MONO.phase) {
-    if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / 1.4); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
+    if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / (REGIA.on ? .35 : 1.4)); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
     else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) MONO.phase = 'out'; if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
-    else { MONO.a -= dt / 1.8; if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
+    else { MONO.a -= dt / (REGIA.on ? .5 : 1.8); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
   }
   const still = rituale(dt);
   if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
@@ -2460,7 +2439,7 @@ function loop(t) {
   }
   S.hueV += (S.hueVt - S.hueV) * dt * .4; S.hue += S.hueV * dt;
   S.spatial += (S.spatialT - S.spatial) * dt * .3;
-  S.tscale += (S.tscaleT - S.tscale) * dt * .5;
+  if (!REGIA.on) S.tscale += (S.tscaleT - S.tscale) * dt * .5;
   S.bandOff += S.bandV * S.tscale * 30 * dt;
   S.palT += dt / S.palDur;
   S.cycV += (S.cycVt - S.cycV) * dt * .5; S.cyc += S.cycV * dt;
@@ -2477,9 +2456,9 @@ const info = document.getElementById('info');
 let noteUntil = 0;
 function updateInfo() {
   if (performance.now() < noteUntil) return;
-  info.textContent = (REGIA.on ? `fase: ${REGIA.name} · intensità ${REGIA.I.toFixed(2)}${REGIA.name === 'geometria' ? ' · ' + KLUVER[REGIA.kl] : ''}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
+  info.textContent = (REGIA.on ? `tempo: ${REGIA.tempo} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: fase successiva · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -2510,7 +2489,7 @@ addEventListener('keydown', e => {
   else if (k === '4') letteraSecca();
   else if (k === '3') entra3D();
   else if (k === '2') apparizione(P.labirinto);
-  else if (k === 'enter') { if (REGIA.on) { const i = ORDER.indexOf(REGIA.name); regiaPhase(ORDER[(i + 1) % ORDER.length]); note('fase: ' + REGIA.name); } }
+  else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
   else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
   else if (k === '8') { if (active.length >= 3) leave(); enter(P.tessuti); }
   else if (k === 'u') apparizione(pick([P.fillotassi, P.fillotassi, P.mosaico, P.disco, P.douady]));
@@ -2533,9 +2512,9 @@ let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(res
 resize();
 S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
-if (REGIA.on) { S.palTo = S.palFrom = pick(PALETTES); enter(pick([P.tagli, P.celle, P.onde, P.cammini])); REGIA.dur = rnd(...PHASES.inizio.dur); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
+if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__R = REGIA; window.__rp = regiaPhase; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
