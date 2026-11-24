@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AMBIENT PSICHEDELICO</title>
+<title>AMBIENT + PSICHEDELICO</title>
 <style>
   html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}
   canvas{display:block;width:100vw;height:100vh}
@@ -2134,11 +2134,12 @@ const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velo
   veloce: { cut: [.6, 1.4], ts: [2.4, 3.2], tr: [1.2, 2.4], combo: 2 },
   frenesia: { cut: [.25, .7], ts: [2.8, 3.6], tr: [2, 4], combo: 3 },
 };
-const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0 };
+const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0, over: 0, voce: false };
 const T = () => TEMPI[REGIA.tempo];
 function nuovoTempo() { let t; do { t = pick(['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']); } while (t === REGIA.tempo);
   REGIA.tempo = t; REGIA.tT = t === 'frenesia' ? rnd(3, 7) : rnd(5, 12); S.tscaleT = rnd(...T().ts); }
 function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in scena
+  if (REGIA.voce && Math.random() < .7) { const t = [P.lettere, P.boetti].filter(q => !active.some(a => a.proc === q && a.target === 1)); if (t.length) return pick(t); }
   const now = performance.now(), free = ENGINES.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1));
   free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
@@ -2163,14 +2164,23 @@ const MOVES = {
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
+  sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
 };
 function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale;
   if (RIT.phase || MONO.phase || TD.phase) return;
+  if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
+    if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
+    else { if ((REGIA.cut -= dt) <= 0) { REGIA.cut = rnd(.08, .22); REGIA.n++;
+      const m = pick(['palette', 'simmetria', 'mosaico', 'distorsione', 'bande', 'tinta', 'scossa', 'glitch', 'motore']);
+      if (m === 'motore') { if (active.filter(a => a.target === 1 && !a.proc.persist).length < 4) { enter(motoreNuovo()); const a = active[active.length - 1]; a.rate = rnd(3, 6); } else cambiaMotore(); }
+      else MOVES[m][1](); }
+      return; }
+  }
   if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
-  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
   if ((REGIA.cut -= dt) > 0) return;
   REGIA.cut = rnd(...T().cut); REGIA.n++;
   const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
@@ -2456,7 +2466,7 @@ const info = document.getElementById('info');
 let noteUntil = 0;
 function updateInfo() {
   if (performance.now() < noteUntil) return;
-  info.textContent = (REGIA.on ? `tempo: ${REGIA.tempo} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
+  info.textContent = (REGIA.on ? `tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
     `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
@@ -2514,11 +2524,11 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
-/* =================== AMBIENT PSICHEDELICO: il suono segue le immagini ===================
+/* =================== AMBIENT + PSICHEDELICO: il suono segue le immagini ===================
    AMBIENET gira dentro la pagina (../ambienet/?embed) e la sua uscita passa per una catena di effetti
    che ascolta la regia di PSICHEDELICO: il tempo del montaggio, ogni taglio, i colori, le simmetrie,
    le soste (mandala: campane e accordo fermo; lettera: quasi silenzio e un solo suono secco), il 3D, il glitch, il lampeggio. */
@@ -2599,7 +2609,65 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
     e.gain.setValueAtTime(.22, t); e.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(e); e.connect(N.bell); o.start(t); o.stop(t + .4);
   }
 
-  let REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv;
+  let REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv; const active = () => window.__PS.active;
+  // ---------- ACCORDANZE ----------
+  const osc = (type, f, t, dur, g, dest, f2) => { const c = A.ctx, o = c.createOscillator(), e = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(e); e.connect(dest || N.bell); o.start(t); o.stop(t + dur + .05); return o; };
+  const rumore = (t, dur, g, type, f, f2, q) => { const c = A.ctx, b = c.createBufferSource(); b.buffer = A.noise || (A.noise = (() => { const nb = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return nb; })()); b.loop = true;
+    const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur); fl.Q.value = q || 1;
+    const e = c.createGain(); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(.0001, t + dur); b.connect(fl); fl.connect(e); e.connect(N.bell); b.start(t); b.stop(t + dur + .05); };
+  // Oriente, per i mandala: tam-tam, ciotola tibetana, gong giavanese, campane del tempio
+  function tamtam() { const c = A.ctx, t = c.currentTime + .02, f = R(55, 85);
+    for (const [h, a] of [[1, .5], [1.48, .4], [1.93, .35], [2.57, .3], [3.13, .25], [3.82, .2], [4.5, .15], [5.3, .12], [6.7, .08]]) {
+      const o = c.createOscillator(), e = c.createGain(); o.frequency.value = f * h * R(.995, 1.005); const sw = R(.3, 1.5);
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(.05 * a, t + sw); e.gain.exponentialRampToValueAtTime(.0001, t + R(7, 12)); o.connect(e); e.connect(N.bell); o.start(t); o.stop(t + 13); }
+    rumore(t, 6, .02, 'bandpass', 900, 500, 1.5); }
+  function ciotola() { const c = A.ctx, t = c.currentTime + .02, f = R(200, 420), stro = Math.random() < .5;
+    for (const [h, a] of [[1, .6], [2.71, .3], [5.2, .1]]) for (const d of [-1, 1]) {
+      const o = c.createOscillator(), e = c.createGain(); o.frequency.value = f * h + d * R(.6, 1.8);
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(.025 * a, t + (stro ? 1.5 : .005)); e.gain.exponentialRampToValueAtTime(.0001, t + R(10, 16)); o.connect(e); e.connect(N.bell); o.start(t); o.stop(t + 17); } }
+  function gamelan() { const t = A.ctx.currentTime + .02, f = R(48, 62); osc('sine', f, t, 14, .12); osc('sine', f + 1.2, t, 14, .09); osc('sine', f * 2.01, t, 8, .04);
+    const s = [1, 1.14, 1.32, 1.52, 1.75], b = R(260, 330); for (let i = 0; i < 4; i++) { const tt = t + .5 + i * R(.35, .6), m = b * s[Math.floor(Math.random() * 5)]; osc('triangle', m, tt, 2.5, .05); osc('sine', m * 2.02, tt, 1.2, .015); } }
+  const ORIENTE = [campana, tamtam, ciotola, gamelan, tamtam, ciotola];
+  // tanpura: un bordone indiano mentre un mandala scorre nel flusso
+  let tan = null;
+  function tanpura(on) { const c = A.ctx, t = c.currentTime;
+    if (on && !tan) { const f = R(65, 82), g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + 3); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 6; g.connect(N.bell);
+      const os = [f, f * 1.5, f * 2, f * 2 * 1.002].map(x => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = x; o.connect(bp); o.start(); return o; }); bp.connect(g);
+      const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = .3; lg.gain.value = f * 6; l.connect(lg); lg.connect(bp.frequency); bp.frequency.value = f * 8; l.start(); tan = { g, os: [...os, l] }; }
+    else if (!on && tan) { tan.g.gain.setTargetAtTime(0, t, 1.2); const x = tan; setTimeout(() => x.os.forEach(o => o.stop()), 6000); tan = null; } }
+  // suoni unici per il sovraccarico: ognuno diverso, brevissimo
+  const UNICI = [
+    t => rumore(t, R(.03, .09), .25, 'highpass', R(2000, 6000)),
+    t => { const o = osc('sine', R(200, 3000), t, R(.05, .12), .12); const m = A.ctx.createOscillator(), mg = A.ctx.createGain(); m.frequency.value = R(30, 400); mg.gain.value = R(100, 900); m.connect(mg); mg.connect(o.frequency); m.start(t); m.stop(t + .15); },
+    t => { const f = R(400, 1600); for (const h of [1, 2.32, 4.25]) osc('square', f * h, t, R(.08, .18), .03); },
+    t => rumore(t, .12, .18, 'bandpass', 3200, 450, 4),
+    t => osc('sine', R(70, 110), t, .14, .5, null, 30),
+    t => osc('sawtooth', R(1500, 3000), t, .12, .07, null, R(60, 120)),
+    t => { const c = A.ctx, b = c.createBufferSource(); A.noise && (b.buffer = A.noise); const e = c.createGain(), d = R(.15, .3); e.gain.setValueAtTime(.0001, t); e.gain.exponentialRampToValueAtTime(.2, t + d); e.gain.setValueAtTime(0, t + d + .001); const lp = c.createBiquadFilter(); lp.frequency.value = R(800, 4000); b.connect(lp); lp.connect(e); e.connect(N.bell); if (b.buffer) { b.start(t); b.stop(t + d + .05); } },
+    t => { for (let i = 0; i < 5; i++) osc('square', R(80, 200), t + i * .018, .015, .1); },
+    t => osc('triangle', R(4000, 8000), t, .04, .1),
+  ];
+  let overNext = 0, overPrima = false;
+  // voci: se AMBIENET sta leggendo, parlando, cantando, il testo entra nell'immagine
+  const VOCI = ['spoken', 'voices', 'slogan', 'sloganbase', 'chant', 'mantra', 'song', 'airwaves'];
+  let LA = null, voceOn = false, voceT = 0, silT = 0, ultimaLettera = 0, livPrec = -99; const buf = new Float32Array(1024);
+  function voce() {
+    if (!LA) { try { LA = fr.contentWindow.eval('LA'); } catch (e) { return -99; } }
+    let mx = -99; for (const n of VOCI) { const an = LA[n]; if (!an) continue; an.getFloatTimeDomainData(buf); let q = 0; for (let i = 0; i < buf.length; i += 2) q += buf[i] * buf[i]; mx = Math.max(mx, 10 * Math.log10(q / 512 + 1e-12)); }
+    return mx;
+  }
+  function testo(dt) {
+    const db = voce(), now = performance.now(), PS = window.__PS;
+    if (db > -46) { voceT += dt; silT = 0; } else { silT += dt; if (silT > 1.5) voceT = 0; }
+    if (!voceOn && voceT > .3) { voceOn = true; REGIA.voce = true;   // la voce comincia: compare il testo
+      if (!RIT.phase && !MONO.phase && !TD.phase) { if (Math.random() < .45 && now - ultimaLettera > 5000) { ultimaLettera = now; PS.letteraSecca(); } else if (!PS.active.some(a => a.proc === P.lettere && a.target === 1)) PS.enter(P.lettere); } }
+    if (voceOn && silT > 1.5) { voceOn = false; REGIA.voce = false; }
+    // le sillabe forti: una lettera secca, a volte
+    if (voceOn && db - livPrec > 9 && now - ultimaLettera > 6000 && !RIT.phase && !MONO.phase && !TD.phase && Math.random() < .35) { ultimaLettera = now; PS.letteraSecca(); }
+    livPrec = livPrec * .7 + db * .3;
+  }
+
   function regola() {
     if (!N || !window.__PS) return; ({ REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv } = window.__PS);
     const c = A.ctx, t = c.currentTime, k = .15;
@@ -2610,7 +2678,14 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
     dtBase = T0.dt;
     // soste
     const m = RIT.phase === 'sosta' && RIT.proc === P.mandala, l = MONO.phase && MONO.mode === 'lettera';
-    if (m && !mand) campana(); mand = m;
+    if (m && !mand) { const a = ORIENTE[Math.floor(Math.random() * ORIENTE.length)]; a(); if (Math.random() < .35) setTimeout(ORIENTE[Math.floor(Math.random() * 4)], R(600, 1500)); } mand = m;
+    tanpura(!m && active().some(x => x.proc === P.mandala && x.target === 1));
+    testo(.1);
+    if (REGIA.over) { if (!overPrima) { N.drive.curve = curva(5); ultimaPal = ''; } const tn = c.currentTime;   // sovraccarico: tanti suoni unici, uno sull'altro
+      while (overNext < tn + .1) { overNext = Math.max(overNext, tn) + R(.03, .11); UNICI[Math.floor(Math.random() * UNICI.length)](overNext); }
+      f = 14000; wet = .55; fb = .7; }
+    else if (overPrima) { N.dl.delayTime.setValueAtTime(dtBase, t); }   // la fine è un taglio netto
+    overPrima = !!REGIA.over;
     if (m) { f = Math.min(f, 1400); wet = .6; fb = .55; tr = 0; pr = .05; }
     if (l && MONO.phase === 'ferma' && !lett) secco(); lett = l && MONO.phase === 'ferma';
     if (l) { duck = .06; tr = 0; }

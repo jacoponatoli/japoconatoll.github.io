@@ -2134,11 +2134,12 @@ const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velo
   veloce: { cut: [.6, 1.4], ts: [2.4, 3.2], tr: [1.2, 2.4], combo: 2 },
   frenesia: { cut: [.25, .7], ts: [2.8, 3.6], tr: [2, 4], combo: 3 },
 };
-const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0 };
+const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0, over: 0, voce: false };
 const T = () => TEMPI[REGIA.tempo];
 function nuovoTempo() { let t; do { t = pick(['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']); } while (t === REGIA.tempo);
   REGIA.tempo = t; REGIA.tT = t === 'frenesia' ? rnd(3, 7) : rnd(5, 12); S.tscaleT = rnd(...T().ts); }
 function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in scena
+  if (REGIA.voce && Math.random() < .7) { const t = [P.lettere, P.boetti].filter(q => !active.some(a => a.proc === q && a.target === 1)); if (t.length) return pick(t); }
   const now = performance.now(), free = ENGINES.filter(k => P[k] && !active.some(a => a.proc === P[k] && a.target === 1));
   free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
@@ -2163,14 +2164,23 @@ const MOVES = {
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
+  sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
 };
 function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale;
   if (RIT.phase || MONO.phase || TD.phase) return;
+  if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
+    if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
+    else { if ((REGIA.cut -= dt) <= 0) { REGIA.cut = rnd(.08, .22); REGIA.n++;
+      const m = pick(['palette', 'simmetria', 'mosaico', 'distorsione', 'bande', 'tinta', 'scossa', 'glitch', 'motore']);
+      if (m === 'motore') { if (active.filter(a => a.target === 1 && !a.proc.persist).length < 4) { enter(motoreNuovo()); const a = active[active.length - 1]; a.rate = rnd(3, 6); } else cambiaMotore(); }
+      else MOVES[m][1](); }
+      return; }
+  }
   if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
-  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : REGIA.tempo === 'lento' ? 14 : 8) && active.length > 1) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
   if ((REGIA.cut -= dt) > 0) return;
   REGIA.cut = rnd(...T().cut); REGIA.n++;
   const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
@@ -2456,7 +2466,7 @@ const info = document.getElementById('info');
 let noteUntil = 0;
 function updateInfo() {
   if (performance.now() < noteUntil) return;
-  info.textContent = (REGIA.on ? `tempo: ${REGIA.tempo} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
+  info.textContent = (REGIA.on ? `tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
     `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
@@ -2514,7 +2524,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
