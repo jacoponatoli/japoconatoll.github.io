@@ -24,6 +24,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 #pop b{display:block;font-weight:400;letter-spacing:.18em;text-transform:uppercase;font-size:10px;margin-bottom:6px}
 @keyframes in{from{opacity:0}to{opacity:1}}
 #foot{position:fixed;bottom:14px;line-height:1.8;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
+html.embed,html.embed body{background:transparent!important}html.embed body>*{display:none!important}
 </style>
 </head>
 <body>
@@ -75,6 +76,7 @@ const NO_RADIO=true;
 const ACCENTS=['net','city','airwaves','hum','slogan'];
 const RHYTHMIC=['arp','phase'];
 
+const EMBED=/embed/.test(location.search);if(EMBED)document.documentElement.classList.add('embed');
 let postBus,speaking=false,ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
 const nowEl=document.getElementById('now'),stage=document.getElementById('stage'),ruler=document.getElementById('r'),msgEl=document.getElementById('msg');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -130,7 +132,7 @@ function setup(){
   master.connect(shelf);shelf.connect(top);top.connect(comp);
   // brickwall limiter + meter at the very end
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-4;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.15;
-  rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);lim.connect(ctx.destination);
+  rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);if(EMBED){window.__OUT=ctx.createGain();lim.connect(window.__OUT);window.__AMB={ctx,out:window.__OUT}}else lim.connect(ctx.destination);
   postBus=ctx.createGain();postBus.gain.value=1;postBus.connect(lim); // after the leveller: what goes here is never pushed down with the music
   preAn=ctx.createAnalyser();preAn.fftSize=2048;comp.connect(preAn);
   masterAn=ctx.createAnalyser();masterAn.fftSize=2048;lim.connect(masterAn);
@@ -1469,8 +1471,8 @@ async function boot(){
 boot();
 // double click (or the F key): full screen on / off
 const fullscreen=()=>{try{const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>{})}catch(e){}};
-addEventListener('dblclick',fullscreen);
-document.addEventListener('keydown',e=>{if(e.key==='f')fullscreen()});
+if(!EMBED){addEventListener('dblclick',fullscreen);
+document.addEventListener('keydown',e=>{if(e.key==='f')fullscreen()})}
 // in full screen the cursor disappears after a few seconds of stillness
 let curT;addEventListener('mousemove',()=>{document.body.style.cursor='';clearTimeout(curT);curT=setTimeout(()=>{if(document.fullscreenElement)document.body.style.cursor='none'},2500)});
 </script>
