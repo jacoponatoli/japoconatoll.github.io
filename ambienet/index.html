@@ -31,7 +31,7 @@ html.embed,html.embed body{background:transparent!important}html.embed body>*{di
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="hour" style="color:#e8e2d0">the hours</span> · <span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
 'use strict';
@@ -48,7 +48,7 @@ const RAGAS={'raga Yaman':[0,2,4,6,7,9,11],'raga Bhairav':[0,1,4,5,7,8,11],'raga
 const EAST={'in (Japan)':[0,1,5,7,8],'yo (Japan)':[0,2,5,7,9],'hirajoshi (Japan)':[0,2,3,7,8],'iwato (Japan)':[0,1,5,6,10],'ryukyu (Okinawa)':[0,4,5,7,11],'pelog (Bali)':[0,1,3,7,8],'slendro (Java)':[0,2,5,7,9]};
 const TIBET={'minor pentatonic':[0,3,5,7,10],'major pentatonic':[0,2,4,7,9],'dorian':[0,2,3,5,7,9,10],'open fifths':[0,5,7]};
 // samay: the raga follows the real hour of the day
-function ragaNow(){const h=clk().getHours();
+function ragaNow(){const h=new Date().getHours();
   const m=h<4?['raga Darbari','raga Malkauns']:h<7?['raga Bhairav','raga Todi']:h<10?['raga Todi','raga Bilawal','raga Bhairav']:h<13?['raga Bilawal','raga Bhupali']:h<16?['raga Bhimpalasi','raga Kafi']:h<18?['raga Bhimpalasi','raga Marwa']:h<20?['raga Marwa','raga Purvi','raga Yaman']:h<22?['raga Yaman','raga Bhupali']:['raga Darbari','raga Malkauns','raga Kafi'];
   return R()<.75?pick(m):pick(Object.keys(RAGAS))}
 const S={root:38,scaleName:'dorian',scale:WEST.dorian,scene:0,color:'ambient'};
@@ -80,79 +80,6 @@ const EMBED=/embed/.test(location.search);if(EMBED)document.documentElement.clas
 let postBus,speaking=false,ctx,master,reverb,delayIn,noiseBuf,rider,masterAn,preAn,meterSink,running=false;const LA={},LN={},LNv={};const L={},T={};
 const nowEl=document.getElementById('now'),stage=document.getElementById('stage'),ruler=document.getElementById('r'),msgEl=document.getElementById('msg');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-/* ============ THE HOURS: the form in time ============
-   AMBIENET follows the clock of whoever is listening. Every hour is one cycle:
-   a bell, then VOID (almost nothing: the drone and the room), THRESHOLD (one sound at a time comes back),
-   BREATH (the drone and one voice; everything breathes slowly), WAITING (nothing new arrives; long tones, a far voice),
-   PRESENCE (the archives and the internet), DISSOLUTION (nothing new enters; everything slowly leaves).
-   The day follows the canonical hours of monastic prayer (three hours each); at night the internet sleeps.
-   Only for tests: ?t=HH:MM starts the clock at that time, ?x=N makes it run N times faster. */
-const QS=new URLSearchParams(location.search),XS=Math.max(1,+QS.get('x')||1),T0=Date.now();
-const START=(()=>{const t=QS.get('t');if(!t)return T0;const [h,m,x]=t.split(':').map(Number),d=new Date();d.setHours(h||0,m||0,x||0,0);return d.getTime()})();
-const clk=()=>new Date(START+(Date.now()-T0)*XS);
-const ORE=!EMBED; /* inside PSICHEDELICO the music stays as it was: no hours */
-const HOURS=['MATUTINUM','LAUDES','PRIMA','TERTIA','SEXTA','NONA','VESPERAE','COMPLETORIUM'];
-const NIGHT=h=>h==='MATUTINUM'||h==='COMPLETORIUM';
-const PHN=['VOID','THRESHOLD','BREATH','WAITING','PRESENCE','DISSOLUTION'];
-const SPANS={night:[6,8,14,14,8,10],edge:[4,8,12,12,14,10],day:[3,6,10,11,20,10]}; /* minutes of each phase: they always add up to 60 */
-const PHASES={
-  VOID:{max:0,ev:[],target:-36,hold:true,freeze:true,soft:true,txt:'almost nothing: the drone and the room'},
-  THRESHOLD:{max:1,ev:[],target:-31,soft:true,txt:'one sound at a time comes back'},
-  BREATH:{max:1,ev:[],target:-29,soft:true,breath:true,txt:'the drone and one voice; everything breathes slowly'},
-  WAITING:{max:2,ev:['spoken','slogan'],target:-28,soft:true,txt:'nothing new arrives; long tones, sometimes a voice far away'},
-  PRESENCE:{max:3,ev:['spoken','slogan','ping','game','error'],target:-26,txt:'the archives and the internet'},
-  DISSOLUTION:{max:0,ev:[],target:-32,noRise:true,freeze:true,soft:true,txt:'nothing new enters; everything slowly leaves'}
-};
-/* in the quiet phases only slow, sustained layers: no internet, no rhythm, no slogans */
-const SOFT=['drone','bigdrone','binaural','loops','sho','nature','tanpura','bowls','remnant','cosmos','piano','phrase','archive','alap','chant','mantra','song','flute','koto','grains','classical','animals'];
-/* the hours colour the day: which scenes and which layers are more likely (multipliers) */
-const HW={MATUTINUM:{tibet:2,ambient:1.5,piano:.7,mixed:.5},LAUDES:{east:1.6,tibet:1.4,indian:1.2,mixed:.6},PRIMA:{piano:1.6,east:1.2},TERTIA:{mixed:1.5,ambient:1.2},SEXTA:{mixed:1.6,ambient:1.2},NONA:{mixed:1.4,piano:1.2},VESPERAE:{indian:1.8,tibet:1.2},COMPLETORIUM:{piano:1.5,ambient:1.5,tibet:1.2,mixed:.6}};
-const HP={MATUTINUM:{cosmos:2,mantra:1.3,song:1.2,data:0,net:0,city:0,slogan:0,hum:.5,gen2:.5},LAUDES:{nature:1.8,animals:1.8,bowls:1.4,data:.5,net:.3},PRIMA:{piano:1.3,nature:1.3},TERTIA:{data:1.3,net:1.2},SEXTA:{data:1.3,net:1.2,city:1.2},NONA:{static:1.3,gen2:1.2},VESPERAE:{mantra:1.6,chant:1.5,song:1.3},COMPLETORIUM:{cosmos:1.6,remnant:1.5,song:1.2,data:0,net:0,city:0,slogan:0,hum:.5}};
-let PH={name:'PRESENCE',...PHASES.PRESENCE},HOUR='',lastPh='',sceneT=null,sceneInfo='',breathG=null,breathDepth=null;
-function hourNow(){const d=clk(),h=d.getHours(),m=d.getMinutes()+d.getSeconds()/60,name=HOURS[Math.floor(h/3)];
-  const sp=SPANS[NIGHT(name)?'night':(name==='LAUDES'||name==='VESPERAE')?'edge':'day'];let acc=0,i=0;
-  for(;i<sp.length;i++){acc+=sp[i];if(m<acc)break}
-  return{h,name,phase:PHN[Math.min(i,5)]}}
-/* what may happen now: spoken inserts, slogans, pings, games, errors. At night the internet (and the slogans) sleep */
-const allow=k=>PH.ev.includes(k)&&!(NIGHT(HOUR)&&['ping','game','error','slogan'].includes(k));
-async function gate(k){while(!allow(k))await sleep(4000)}
-function status(){nowEl.textContent=(HOUR?HOUR+' · '+PH.name.toLowerCase()+(PH.freeze?'':' · '):'')+(PH.freeze&&HOUR?'':sceneInfo)}
-function fadeOut(k,tc){T[k]=0;(k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(0,ctx.currentTime,tc))}
-function enterPhase(p){
-  PH={name:p,...PHASES[p]};const now=ctx.currentTime;
-  breathDepth.gain.setTargetAtTime(PH.breath?.13:0,now,8);breathG.gain.setTargetAtTime(PH.breath?.87:1,now,8);
-  if(p==='VOID'){ /* everything withdraws but the drone, which goes very low; the screen empties */
-    for(const k in T)if(k!=='drone'&&T[k]>.01)fadeOut(k,6);
-    T.drone=BASE.drone*.45;L.drone.gain.setTargetAtTime(T.drone,now,8);
-    live.clear();flash=null;render()}
-  else if(p==='DISSOLUTION'){ /* nothing new: the layers leave one by one, the drone stays */
-    const act=shuffle(Object.keys(T).filter(k=>T[k]>.01&&k!=='drone'));let w=0;
-    act.forEach(k=>{w+=rr(50,110)/XS;setTimeout(()=>{if(PH.name==='DISSOLUTION'&&T[k]>.01){fadeOut(k,25);log('HOUR',`${HOUR} · dissolution · ${k} leaves`,0)}},w*1000)})}
-  else{clearTimeout(sceneT);newScene(false)}
-  log('HOUR',`${HOUR} · ${p} — ${PH.txt}`,0);status()}
-function hoursTick(){
-  const o=hourNow();HOUR=o.name;if(o.phase===lastPh)return;
-  const boot=!lastPh;lastPh=o.phase;
-  if(boot){const p=(o.phase==='VOID'||o.phase==='DISSOLUTION')?'THRESHOLD':o.phase; /* whoever arrives does not arrive into nothing */
-    PH={name:p,...PHASES[p]};if(PH.breath){breathDepth.gain.value=.13;breathG.gain.value=.87}return}
-  enterPhase(o.phase);if(o.phase==='VOID')hourBell(o)}
-/* the bell of the hour: low, inharmonic partials in beating pairs, a soft strike. After the leveller, so it is never pushed down */
-function hourBell(o){
-  const t=ctx.currentTime+.1,f=mtof(S.root-12),out=ctx.createGain();out.gain.value=.028;out.connect(postBus);
-  const sv=ctx.createGain();sv.gain.value=.5;out.connect(sv);sv.connect(reverb);
-  [[.5,42,1],[1,30,.8],[1.19,20,.45],[1.5,14,.35],[2,10,.5],[2.51,7,.25],[3.01,5,.18]].forEach(([p,d,a])=>[0,1].forEach(j=>{
-    const osc=ctx.createOscillator();osc.frequency.value=f*p*(j?1.0016:1);const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a*.5,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d);
-    const pn=ctx.createStereoPanner();pn.pan.value=j?.3:-.3;osc.connect(g);g.connect(pn);pn.connect(out);osc.start(t);osc.stop(t+d+.1)}));
-  const nz=ctx.createBufferSource();nz.buffer=noiseBuf;const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f*4;bp.Q.value=3;
-  const ng=ctx.createGain();ng.gain.setValueAtTime(.2,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.09);nz.connect(bp);bp.connect(ng);ng.connect(out);nz.start(t);nz.stop(t+.12);
-  log('BELL',`${o.name} · ${String(o.h).padStart(2,'0')}:00`,30)}
-/* now and then, while waiting or in presence, everything but the voice steps back for half a minute: a held breath */
-async function microVoids(){
-  while(true){await sleep(rr(240,480)*1000);
-    if(!(PH.name==='WAITING'||PH.name==='PRESENCE')||speaking||R()<.5)continue;
-    const d=rr(18,40),ph=PH;ph.hold=true;master.gain.setTargetAtTime(.28,ctx.currentTime,4);log('HOUR',`${HOUR} · a pause`,0);
-    await sleep(d*1000);master.gain.setTargetAtTime(speaking?.62:.8,ctx.currentTime,5);await sleep(9000);ph.hold=false}}
 /* what is sounding right now, in red, as large as possible: one line per sound (like SLOGAN).
    Long-lasting sounds keep their line until they end; short events (an edit, a ping) share one line. */
 const live=new Map();let liveId=0,flash=null;
@@ -164,7 +91,7 @@ const live=new Map();let liveId=0,flash=null;
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['hour','#e8e2d0',/^(BELL|HOUR)$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -205,10 +132,7 @@ function setup(){
   master.connect(shelf);shelf.connect(top);top.connect(comp);
   // brickwall limiter + meter at the very end
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-4;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.15;
-  rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);
-  /* the breath of the BREATH phase: after the limiter and after the meter, so the leveller never fights it (it only ever lowers) */
-  breathG=ctx.createGain();breathG.gain.value=1;lim.connect(breathG);{const bl=ctx.createOscillator();bl.frequency.value=.1;breathDepth=ctx.createGain();breathDepth.gain.value=0;bl.connect(breathDepth);breathDepth.connect(breathG.gain);bl.start()}
-  if(EMBED){window.__OUT=ctx.createGain();breathG.connect(window.__OUT);window.__AMB={ctx,out:window.__OUT}}else breathG.connect(ctx.destination);
+  rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);if(EMBED){window.__OUT=ctx.createGain();lim.connect(window.__OUT);window.__AMB={ctx,out:window.__OUT}}else lim.connect(ctx.destination);
   postBus=ctx.createGain();postBus.gain.value=1;postBus.connect(lim); // after the leveller: what goes here is never pushed down with the music
   preAn=ctx.createAnalyser();preAn.fftSize=2048;comp.connect(preAn);
   masterAn=ctx.createAnalyser();masterAn.fftSize=2048;lim.connect(masterAn);
@@ -272,15 +196,18 @@ function retuneDrone(){
 
 /* ============ LOOPS (Eno: incommensurable cycles) ============ */
 let loops=[];
-function newLoops(){
+/* every loop voice has its own period (20-50 s): the voices never line up the same way twice (Eno).
+   While a scene wears out, a voice can fall silent at one of its returns */
+function loopVoice(v){
+  const tick=()=>{if(T.loops>.01){if(v.wear&&R()<.35)v.mute=true;
+      if(!v.mute){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
+        if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}}
+    v.to=setTimeout(tick,v.period*1000)};
+  v.to=setTimeout(tick,rr(0,v.period)*1000);loops.push(v)}
+function newLoops(memo){
   loops.forEach(v=>clearTimeout(v.to));loops=[];
-  for(let i=0,n=ri(3,5);i<n;i++){
-    const v={d:ri(0,7),period:+rr(20,50).toFixed(1),pan:rr(-.8,.8),soft:R()<.82};
-    const tick=()=>{if(T.loops>.01){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
-      if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}
-      v.to=setTimeout(tick,v.period*1000)};
-    v.to=setTimeout(tick,rr(0,v.period)*1000);loops.push(v);
-  }
+  if(memo){memo.forEach(o=>loopVoice({...o}));return}
+  for(let i=0,n=ri(3,5);i<n;i++)loopVoice({d:ri(0,7),period:+rr(20,50).toFixed(1),pan:rr(-.8,.8),soft:R()<.82});
 }
 
 /* ============ sequencer (look-ahead) ============ */
@@ -360,42 +287,67 @@ function pianoTick(){
   setTimeout(pianoTick,rr(4,11)*1000*(R()<.15?2.5:1));
 }
 
-/* ============ SCENES: the random mixer ============ */
+/* ============ SCENES: the random mixer, in a loop ============
+   No clock, no schedule: the void is not a pause written in advance, it comes out of repetition.
+   Some scenes wear out as they repeat: one voice at a time leaves, the loops fall silent note by note,
+   until only the drone (the Sa) and the room are left; the next scene grows out of that void one voice at a time.
+   Sometimes a past scene returns: the same palette, the same loops, the same voices, and yet different
+   (other recordings, another transposition, a voice exchanged): the same returns only as difference. */
+let still=false,fromVoid=false,sceneT=null,erodeT=null,erodeId=0;const MEM=[],VOIDS=!EMBED;
+async function hush(){while(still)await sleep(3000)} /* pings, games, errors, voices and slogans wait while a scene empties and refills */
+function erode(span){
+  still=true;const id=erodeId,act=shuffle(Object.keys(T).filter(k=>T[k]>.01&&k!=='drone')),step=span/(act.length+1);
+  act.forEach((k,i)=>setTimeout(()=>{if(still&&id===erodeId){T[k]=0;(k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(0,ctx.currentTime,rr(14,24)))}},(i+1)*step*1000));
+  loops.forEach(v=>v.wear=true);
+  T.drone=BASE.drone*.32;L.drone.gain.setTargetAtTime(T.drone,ctx.currentTime,span/3);
+  setTimeout(()=>{if(still&&id===erodeId){fromVoid=true;live.clear();flash=null;render();nowEl.textContent=''}},span*1000)}
 function newScene(first){
-  if(PH.freeze&&!first){sceneT=setTimeout(()=>newScene(false),rr(60,120)*1000);return} /* in the void and in the dissolution nothing new is made */
-  S.scene++;const prev=S.color,hw=HW[HOUR]||{},hp=HP[HOUR]||{},okk=k=>!PH.soft||SOFT.includes(k);
-  if(first||R()<.6){const w={};for(const k in COLORS)w[k]=COLORS[k].w*(hw[k]??1);S.color=wpick(w)}
+  clearTimeout(sceneT);clearTimeout(erodeT);erodeId++;
+  const wasVoid=fromVoid;still=false;fromVoid=false;
+  S.scene++;const prev=S.color,back=(!first&&MEM.length>=4&&R()<.28)?pick(MEM.slice(0,-2)):null; /* the eternal return */
+  if(back){S.color=back.color;S.scaleName=back.scaleName;S.scale=back.scale;const r=back.root+pick([0,0,0,5,7,-5]);S.root=r>47?r-12:r<36?r+12:r;retuneDrone()}
+  else if(first||R()<.6){const w={};for(const k in COLORS)w[k]=COLORS[k].w;S.color=wpick(w)}
   const C=COLORS[S.color];
-  if(first||S.color!==prev||R()<.45){
+  if(!back&&(first||S.color!==prev||R()<.45)){
     S.root=36+ri(0,11);
     if(C.raga){S.scaleName=ragaNow();S.scale=RAGAS[S.scaleName]}else{S.scaleName=pick(Object.keys(C.scales));S.scale=C.scales[S.scaleName]}
     retuneDrone();
   }
-  const on={};for(const k in BASE)on[k]=okk(k)&&R()<(C.prob[k]||0)*(hp[k]??1);
+  const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0);
   if(first){on.drone=on.loops=true}
   if(NO_RADIO)on.radio=on.airwaves=false; // live radios switched off
   if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
   let cnt=Object.keys(on).filter(k=>on[k]&&!RHYTHMIC.includes(k)).length;
-  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&!ACCENTS.includes(k)&&okk(k)&&(C.prob[k]||0)*(hp[k]??1)>.05));
-  while(cnt<Math.min(2,PH.max+1)){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
+  const ks=shuffle(Object.keys(on).filter(k=>!RHYTHMIC.includes(k)&&!ACCENTS.includes(k)&&(C.prob[k]||0)>.05));
+  while(cnt<2){const k=ks.find(k=>!on[k]);if(!k)break;on[k]=true;cnt++}
   // always a bed of drone; at least one slow ambient texture; accents at most two
   if(!on.drone&&!on.bigdrone)on[R()<.6?'drone':'bigdrone']=true;
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>1)on[acc.pop()]=false}
-  if(PH.soft){const a=shuffle(Object.keys(on).filter(k=>on[k]&&!['drone','bigdrone','binaural'].includes(k)));a.slice(PH.max).forEach(k=>on[k]=false)} /* the quiet phases: one or two voices at most, any of the slow ones */
-  else{const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra','gen2','song'],keep=TEX.find(k=>on[k]);
-   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=Math.min(keep?2:3,Math.max(0,PH.max-(keep?1:0)));while(act.length>MAX)on[act.pop()]=false}
+  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra','gen2','song'],keep=TEX.find(k=>on[k]);
+   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=keep?2:3;while(act.length>MAX)on[act.pop()]=false}
+  if(back){for(const k in on)on[k]=!!back.on[k]; /* the same voices; sometimes one is exchanged */
+    if(R()<.5){const a=Object.keys(on).filter(k=>on[k]&&!['drone','bigdrone','binaural'].includes(k)&&!ACCENTS.includes(k)),cand=Object.keys(BASE).filter(k=>!on[k]&&(C.prob[k]||0)>.15&&!ACCENTS.includes(k)&&!RHYTHMIC.includes(k)&&k!=='radio'&&k!=='airwaves');
+      if(a.length&&cand.length){on[pick(a)]=false;on[pick(cand)]=true}}}
   if(on.arp&&(!T.arp||R()<.5))newArp();
   if(on.phase&&!T.phase)newPhase();
-  if(R()<.3)newLoops();
-  for(const k in on){const v=on[k]?BASE[k]*rr(.6,1):0;T[k]=v;
-    (k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(v,ctx.currentTime,on[k]?15:12))}
+  if(back&&back.loops&&back.loops.length)newLoops(back.loops);else if(R()<.3)newLoops();else loops.forEach(v=>{v.wear=false;v.mute=false});
+  const sn=S.scene,BED=['drone','bigdrone','binaural'],set=(k,v,tc)=>{T[k]=v;(k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(v,ctx.currentTime,tc))};
+  for(const k in on)if(!(wasVoid&&on[k]&&!BED.includes(k)))set(k,on[k]?BASE[k]*rr(.6,1):0,on[k]?15:12);
+  if(wasVoid){ /* out of the void the voices come back one at a time */
+    let lag=0;shuffle(Object.keys(on).filter(k=>on[k]&&!BED.includes(k))).sort((a,b)=>ACCENTS.includes(a)-ACCENTS.includes(b)).forEach(k=>{const v=BASE[k]*rr(.6,1),d=lag;lag+=rr(18,45);
+      if(d)setTimeout(()=>{if(S.scene===sn)set(k,v,15)},d*1000);else set(k,v,15)});
+    still=true;setTimeout(()=>{if(S.scene===sn)still=false},lag*1000)}
   const act=Object.keys(on).filter(k=>on[k]);
   const key=C.raga?`Sa = ${NOTES[S.root%12]} · ${S.scaleName}`:`${NOTES[S.root%12]} ${S.scaleName}`;
-  sceneInfo=`scene ${S.scene} · ${S.color} · ${key} · ${act.join(' · ')}`;status();
-  log('SCENE '+S.scene,`${S.color} — ${key} — ${act.join(', ')}`,0);
-  clearTimeout(sceneT);sceneT=setTimeout(()=>newScene(false),rr(240,420)*1000);
+  const ret=back?` ↺ ${back.n}`:'';
+  nowEl.textContent=`scene ${S.scene}${ret} · ${S.color} · ${key} · ${act.join(' · ')}`;
+  log('SCENE '+S.scene+ret,`${S.color} — ${key} — ${act.join(', ')}`,0);
+  MEM.push({n:S.scene,color:S.color,root:S.root,scaleName:S.scaleName,scale:S.scale,on:{...on},loops:loops.map(v=>({d:v.d,period:v.period,pan:v.pan,soft:v.soft}))});if(MEM.length>30)MEM.shift();
+  const dur=rr(240,420);
+  if(VOIDS&&!first&&R()<.35){const span=rr(70,140),hold=rr(25,70);erodeT=setTimeout(()=>erode(span),Math.max(40,dur-span-hold)*1000)}
+  sceneT=setTimeout(()=>newScene(false),dur*1000);
 }
 
 /* ============ LIVE INTERNET DATA ============ */
@@ -452,7 +404,7 @@ async function breathe(){
   try{await fetch(u+(u.includes('?')?'&':'?')+'_='+Date.now(),{cache:'no-store'});const ms=Math.round(performance.now()-t0);
     D.oscs.forEach((o,i)=>o.detune.setTargetAtTime((i%2?1:-1)*Math.min(25,ms/12),ctx.currentTime,4));
     D.lfo.frequency.setTargetAtTime(Math.min(.3,.01+ms/8000),ctx.currentTime,4);
-    if(T.drone>.01&&!PH.freeze)log('NETWORK',`${name} · ${ms} ms · the drone bends`,4);
+    if(T.drone>.01&&!fromVoid)log('NETWORK',`${name} · ${ms} ms · the drone bends`,4);
   }catch(e){}
   setTimeout(breathe,rr(15,35)*1000);
 }
@@ -702,7 +654,7 @@ const PINGW={'message':5,'ta-tan':5,'three notes':2,'pop':2,'ring (US)':2,'doubl
 async function netLoop(){
   await sleep(rr(15,35)*1000);
   while(true){
-    if(T.net<.01)await gate('ping');
+    if(T.net<.01)await hush();
     const scene=T.net>.01,kind=scene?wpick(NETW):wpick(PINGW),fx=wpick({dry:.4,delay:.3,reflected:.3});
     const bus=L[(scene?'net':'ping')+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
     try{NET[kind](bus);log(/ring|tone|dial|phone|fax|modem/.test(kind)?'PHONE':'NOTIFICATION',`${kind} · ${fx}`,kind==='modem'?7:kind==='group chat'?6:3)}catch(e){}
@@ -1079,7 +1031,7 @@ async function sloganBuffer(it){
 async function sloganLoop(){
   await sleep(rr(40,90)*1000);await loadSlogans();setInterval(loadSlogans,3600e3);
   while(true){
-    if(T.slogan<.01)await gate('slogan');
+    if(T.slogan<.01)await hush();
     const inScene=T.slogan>.01,dest=inScene?L.slogan:L.sloganbase;
     if(sloganIdx&&sloganIdx.length){
       let pool=sloganIdx.filter(x=>!sloganSeen.has(x.f));if(!pool.length){sloganSeen.clear();pool=sloganIdx}
@@ -1095,6 +1047,13 @@ async function sloganLoop(){
           src.start(t+c*rr(.02,.09))}
         t+=buf.duration/rate+rr(1.5,4);
       }
+      if(R()<.45){ /* the last word, again and again, until it empties */
+        const ch=buf.getChannelData(0);let e=ch.length-1;while(e>0&&Math.abs(ch[e])<.02)e--;
+        const end=e/buf.sampleRate,seg=Math.min(end*.5,rr(.5,1)),s0=Math.max(0,end-seg),n=ri(4,8);
+        for(let k=0;k<n;k++){const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate*(1-.012*k);
+          const lp=filt('lowpass',Math.max(300,2600*Math.pow(.78,k))),g=ctx.createGain();g.gain.value=.5*Math.pow(.8,k);
+          src.connect(lp);lp.connect(g);g.connect(m.input);src.start(t,s0,seg);t+=seg/src.playbackRate.value+rr(.15,.5)+k*.1}
+        t+=1}
       const total=t-t0+4;
       log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':'')+(back?' · first reversed':'')+' · '+m.kind,total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
@@ -1176,10 +1135,20 @@ async function remnantDeck(){
 /* ============ SPOKEN: rare dreamlike inserts, nearly untouched, so the words can be followed ============
    philosophers (lectures, interviews) and readings of dreams, nights and poems from the archive;
    they come rarely, outside the scenes; the music steps back a little while they speak. */
+/* the last words come back a few times, each time further and darker, until they lose their sense
+   and only the room is left (the saturation of meaning by repetition) */
+async function wearOut(buf,end,rate,gain){
+  const seg=rr(.9,1.8),s0=Math.max(0,end-seg),n=ri(5,10);let tt=ctx.currentTime+.4;
+  for(let k=0;k<n;k++){const r=rate*(1-.01*k),d=seg/r,s=ctx.createBufferSource();s.buffer=buf;s.playbackRate.value=r;
+    const hp=filt('highpass',180),lp=filt('lowpass',Math.max(280,2400*Math.pow(.8,k))),g=ctx.createGain(),a=gain*.6*Math.pow(.78,k),w=ctx.createGain();w.gain.value=.25+k*.12;
+    g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(a,tt+.06);g.gain.setValueAtTime(a,tt+d-.12);g.gain.linearRampToValueAtTime(0,tt+d);
+    s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(L.spoken);g.connect(w);w.connect(reverb);s.start(tt,s0,seg);s.stop(tt+d+.1);
+    tt+=d+rr(.25,.7)+k*.15}
+  await sleep((tt-ctx.currentTime+1.5)*1000)}
 async function spokenLoop(){
   await sleep(rr(120,240)*1000);let fails=0;
   while(true){
-    await gate('spoken');
+    await hush();
     const cat=R()<.55?'voices':'dreamy',it=await iaNext(cat);if(!it){fails++;await sleep(fails>8?30000:2000);continue}
     let buf=null;try{buf=await ctx.decodeAudioData(await fetchHead(it.url,3000000))}catch(e){buf=null}
     if(!buf||buf.duration<45){fails++;await sleep(fails>8?30000:1500);continue}
@@ -1187,7 +1156,7 @@ async function spokenLoop(){
     const len=Math.min(buf.duration-8,rr(28,48));let st=null,lvl=-99;
     for(let k=0;k<12;k++){const s0=rr(4,buf.duration-len-2),d=rangeDb(buf,s0,len);if(d>-42&&d>lvl){st=s0;lvl=d;if(d>-32)break}}
     if(st==null){fails++;await sleep(1500);continue}
-    if(!allow('spoken'))continue;
+    if(still)continue;
     fails=0;
     const rate=pick([1,1,.96,.92]),gain=Math.max(.05,Math.min(10,Math.pow(10,(-24-lvl)/20))),t=ctx.currentTime+.15,fi=rr(4,7),fo=rr(6,9),play=len/rate;
     const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;
@@ -1211,6 +1180,7 @@ async function spokenLoop(){
     speaking=true;master.gain.setTargetAtTime(.62,ctx.currentTime,2);
     const line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''} · ${kind==='moon'?'from the moon':kind}${slowTag(rate)}`);
     await sleep((play+.3)*1000);
+    if(R()<.6)await wearOut(buf,st+len,rate,gain);
     unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},1000);
     await sleep(rr(300,600)*1000);
@@ -1407,7 +1377,7 @@ const GAME={
 async function gameLoop(){
   await sleep(rr(60,140)*1000);
   while(true){
-    await gate('game');
+    await hush();
     const kind=pick(Object.keys(GAME)),fx=wpick({dry:.4,delay:.3,reflected:.3}),bus=L['ping'+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
     try{GAME[kind](ctx.currentTime+.05,bus);log('GAME',`${kind} · ${fx}`,3)}catch(e){}
     await sleep(rr(120,300)*1000);
@@ -1436,7 +1406,7 @@ const ERR={
 async function errorLoop(){
   await sleep(rr(90,180)*1000);
   while(true){
-    await gate('error');
+    await hush();
     const kind=pick(Object.keys(ERR)),fx=wpick({dry:.5,delay:.25,reflected:.25}),bus=L['ping'+{dry:'dry',delay:'delay',reflected:'verb'}[fx]];
     try{ERR[kind](ctx.currentTime+.05,bus);log('ERROR',`${kind} · ${fx}`,3)}catch(e){}
     await sleep(rr(150,360)*1000);
@@ -1487,10 +1457,10 @@ function guardian(){
   // 2. leveler on the whole mix
   // measured at the output (what you actually hear), aiming for about -23 dB RMS
   const out=rmsDb(masterAn);longDb=longDb*.85+out*.15;const level=Math.max(longDb,out-4);
-  const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(PH.target-level)/20)));
-  if(speaking||PH.hold){} /* the void and the pauses are not filled back up */ // while a voice speaks the leveller holds still: the music stays where the duck put it
+  const want=Math.max(.08,Math.min(1,riderV*Math.pow(10,(-26-level)/20)));
+  if(speaking){} // while a voice speaks the leveller holds still: the music stays where the duck put it
   else if(want<riderV){riderV=want;rider.gain.setTargetAtTime(riderV,now,.04)}
-  else if(!PH.noRise){riderV=Math.min(want,riderV*1.004);rider.gain.setTargetAtTime(riderV,now,.4)}
+  else if(!still){riderV=Math.min(want,riderV*1.004);rider.gain.setTargetAtTime(riderV,now,.4)} /* while a scene empties and refills, never pushed back up */
   // 3. too much for too long: an accent goes
   if(cool>0){cool--;return}
   const db=rmsDb(masterAn);over=db>-20?over+1:Math.max(0,over-1);
@@ -1507,7 +1477,6 @@ setInterval(guardian,100);
 
 /* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
 const LEGEND={
-  hour:['#e8e2d0','The hours','AMBIENET follows your clock. Every hour begins with a bell and a few minutes of near silence (void); then sounds come back one at a time (threshold), the drone breathes with a single voice (breath), nothing new arrives for a while (waiting), the archives and the internet return (presence), and everything slowly leaves again (dissolution). The day follows the canonical hours of monastic prayer, from Matutinum to Completorium; at night the internet sleeps. Listen while doing something else, or stop at the bell and listen to the void.'],
   gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
@@ -1548,7 +1517,6 @@ async function boot(){
   if(ctx.state!=='running')tap.classList.add('on');
   ctx.onstatechange=()=>{if(ctx.state==='running')tap.classList.remove('on')};
   log('AMBIENET','listening to the internet…',0);
-  if(ORE){hoursTick();setInterval(hoursTick,1000);microVoids()}
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
