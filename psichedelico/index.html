@@ -1456,6 +1456,202 @@ P.knoll = {
   }
 };
 
+/* ---------- BLOTTER: i "francobolli" psichedelici ----------
+   Fogli di carta assorbente perforati, spesso 30×30 quadratini: un'immagine intera che attraversa tutto il foglio e viene
+   tagliata dalla perforazione, oppure la stessa piccola immagine ripetuta su ogni quadratino. Qui con icone originali. */
+const BL_ICONE = ['occhio', 'sole', 'stella', 'spirale', 'cuore', 'pianeta', 'fiore', 'yinyang', 'piramide', 'luna', 'goccia', 'rosone'];
+function icona(c, k, x, y, s, rot) {
+  c.save(); c.translate(x, y); c.rotate(rot || 0); c.beginPath();
+  const C = (cx, cy, r) => { c.moveTo(cx + r, cy); c.arc(cx, cy, r, 0, 6.2832); };
+  switch (k) {
+    case 'occhio': c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * 1.1, s, 0); c.quadraticCurveTo(0, s * 1.1, -s, 0); C(0, 0, s * .38); C(0, 0, s * .16); break;
+    case 'sole': C(0, 0, s * .42); for (let j = 0; j < 12; j++) { const a = j * .5236; c.moveTo(Math.cos(a) * s * .55, Math.sin(a) * s * .55); c.lineTo(Math.cos(a + .13) * s, Math.sin(a + .13) * s); c.lineTo(Math.cos(a + .26) * s * .55, Math.sin(a + .26) * s * .55); } break;
+    case 'stella': for (let j = 0; j <= 10; j++) { const a = j * .6283 - 1.5708, r = j & 1 ? s * .42 : s; j ? c.lineTo(Math.cos(a) * r, Math.sin(a) * r) : c.moveTo(Math.cos(a) * r, Math.sin(a) * r); } break;
+    case 'spirale': for (let i = 0; i <= 80; i++) { const a = i / 80 * 4 * 6.2832, r = s * i / 80; i ? c.lineTo(Math.cos(a) * r, Math.sin(a) * r) : c.moveTo(0, 0); } break;
+    case 'cuore': c.moveTo(0, s * .85); c.bezierCurveTo(-s * 1.2, 0, -s * .6, -s * .9, 0, -s * .35); c.bezierCurveTo(s * .6, -s * .9, s * 1.2, 0, 0, s * .85); break;
+    case 'pianeta': C(0, 0, s * .45); c.moveTo(-s, s * .12); c.ellipse(0, 0, s, s * .28, -.35, Math.PI * .95, Math.PI * 2.05); break;
+    case 'fiore': for (let j = 0; j < 6; j++) { const a = j * 1.0472; c.moveTo(0, 0); c.ellipse(Math.cos(a) * s * .5, Math.sin(a) * s * .5, s * .45, s * .2, a, 0, 6.2832); } C(0, 0, s * .2); break;
+    case 'yinyang': C(0, 0, s); c.moveTo(0, -s); c.arc(0, -s / 2, s / 2, -1.5708, 1.5708); c.arc(0, s / 2, s / 2, -1.5708, 1.5708, true); C(0, -s / 2, s * .12); C(0, s / 2, s * .12); break;
+    case 'piramide': c.moveTo(0, -s); c.lineTo(s * .95, s * .75); c.lineTo(-s * .95, s * .75); c.closePath(); c.moveTo(-s * .35, 0); c.quadraticCurveTo(0, -s * .35, s * .35, 0); c.quadraticCurveTo(0, s * .35, -s * .35, 0); C(0, 0, s * .12); break;
+    case 'luna': c.moveTo(s * .2, -s * .9); c.arc(0, 0, s * .92, -1.35, 1.35, true); c.arc(s * .45, 0, s * .72, 1.9, -1.9); break;
+    case 'goccia': c.moveTo(0, -s); c.quadraticCurveTo(s * .9, s * .2, 0, s * .85); c.quadraticCurveTo(-s * .9, s * .2, 0, -s); C(0, s * .3, s * .2); break;
+    default: for (const r of [1, .66, .33]) C(0, 0, s * r); for (let j = 0; j < 8; j++) { const a = j * .7854; c.moveTo(Math.cos(a) * s * .33, Math.sin(a) * s * .33); c.lineTo(Math.cos(a) * s, Math.sin(a) * s); }
+  }
+  c.restore(); c.stroke();
+}
+function perforazione(c, x0, y0, x1, y1, step, hole) {   // una fila di fori
+  const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / step)); c.beginPath();
+  for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n; c.moveTo(x + hole, y); c.arc(x, y, hole, 0, 6.2832); } c.stroke();
+}
+P.blotter = {
+  get name() { return 'blotter: ' + this.mode + (this.mode === 'icone' ? ' (' + this.ic.join(', ') + ')' : this.mode === 'foglio' ? ' (' + this.big + ')' : ''); },
+  init() {
+    this.mode = pick(['icone', 'icone', 'foglio', 'francobolli']); this.t = 0;
+    this.n = pick([6, 8, 10, 12, 15]); this.ic = Array.from({ length: pick([1, 1, 2, 3]) }, () => pick(BL_ICONE));
+    this.big = pick(['occhio cosmico', 'sole', 'loto', 'spirale', 'pianeta', 'rosone']); this.rot = rnd(6.28); this.vr = rnd(.002, .006) * (Math.random() < .5 ? -1 : 1);
+    this.ox = 0; this.oy = 0; this.vx = rnd(-.25, .25); this.vy = rnd(-.15, .15);
+    this.st = Array.from({ length: 6 }, () => pick(BL_ICONE));
+  },
+  step() { this.t++; this.rot += this.vr; this.ox += this.vx; this.oy += this.vy; },
+  render(c) {
+    const m = Math.min(W, H);
+    if (this.mode === 'francobolli') {   // un foglietto di francobolli: bordi a dentelli, cornice, un'icona per ciascuno
+      const cols = W > H ? 3 : 2, rows = 2, sw = W / cols, sh = H / rows;
+      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+        const x = i * sw, y = j * sh, d = Math.min(sw, sh) * .045;
+        c.beginPath(); c.rect(x + d, y + d, sw - 2 * d, sh - 2 * d); c.stroke();
+        for (const [a, b, e, f] of [[x, y, x + sw, y], [x, y + sh, x + sw, y + sh], [x, y, x, y + sh], [x + sw, y, x + sw, y + sh]]) perforazione(c, a, b, e, f, d * 2.2, d * .7);
+        c.beginPath(); c.rect(x + d * 3, y + d * 3, sw - 6 * d, sh - 6 * d); c.stroke();
+        icona(c, this.st[(i + j * cols) % 6], x + sw / 2, y + sh / 2, Math.min(sw, sh) * .3, this.rot * ((i + j) & 1 ? 1 : -1));
+      }
+      return;
+    }
+    const tab = m / this.n;
+    if (this.mode === 'icone') {   // la stessa piccola immagine su ogni quadratino
+      const ox = ((this.ox % tab) + tab) % tab, oy = ((this.oy % tab) + tab) % tab; let k = 0;
+      for (let y = -tab + oy; y < H + tab; y += tab) for (let x = -tab + ox; x < W + tab; x += tab, k++) icona(c, this.ic[(Math.round(x / tab) + Math.round(y / tab) + 99) % this.ic.length], x + tab / 2, y + tab / 2, tab * .36, this.rot);
+      for (let x = -tab + ox; x < W + tab; x += tab) perforazione(c, x, 0, x, H, tab / 7, tab * .025);
+      for (let y = -tab + oy; y < H + tab; y += tab) perforazione(c, 0, y, W, y, tab / 7, tab * .025);
+      return;
+    }
+    // un'immagine intera che attraversa il foglio, tagliata dalla perforazione
+    const cx = W / 2, cy = H / 2, R = m * .46; c.beginPath();
+    const C = r => { c.moveTo(cx + r, cy); c.arc(cx, cy, r, 0, 6.2832); };
+    if (this.big === 'occhio cosmico') { c.moveTo(cx - R * 1.5, cy); c.quadraticCurveTo(cx, cy - R * 1.4, cx + R * 1.5, cy); c.quadraticCurveTo(cx, cy + R * 1.4, cx - R * 1.5, cy);
+      for (const r of [.62, .45, .3]) C(R * r); for (let j = 0; j < 4; j++) { for (let i = 0; i <= 40; i++) { const a = this.rot + j * 1.5708 + i / 40 * 4, r = R * .3 * i / 40; const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; i ? c.lineTo(x, y) : c.moveTo(x, y); } }
+      for (let j = 0; j < 24; j++) { const a = j * .2618; c.moveTo(cx + Math.cos(a) * R * 1.05, cy + Math.sin(a) * R * .95); c.lineTo(cx + Math.cos(a) * R * 2, cy + Math.sin(a) * R * 2); } }
+    else if (this.big === 'sole') { for (const r of [.25, .45]) C(R * r); for (let j = 0; j < 32; j++) { const a = this.rot + j * .19635; c.moveTo(cx + Math.cos(a) * R * .5, cy + Math.sin(a) * R * .5); c.lineTo(cx + Math.cos(a + .1) * R * (j & 1 ? 1.1 : 1.8), cy + Math.sin(a + .1) * R * (j & 1 ? 1.1 : 1.8)); c.lineTo(cx + Math.cos(a + .19) * R * .5, cy + Math.sin(a + .19) * R * .5); } }
+    else if (this.big === 'loto') { for (let ring = 1; ring <= 4; ring++) { const n = 6 + ring * 4; for (let j = 0; j < n; j++) { const a = this.rot * (ring & 1 ? 1 : -1) + j * 6.2832 / n, r = R * ring * .32; c.moveTo(cx, cy); c.ellipse(cx + Math.cos(a) * r * .55, cy + Math.sin(a) * r * .55, r * .55, r * .17, a, 0, 6.2832); } } }
+    else if (this.big === 'spirale') { for (let j = 0; j < 3; j++) for (let i = 0; i <= 300; i++) { const a = this.rot * 3 + j * 2.0944 + i / 300 * 7 * 6.2832, r = R * 2 * i / 300; const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; i ? c.lineTo(x, y) : c.moveTo(x, y); } }
+    else if (this.big === 'pianeta') { C(R * .5); c.moveTo(cx - R * 1.3, cy); c.ellipse(cx, cy, R * 1.3, R * .35, -.3 + this.rot * .1, 0, 6.2832); c.moveTo(cx - R * 1.6, cy); c.ellipse(cx, cy, R * 1.6, R * .45, -.3 + this.rot * .1, 0, 6.2832); for (let j = 0; j < 14; j++) { const x = (j * 0.618 % 1) * W, y = (j * 0.381 % 1) * H; c.moveTo(x + 8, y); c.arc(x, y, 6 + (j % 3) * 3, 0, 6.2832); } }
+    else { for (let k = 1; k <= 6; k++) C(R * k * .3); for (let j = 0; j < 16; j++) { const a = this.rot + j * .3927; c.moveTo(cx + Math.cos(a) * R * .3, cy + Math.sin(a) * R * .3); c.lineTo(cx + Math.cos(a) * R * 1.9, cy + Math.sin(a) * R * 1.9); } }
+    c.stroke();
+    for (let x = tab; x < W; x += tab) perforazione(c, x, 0, x, H, tab / 7, tab * .022);
+    for (let y = tab; y < H; y += tab) perforazione(c, 0, y, W, y, tab / 7, tab * .022);
+  }
+};
+
+/* ---------- NATURA: l'andamento delle forme che crescono ----------
+   Fibonacci (quadrati 1,1,2,3,5,8… e la spirale aurea, in uno zoom che non finisce), la conchiglia a spirale logaritmica,
+   la ramificazione che cresce (alberi, fiumi, fulmini, vasi), il rizoma (una rete orizzontale, senza centro, che si
+   allaccia), le forme speculari (foglia, ala, insetto: una metà che si specchia nell'altra). */
+P.natura = {
+  get name() { return 'natura: ' + this.mode; },
+  init() {
+    this.mode = pick(['Fibonacci', 'conchiglia', 'ramificazione', 'ramificazione speculare', 'rizoma', 'forma speculare']); this.t = 0; this.g = 0;
+    this.seed = rnd(1000); this.rot = rnd(6.28); this.dir = Math.random() < .5 ? 1 : -1;
+    if (this.mode === 'rizoma') { this.seg = []; this.tips = []; for (let i = 0; i < 6; i++) this.tips.push({ x: rnd(W), y: rnd(H * .2, H * .8), a: Math.random() < .5 ? 0 : Math.PI, l: 0 }); }
+    if (this.mode.startsWith('ramificazione')) this.albero();
+    if (this.mode === 'forma speculare') { this.k = Array.from({ length: 9 }, () => rnd(.4, 1)); this.v = Array.from({ length: 9 }, () => rnd(.004, .012)); }
+  },
+  albero() {   // la ramificazione: ogni ramo si divide in due o tre, più corto, con un angolo che varia
+    const br = []; const root = this.mode === 'ramificazione speculare' ? [W / 2, H * .5] : [W * rnd(.3, .7), H * 1.02];
+    const grow = (x, y, a, len, d, t0) => { const x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len; br.push({ x, y, x2, y2, t0, t1: t0 + 1 }); if (d > 7 || len < 4) return;
+      const n = Math.random() < .25 ? 3 : 2; for (let i = 0; i < n; i++) grow(x2, y2, a + (i - (n - 1) / 2) * rnd(.35, .7) + gauss() * .12, len * rnd(.62, .8), d + 1, t0 + 1); };
+    const L = Math.min(W, H) * .26;
+    if (this.mode === 'ramificazione speculare') { for (const a0 of [-Math.PI / 2, Math.PI / 2, 0, Math.PI]) grow(root[0], root[1], a0, L * .8, 1, 0); }
+    else grow(root[0], root[1], -Math.PI / 2 + gauss() * .1, L, 0, 0);
+    this.br = br; this.g = 0;
+  },
+  step() {
+    this.t++;
+    if (this.mode.startsWith('ramificazione')) { this.g += .035; if (this.g > 12) this.albero(); }
+    if (this.mode === 'rizoma') {
+      for (const tp of this.tips.slice()) { const ox = tp.x, oy = tp.y; tp.a += gauss() * .25 + Math.sin(tp.a) * -.04; tp.x += Math.cos(tp.a) * 2.4; tp.y += Math.sin(tp.a) * 2.4;
+        this.seg.push([ox, oy, tp.x, tp.y]); tp.l++;
+        if (Math.random() < .03) this.tips.push({ x: tp.x, y: tp.y, a: tp.a + (Math.random() < .5 ? 1 : -1) * rnd(.6, 1.4), l: 0 });   // un nuovo germoglio
+        if (tp.l > 20 && Math.random() < .2) { for (let i = 0; i < this.seg.length - 30; i += 7) { const s = this.seg[i]; if (Math.hypot(s[0] - tp.x, s[1] - tp.y) < 5) { this.tips.splice(this.tips.indexOf(tp), 1); break; } } }   // si allaccia a un'altra radice e si ferma
+        if (tp.x < -20 || tp.x > W + 20 || tp.y < -20 || tp.y > H + 20) { const i = this.tips.indexOf(tp); if (i >= 0) this.tips.splice(i, 1); } }
+      if (this.tips.length < 3) this.tips.push({ x: rnd(W), y: rnd(H), a: rnd(6.28), l: 0 });
+      if (this.tips.length > 40) this.tips.splice(0, this.tips.length - 40);
+      if (this.seg.length > 5000) this.seg.splice(0, 300);
+    }
+  },
+  render(c) {
+    const m = Math.min(W, H), cx = W / 2, cy = H / 2; c.beginPath();
+    if (this.mode === 'Fibonacci') {   // quadrati di Fibonacci e spirale aurea; lo zoom continuo cresce di φ a ogni quarto di giro
+      const z = 2 + 2 * Math.sin(this.t * .003), sc = m * .012 * Math.pow(PHI, z), rot = this.rot + this.dir * z * Math.PI / 2;   // zoom lento avanti e indietro: a ogni potenza di φ un quarto di giro
+      const fib = [1, 1]; while (fib.length < 16) fib.push(fib[fib.length - 1] + fib[fib.length - 2]);
+      let x = 0, y = 0; const sq = [];
+      // costruzione classica: ogni nuovo quadrato si aggancia al lato, girando
+      let bx0 = 0, by0 = 0, bx1 = 1, by1 = 1; sq.push([0, 0, 1, 0]);
+      for (let i = 1; i < 16; i++) { const f = fib[i], d = i % 4; let sx, sy;
+        if (d === 1) { sx = bx1; sy = by0; } else if (d === 2) { sx = bx1 - f; sy = by1; } else if (d === 3) { sx = bx0 - f; sy = by1 - f; } else { sx = bx0; sy = by0 - f; }
+        sq.push([sx, sy, f, d]); bx0 = Math.min(bx0, sx); by0 = Math.min(by0, sy); bx1 = Math.max(bx1, sx + f); by1 = Math.max(by1, sy + f); }
+      const ca = Math.cos(rot), sa = Math.sin(rot), T = (px, py) => [cx + (ca * px - sa * py) * sc, cy + (sa * px + ca * py) * sc];
+      for (const [sx, sy, f, d] of sq) {
+        const p = [T(sx, sy), T(sx + f, sy), T(sx + f, sy + f), T(sx, sy + f)]; c.moveTo(...p[0]); for (let k = 1; k < 4; k++) c.lineTo(...p[k]); c.closePath();
+        const corner = [[sx, sy + f], [sx, sy], [sx + f, sy], [sx + f, sy + f]][d], a0 = [-Math.PI / 2, 0, Math.PI / 2, Math.PI][d];
+        for (let k = 0; k <= 12; k++) { const a = a0 + k / 12 * Math.PI / 2, q = T(corner[0] + Math.cos(a) * f, corner[1] + Math.sin(a) * f); k ? c.lineTo(...q) : c.moveTo(...q); }
+      }
+    }
+    else if (this.mode === 'conchiglia') {   // il nautilo: spirale logaritmica con i setti delle camere
+      const b = Math.log(PHI) / (Math.PI / 2), z = 1.6 + 1.6 * Math.sin(this.t * .004), rot = this.rot + this.dir * z, a = m * .004 * Math.exp(z * b);
+      for (let i = 0; i <= 400; i++) { const th = i / 400 * 6 * Math.PI, r = a * Math.exp(b * th); const x = cx + Math.cos(th + rot) * r, y = cy + Math.sin(th + rot) * r; i ? c.lineTo(x, y) : c.moveTo(x, y); }
+      for (let th = .5; th < 6 * Math.PI; th += .42) { const r1 = a * Math.exp(b * th), r0 = a * Math.exp(b * (th - 2 * Math.PI)); const p0 = [cx + Math.cos(th + rot) * r0, cy + Math.sin(th + rot) * r0], p1 = [cx + Math.cos(th + rot) * r1, cy + Math.sin(th + rot) * r1];
+        c.moveTo(...p0); c.quadraticCurveTo(cx + Math.cos(th + rot - .35) * (r0 + r1) / 2, cy + Math.sin(th + rot - .35) * (r0 + r1) / 2, ...p1); }
+    }
+    else if (this.mode.startsWith('ramificazione')) {   // cresce dal tronco alle punte, poi ricomincia
+      for (const b of this.br) { const k = clamp(this.g - b.t0, 0, 1); if (k <= 0) continue; const sw = Math.sin(this.t * .02 + b.t0) * .01 * b.t0;
+        c.moveTo(b.x, b.y); c.lineTo(b.x + (b.x2 - b.x) * k + sw * 30, b.y + (b.y2 - b.y) * k); }
+      if (this.mode === 'ramificazione speculare') for (const b of this.br) { const k = clamp(this.g - b.t0, 0, 1); if (k <= 0) continue; c.moveTo(W - b.x, b.y); c.lineTo(W - (b.x + (b.x2 - b.x) * k), b.y + (b.y2 - b.y) * k); }
+    }
+    else if (this.mode === 'rizoma') { for (const s of this.seg) { c.moveTo(s[0], s[1]); c.lineTo(s[2], s[3]); } }
+    else {   // forma speculare: un contorno organico con le sue nervature, metà e metà allo specchio
+      const pts = []; for (let i = 0; i <= 40; i++) { const a = -Math.PI / 2 + i / 40 * Math.PI, j = i / 40 * 8, k0 = Math.floor(j), f = j - k0;
+        const kk = (this.k[k0] * (1 - f) + this.k[Math.min(8, k0 + 1)] * f) * (1 + .25 * Math.sin(this.t * this.v[k0] + k0)); pts.push([Math.cos(a) * m * .45 * kk, Math.sin(a) * m * .45]); }
+      for (const sg of [1, -1]) { pts.forEach(([x, y], i) => i ? c.lineTo(cx + sg * x, cy + y) : c.moveTo(cx + sg * x, cy + y));
+        for (let i = 4; i < 40; i += 5) { const [x, y] = pts[i]; c.moveTo(cx, cy + y * .8); c.quadraticCurveTo(cx + sg * x * .5, cy + y * .9, cx + sg * x * .85, cy + y); } }
+      c.moveTo(cx, cy - m * .45); c.lineTo(cx, cy + m * .45);
+      for (const sg of [1, -1]) { const r = m * .1 * (1 + .2 * Math.sin(this.t * .01)); c.moveTo(cx + sg * m * .2 + r, cy - m * .08); c.arc(cx + sg * m * .2, cy - m * .08, r, 0, 6.2832); }   // gli "occhi" delle ali
+    }
+    c.stroke();
+  }
+};
+
+/* ---------- VOLTI: immagini psichedeliche che rimandano a un viso ----------
+   Pareidolia: due cerchi e un arco bastano a vedere una faccia. Volti costruiti con le forme del lavoro — mandala per occhi,
+   spirali, raggi, contorni concentrici — sempre simmetrici, sempre in trasformazione. */
+P.volto = {
+  get name() { return 'volto: ' + this.mode; },
+  init() { this.mode = pick(['maschera', 'sole', 'concentrico', 'pareidolia', 'cosmico']); this.t = 0; this.rot = rnd(6.28); this.k = rnd(.8, 1.2); this.eye = pick(['spirale', 'mandala', 'cerchi', 'raggi']); this.cx = rnd(.4, .6); },
+  step() { this.t++; this.rot += .01; },
+  render(c) {
+    const m = Math.min(W, H), cx = W * this.cx, cy = H * .5, br = 1 + .03 * Math.sin(this.t * .03), ex = m * .17 * this.k, ey = -m * .07, er = m * .09 * br;
+    const occhio = (x, y) => { c.moveTo(x + er, y); c.arc(x, y, er, 0, 6.2832);
+      if (this.eye === 'spirale') for (let i = 0; i <= 60; i++) { const a = this.rot * 2 + i / 60 * 3 * 6.2832, r = er * i / 60; i ? c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r) : c.moveTo(x, y); }
+      else if (this.eye === 'mandala') for (let j = 0; j < 8; j++) { const a = this.rot + j * .7854; c.moveTo(x, y); c.ellipse(x + Math.cos(a) * er * .5, y + Math.sin(a) * er * .5, er * .45, er * .18, a, 0, 6.2832); }
+      else if (this.eye === 'cerchi') for (const r of [.7, .45, .2]) { c.moveTo(x + er * r, y); c.arc(x, y, er * r, 0, 6.2832); }
+      else for (let j = 0; j < 12; j++) { const a = this.rot + j * .5236; c.moveTo(x + Math.cos(a) * er * .25, y + Math.sin(a) * er * .25); c.lineTo(x + Math.cos(a) * er, y + Math.sin(a) * er); } };
+    c.beginPath();
+    occhio(cx - ex, cy + ey); occhio(cx + ex, cy + ey);
+    // naso e bocca
+    c.moveTo(cx, cy - m * .02); c.lineTo(cx - m * .04, cy + m * .12); c.lineTo(cx + m * .04, cy + m * .12);
+    const mw = m * .2, my = cy + m * .23, sm = Math.sin(this.t * .02) * m * .03;
+    c.moveTo(cx - mw, my); c.quadraticCurveTo(cx, my + m * .09 + sm, cx + mw, my); c.quadraticCurveTo(cx, my + m * .02, cx - mw, my);
+    if (this.mode === 'maschera') {   // contorno a scudo, sopracciglia, segni simmetrici sulle guance
+      c.moveTo(cx, cy - m * .48); c.bezierCurveTo(cx + m * .5, cy - m * .45, cx + m * .45, cy + m * .3, cx, cy + m * .5); c.bezierCurveTo(cx - m * .45, cy + m * .3, cx - m * .5, cy - m * .45, cx, cy - m * .48);
+      for (const sg of [1, -1]) { c.moveTo(cx + sg * ex * .4, cy + ey - er * 1.5); c.quadraticCurveTo(cx + sg * ex, cy + ey - er * 2.1, cx + sg * ex * 1.6, cy + ey - er * 1.2);
+        for (let i = 0; i < 3; i++) { c.moveTo(cx + sg * m * .22, cy + m * (.1 + i * .05)); c.lineTo(cx + sg * m * .34, cy + m * (.08 + i * .05)); } }
+    }
+    else if (this.mode === 'sole') {   // il viso al centro di un sole: i raggi come capelli
+      c.moveTo(cx + m * .38, cy); c.arc(cx, cy, m * .38, 0, 6.2832);
+      for (let j = 0; j < 24; j++) { const a = this.rot * .3 + j * .2618; c.moveTo(cx + Math.cos(a) * m * .4, cy + Math.sin(a) * m * .4); c.quadraticCurveTo(cx + Math.cos(a + .15) * m * .6, cy + Math.sin(a + .15) * m * .6, cx + Math.cos(a) * m * .85, cy + Math.sin(a) * m * .85); }
+    }
+    else if (this.mode === 'concentrico') {   // contorni concentrici, come curve di livello di un volto
+      for (let k = 1; k <= 7; k++) { const s = .2 + k * .1 + ((this.t * .002) % .1); c.moveTo(cx + m * .32 * s, cy); c.ellipse(cx, cy, m * .32 * s, m * .44 * s, 0, 0, 6.2832); }
+    }
+    else if (this.mode === 'pareidolia') {   // il viso affiora da macchie organiche
+      for (let j = 0; j < 7; j++) { const a = j * .9 + this.t * .002, x = cx + Math.cos(a) * m * .36, y = cy + Math.sin(a) * m * .32, r = m * (.08 + .03 * Math.sin(this.t * .01 + j));
+        c.moveTo(x + r, y); for (let i = 1; i <= 24; i++) { const b = i / 24 * 6.2832, rr = r * (1 + .25 * Math.sin(b * 3 + j)); c.lineTo(x + Math.cos(b) * rr, y + Math.sin(b) * rr); } }
+    }
+    else {   // cosmico: il terzo occhio e le aureole
+      occhio(cx, cy - m * .25); for (const r of [.42, .5]) { c.moveTo(cx + m * r, cy); c.ellipse(cx, cy, m * r, m * r * 1.1, 0, 0, 6.2832); }
+    }
+    c.stroke();
+  }
+};
+
 /* ---------- ARTE ISLAMICA: stelle e girih col metodo dei "poligoni in contatto" (Hankin) ---------- */
 // su una tassellatura regolare, da ogni punto medio dei lati partono due raggi inclinati di θ;
 // i raggi dei lati vicini si incontrano e disegnano stelle e rosoni. θ varia lentamente: le stelle respirano.
@@ -2031,9 +2227,9 @@ function flicker() {
 (function flLoop(t) {
   requestAnimationFrame(flLoop);
   if (!FL.on) return;
-  if (t > FL.until || !FL.ok) { FL.on = false; flDiv.style.display = 'none'; flFasi(false, t); if (FL.ok) foLuce(); return; }
+  if (t > FL.until || !FL.ok) { FL.on = false; flDiv.style.display = 'none'; if (FL.ok) foLuce(); return; }
   const dt = (t - FL.t0) / 1000, D = (FL.until - FL.t0) / 1000, ph = FL.f0 * dt + (FL.f1 - FL.f0) * dt * dt / (2 * D);   // la frequenza può scivolare da f0 a f1
-  const white = !!(Math.floor(ph * 2) & 1); flDiv.style.background = white ? '#fff' : '#000'; flFasi(white, t);
+  const white = !!(Math.floor(ph * 2) & 1); flDiv.style.background = white ? '#fff' : '#000';
 })(0);
 
 // MONOCROMO: il flusso si ferma su una pagina di un solo colore, pixelata, dal chiaro allo scuro;
@@ -2191,7 +2387,7 @@ function apparizione(proc = P.mandala) {
   if (proc === P.lettere && a.proc === proc && Math.random() < .7) { proc.init(); while (proc.mode === 'pioggia') proc.init(); }
   S.warp.next = 'nessuna'; S.echo.on = false; S.sym = 'nessuna';
   if (Math.random() < .7) S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false };
-  RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? (REGIA.on ? rnd(.8, 2.2) : rnd(1.5, 4)) : rnd(4, 8);
+  RIT.phase = 'raccolta'; RIT.t = 0; RIT.hold = proc === P.mandala ? (REGIA.on ? rnd(2.5, 4.5) : rnd(1.5, 4)) : rnd(4, 8);
   if (REGIA.on) for (const x of active) if (x !== a) x.rate = rnd(1, 2);
   if (proc === P.yturralde && proc.mode === 'realizzazione 3D') RIT.hold = .5;
   if (proc === P.labirinto) { RIT.hold = rnd(3, 6); RIT.colorsStill = false; }   // la realizzazione 3D deve ruotare: sosta breve
@@ -2204,7 +2400,7 @@ function rituale(dt) {
   const m = active.find(x => x.proc === RIT.proc);
   if (!m) { RIT.phase = ''; return false; }
   if (RIT.phase === 'raccolta' && ((m.p >= 1 && active.length === 1 && S.warp.amt <= 0) || RIT.t > (REGIA.on ? 1.8 : 7))) { RIT.phase = 'sosta'; RIT.t = 0; }
-  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; if (REGIA.on) postimmagine(view, rnd(1.2, 2.2)); m.rate = REGIA.on ? rnd(.6, 1.5) : rnd(.05, .12); if (REGIA.on && RIT.proc === P.mandala) { m.target = 0; m.shape = 'cerchio'; m.cx = W / 2; m.cy = H / 2; } if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
+  else if (RIT.phase === 'sosta' && RIT.t > RIT.hold) { RIT.phase = ''; m.rate = REGIA.on ? rnd(.6, 1.5) : rnd(.05, .12); if (REGIA.on && RIT.proc === P.mandala) { m.target = 0; m.shape = 'cerchio'; m.cx = W / 2; m.cy = H / 2; } if (RIT.proc === P.illusioni || RIT.proc === P.solidi) { m.target = 0; m.rate = rnd(.15, .3); m.shape = 'cerchio'; m.cx = rnd(W); m.cy = rnd(H); } }
   return RIT.phase === 'sosta';
 }
 
@@ -2231,7 +2427,8 @@ const TILES = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 8, 10, 12, 16];
 function newTile(force) {
   let n; do { n = pick(TILES); } while (n === S.tile.nx && !force);
   const ny = Math.random() < .5 ? Math.max(1, Math.round(n * H / W)) : n;
-  S.tile = { nx: n, ny, mode: pick(['specchio', 'specchio', 'scacchiera', 'ripeti']), grid: Math.random() < .4 };
+  const perf = n > 3 && Math.random() < .3;   // a volte un foglio di blotter: la stessa immagine ripetuta su ogni quadratino, perforata
+  S.tile = { nx: n, ny: perf ? Math.max(1, Math.round(n * H / W)) : ny, mode: perf ? 'ripeti' : pick(['specchio', 'specchio', 'scacchiera', 'ripeti']), grid: !perf && Math.random() < .4, perf };
 }
 const WARPS = ['nessuna', 'nessuna', 'liquido', 'liquido', 'vortice', 'tunnel', 'mandala', 'lente'];
 function newWarp() {
@@ -2267,7 +2464,7 @@ function newBands() { S.bandM = Math.random() < .4 ? 3 : 2; for (let i = 0; i < 
 
 // eventi: tassi per secondo
 const EVENTS = [
-  { rate: () => FO.kind ? 0 : .014, fn: () => fosfeni(pick(['chiusi', 'chiusi', 'battito', 'pressione', 'ganzfeld', 'mackay', 'emicrania'])) },
+  { rate: () => .012, fn: () => enter(pick([P.blotter, P.natura, P.volto])) },
   { rate: () => { const n = active.filter(a => !a.proc.persist).length; return n < 2 ? .3 : n < 3 ? .08 : 0; }, fn: () => enter() },
   { rate: () => active.length > 1 ? .09 : 0, fn: leave },
   { rate: () => .07, fn: newPalette },
@@ -2316,10 +2513,10 @@ const EVENTS = [
    Il TEMPO cambia anche lui: lento, medio, veloce, frenesia. Le soste sono solo su mandala e lettera, brevi.
    Con ?libero nell'indirizzo torna il montaggio casuale di prima. */
 const ENGINES = ['tagli', 'cammini', 'tasselli', 'alberi', 'celle', 'onde', 'cerchi', 'spirali', 'griglia', 'forme', 'raggi', 'turing', 'automi', 'wolfram', 'attrattore', 'julia',
-  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos', 'fosfeni', 'knoll'];
+  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos', 'fosfeni', 'knoll', 'blotter', 'natura', 'natura', 'volto'];
 // Galanter: i sistemi stanno su un asse dall'ordine al disordine; la complessità effettiva sta nel mezzo
-const ORDINATI = ['fosfeni', 'griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
-const DISORDINATI = ['knoll', 'tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
+const ORDINATI = ['blotter', 'natura', 'fosfeni', 'griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
+const DISORDINATI = ['natura', 'knoll', 'tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
 const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velocità dei passaggi, mosse per taglio
   lento: { cut: [2.2, 4], ts: [1.3, 1.8], tr: [.5, 1], combo: 1 },
   medio: { cut: [1.2, 2.4], ts: [1.8, 2.6], tr: [.8, 1.6], combo: 2 },
@@ -2327,7 +2524,7 @@ const TEMPI = {   // [intervallo tra i tagli in s], velocità dei processi, velo
   frenesia: { cut: [.25, .7], ts: [2.8, 3.6], tr: [2, 4], combo: 3 },
 };
 const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut: 1, last: [], seen: {}, I: 0, n: 0, over: 0, voce: false,
-  lz: [rnd(-5, 5), rnd(-5, 5), rnd(15, 30)], dis: .5, modo: 'caso', modoT: rnd(30, 60) };
+  lz: [rnd(-5, 5), rnd(-5, 5), rnd(15, 30)], dis: .5, modo: 'caos', modoT: 1e9 };
 // l'asse ordine–disordine e le scelte "caotiche" seguono un attrattore di Lorenz: il caos ha una storia,
 // i passaggi sono continui, ci sono sorprese ma anche corrispondenze (Galanter); il caso puro no.
 function lorenz(dt) { const [x, y, z] = REGIA.lz, h = Math.min(dt, .1) * .045;
@@ -2348,11 +2545,7 @@ function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in
     const k = free[(Math.random() * Math.min(2, free.length)) | 0]; REGIA.seen[k] = now; return P[k]; }
   free.sort((x, y) => ((REGIA.seen[x] || 0) + Math.random() * 4000) - ((REGIA.seen[y] || 0) + Math.random() * 4000)); const k = pick(free.slice(0, 6)); REGIA.seen[k] = now; return P[k];
 }
-function cambiaMotore() {   // a volte il taglio passa attraverso le palpebre: un battito di ciglia
-  if (!FO.kind && !REGIA.over && Math.random() < .16 && performance.now() - FO.lastBlink > 4000 && fosfeni('battito')) return;
-  cambiaMotore0();
-}
-function cambiaMotore0() {
+function cambiaMotore() {
   const live = active.filter(a => a.target === 1 && !a.proc.persist), maxA = REGIA.tempo === 'lento' || asse() === 'ordine' ? 2 : 3;
   if (live.length >= maxA || (live.length > 1 && Math.random() < .5)) { const o = live[0]; o.target = 0; o.rate = rnd(...T().tr); o.shape = pick(['cerchio', 'onda', 'cerchio']); o.cx = rnd(W); o.cy = rnd(H); }
   const q = motoreNuovo(); if (q === P.mandala && Math.random() < .5) { apparizione(P.mandala); return; }
@@ -2360,33 +2553,28 @@ function cambiaMotore0() {
 }
 const MOVES = {
   motore: [8, cambiaMotore],
-  palette: [3, () => { newPalette(); S.palDur = rnd(.6, 2.5); }],
-  simmetria: [2, () => { const ax = asse(); if (ax === 'disordine') { S.sym = Math.random() < .8 ? 'nessuna' : 'specchio'; return; }
+  palette: [3, () => { newPalette(); S.palDur = rnd(1.5, 3.5); }],
+  simmetria: [2, () => { passaggio(); const ax = asse(); if (ax === 'disordine') { S.sym = Math.random() < .8 ? 'nessuna' : 'specchio'; return; }
     const L = ax === 'ordine' ? ['caleidoscopio', 'rotazione 6', 'rotazione 4', 'specchio doppio', 'rotazione 3'] : SYMS; let x, k = 0; do { x = pick(L); } while (x === S.sym && k++ < 9); S.sym = x; }],
-  mosaico: [2, () => { const ax = asse(); if (ax === 'disordine') { S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; return; }
-    if (ax === 'ordine') { const n = pick([2, 3, 4, 6]); S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: pick(['specchio', 'scacchiera']), grid: Math.random() < .6 }; return; } newTile(); }],
+  mosaico: [2, () => { passaggio(); const ax = asse(); if (ax === 'disordine') { S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; return; }
+    if (ax === 'ordine') { const n = pick([2, 3, 4, 6, 8]), perf = Math.random() < .35; S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: perf ? 'ripeti' : pick(['specchio', 'scacchiera']), grid: !perf && Math.random() < .6, perf }; return; } newTile(); }],
   distorsione: [2, newWarp],
-  eco: [1.2, newEcho],
-  bande: [1.5, newBands],
+  eco: [1.2, () => { passaggio(); newEcho(); }],
+  bande: [1.5, () => { passaggio(); newBands(); }],
   tinta: [1.5, () => { S.hueVt = pick([-1, 1]) * rnd(.15, .7); S.cycVt = pick([-1, 1]) * rnd(.2, .9); S.spatialT = rnd(.5, 2.6); }],
-  scossa: [.7, () => prevColor.fill(255)],
-  glitch: [.8, () => glitch(rnd(.15, .9))],
+  scossa: [.7, () => { passaggio(); prevColor.fill(255); }],
+  glitch: [.35, () => glitch(rnd(.15, .6))],
   mandala: [.7, () => apparizione(P.mandala)],
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
-  occhi: [.55, () => fosfeni('chiusi')],
-  pressione: [.3, () => fosfeni('pressione')],
-  ganzfeld: [.28, () => fosfeni('ganzfeld')],
-  mackay: [.28, () => fosfeni('mackay')],
-  emicrania: [.22, () => fosfeni('emicrania')],
+  volto: [.5, () => { if (!active.some(a => a.proc === P.volto && a.target === 1)) entraMotore(P.volto); }],
   sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
 };
 function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale; lorenz(dt);
-  if ((REGIA.modoT -= dt) <= 0) { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); }
   if (RIT.phase || MONO.phase || TD.phase || FO.hold) return;
   if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
     if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
@@ -2397,7 +2585,7 @@ function regiaTick(dt) {
       return; }
   }
   if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
-  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : REGIA.tempo === 'lento' ? 14 : 8)) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : (REGIA.tempo === 'lento' ? 14 : 8) * (a.proc === P.mandala ? 1.8 : 1))) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
   if ((REGIA.cut -= dt) > 0) return;
   REGIA.cut = rnd(...T().cut); REGIA.n++;
   const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
@@ -2405,9 +2593,8 @@ function regiaTick(dt) {
     const w = {}; for (const [m, [v]] of Object.entries(MOVES)) w[m] = REGIA.last.includes(m) ? 0 : v;   // mai la stessa mossa a breve distanza
     if (TD.phase) w.tre = 0;
     const ax = asse();
-    if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; w.ganzfeld *= 1.7; w.mackay *= 1.7; }
-    if (ax === 'disordine') { w.glitch *= 2.5; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; w.pressione *= 1.7; w.emicrania *= 1.7; w.occhi *= 1.3; }
-    if (FO.kind) for (const x of ['occhi', 'pressione', 'ganzfeld', 'mackay', 'emicrania']) w[x] = 0;
+    if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
+    if (ax === 'disordine') { w.glitch *= 2; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
     let m;
     if (REGIA.modo === 'caos') {   // la mossa è quella che l'attrattore indica sull'anello delle mosse: vicine fra loro, con memoria
       const ks = Object.keys(w).filter(x => w[x] > 0), tot = ks.reduce((a, x) => a + w[x], 0);   // l'anello è diviso in archi proporzionali al peso di ogni mossa
@@ -2452,9 +2639,9 @@ function foCambio(list) {   // mentre gli occhi sono chiusi la scena cambia di c
 }
 function foLuce() {   // adattamento alla luce: un mosaico complesso, simmetria quadrupla, colori brillanti (Smythies)
   if (!REGIA.on || FO.kind || MONO.phase || RIT.phase || TD.phase) return;
-  S.sym = pick(['rotazione 4', 'caleidoscopio']); const n = pick([2, 2, 3, 4]); S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: 'specchio', grid: false };
-  foCambio(['tasselli', 'islamica', 'mosaico', 'tessuti']);
-  const p = PALETTES.find(x => x.name === pick(['acido', 'primari della luce', 'tropicale'])); if (p && p !== S.palTo) { S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = 1.2; }
+  passaggio(1.2); S.sym = pick(['rotazione 4', 'caleidoscopio']); const n = pick([2, 2, 3, 4]); S.tile = { nx: n, ny: Math.max(1, Math.round(n * H / W)), mode: 'specchio', grid: false };
+  entraMotore(P[pick(['tasselli', 'islamica', 'mosaico', 'tessuti'])]);
+  const p = PALETTES.find(x => x.name === pick(['acido', 'primari della luce', 'tropicale'])); if (p && p !== S.palTo) { S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = 2.5; }
 }
 const fBreath = t => .5 + .5 * Math.sin(t * 6.2832 * .23);   // il respiro, circa 14 al minuto
 
@@ -2714,6 +2901,42 @@ function flFasi(white, t) {   // chiamata a ogni fotogramma del lampeggio
   else { FLF.seme.style.opacity = 0; FLF.ind.style.opacity = 0; }
 }
 
+/* =================== PASSAGGI FLUIDI ===================
+   Ogni cambio brusco (simmetria, mosaico, eco, bande, scossa di colori) non salta più: il fotogramma di prima resta e la scena
+   nuova si apre dentro una forma che cresce — un cerchio, un rombo, un'onda, un ventaglio, i quadratini di un blotter.
+   Bordi netti come nel resto del lavoro: nessuna dissolvenza, quindi nessun colore sporco a metà strada. */
+const XF = { cv: document.createElement('canvas'), on: false, t: 0, dur: 1 };
+function passaggio(dur) {
+  if (!view.width) return;
+  if (XF.cv.width !== view.width || XF.cv.height !== view.height) { XF.cv.width = view.width; XF.cv.height = view.height; }
+  const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
+  const base = { lento: 1.6, medio: 1.1, veloce: .75, frenesia: .5 }[REGIA.tempo] || 1;
+  Object.assign(XF, { on: true, t: 0, last: performance.now(), dur: (dur || base * rnd(.8, 1.25)) * (REGIA.over ? .35 : 1), forma: pick(['cerchio', 'cerchio', 'rombo', 'onda', 'ventaglio', 'quadratini']),
+    x: rnd(view.width), y: rnd(view.height), a: rnd(6.28), seed: rnd(1000), n: pick([6, 8, 10, 12]) });
+}
+function passaggioDraw() {
+  if (!XF.on) return; const now = performance.now(); XF.t += Math.min(.1, (now - XF.last) / 1000); XF.last = now;
+  const u = XF.t / XF.dur; if (u >= 1) { XF.on = false; return; }
+  const w = view.width, h = view.height, e = ease(u), R = Math.hypot(w, h);
+  vctx.save(); vctx.beginPath(); vctx.rect(0, 0, w, h);
+  if (XF.forma === 'cerchio') { vctx.moveTo(XF.x + e * R, XF.y); vctx.arc(XF.x, XF.y, e * R, 0, 6.2832); }
+  else if (XF.forma === 'rombo') { const r = e * R * 1.45; vctx.moveTo(XF.x, XF.y - r); vctx.lineTo(XF.x + r, XF.y); vctx.lineTo(XF.x, XF.y + r); vctx.lineTo(XF.x - r, XF.y); vctx.closePath(); }
+  else if (XF.forma === 'onda') {   // un fronte ondulato che attraversa lo schermo
+    const ca = Math.cos(XF.a), sa = Math.sin(XF.a), d = -R / 2 + e * R * 1.15, P2 = [];
+    for (let i = 0; i <= 40; i++) { const s = -R + i / 40 * 2 * R, off = d + Math.sin(s / R * 9 + XF.seed) * R * .04; P2.push([w / 2 + ca * off - sa * s, h / 2 + sa * off + ca * s]); }
+    P2.push([w / 2 - ca * R - sa * R, h / 2 - sa * R + ca * R], [w / 2 - ca * R + sa * R, h / 2 - sa * R - ca * R]);
+    P2.forEach(([x, y], i) => i ? vctx.lineTo(x, y) : vctx.moveTo(x, y)); vctx.closePath(); }
+  else if (XF.forma === 'ventaglio') { vctx.moveTo(w / 2, h / 2); vctx.arc(w / 2, h / 2, R, XF.a, XF.a + e * 6.2832); vctx.closePath(); }
+  else { const n = XF.n, tw = w / n, th = h / Math.max(1, Math.round(n * h / w)), ny = Math.ceil(h / th);   // i quadratini si staccano uno dopo l'altro
+    for (let j = 0; j < ny; j++) for (let i = 0; i < n; i++) { const r = Math.sin((i * 12.9898 + j * 78.233 + XF.seed) * 43758.5453) * .5 + .5; if (r < e) vctx.rect(i * tw, j * th, tw, th); } }
+  vctx.clip('evenodd'); vctx.drawImage(XF.cv, 0, 0); vctx.restore();
+}
+function entraMotore(q) {   // un motore entra con il suo passaggio a cerchio o a onda, alla velocità del tempo
+  const live = active.filter(a => a.target === 1 && !a.proc.persist);
+  if (live.length >= 3) { const o = live[0]; o.target = 0; o.rate = rnd(...T().tr); o.shape = 'cerchio'; o.cx = rnd(W); o.cy = rnd(H); }
+  enter(q); const a = active[active.length - 1]; a.rate = rnd(...T().tr); a.shape = pick(['cerchio', 'onda']);
+}
+
 /* =================== MOTORE =================== */
 function composeBoundaries(dt) {
   wctx.setTransform(1, 0, 0, 1, 0, 0); wctx.clearRect(0, 0, W, H);
@@ -2766,7 +2989,7 @@ function composeBoundaries(dt) {
 
 /* ---------- operazioni sulla maschera dei confini ---------- */
 function applyTile(src, dst) {
-  const { nx, ny, mode, grid } = S.tile, tw = Math.max(4, Math.floor(W / nx)), th = Math.max(4, Math.floor(H / ny));
+  const { nx, ny, mode, grid, perf } = S.tile, tw = Math.max(4, Math.floor(W / nx)), th = Math.max(4, Math.floor(H / ny));
   const small = new Uint8Array(tw * th), kx = tw / W, ky = th / H;
   for (let y = 0; y < H; y++) { const sy = Math.min(th - 1, (y * ky) | 0) * tw; for (let x = 0; x < W; x++) if (src[y * W + x]) small[sy + Math.min(tw - 1, (x * kx) | 0)] = 1; }
   for (let y = 0; y < H; y++) {
@@ -2779,6 +3002,7 @@ function applyTile(src, dst) {
     }
   }
   if (grid) { for (let x = tw; x < W; x += tw) for (let y = 0; y < H; y++) dst[y * W + x] = 1; for (let y = th; y < H; y += th) dst.fill(1, y * W, y * W + W); }
+  if (perf) { for (let x = tw; x < W; x += tw) for (let y = 0; y < H; y++) if (y % 5 < 2) dst[y * W + x] = 1; for (let y = th; y < H; y += th) for (let x = 0; x < W; x++) if (x % 5 < 2) dst[y * W + x] = 1; }   // la perforazione del foglio
   // ispessisce di un pixel: le linee rimpicciolite non devono lasciare passare il colore
   for (let p = 0; p < N - W - 1; p++) if (dst[p + 1] === 1 || dst[p + W] === 1) { if (!dst[p]) dst[p] = 2; }
   for (let p = 0; p < N; p++) if (dst[p]) dst[p] = 1;
@@ -2945,6 +3169,7 @@ function frame(t, dt) {
   wctx.putImageData(img, 0, 0);
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(work, 0, 0, view.width, view.height);
+  passaggioDraw();
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
@@ -2957,7 +3182,7 @@ function loop(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (MONO.phase) {
     if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / (REGIA.on ? .35 : 1.4)); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
-    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) { MONO.phase = 'out'; if (REGIA.on) postimmagine(MONO.cv, rnd(1, 1.8)); } if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
+    else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) { MONO.phase = 'out'; } if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
     else { MONO.a -= dt / (REGIA.on ? .5 : 1.8); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
   }
   const still = rituale(dt);
@@ -2989,7 +3214,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = (REGIA.on ? `${FO.kind ? 'fosfeni: ' + FONOMI[FO.kind] + ' · ' : ''}${FL.on ? 'lampeggio ' + (FL.tipo || '') + (FLF.forma ? ' → ' + FLF.forma : '') + ' · ' : ''}${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ' fosfeni (occhi chiusi, battito, pressione, Ganzfeld, MacKay, emicrania) · + motore dei fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -3022,8 +3247,7 @@ addEventListener('keydown', e => {
   else if (k === '2') apparizione(P.labirinto);
   else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
-  else if (k === "'") { FO.seq = (FO.seq || 0) + 1; const kk = ['chiusi', 'battito', 'pressione', 'ganzfeld', 'mackay', 'emicrania'][FO.seq % 6]; if (fosfeni(kk)) note('fosfeni: ' + FONOMI[kk]); }
-  else if (k === '+') { const q = Math.random() < .5 ? P.fosfeni : P.knoll; if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
+  else if (k === "'" || k === '+' || k === '<' || k === '*') { const q = k === "'" ? P.volto : k === '+' ? P.natura : k === '<' ? P.blotter : (Math.random() < .5 ? P.fosfeni : P.knoll); if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
   else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
   else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
   else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
