@@ -5756,6 +5756,7 @@ const MOVES = {
   cimatica: [.42, () => cimatica()],
   kene: [.38, () => kene()],
   wilson: [.42, () => lettering()],
+  ipercubo: [.45, () => ipercubo()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -5793,7 +5794,7 @@ function regiaTick(dt) {
     const ax = asse();
     if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
     if (ax === 'disordine') { w.glitch *= 2; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
-    if (ax === 'ordine') { w.metamorfosi *= 1.8; w.loop *= 1.6; w.iperbolico *= 1.5; w.kene *= 1.4; w.cimatica *= 1.4; w.retroazione *= .6; w.rutt *= .7; }
+    if (ax === 'ordine') { w.ipercubo *= 1.4; w.metamorfosi *= 1.8; w.loop *= 1.6; w.iperbolico *= 1.5; w.kene *= 1.4; w.cimatica *= 1.4; w.retroazione *= .6; w.rutt *= .7; }
     if (ax === 'disordine') { w.retroazione *= 1.6; w.rutt *= 1.4; w.luce *= 1.3; w.zoom *= 1.3; w.metamorfosi *= .4; w.kene *= .6; }
     if (MF.on || NV.mode || LP.phase) { w.metamorfosi = w.zoom = w.loop = w.retroazione = w.rutt = 0; }
     let m;
@@ -7181,6 +7182,89 @@ SCENE.lettering = (g, w, h, t, dt, o) => {
   }
 };
 
+
+/* ---------- L'IPERCUBO: da Philip Van Loocke, «New methods for the three-dimensional representation of high-dimensional
+   objects» (Generative Art 2003, l'articolo che segue quello di Galanter). Tre modi del suo studio:
+   ROTAZIONE — un ipercubo di 4–7 dimensioni ruota in più piani insieme e viene proiettato giù, dimensione dopo dimensione,
+     fino al piano; un punto luminoso lo percorre in codice di Gray, un lato alla volta, una dimensione alla volta.
+   METRICA — il suo algoritmo a passi (sezione 2): i vertici partono a caso e si spostano solo se l'errore E1 tra le distanze
+     nell'iperspazio e quelle sullo schermo diminuisce; si vede l'ipercubo trovare la sua forma, con l'errore scritto in basso.
+   ALBERO — le strutture a biforcazione (sezioni 3–4): un albero di 7–12 biforcazioni i cui 2ⁿ estremi sono i vertici di un
+     ipercubo; a ogni livello gli angoli girano di c·xₖ e d·xₖ e i rami si accorciano di z; c e d respirano. ---------- */
+function ipercubo() {
+  const d = REGIA.dis, modo = pick(d < .3 ? ['rotazione', 'albero', 'metrica', 'albero'] : d > .7 ? ['rotazione', 'metrica', 'rotazione', 'albero'] : ['rotazione', 'albero', 'metrica']);
+  const n = modo === 'albero' ? 7 + ((Math.random() * 6) | 0) : modo === 'metrica' ? 4 + ((Math.random() * 3) | 0) : 4 + ((Math.random() * 4) | 0), N = 1 << n;
+  const P = palCss(), o = { modo, n, N, pal: P, fondo: Math.random() < .65 ? '#000' : pick(P), freq: 0, passo: 0, walk: 0, hold: rnd(9, 14) };
+  if (modo !== 'albero') {
+    o.V = Array.from({ length: N }, (_, i) => Array.from({ length: n }, (_, k) => (i >> k & 1) ? 1 : -1));
+    o.E = []; for (let i = 0; i < N; i++) for (let k = 0; k < n; k++) { const j = i ^ (1 << k); if (j > i) o.E.push([i, j, k]); }
+  }
+  if (modo === 'rotazione') {
+    o.piani = Array.from({ length: n + 2 }, () => { let a = (Math.random() * n) | 0, b = (Math.random() * n) | 0; if (a === b) b = (a + 1) % n; return [a, b, rnd(.1, .5) * pick([-1, 1]) * (d > .7 ? 1.8 : 1)]; });
+    o.dpasso = d < .3 ? rnd(.45, .8) : d > .7 ? rnd(.12, .25) : rnd(.25, .5); o.scia = [];
+  }
+  if (modo === 'metrica') {
+    o.dim = Math.random() < .55 ? 3 : 2; o.Q = o.V.map(() => [rnd(-1, 1), rnd(-1, 1), o.dim === 3 ? rnd(-1, 1) : 0]);
+    o.T = []; const s = 1.6 / (2 * Math.sqrt(n));
+    for (let i = 0; i < N; i++) { o.T.push(new Float32Array(N)); for (let j = 0; j < N; j++) { let q = 0; for (let k = 0; k < n; k++) q += (o.V[i][k] - o.V[j][k]) ** 2; o.T[i][j] = Math.sqrt(q) * s; } }
+    o.e = .25; o.err = 0; o.rot = rnd(6.28);
+  }
+  if (modo === 'albero') { o.c = rnd(.4, 1.2); o.dd = rnd(.25, .6); o.z = rnd(.62, .82); o.wc = rnd(.08, .25); o.wd = rnd(.06, .2); o.rot = rnd(6.28); o.simm = Math.random() < .5; }
+  return scenaInizia('ipercubo', o);
+}
+function ipErr(o, i) { let e = 0; const Q = o.Q, a = Q[i], Ti = o.T[i]; for (let j = 0; j < o.N; j++) if (j !== i) { const b = Q[j], q = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) - Ti[j]; e += q * q; } return e; }
+SCENE.ipercubo = (g, w, h, t, dt, o) => {
+  g.fillStyle = o.fondo; g.fillRect(0, 0, w, h);
+  const m = Math.min(w, h), cx = w / 2, cy = h / 2, P = o.pal, nc = P.length;
+  if (o.modo === 'rotazione') {
+    const X = o.V.map(v => v.slice());
+    for (const [a, b, sp] of o.piani) { const th = t * sp, c = Math.cos(th), s = Math.sin(th); for (const x of X) { const u = x[a], v = x[b]; x[a] = u * c - v * s; x[b] = u * s + v * c; } }
+    const S = X.map(x => { let p = x.slice(), sc = 1; for (let k = o.n - 1; k >= 2; k--) { const f = 3 / (3.4 - p[k] * .9); sc *= f; } return [cx + p[0] * sc * m * .14, cy + p[1] * sc * m * .14, sc]; });
+    g.lineCap = 'round';
+    for (const [i, j, k] of o.E) { g.strokeStyle = P[k % nc]; g.globalAlpha = .55; g.lineWidth = Math.max(.6, m * .0022 * (S[i][2] + S[j][2]) / 2); g.beginPath(); g.moveTo(S[i][0], S[i][1]); g.lineTo(S[j][0], S[j][1]); g.stroke(); }
+    g.globalAlpha = 1;
+    o.walk += dt / o.dpasso; const i0 = Math.floor(o.walk) % o.N, i1 = (i0 + 1) % o.N, gA = i0 ^ (i0 >> 1), gB = i1 ^ (i1 >> 1), u = o.walk % 1;
+    if (gA !== o.passo) { o.passo = gA; o.scia.push(gA); if (o.scia.length > o.n * 2) o.scia.shift(); let st = 0; for (let k = 0; k < o.n; k++) st += ((gA >> k) & 1 ? 1 : -1) * 6 * Math.pow(.6, k); o.freq = 110 * Math.pow(2, st / 12); }
+    g.strokeStyle = '#fff'; g.lineWidth = m * .006; g.beginPath(); o.scia.forEach((v, q) => q ? g.lineTo(S[v][0], S[v][1]) : g.moveTo(S[v][0], S[v][1])); g.stroke();
+    const x = S[gA][0] + (S[gB][0] - S[gA][0]) * u, y = S[gA][1] + (S[gB][1] - S[gA][1]) * u;
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, m * .014, 0, 6.283); g.fill();
+    for (const s of S) { g.fillStyle = P[0]; g.beginPath(); g.arc(s[0], s[1], m * .004 * s[2], 0, 6.283); g.fill(); }
+  } else if (o.modo === 'metrica') {
+    for (let it = 0; it < 500; it++) {   // l'algoritmo a passi: uno spostamento casuale si tiene solo se l'errore scende
+      const i = (Math.random() * o.N) | 0, c = (Math.random() * o.dim) | 0, a = (Math.random() * 2 - 1) * o.e, e0 = ipErr(o, i);
+      o.Q[i][c] += a; if (ipErr(o, i) > e0) o.Q[i][c] -= a;
+    }
+    o.e = Math.max(.01, o.e * Math.pow(.6, dt)); o.rot += dt * .25;
+    if (((t * 4) | 0) !== o.passo) { o.passo = (t * 4) | 0; let E = 0; for (let i = 0; i < o.N; i++) E += ipErr(o, i); o.err = E / 2; o.freq = 82.4 * Math.pow(2, Math.min(3, o.err / 4)); }
+    const cr = Math.cos(o.rot), sr = Math.sin(o.rot), S = o.Q.map(q => { const x = q[0] * cr - q[2] * sr, z = q[0] * sr + q[2] * cr, f = 2.6 / (2.6 - z * .8); return [cx + x * f * m * .33, cy + q[1] * f * m * .33, f]; });
+    g.lineCap = 'round';
+    for (const [i, j, k] of o.E) { g.strokeStyle = P[k % nc]; g.globalAlpha = .7; g.lineWidth = Math.max(.7, m * .003 * S[i][2]); g.beginPath(); g.moveTo(S[i][0], S[i][1]); g.lineTo(S[j][0], S[j][1]); g.stroke(); }
+    g.globalAlpha = 1; for (const s of S) { g.fillStyle = '#fff'; g.beginPath(); g.arc(s[0], s[1], m * .006 * s[2], 0, 6.283); g.fill(); }
+    g.font = `${Math.round(m * .028)}px "Courier New", monospace`; g.textAlign = 'left'; g.fillStyle = '#fff'; g.globalAlpha = .8;
+    g.fillText(`ipercubo ${o.n}D → ${o.dim}D   E1 = ${o.err.toFixed(3)}`, m * .04, h - m * .04); g.globalAlpha = 1;
+  } else {   // l'albero: ogni livello è una dimensione, ogni estremo un vertice
+    const cc = o.c * (1 + .6 * Math.sin(t * o.wc * 6.28)), dd = o.dd * (1 + .6 * Math.sin(t * o.wd * 6.28 + 1)), grow = Math.min(o.n, (SC.t - SC.tin * .3) * o.n / 4), L0 = m * .17, rot = o.rot + t * .15;
+    const pr = (x, y, z) => { const X = x * Math.cos(rot) - z * Math.sin(rot), Z = x * Math.sin(rot) + z * Math.cos(rot), f = 900 / (900 - Z); return [cx + X * f, h * .9 - y * f, f]; };
+    const segs = [];
+    const ramo = (x, y, z, phi, th, len, k) => {
+      if (k >= grow) { segs.push([x, y, z, x, y, z, k, 1]); return; }
+      for (const s of [1, -1]) {
+        const xs = o.simm ? s : s * (k % 2 ? -1 : 1), ph = phi + cc * xs * (1 - k / (o.n + 3)), tt = th + dd * xs * 1.25 * (k % 2 ? 1 : -.6), L = len * Math.min(1, grow - k);
+        const nx = x + Math.sin(tt) * Math.cos(ph) * L, ny = y + Math.cos(tt) * L, nz = z + Math.sin(tt) * Math.sin(ph) * L;
+        segs.push([x, y, z, nx, ny, nz, k, 0]); ramo(nx, ny, nz, ph, tt, len * o.z, k + 1);
+      }
+    };
+    ramo(0, 0, 0, 0, 0, L0, 0);
+    g.lineCap = 'round';
+    for (const [x, y, z, a, b, c2, k, end] of segs) {
+      const A = pr(x, y, z);
+      if (end) { g.fillStyle = '#fff'; g.beginPath(); g.arc(A[0], A[1], m * .003 * A[2], 0, 6.283); g.fill(); continue; }
+      const B = pr(a, b, c2); g.strokeStyle = P[k % nc]; g.lineWidth = Math.max(.6, m * .012 * Math.pow(.78, k) * A[2]); g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.stroke();
+    }
+    o.freq = 55 * Math.pow(2, (cc + dd) * 1.5);
+  }
+};
+
 /* =================== CICLO =================== */
 let last = performance.now(), paused = false, showLines = false;
 function loop(t) {
@@ -7222,7 +7306,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = (REGIA.on ? `${FO.kind ? 'fosfeni: ' + FONOMI[FO.kind] + ' · ' : ''}${FL.on ? 'lampeggio ' + (FL.tipo || '') + (FLF.forma ? ' → ' + FLF.forma : '') + ' · ' : ''}${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ? immagine ambigua · ! mostro (MOSTRAI) · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · ; metamorfosi · : zoom infinito · _ loop · % retroazione · $ Rutt-Etra · / disco iperbolico · & luce liquida · ( cimatica · ) kené · " o ì lettering · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ? immagine ambigua · ! mostro (MOSTRAI) · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · ; metamorfosi · : zoom infinito · _ loop · % retroazione · $ Rutt-Etra · / disco iperbolico · & luce liquida · ( cimatica · ) kené · " o ì lettering · é o | ipercubo · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -7271,6 +7355,7 @@ addEventListener('keydown', e => {
   else if (k === '&') { if (luceLiquida()) note('luce liquida'); }
   else if (k === '(') { if (cimatica()) note('cimatica'); }
   else if (k === ')') { if (kene()) note('kené'); }
+  else if (k === 'é' || k === '|') { if (ipercubo()) note('ipercubo ' + SC.o.n + 'D · ' + SC.o.modo); }
   else if (k === '"' || k === 'ì') { if (lettering()) note('lettering · ' + SC.o.parole + ' · ' + SC.o.forma); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
@@ -7302,7 +7387,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, TD, MF, LP, NV }; window.__NUOVI = { metamorfosi, zoomInfinito, loopImmagine, retroazione, ruttEtra, iperbolico, luceLiquida, cimatica, kene, lettering, SC, NV, LP, MF }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, TD, MF, LP, NV }; window.__NUOVI = { metamorfosi, zoomInfinito, loopImmagine, retroazione, ruttEtra, iperbolico, luceLiquida, cimatica, kene, lettering, ipercubo, SC, NV, LP, MF }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
@@ -7532,7 +7617,7 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
     // i modi nuovi di PSICHEDELICO: la cimatica fa sentire la nota che disegna la figura; il loop incanta il suono;
     // la retroazione lo fa rientrare in sé; lo zoom infinito apre il filtro a ogni caduta; la luce liquida lo scurisce e lo bagna; la metamorfosi toglie gli scatti
     { const PSn = window.__PS, sc = PSn.SC, nv = PSn.NV, lp = PSn.LP, mf = PSn.MF;
-      notaCima(sc && sc.on && sc.tipo === 'cimatica' ? sc.o.freq : 0);
+      notaCima(sc && sc.on && (sc.tipo === 'cimatica' || sc.tipo === 'ipercubo') ? sc.o.freq : 0);   // la cimatica e l'ipercubo hanno la loro nota
       if (lp && lp.phase === 'play') { fb = Math.max(fb, .8); wet = Math.max(wet, .65); tr = 0; }
       if (nv && nv.mode === 'retroazione') { fb = Math.max(fb, .78); wet = Math.max(wet, .6); }
       if (nv && nv.mode === 'zoom') f *= .6 + 1.6 * (nv.u || 0);
