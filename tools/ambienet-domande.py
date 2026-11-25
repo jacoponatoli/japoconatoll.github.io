@@ -208,7 +208,7 @@ if not os.environ.get('STUB'):
 
 def synth(text):
     if voice:
-        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.0, 1.08), noise_scale=.33, noise_w=.45)
+        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.15, 1.25), noise_scale=.33, noise_w=.45)
         with wave.open('q.wav', 'rb') as rf: return rf.getframerate(), 'piper'
     if os.environ.get('STUB'):   # prova locale senza voci: un tono lungo quanto la frase
         sr = 22050; n = int(sr * (.6 + .07 * len(text)))
