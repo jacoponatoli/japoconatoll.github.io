@@ -129,7 +129,8 @@ function setup(){
   master=ctx.createGain();master.gain.value=0;
   const shelf=ctx.createBiquadFilter();shelf.type='highshelf';shelf.frequency.value=4500;shelf.gain.value=-6;
   const top=ctx.createBiquadFilter();top.type='lowpass';top.frequency.value=11000;top.Q.value=.5;
-  master.connect(shelf);shelf.connect(top);top.connect(comp);
+  emoLow=ctx.createBiquadFilter();emoLow.type='lowshelf';emoLow.frequency.value=160;emoLow.gain.value=0;emoHigh=shelf;
+  master.connect(emoLow);emoLow.connect(shelf);shelf.connect(top);top.connect(comp);
   // brickwall limiter + meter at the very end
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-4;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.15;
   rider=ctx.createGain();rider.gain.value=.6;comp.connect(rider);rider.connect(lim);if(EMBED){window.__OUT=ctx.createGain();lim.connect(window.__OUT);window.__AMB={ctx,out:window.__OUT}}else lim.connect(ctx.destination);
@@ -200,7 +201,7 @@ let loops=[];
    While a scene wears out, a voice can fall silent at one of its returns */
 function loopVoice(v){
   const tick=()=>{if(T.loops>.01){if(v.wear&&R()<.35)v.mute=true;if(v.jump)v.d=ri(0,7);
-      if(!v.mute){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24));
+      if(!v.mute){const t=ctx.currentTime+.05,f=mtof(deg(v.d,S.root+24+emoOct()));
         if(v.soft)tone(f,t,rr(6,10),{type:'triangle',gain:.06,attack:rr(.8,2),cutoff:1500,dest:L.loops,pan:v.pan});else bell(f,t,rr(5,8),.065,L.loops,v.pan)}}
     v.to=setTimeout(tick,v.period*1000)};
   v.to=setTimeout(tick,rr(0,v.period)*1000);loops.push(v)}
@@ -308,6 +309,31 @@ const axis=()=>CH.dis<.3?'order':CH.dis>.7?'disorder':'complexity';
 const AX=(o,c,d)=>({order:o,complexity:c,disorder:d})[axis()];
 const axMul=k=>AX(ORDS.includes(k)?1.6:DISS.includes(k)?.35:1,1,ORDS.includes(k)?.6:DISS.includes(k)?1.8:1);
 const ringPick=()=>RING[Math.floor(Math.min(.999,Math.max(0,(CH.lz[2]-5)/42))*RING.length)];
+/* ============ THE EMOTIONAL FUNCTION ============
+   A second Lorenz attractor, slower (about eight minutes per unit) and independent of the first, wanders over two
+   emotional axes. EARTH and AIR follow its wing: low drones, bass, a lifted low shelf and low registers, or flutes,
+   shō, wind, nature, high loops and an open treble. NOSTALGIA and MYSTIC follow its height: pianos, piano remnants,
+   classical fragments and songs, or mantras, chant, bowls, tanpura, alap. The four poles blend and are crossed in no
+   fixed order, inside the movement between order and chaos; sometimes none of them prevails. */
+const EMO={
+  nostalgia:{layers:['piano','remnant','classical','song','phrase'],colors:{piano:3.5,mixed:1.5}},
+  mistica:{layers:['mantra','chant','bowls','tanpura','alap','sho','cosmos'],colors:{tibet:3,indian:2.5}},
+  terra:{layers:['bigdrone','drone','binaural','tanpura','hum'],colors:{ambient:2.5,indian:1.3}},
+  aria:{layers:['flute','sho','nature','loops','koto','cosmos','song'],colors:{east:3,ambient:1.3}}};
+const EM={lz:[rr(-5,5),rr(-5,5),rr(15,30)],xs:0,zs:23,w:{nostalgia:0,mistica:0,terra:0,aria:0}};
+let emoLow=null,emoHigh=null;
+function emoTick(){const h=1/500/10;for(let i=0;i<10;i++){const [a,b,c]=EM.lz;EM.lz=[a+h*10*(b-a),b+h*(a*(28-c)-b),c+h*(a*b-8/3*c)]}
+  EM.xs+=(EM.lz[0]-EM.xs)/240;EM.zs+=(EM.lz[2]-EM.zs)/240;
+  const ea=Math.max(-1,Math.min(1,EM.xs/9)),nm=Math.max(-1,Math.min(1,(EM.zs-22.8)/4));
+  EM.w={terra:Math.max(0,-ea),aria:Math.max(0,ea),nostalgia:Math.max(0,-nm),mistica:Math.max(0,nm)};
+  if(emoLow){const t=ctx.currentTime;emoLow.gain.setTargetAtTime(3.5*EM.w.terra-1.5*EM.w.aria,t,20);emoHigh.gain.setTargetAtTime(-6+2.5*EM.w.aria-1.5*EM.w.terra,t,20)}}
+const emoMul=k=>{let m=1;for(const e in EMO)if(EMO[e].layers.includes(k))m+=2*EM.w[e];return m};
+const emoAdd=k=>{let a=0;for(const e in EMO)if(EMO[e].layers.includes(k))a+=.2*EM.w[e];return a}; /* an emotion can bring its voices into any palette */
+const emoMax=()=>Math.max(...Object.values(EM.w));
+const emoCol=c=>{let m=1;for(const e in EMO)m+=((EMO[e].colors[c]||1)-1)*EM.w[e];return m};
+const emoOct=()=>EM.w.aria>.55?12:EM.w.terra>.55?-12:0;
+const emoName=()=>{let b='',v=.5;for(const e in EM.w)if(EM.w[e]>v){v=EM.w[e];b=e}return b};
+
 /* OVERLOAD: only in disorder, now and then, a few seconds of many unique short sounds at once */
 async function overloadLoop(){
   await sleep(rr(120,240)*1000);
@@ -341,14 +367,14 @@ function newScene(first){
   const wasVoid=fromVoid;still=false;fromVoid=false;
   S.scene++;const prev=S.color,back=(!first&&MEM.length>=4&&R()<AX(.4,.28,.12))?pick(MEM.slice(0,-2)):null; /* the eternal return */
   if(back){S.color=back.color;S.scaleName=back.scaleName;S.scale=back.scale;const r=back.root+pick(AX([0,0,7],[0,0,0,5,7,-5],[1,-1,6,-6,3,-4]));S.root=r>47?r-12:r<36?r+12:r;retuneDrone()}
-  else if(first||R()<AX(.35,.6,.85)){const w={};for(const k in COLORS)w[k]=COLORS[k].w;S.color=(!first&&R()<.6)?ringPick():wpick(w)} /* most often the palette the attractor points to */
+  else if(first||R()<AX(.35,.6,.85)){const w={};for(const k in COLORS)w[k]=COLORS[k].w*emoCol(k);S.color=(!first&&R()<.45*(1-.8*emoMax()))?ringPick():wpick(w)} /* a strong emotion overrides the ring */ /* most often the palette the attractor points to */
   const C=COLORS[S.color];
   if(!back&&(first||S.color!==prev||R()<AX(.25,.45,.8))){
-    S.root=36+ri(0,11);
+    S.root=36+(EM.w.terra>.5?ri(0,5):EM.w.aria>.5?ri(6,11):ri(0,11)); /* earth lower, air higher */
     if(C.raga){S.scaleName=ragaNow();S.scale=RAGAS[S.scaleName]}else{S.scaleName=pick(Object.keys(C.scales));S.scale=C.scales[S.scaleName]}
     retuneDrone();
   }
-  const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0)*axMul(k);
+  const on={};for(const k in BASE)on[k]=R()<(C.prob[k]||0)*axMul(k)*emoMul(k)+(RHYTHMIC.includes(k)?0:emoAdd(k));
   if(first){on.drone=on.loops=true}
   if(NO_RADIO)on.radio=on.airwaves=false; // live radios switched off
   if(on.arp&&on.phase)on[R()<.5?'arp':'phase']=false;
@@ -360,8 +386,8 @@ function newScene(first){
   if(!['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant'].some(k=>on[k]))on[pick(['loops','grains','archive'])]=true;
   // few things at once: the drone bed + at most 3 other layers, of which at most 1 accent
   {const acc=shuffle(ACCENTS.filter(k=>on[k])).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0));while(acc.length>AX(1,1,2))on[acc.pop()]=false}
-  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra','gen2','song'],keep=TEX.find(k=>on[k]);
-   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>(a==='slogan'?-1:0)-(b==='slogan'?-1:0)); /* the slogan is never the one cut */const MAX=Math.max(1,(keep?2:3)+AX(-1,0,1));while(act.length>MAX)on[act.pop()]=false}
+  {const TEX=['loops','grains','archive','sho','nature','tanpura','phrase','bowls','chant','remnant','cosmos','mantra','gen2','song'],keep=TEX.filter(k=>on[k]).sort((a,b)=>emoMul(b)-emoMul(a))[0]; /* the texture closest to the emotion of the moment */
+   const act=shuffle(Object.keys(on).filter(k=>on[k]&&k!=='drone'&&k!=='bigdrone'&&k!=='binaural'&&k!==keep)).sort((a,b)=>((a==='slogan'?-1:0)-(b==='slogan'?-1:0))||(emoMul(b)-emoMul(a))); /* the slogan is never the one cut; then the voices of the emotion */const MAX=Math.max(1,(keep?2:3)+AX(-1,0,1));while(act.length>MAX)on[act.pop()]=false}
   if(back){for(const k in on)on[k]=!!back.on[k]; /* the same voices; sometimes one is exchanged */
     if(R()<.5){const a=Object.keys(on).filter(k=>on[k]&&!['drone','bigdrone','binaural'].includes(k)&&!ACCENTS.includes(k)),cand=Object.keys(BASE).filter(k=>!on[k]&&(C.prob[k]||0)>.15&&!ACCENTS.includes(k)&&!RHYTHMIC.includes(k)&&k!=='radio'&&k!=='airwaves');
       if(a.length&&cand.length){on[pick(a)]=false;on[pick(cand)]=true}}}
@@ -1508,7 +1534,7 @@ function guardian(){
     over=0;cool=100; // wait 10 s before acting again
   }
 }
-setInterval(guardian,100);setInterval(lorenzTick,1000);
+setInterval(guardian,100);setInterval(lorenzTick,1000);setInterval(emoTick,1000);
 
 /* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
 const LEGEND={
