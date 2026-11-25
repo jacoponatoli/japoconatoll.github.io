@@ -5131,7 +5131,7 @@ function formaSecca() {
 // ASTRATTI: citazioni dirette della pittura astratta, generate ogni volta da capo, ferme per 1–2 secondi.
 // Kandinsky, Rothko, Pollock, de Kooning, Richter (spatola, carte dei colori, strip), Reinhardt (nero su nero),
 // minimalismo (Malevič, Newman, Stella, Agnes Martin, Ellsworth Kelly).
-const ASTRATTI = ['monet', 'monet', 'puntinismo', 'puntinismo', 'macchiaioli', 'macchiaioli', 'kandinsky', 'kandinsky', 'rothko', 'rothko', 'pollock', 'pollock', 'dekooning', 'richter', 'richter', 'reinhardt', 'malevic', 'newman', 'stella', 'martin', 'kelly'];
+const ASTRATTI = ['monet', 'puntinismo', 'afklint', 'afklint', 'kupka', 'delaunay', 'delaunay', 'balla', 'raggismo', 'suprematismo', 'mondrian', 'klee', 'arp', 'kline', 'louis', 'frankenthaler', 'noland', 'noland', 'vasarely', 'vasarely', 'riley', 'riley', 'klein', 'fontana', 'burri', 'soulages', 'capogrossi', 'castellani', 'cruzdiez', 'soto', 'halley', 'halley', 'whitney', 'scully', 'raza', 'raza', 'almathomas', 'morellet', 'herbin', 'samfrancis', 'grosse', 'kandinsky', 'kandinsky', 'rothko', 'rothko', 'pollock', 'pollock', 'dekooning', 'richter', 'richter', 'reinhardt', 'malevic', 'newman', 'stella', 'martin', 'kelly'];
 
 function paesaggioBase(w, h) {   // un paesaggio semplice da scomporre: cielo, sole, acqua o prato, alberi, riva
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'), m = Math.min(w, h), oriz = h * rnd(.35, .6), acqua = Math.random() < .6;
@@ -5149,6 +5149,7 @@ function astratto(kind) {
   const g = cv.getContext('2d'), w = cv.width, h = cv.height, m = Math.min(w, h), R = (a, b) => rnd(a, b), col = a => pick(a);
   g.save(); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none'; g.lineCap = 'round'; g.lineJoin = 'round';
   let nome = kind;
+  const PSI = Math.random() < .4, FILM = currentPalette().c.map(c => `rgb(${c.slice(0, 3).map(Math.round).join(',')})`), PC = a => PSI ? FILM : a;
   switch (kind) {
 
     case 'monet': {   // la cattedrale di Rouen: la facciata gotica sciolta nella luce di un'ora del giorno, a tocchi spessi
@@ -5178,19 +5179,156 @@ function astratto(kind) {
         g.fillStyle = hsl(hh, clamp(c[1] * 1.3 + .15, 0, 1), clamp(c[2] + gauss() * .08, .08, .92));
         if (signac) g.fillRect(x - r0 / 2, y - r0 / 2, r0 * R(.8, 1.3), r0 * R(.8, 1.3)); else { g.beginPath(); g.arc(x, y, r0 * R(.7, 1.1), 0, 6.28); g.fill(); } }
       nome = signac ? 'Signac, tasselli' : 'Seurat, puntinismo'; break; }
-    case 'macchiaioli': {   // Fattori, Lega, Signorini: campi piatti di luce e d'ombra, il muro bianco al sole, le figure come macchie
-      const cielo = pick(['#cfe0ea', '#e8e2cf', '#bcd3e3', '#f0ead6']), Y = [R(.25, .45), 0, 0, 0]; Y[1] = Y[0] + R(.04, .1); Y[2] = Y[1] + R(.15, .3); Y[3] = 1;
-      g.fillStyle = cielo; g.fillRect(0, 0, w, h);
-      const fascia = (y0, y1, c) => { g.fillStyle = c; g.beginPath(); g.moveTo(0, y0 * h); for (let x = 0; x <= w; x += w / 12) g.lineTo(x, y0 * h + gauss() * h * .008); g.lineTo(w, y1 * h); g.lineTo(0, y1 * h); g.fill(); };
-      fascia(Y[0], Y[1], pick(['#8fa3a8', '#9aa889', '#7f8f9a']));             // le colline lontane
-      fascia(Y[1], Y[2], pick(['#c9b06b', '#b8a25a', '#d1bd7c', '#a7a35f']));   // il campo al sole
-      fascia(Y[2], Y[3], pick(['#6f6a3e', '#857b45', '#5d6a3a']));             // il primo piano in ombra
-      if (Math.random() < .7) { const x = R(.05, .55) * w, ww = R(.25, .45) * w, y = (Y[1] - R(.02, .08)) * h, hh = R(.08, .16) * h; g.fillStyle = '#f3efe4'; g.fillRect(x, y, ww, hh); g.fillStyle = pick(['#c46a3c', '#a95b3a']); g.fillRect(x, y - hh * .12, ww, hh * .14); g.fillStyle = 'rgba(80,70,60,.55)'; g.fillRect(x, y + hh * .85, ww, hh * .2); }   // il muro bianco
-      for (let i = 0; i < 2 + poisson(4); i++) { const x = R(.05, .95) * w, y = R(Y[1] + .02, Y[2] + .05) * h, sc = h * R(.09, .2) * (.5 + y / h); const corpo = pick(['#2b2a28', '#5a3a2a', '#ede7da', '#7a2f2a', '#39465a']);
-        g.fillStyle = 'rgba(40,35,30,.45)'; g.fillRect(x - sc * .2, y, sc * .9, sc * .08);   // l'ombra portata
-        g.fillStyle = corpo; if (Math.random() < .4) g.fillRect(x - sc * .5, y - sc * .45, sc * 1.1, sc * .45); else g.fillRect(x - sc * .12, y - sc, sc * .24, sc);   // un bue o una figura
-        g.fillStyle = pick(['#f3efe4', '#d9c9a3', '#2b2a28']); g.fillRect(x - sc * .1, y - sc * 1.12, sc * .2, sc * .14); }
-      nome = 'Macchiaioli'; break; }
+
+    case 'afklint': {   // Hilma af Klint: i Dieci Grandi, spirali, petali, cerchi divisi a metà, colori pastello e arancio
+      const C = PC(['#f1a7a1', '#f4c37a', '#e86f3a', '#b9a3d6', '#f6e7c8', '#7fa7c9', '#e7d36a', '#d9576f']);
+      g.fillStyle = pick(PC(['#e8834a', '#c9a3c6', '#2f4b7c', '#f0b9a7', '#e7d9b8'])); g.fillRect(0, 0, w, h); const cx = w / 2, cy = h / 2;
+      for (let i = 0; i < 4 + poisson(4); i++) { const x = R(.15, .85) * w, y = R(.15, .85) * h, r = m * R(.06, .22), a = R(0, 6.28);
+        if (Math.random() < .45) { g.fillStyle = pick(C); g.beginPath(); g.arc(x, y, r, a, a + Math.PI); g.fill(); g.fillStyle = pick(C); g.beginPath(); g.arc(x, y, r, a + Math.PI, a + 6.28); g.fill(); }
+        else { const n = 5 + ((Math.random() * 8) | 0); for (let k = 0; k < n; k++) { const b = k / n * 6.28 + a; g.fillStyle = pick(C); g.beginPath(); g.ellipse(x + Math.cos(b) * r * .55, y + Math.sin(b) * r * .55, r * .55, r * .2, b, 0, 6.28); g.fill(); } } }
+      g.strokeStyle = pick(C); g.lineWidth = m * .012; g.beginPath(); const sx = R(.3, .7) * w, sy = R(.3, .7) * h; for (let t = 0; t < 40; t += .05) { const r = m * .008 * t; g.lineTo(sx + Math.cos(t) * r, sy + Math.sin(t) * r); } g.stroke();
+      nome = 'Hilma af Klint'; break; }
+    case 'kupka': {   // Kupka, Amorpha: dischi intrecciati di fasce rosse e blu
+      const C = PC(['#c8282d', '#1f3f99', '#f2efe6', '#e9a23b', '#6a9fd8', '#e0607a']); g.fillStyle = pick(['#f2efe6', '#111']); g.fillRect(0, 0, w, h);
+      for (let d = 0; d < 2; d++) { const x = w / 2 + (d ? 1 : -1) * m * R(.05, .18), y = h / 2 + gauss() * m * .05, n = 5 + ((Math.random() * 5) | 0), R0 = m * R(.3, .45); g.save(); if (d) { g.beginPath(); g.rect(d ? w / 2 + gauss() * m * .05 : 0, 0, w, h); g.clip(); } for (let k = n; k >= 1; k--) { g.fillStyle = C[(k + d) % C.length]; g.beginPath(); g.ellipse(x, y, R0 * k / n, R0 * k / n * R(.85, 1), R(-.3, .3), 0, 6.28); g.fill(); } g.restore(); }
+      g.globalCompositeOperation = 'source-over'; nome = 'Kupka, Amorpha'; break; }
+    case 'delaunay': {   // Delaunay: dischi simultanei, anelli divisi in quarti di colori contrastanti
+      const C = PC(['#e63c2f', '#f5c518', '#1b5fae', '#2e9e5a', '#f08a24', '#7d3c98', '#111', '#f2efe6', '#ef7fa0']); g.fillStyle = pick(C); g.fillRect(0, 0, w, h);
+      for (let d = 0; d < 1 + ((Math.random() * 3) | 0); d++) { const x = d ? R(0, w) : w / 2, y = d ? R(0, h) : h / 2, n = 4 + ((Math.random() * 5) | 0), R0 = m * (d ? R(.15, .35) : R(.4, .55)), q = 4, ph = R(0, 6.28);
+        for (let k = n; k >= 1; k--) for (let j = 0; j < q; j++) { g.fillStyle = pick(C); g.beginPath(); g.moveTo(x, y); g.arc(x, y, R0 * k / n, ph + j * 6.28 / q, ph + (j + 1) * 6.28 / q); g.closePath(); g.fill(); } }
+      nome = 'Delaunay, dischi simultanei'; break; }
+    case 'balla': {   // Balla, Compenetrazioni iridescenti: triangoli che si incastrano, dal chiaro allo scuro
+      const n = 6 + ((Math.random() * 10) | 0), H0 = Math.random(), cw = w / n, rows = 2 + ((Math.random() * 3) | 0), rh = h / rows;
+      for (let r = 0; r < rows; r++) for (let i = 0; i < n * 2; i++) { const x = i * cw / 2, up = (i + r) % 2; g.fillStyle = PSI ? pick(FILM) : hsl(H0 + i * .03 + r * .2, R(.5, .9), .2 + .6 * ((i % 6) / 6)); g.beginPath();
+        if (up) { g.moveTo(x - cw / 2, (r + 1) * rh); g.lineTo(x + cw / 2, (r + 1) * rh); g.lineTo(x, r * rh); } else { g.moveTo(x - cw / 2, r * rh); g.lineTo(x + cw / 2, r * rh); g.lineTo(x, (r + 1) * rh); } g.fill(); }
+      nome = 'Balla, compenetrazione iridescente'; break; }
+    case 'raggismo': {   // Larionov e Gončarova: raggi di colore che si incrociano
+      g.fillStyle = pick(['#1b1b2a', '#2a3b2a', '#f0e6cf']); g.fillRect(0, 0, w, h); const C = PC(['#f2c14e', '#e85d3a', '#4aa3df', '#9bd16f', '#f6efe0', '#c64f9b']);
+      for (let f = 0; f < 3; f++) { const a = R(0, 6.28); for (let i = 0; i < 60 + poisson(60); i++) { g.strokeStyle = pick(C); g.globalAlpha = R(.4, .9); g.lineWidth = R(.5, 4); const x = R(0, w), y = R(0, h), L = m * R(.1, .7), b = a + gauss() * .15; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(b) * L, y + Math.sin(b) * L); g.stroke(); } }
+      g.globalAlpha = 1; nome = 'Raggismo'; break; }
+    case 'suprematismo': {   // Malevič e Lissitzky: rettangoli, barre, cerchi che galleggiano obliqui sul bianco
+      g.fillStyle = '#f1eee6'; g.fillRect(0, 0, w, h); const C = PC(['#111', '#c62b20', '#1b3f9a', '#e8b51e', '#2d7d46', '#7a4a9c']), a0 = R(-.8, .8);
+      for (let i = 0; i < 6 + poisson(10); i++) { g.save(); g.translate(R(.15, .85) * w, R(.15, .85) * h); g.rotate(a0 + gauss() * .25); g.fillStyle = pick(C); const L = m * R(.03, .45), T = Math.random() < .5 ? L * R(.05, .2) : L * R(.4, 1);
+        if (Math.random() < .12) { g.beginPath(); g.arc(0, 0, L * .4, 0, 6.28); g.fill(); } else g.fillRect(-L / 2, -T / 2, L, T); g.restore(); }
+      nome = 'Suprematismo'; break; }
+    case 'mondrian': {   // Mondrian: la griglia nera e pochi campi di primari
+      g.fillStyle = '#f3f0e8'; g.fillRect(0, 0, w, h); const xs = [0, w], ys = [0, h]; for (let i = 0; i < 2 + ((Math.random() * 4) | 0); i++) xs.push(R(.05, .95) * w); for (let i = 0; i < 2 + ((Math.random() * 4) | 0); i++) ys.push(R(.05, .95) * h);
+      xs.sort((a, b) => a - b); ys.sort((a, b) => a - b); const C = PC(['#d42a1f', '#f4c91c', '#1d3f97', '#111']);
+      for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < ys.length - 1; j++) if (Math.random() < .2) { g.fillStyle = pick(C); g.fillRect(xs[i], ys[j], xs[i + 1] - xs[i], ys[j + 1] - ys[j]); }
+      g.fillStyle = '#111'; const lw = m * R(.012, .025); for (const x of xs) g.fillRect(x - lw / 2, 0, lw, h); for (const y of ys) g.fillRect(0, y - lw / 2, w, lw); nome = 'Mondrian'; break; }
+    case 'klee': {   // Klee: i quadrati magici, una griglia di colori caldi e smorzati
+      const nx = 6 + ((Math.random() * 10) | 0), ny = Math.round(nx * h / w) + 1, H0 = Math.random(); for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { g.fillStyle = PSI ? pick(FILM) : hsl(H0 + gauss() * .08, R(.3, .65), R(.3, .75)); g.fillRect(i * w / nx + R(-2, 2), j * h / ny + R(-2, 2), w / nx + 3, h / ny + 3); }
+      nome = 'Klee, quadrati magici'; break; }
+    case 'arp': {   // Arp: forme organiche piatte, nate dal caso
+      g.fillStyle = pick(['#f2efe6', '#111', '#e7e0cf']); g.fillRect(0, 0, w, h); const C = PC(['#111', '#f2efe6', '#2f62b0', '#d53a2c', '#e9b824', '#8a9a5b']);
+      for (let i = 0; i < 3 + poisson(4); i++) { const x = R(.1, .9) * w, y = R(.1, .9) * h, r = m * R(.08, .3), n = 6 + ((Math.random() * 4) | 0), pts = Array.from({ length: n }, (_, k) => { const a = k / n * 6.28, rr = r * R(.55, 1.15); return [x + Math.cos(a) * rr, y + Math.sin(a) * rr]; });
+        g.fillStyle = pick(C); g.beginPath(); for (let k = 0; k < n; k++) { const p0 = pts[k], p1 = pts[(k + 1) % n]; const mx2 = (p0[0] + p1[0]) / 2, my2 = (p0[1] + p1[1]) / 2; k ? g.quadraticCurveTo(p0[0], p0[1], mx2, my2) : g.moveTo(mx2, my2); } g.closePath(); g.fill(); }
+      nome = 'Arp, forme organiche'; break; }
+    case 'kline': {   // Kline: travi nere larghe e veloci sul bianco
+      g.fillStyle = pick(['#f2efe8', '#ece6d8']); g.fillRect(0, 0, w, h); g.strokeStyle = PSI ? pick(FILM) : '#111'; g.lineCap = 'butt';
+      for (let i = 0; i < 3 + poisson(3); i++) { g.lineWidth = m * R(.05, .14); g.beginPath(); let x = R(-.1, 1.1) * w, y = R(-.1, 1.1) * h; g.moveTo(x, y); const a = pick([0, 1.5708, R(0, 6.28)]); g.lineTo(x + Math.cos(a) * m * R(.5, 1.3), y + Math.sin(a) * m * R(.5, 1.3)); g.stroke(); }
+      nome = 'Kline'; break; }
+    case 'louis': {   // Morris Louis: i rivoli di colore puro che scendono dagli angoli, o i veli
+      g.fillStyle = '#f3f0ea'; g.fillRect(0, 0, w, h); const C = PC(['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa', '#00897b']);
+      if (Math.random() < .6) { for (const lato of [0, 1]) { const n = 5 + ((Math.random() * 7) | 0); for (let i = 0; i < n; i++) { g.strokeStyle = C[i % C.length]; g.lineWidth = m * R(.025, .045); g.beginPath(); const x0 = lato ? w + i * m * .045 : -i * m * .045; g.moveTo(x0, -10); g.lineTo(lato ? w - i * m * .02 - m * .3 : i * m * .02 + m * .3, h * R(.6, 1.1)); g.stroke(); } } nome = 'Morris Louis, unfurled'; }
+      else { for (let i = 0; i < 8; i++) { g.filter = `blur(${m * .02}px)`; g.globalAlpha = .35; g.fillStyle = pick(C); g.beginPath(); g.moveTo(w * R(.2, .4), -10); g.bezierCurveTo(w * R(0, .3), h * .4, w * R(.7, 1), h * .5, w * R(.6, .9), h + 10); g.lineTo(w * R(.1, .3), h + 10); g.fill(); } g.filter = 'none'; g.globalAlpha = 1; nome = 'Morris Louis, velo'; }
+      break; }
+    case 'frankenthaler': {   // Frankenthaler: colore assorbito dalla tela, macchie trasparenti dai bordi morbidi
+      g.fillStyle = '#efe9dc'; g.fillRect(0, 0, w, h); const C = PC(['#e2725b', '#5b8fb9', '#f2c14e', '#6aa36f', '#c47ab0', '#3d5a80', '#e8a87c']);
+      for (let i = 0; i < 6 + poisson(5); i++) { g.filter = `blur(${(m * R(.004, .02)).toFixed(1)}px)`; g.globalAlpha = R(.35, .7); g.fillStyle = pick(C); g.beginPath(); const x = R(0, w), y = R(0, h), r = m * R(.1, .4); g.moveTo(x, y); for (let k = 0; k < 6; k++) g.quadraticCurveTo(x + gauss() * r, y + gauss() * r, x + gauss() * r, y + gauss() * r); g.fill(); }
+      g.filter = 'none'; g.globalAlpha = 1; nome = 'Frankenthaler'; break; }
+    case 'noland': {   // Noland: bersagli e chevron
+      const C = PC(['#e53935', '#fdd835', '#1e88e5', '#43a047', '#111', '#fb8c00', '#8e24aa', '#f3f0ea', '#00acc1']); g.fillStyle = '#f3f0ea'; g.fillRect(0, 0, w, h);
+      if (Math.random() < .55) { const n = 3 + ((Math.random() * 6) | 0), R0 = m * .46; for (let k = n; k >= 1; k--) { g.fillStyle = pick(C); g.beginPath(); g.arc(w / 2, h / 2, R0 * k / n, 0, 6.28); g.fill(); } nome = 'Noland, bersaglio'; }
+      else { const n = 3 + ((Math.random() * 5) | 0), bw2 = h * R(.06, .12); for (let k = 0; k < n; k++) { g.strokeStyle = pick(C); g.lineWidth = bw2; g.lineCap = 'butt'; g.beginPath(); const y = h * .15 + k * bw2; g.moveTo(0, y); g.lineTo(w / 2, y + h * .5); g.lineTo(w, y); g.stroke(); } nome = 'Noland, chevron'; }
+      break; }
+    case 'vasarely': {   // Vasarely: la griglia che si gonfia, cerchi e quadrati deformati (Vega)
+      const n = 12 + ((Math.random() * 16) | 0), cs = Math.max(w, h) / n, cx = R(.3, .7) * w, cy = R(.3, .7) * h, Rb = m * R(.3, .5), C = PC(['#111', '#f2efe6', '#e53935', '#1e88e5', '#fdd835', '#8e24aa']), A = pick(C), B = pick(C.filter(c => c !== A)), forma = pick(['cerchio', 'quadrato', 'rombo']);
+      const def = (x, y) => { const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy), f = d < Rb ? 1 + .6 * Math.cos(d / Rb * 1.5708) : 1; return [cx + dx * (d < Rb ? Math.sin(d / Rb * 1.5708) / (d / Rb || 1) : 1), cy + dy * (d < Rb ? Math.sin(d / Rb * 1.5708) / (d / Rb || 1) : 1), f]; };
+      for (let j = 0; j * cs < h + cs; j++) for (let i = 0; i * cs < w + cs; i++) { const [x, y, f] = def(i * cs + cs / 2, j * cs + cs / 2); g.fillStyle = (i + j) & 1 ? A : B; g.fillRect(i * cs, j * cs, cs + 1, cs + 1); g.fillStyle = (i + j) & 1 ? B : A; const r = cs * .38 * f;
+        g.beginPath(); if (forma === 'cerchio') g.arc(x, y, r, 0, 6.28); else if (forma === 'quadrato') g.rect(x - r, y - r, 2 * r, 2 * r); else { g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); } g.fill(); }
+      nome = 'Vasarely'; break; }
+    case 'riley': {   // Bridget Riley: linee ondulate fitte, o scacchiera che si comprime
+      const C = PSI ? [pick(FILM), pick(FILM)] : Math.random() < .6 ? ['#111', '#f4f1ea'] : [hsl(Math.random(), .8, .5), hsl(Math.random(), .8, .5)];
+      if (Math.random() < .6) { g.fillStyle = C[1]; g.fillRect(0, 0, w, h); g.fillStyle = C[0]; const n = 20 + ((Math.random() * 40) | 0), st = h / n, k = R(1, 4), am = st * R(.5, 2);
+        for (let i = 0; i < n; i += 2) { g.beginPath(); for (let x = 0; x <= w; x += 4) g.lineTo(x, i * st + Math.sin(x / w * 6.28 * k + i * .1) * am); for (let x = w; x >= 0; x -= 4) g.lineTo(x, (i + 1) * st + Math.sin(x / w * 6.28 * k + (i + 1) * .1) * am); g.fill(); } nome = 'Riley, onde'; }
+      else { const n = 14 + ((Math.random() * 10) | 0), rows = Math.round(n * h / w); let x = 0; const ws = Array.from({ length: n }, (_, i) => Math.pow(Math.abs(Math.sin((i + .5) / n * Math.PI)), 1.5) + .08), sw = ws.reduce((a, b) => a + b, 0);
+        for (let i = 0; i < n; i++) { const cw = w * ws[i] / sw; for (let j = 0; j < rows; j++) { g.fillStyle = C[(i + j) & 1]; g.fillRect(x, j * h / rows, cw + 1, h / rows + 1); } x += cw; } nome = 'Riley, movimento nei quadrati'; }
+      break; }
+    case 'klein': {   // Yves Klein: il blu oltremare, solo
+      const c = PSI && Math.random() < .5 ? pick(FILM) : pick(['#002fa7', '#002fa7', '#002fa7', '#e8b923', '#d5486b']); g.fillStyle = c; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 4000; i++) { g.fillStyle = Math.random() < .5 ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.05)'; g.fillRect(R(0, w), R(0, h), 1.5, 1.5); } nome = 'Klein, monocromo'; break; }
+    case 'fontana': {   // Fontana: i tagli, o i buchi, nella tela monocroma
+      const c = PSI ? pick(FILM) : pick(['#c8281e', '#f2efe6', '#1b3f9a', '#e9c82a', '#111', '#2e7d32', '#e88fb0']); g.fillStyle = c; g.fillRect(0, 0, w, h);
+      if (Math.random() < .65) { const n = 1 + ((Math.random() * 7) | 0); for (let i = 0; i < n; i++) { const x = w * (n === 1 ? .5 : .2 + .6 * i / Math.max(1, n - 1)) + gauss() * w * .02, y0 = h * R(.15, .3), y1 = h * R(.7, .85), b = gauss() * w * .03;
+        g.fillStyle = '#060606'; g.beginPath(); g.moveTo(x, y0); g.quadraticCurveTo(x + b - w * .012, h / 2, x + b * .3, y1); g.quadraticCurveTo(x + b + w * .012, h / 2, x, y0); g.fill(); } nome = 'Fontana, concetto spaziale (attese)'; }
+      else { for (let i = 0; i < 20 + poisson(40); i++) { const a = R(0, 6.28), r = m * R(0, .35); g.fillStyle = '#080808'; g.beginPath(); g.arc(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r, m * R(.004, .012), 0, 6.28); g.fill(); } nome = 'Fontana, buchi'; }
+      break; }
+    case 'burri': {   // Burri, cretti: la superficie che si spacca
+      const c = PSI ? pick(FILM) : pick(['#efece4', '#111', '#efece4']); g.fillStyle = c; g.fillRect(0, 0, w, h); g.strokeStyle = c === '#111' ? '#3a3a3a' : '#2a2620'; g.lineWidth = m * .004;
+      const P = Array.from({ length: 60 + poisson(60) }, () => [R(0, w), R(0, h)]), cs2 = m / 40;
+      for (let y = 0; y < h; y += cs2 / 2) for (let x = 0; x < w; x += cs2 / 2) { let a = 1e9, b = 1e9; for (const p of P) { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < a) { b = a; a = d; } else if (d < b) b = d; } if (Math.sqrt(b) - Math.sqrt(a) < cs2 * .5) { g.fillStyle = g.strokeStyle; g.fillRect(x, y, cs2 * .3, cs2 * .3); } }
+      nome = 'Burri, cretto'; break; }
+    case 'soulages': {   // Soulages, outrenoir: il nero solcato che prende la luce
+      g.fillStyle = '#070707'; g.fillRect(0, 0, w, h); const vert = Math.random() < .3, n = 8 + ((Math.random() * 20) | 0), L = vert ? w : h;
+      for (let i = 0; i < n; i++) { const p = L * i / n, t = L / n; const gr = vert ? g.createLinearGradient(p, 0, p + t, 0) : g.createLinearGradient(0, p, 0, p + t); gr.addColorStop(0, '#050505'); gr.addColorStop(R(.3, .6), PSI ? pick(FILM) : `rgb(${R(30, 70) | 0},${R(30, 70) | 0},${R(35, 80) | 0})`); gr.addColorStop(1, '#050505'); g.fillStyle = gr; g.globalAlpha = R(.3, .8); vert ? g.fillRect(p, 0, t, h) : g.fillRect(0, p, w, t); }
+      g.globalAlpha = 1; nome = 'Soulages, outrenoir'; break; }
+    case 'capogrossi': {   // Capogrossi: il segno a pettine ripetuto, in file
+      g.fillStyle = pick(PC(['#f2efe6', '#c8281e', '#1b3f9a', '#111', '#e9c82a'])); g.fillRect(0, 0, w, h); const c = pick(PC(['#111', '#f2efe6', '#c8281e', '#1b3f9a'])), sz = m * R(.07, .14), dentí = 3 + ((Math.random() * 4) | 0);
+      g.fillStyle = c; for (let y = sz * .6; y < h; y += sz * 1.1) for (let x = sz * .6 + (Math.round(y / sz) % 2) * sz * .4; x < w; x += sz * 1.2) { g.save(); g.translate(x, y); g.rotate(pick([0, 1.5708, 3.1416, 4.712])); g.beginPath(); g.arc(0, 0, sz * .45, Math.PI * .5, Math.PI * 1.5); g.arc(0, 0, sz * .28, Math.PI * 1.5, Math.PI * .5, true); g.fill(); for (let k = 0; k < dentí; k++) { const yy = -sz * .4 + k * sz * .8 / (dentí - 1); g.fillRect(0, yy - sz * .05, sz * .45, sz * .1); } g.restore(); }
+      nome = 'Capogrossi, superficie'; break; }
+    case 'castellani': {   // Castellani: superficie estroflessa, una griglia di punte di luce e d'ombra
+      const c = PSI ? pick(FILM) : pick(['#f4f2ec', '#f4f2ec', '#c8281e', '#1b3f9a', '#111', '#d9c74a']); g.fillStyle = c; g.fillRect(0, 0, w, h); const n = 16 + ((Math.random() * 16) | 0), cs3 = w / n;
+      for (let j = 0; j * cs3 < h + cs3; j++) for (let i = 0; i <= n; i++) { const x = i * cs3 + (j % 2) * cs3 / 2, y = j * cs3 * .9, gr = g.createRadialGradient(x - cs3 * .12, y - cs3 * .12, 0, x, y, cs3 * .5); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(.5, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(0,0,0,.25)'); g.fillStyle = gr; g.fillRect(x - cs3 / 2, y - cs3 / 2, cs3, cs3); }
+      nome = 'Castellani, superficie'; break; }
+    case 'cruzdiez': {   // Cruz-Diez, fisiocromie: righe verticali sottili alternate che si mescolano nell'occhio
+      const C = PC(['#e53935', '#1e88e5', '#fdd835', '#43a047', '#111', '#f2efe6', '#fb8c00', '#d81b60']), st = Math.max(2, w / R(80, 200)), zone = 3 + ((Math.random() * 4) | 0), cols = Array.from({ length: zone }, () => [pick(C), pick(C), pick(C)]);
+      for (let x = 0, i = 0; x < w; x += st, i++) { const z = cols[Math.min(zone - 1, Math.floor(x / w * zone))]; g.fillStyle = z[i % 3]; g.fillRect(x, 0, st + .5, h); } nome = 'Cruz-Diez, fisiocromia'; break; }
+    case 'soto': {   // Soto: le linee che vibrano davanti a quadrati di colore
+      g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h); const st = Math.max(2, w / R(70, 140)); g.fillStyle = '#111'; for (let x = 0; x < w; x += st * 2) g.fillRect(x, 0, st, h);
+      const C = PC(['#e53935', '#1e88e5', '#fdd835', '#111', '#43a047']); for (let i = 0; i < 3 + poisson(4); i++) { g.fillStyle = pick(C); const sd = m * R(.08, .3); g.fillRect(R(0, w - sd), R(0, h - sd), sd, sd); } nome = 'Soto, vibrazione'; break; }
+    case 'halley': {   // Peter Halley: celle e condotti, colori Day-Glo
+      const C = PC(['#ff2fb3', '#39ff14', '#ffe600', '#00e5ff', '#ff6f00', '#7c4dff', '#111', '#f2efe6']); g.fillStyle = pick(C); g.fillRect(0, 0, w, h);
+      g.fillStyle = pick(C); const yb = h * R(.55, .85); g.fillRect(0, yb, w, h - yb);
+      for (let i = 0; i < 1 + ((Math.random() * 3) | 0); i++) { const sd = m * R(.25, .45), x = R(.1, .9) * w - sd / 2, y = R(.1, .5) * h; g.fillStyle = pick(C); g.fillRect(x, y, sd, sd); g.fillStyle = pick(C); const k = sd / 4; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) if ((a + b) % 2 === 0) g.fillRect(x + k * .5 + a * k, y + k * .5 + b * k, k * .7, k * .7);
+        g.fillStyle = '#111'; const cw2 = sd * .08; if (Math.random() < .7) g.fillRect(x + sd / 2 - cw2 / 2, y + sd, cw2, h); if (Math.random() < .7) g.fillRect(0, y + sd / 2 - cw2 / 2, x, cw2); }
+      nome = 'Halley, celle e condotti'; break; }
+    case 'whitney': {   // Stanley Whitney: blocchi di colore in righe, separati da fasce
+      const C = PC(['#e53935', '#fdd835', '#1e88e5', '#43a047', '#111', '#fb8c00', '#8e24aa', '#f48fb1', '#00897b', '#795548']), rows = 3 + ((Math.random() * 3) | 0), rh = h / rows;
+      for (let r = 0; r < rows; r++) { let x = 0; while (x < w) { const ww = w * R(.12, .26); g.fillStyle = pick(C); g.fillRect(x, r * rh, ww + 1, rh * .86); x += ww; } g.fillStyle = pick(C); g.fillRect(0, r * rh + rh * .86, w, rh * .14); }
+      nome = 'Stanley Whitney'; break; }
+    case 'scully': {   // Sean Scully: tessere di strisce, orizzontali e verticali
+      const C = PC(['#2b2b2b', '#c9b48a', '#8c2f2f', '#3f5f7f', '#e4ddd0', '#6b7a4a', '#d98c3a']), nx = 2 + ((Math.random() * 3) | 0), ny = 2 + ((Math.random() * 2) | 0);
+      for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const x = i * w / nx, y = j * h / ny, tw = w / nx, th = h / ny, vert = (i + j) % 2, n = 3 + ((Math.random() * 5) | 0), A = pick(C), B = pick(C);
+        for (let k = 0; k < n; k++) { g.fillStyle = k % 2 ? A : B; vert ? g.fillRect(x + k * tw / n, y, tw / n + 1, th + 1) : g.fillRect(x, y + k * th / n, tw + 1, th / n + 1); } }
+      nome = 'Scully'; break; }
+    case 'raza': {   // S.H. Raza: il bindu, il punto nero al centro, anelli e triangoli di colori caldi
+      const C = PC(['#e53935', '#fdd835', '#1e88e5', '#43a047', '#fb8c00', '#f2efe6', '#111']); g.fillStyle = pick(C); g.fillRect(0, 0, w, h);
+      const R0 = m * .44; for (let k = 6; k >= 1; k--) { g.fillStyle = pick(C); g.beginPath(); g.arc(w / 2, h / 2, R0 * k / 6, 0, 6.28); g.fill(); }
+      for (let q = 0; q < 4; q++) { g.fillStyle = pick(C); g.beginPath(); const a = q * 1.5708; g.moveTo(w / 2 + Math.cos(a) * R0 * 1.4, h / 2 + Math.sin(a) * R0 * 1.4); g.lineTo(w / 2 + Math.cos(a + .3) * R0, h / 2 + Math.sin(a + .3) * R0); g.lineTo(w / 2 + Math.cos(a - .3) * R0, h / 2 + Math.sin(a - .3) * R0); g.fill(); }
+      g.fillStyle = '#111'; g.beginPath(); g.arc(w / 2, h / 2, R0 * R(.12, .25), 0, 6.28); g.fill(); nome = 'Raza, bindu'; break; }
+    case 'almathomas': {   // Alma Thomas: tessere di colore corte, in colonne o in cerchi concentrici
+      g.fillStyle = '#f4f1ea'; g.fillRect(0, 0, w, h); const C = PC(['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#d81b60', '#6d4c41']), conc = Math.random() < .4;
+      if (conc) { for (let r = m * .06; r < Math.hypot(w, h) / 2; r += m * .035) { g.strokeStyle = pick(C); g.lineWidth = m * .022; for (let a = 0; a < 6.28; a += m * .03 / r) { g.beginPath(); g.arc(w / 2, h / 2, r, a, a + m * .02 / r); g.stroke(); } } }
+      else { const cw2 = m * .03; for (let x = 0; x < w; x += cw2 * 1.25) { const c = pick(C); for (let y = 0; y < h; y += cw2 * R(.8, 1.4)) { g.fillStyle = Math.random() < .85 ? c : pick(C); g.fillRect(x, y, cw2 * R(.85, 1.05), cw2 * R(.7, 1.1)); } } }
+      nome = 'Alma Thomas'; break; }
+    case 'morellet': {   // Morellet: trame di linee parallele sovrapposte, ruotate di pochi gradi
+      g.fillStyle = PSI ? pick(FILM) : pick(['#f2efe6', '#111']); g.fillRect(0, 0, w, h); g.strokeStyle = PSI ? pick(FILM) : (g.fillStyle === '#111111' ? '#f2efe6' : '#111'); g.lineWidth = 1;
+      const n = 2 + ((Math.random() * 6) | 0), sp = m * R(.012, .03), L = Math.hypot(w, h); for (let k = 0; k < n; k++) { const a = k * R(2, 10) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a); g.beginPath(); for (let d = -L; d < L; d += sp) { g.moveTo(w / 2 + ca * -L - sa * d, h / 2 + sa * -L + ca * d); g.lineTo(w / 2 + ca * L - sa * d, h / 2 + sa * L + ca * d); } g.stroke(); }
+      nome = 'Morellet, trame'; break; }
+    case 'herbin': {   // Herbin: forme semplici in colori puri, l'alfabeto plastico
+      const C = PC(['#e53935', '#fdd835', '#1e88e5', '#43a047', '#111', '#fb8c00', '#8e24aa', '#f2efe6']); g.fillStyle = pick(C); g.fillRect(0, 0, w, h); const nx = 2 + ((Math.random() * 3) | 0), ny = 2 + ((Math.random() * 2) | 0);
+      for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const x = i * w / nx, y = j * h / ny, cw2 = w / nx, ch2 = h / ny; g.fillStyle = pick(C); g.fillRect(x, y, cw2, ch2); g.fillStyle = pick(C); const t = pick(['cerchio', 'triangolo', 'mezzo', 'quadrato']); g.beginPath();
+        if (t === 'cerchio') g.arc(x + cw2 / 2, y + ch2 / 2, Math.min(cw2, ch2) * .42, 0, 6.28); else if (t === 'triangolo') { g.moveTo(x, y + ch2); g.lineTo(x + cw2 / 2, y); g.lineTo(x + cw2, y + ch2); } else if (t === 'mezzo') g.arc(x + cw2 / 2, y + ch2, Math.min(cw2 / 2, ch2), Math.PI, 0); else g.rect(x + cw2 * .2, y + ch2 * .2, cw2 * .6, ch2 * .6); g.fill(); }
+      nome = 'Herbin'; break; }
+    case 'samfrancis': {   // Sam Francis: macchie e colature sui bordi, il bianco al centro
+      g.fillStyle = '#f6f3ec'; g.fillRect(0, 0, w, h); const C = PC(['#1e5bd8', '#e53935', '#fdd835', '#43a047', '#111', '#fb8c00']);
+      for (let i = 0; i < 40 + poisson(40); i++) { const ed = Math.random(), x = ed < .5 ? (Math.random() < .5 ? R(0, w * .25) : R(w * .75, w)) : R(0, w), y = ed >= .5 ? (Math.random() < .5 ? R(0, h * .25) : R(h * .75, h)) : R(0, h); g.fillStyle = pick(C); g.globalAlpha = R(.6, 1); g.beginPath(); g.ellipse(x, y, m * R(.01, .06), m * R(.01, .05), R(0, 3), 0, 6.28); g.fill(); if (Math.random() < .2) g.fillRect(x - 1, y, 2, m * R(.03, .15)); }
+      g.globalAlpha = 1; nome = 'Sam Francis'; break; }
+    case 'grosse': {   // Katharina Grosse: bande di colore spruzzato che si sovrappongono
+      g.fillStyle = PSI ? pick(FILM) : '#f3f0ea'; g.fillRect(0, 0, w, h); const C = PC(['#ff2fb3', '#39ff14', '#ffe600', '#00b0ff', '#ff6f00', '#7c4dff', '#e53935', '#111']);
+      for (let i = 0; i < 6 + poisson(6); i++) { g.strokeStyle = pick(C); g.lineWidth = m * R(.06, .2); g.filter = `blur(${(m * R(.01, .03)).toFixed(1)}px)`; g.globalAlpha = R(.6, .95); g.beginPath(); let x = R(-.2, 1.2) * w, y = R(-.2, 1.2) * h; g.moveTo(x, y); g.bezierCurveTo(R(0, w), R(0, h), R(0, w), R(0, h), R(-.2, 1.2) * w, R(-.2, 1.2) * h); g.stroke(); }
+      g.filter = 'none'; g.globalAlpha = 1; nome = 'Katharina Grosse'; break; }
     case 'kandinsky': {   // Composizione: cerchi con l'alone, anelli, linee nere, triangoli, scacchiere, archi su un fondo chiaro
       const K = ['#e8b923', '#d7262b', '#1f4e9c', '#111', '#7b3f98', '#c98a2e', '#e48aa8', '#2e8b57', '#f2e6c9', '#3fa7d6'];
       const bg = g.createLinearGradient(0, 0, w, h); bg.addColorStop(0, pick(['#efe6d2', '#f1ead8', '#e9dfc4', '#ddd6c6'])); bg.addColorStop(1, pick(['#d9cfb4', '#cfd6d8', '#e6d5bf'])); g.fillStyle = bg; g.fillRect(0, 0, w, h);
