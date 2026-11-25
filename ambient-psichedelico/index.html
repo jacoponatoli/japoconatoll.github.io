@@ -6937,7 +6937,7 @@ const MGL = { ok: null, u: {} };
 function maniGLInit() {
   if (MGL.ok !== null) return MGL.ok;
   try {
-    const cv = document.createElement('canvas'); cv.width = 640; cv.height = 400; const gl = cv.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false, alpha: true }); if (!gl) return MGL.ok = false;
+    const cv = document.createElement('canvas'); cv.width = 880; cv.height = 550; const gl = cv.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false, alpha: true, antialias: true }); if (!gl) return MGL.ok = false;
     const vs = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
     const fs = `precision highp float;
 uniform vec2 res; uniform mat3 RA, RB; uniform vec3 PA, PB, skin; uniform vec4 CA, CB; uniform vec2 TH; uniform float sideB, t;
@@ -6945,52 +6945,82 @@ float smin(float a, float b, float k){ float h = clamp(.5 + .5 * (b - a) / k, 0.
 float sdCono(vec3 p, vec3 a, vec3 b, float ra, float rb){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h) - mix(ra, rb, h); }
 float sdRB(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r; }
 float sdE(vec3 p, vec3 r){ float k0 = length(p / r), k1 = length(p / (r * r)); return k0 * (k0 - 1.) / k1; }
-float mt;
-// un dito: tre falangi che si piegano verso il palmo (-y); restituisce anche la distanza dall'unghia
-float dito(vec3 p, vec3 base, float L, float r, float curl, float spread, out float un){
-  vec3 a = base; float ang = .0; vec3 dir; float d = 1e3; float fr[3]; fr[0] = .46; fr[1] = .3; fr[2] = .24; un = 1e3;
-  for (int i = 0; i < 3; i++){ ang += curl * (i == 0 ? .7 : 1.1); dir = normalize(vec3(cos(ang), -sin(ang), spread)); vec3 b = a + dir * L * fr[i]; float r0 = r * (1. - .1 * float(i)), r1 = r * (1. - .1 * float(i + 1));
-    d = smin(d, sdCono(p, a, b, r0, r1), .025);
-    if (i == 2){ vec3 c = mix(a, b, .62) + vec3(sin(ang), cos(ang), 0.) * r1 * .72; un = sdE(p - c, vec3(L * fr[2] * .32, r1 * .25, r1 * .78)); }
+float h3(vec3 p){ p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float vn(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
+  return mix(mix(mix(h3(i), h3(i + vec3(1, 0, 0)), f.x), mix(h3(i + vec3(0, 1, 0)), h3(i + vec3(1, 1, 0)), f.x), f.y), mix(mix(h3(i + vec3(0, 0, 1)), h3(i + vec3(1, 0, 1)), f.x), mix(h3(i + vec3(0, 1, 1)), h3(i + vec3(1, 1, 1)), f.x), f.y), f.z); }
+float mt, rugA, rugS, bestJ, unghiaPunta;
+// un dito: tre falangi che si piegano verso il palmo; nocche un po' più grosse, polpastrello, unghia sul dorso
+float dito(vec3 p, vec3 base, float L, float r, float curl, float spread, inout float un){
+  vec3 a = base; float ang = 0.; float d = 1e3; float fr0 = .46, fr1 = .3, fr2 = .24;
+  for (int i = 0; i < 3; i++){
+    float fr = i == 0 ? fr0 : i == 1 ? fr1 : fr2; ang += curl * (i == 0 ? .7 : 1.1);
+    vec3 dir = normalize(vec3(cos(ang), -sin(ang), spread)); vec3 b = a + dir * L * fr; vec3 up = vec3(sin(ang), cos(ang), 0.);
+    float r0 = r * (1. - .09 * float(i)), r1 = r * (1. - .09 * float(i + 1));
+    // la sezione del dito è un po' schiacciata sul dorso
+    vec3 pp = p; float dd = sdCono(pp, a, b, r0, r1);
+    d = smin(d, dd, .022);
+    d = smin(d, length(p - a) - r0 * 1.03, .045);                                  // la nocca
+    float dj = length(p - a); if (dj < r0 * 1.9 && dj < bestJ){ bestJ = dj; rugS = dot(p - a, dir); rugA = 1. - dj / (r0 * 1.9); }
+    if (i == 2){
+      d = smin(d, length(p - (b - dir * r1 * .3 - up * r1 * .25)) - r1 * 1.02, .03);   // il polpastrello
+      vec3 c = mix(a, b, .66) + up * r1 * .78; vec3 lp = p - c; float ux = dot(lp, dir), uy = dot(lp, up), uz = lp.z;
+      float n = length(vec3(ux / (L * fr2 * .34), uy / (r1 * .2), uz / (r1 * .74))) - 1.;
+      if (n < un){ un = n; unghiaPunta = clamp(ux / (L * fr2 * .34) * .5 + .5, 0., 1.); } }
     a = b; }
   return d;
 }
-float mano(vec3 p, vec4 C, float th, out float unghia){
-  float d = sdCono(p, vec3(-1.6, 0., 0.), vec3(-.05, 0., 0.), .26, .2);                         // avambraccio e polso
-  d = smin(d, sdRB(p - vec3(.36, 0., 0.), vec3(.3, .07, .27), .085), .14);                      // il palmo
-  float u = 1e3, uu; float f;
-  f = dito(p, vec3(.68, .01, .21), .78, .088, C.x, .05, uu); d = smin(d, f, .05); u = min(u, uu);   // indice
-  f = dito(p, vec3(.71, .015, .07), .86, .092, C.y, .015, uu); d = smin(d, f, .05); u = min(u, uu); // medio
-  f = dito(p, vec3(.69, .01, -.07), .8, .088, C.z, -.02, uu); d = smin(d, f, .05); u = min(u, uu);  // anulare
-  f = dito(p, vec3(.62, 0., -.2), .62, .078, C.w, -.07, uu); d = smin(d, f, .05); u = min(u, uu);   // mignolo
-  // il pollice: esce di lato, verso avanti e in basso
-  vec3 a = vec3(.12, -.03, .25), dir = normalize(vec3(.55, -.25 - th * .5, .75 - th * .4)); vec3 b = a + dir * .32; d = smin(d, sdCono(p, a, b, .13, .1), .08);
-  vec3 dir2 = normalize(dir + vec3(.3, -th * .7, -.25)); vec3 c = b + dir2 * .26; d = smin(d, sdCono(p, b, c, .1, .085), .03);
-  vec3 dir3 = normalize(dir2 + vec3(.2, -th * .6, -.2)); vec3 e = c + dir3 * .2; d = smin(d, sdCono(p, c, e, .085, .07), .02);
-  u = min(u, sdE(p - (mix(c, e, .6) + vec3(0., .055, 0.)), vec3(.07, .02, .055)));
-  unghia = u; return d;
+float mano(vec3 p, vec4 C, float th, inout float un){
+  float d = sdCono(p, vec3(-1.7, 0., 0.), vec3(-.08, 0., 0.), .28, .205);                     // avambraccio e polso
+  d = smin(d, sdE(p - vec3(-.02, 0., 0.), vec3(.12, .14, .24)), .08);
+  d = smin(d, sdRB(p - vec3(.36, 0., 0.), vec3(.3, .065, .26), .085), .14);                   // il palmo
+  d = smin(d, sdE(p - vec3(.2, -.07, .17), vec3(.24, .09, .13)), .08);                         // l'eminenza del pollice
+  d = smin(d, sdE(p - vec3(.36, -.06, -.19), vec3(.27, .07, .09)), .07);                       // il bordo del mignolo
+  for (int k = 0; k < 4; k++){ float z = .21 - float(k) * .138; d = smin(d, sdE(p - vec3(.66, .07, z), vec3(.06, .045, .05)), .05);   // le teste dei metacarpi
+    d = smin(d, sdCono(p, vec3(.05, .085, z * .55), vec3(.6, .095, z), .017, .015), .035); }   // i tendini sul dorso
+  float f;
+  f = dito(p, vec3(.69, .01, .21), .8, .09, C.x, .06, un); d = smin(d, f, .05);
+  f = dito(p, vec3(.72, .015, .073), .88, .094, C.y, .015, un); d = smin(d, f, .05);
+  f = dito(p, vec3(.7, .01, -.067), .82, .09, C.z, -.025, un); d = smin(d, f, .05);
+  f = dito(p, vec3(.63, 0., -.2), .64, .08, C.w, -.08, un); d = smin(d, f, .05);
+  vec3 a = vec3(.1, -.04, .25), dir = normalize(vec3(.6, -.22 - th * .3, .75 - th * .25)); vec3 b = a + dir * .33; d = smin(d, sdCono(p, a, b, .135, .1), .08);
+  vec3 dir2 = normalize(dir + vec3(.3, -th * .7, -.25)); vec3 c = b + dir2 * .26; d = smin(d, sdCono(p, b, c, .1, .087), .03); d = smin(d, length(p - b) - .105, .03);
+  vec3 dir3 = normalize(dir2 + vec3(.2, -th * .6, -.2)); vec3 e = c + dir3 * .21; d = smin(d, sdCono(p, c, e, .087, .074), .02); d = smin(d, length(p - (e - dir3 * .03)) - .078, .03);
+  float dj = length(p - c); if (dj < .17 && dj < bestJ){ bestJ = dj; rugS = dot(p - c, dir3); rugA = 1. - dj / .17; }
+  vec3 up3 = normalize(vec3(-.25, 1., .35) - dir3 * dot(dir3, normalize(vec3(-.25, 1., .35)))); vec3 nc = mix(c, e, .62) + up3 * .07; vec3 lp = p - nc; float n = length(vec3(dot(lp, dir3) / .075, dot(lp, up3) / .018, dot(lp, normalize(cross(dir3, up3))) / .06)) - 1.; if (n < un){ un = n; unghiaPunta = clamp(dot(lp, dir3) / .075 * .5 + .5, 0., 1.); }
+  return d;
 }
 float mappa(vec3 p){
-  float ua, ub; vec3 qa = RA * (p - PA), qb = RB * (p - PB); qb.z *= sideB;
-  float a = mano(qa, CA, TH.x, ua), b = mano(qb, CB, TH.y, ub);
-  float d = min(a, b), u = min(ua, ub); mt = u < .004 && u < d + .02 ? 1. : 0.; return d;
+  vec3 qa = RA * (p - PA), qb = RB * (p - PB); qb.z *= sideB; float u = 1e3; bestJ = 1e3; rugA = 0.;
+  float a = mano(qa, CA, TH.x, u), b = mano(qb, CB, TH.y, u);
+  float d = min(a, b); mt = u < .05 ? 1. : 0.; return d;
 }
-vec3 nor(vec3 p){ vec2 e = vec2(.002, 0.); return normalize(vec3(mappa(p + e.xyy) - mappa(p - e.xyy), mappa(p + e.yxy) - mappa(p - e.yxy), mappa(p + e.yyx) - mappa(p - e.yyx))); }
-float ao(vec3 p, vec3 n){ float o = 0., s = 1.; for (int i = 1; i <= 5; i++){ float h = .04 * float(i); o += (h - mappa(p + n * h)) * s; s *= .7; } return clamp(1. - 2.5 * o, 0., 1.); }
+vec3 nor(vec3 p){ vec2 e = vec2(.0012, 0.); return normalize(vec3(mappa(p + e.xyy) - mappa(p - e.xyy), mappa(p + e.yxy) - mappa(p - e.yxy), mappa(p + e.yyx) - mappa(p - e.yyx))); }
+float ao(vec3 p, vec3 n){ float o = 0., s = 1.; for (int i = 1; i <= 6; i++){ float h = .025 * float(i); o += (h - mappa(p + n * h)) * s; s *= .75; } return clamp(1. - 2.2 * o, 0., 1.); }
+float ombra(vec3 ro, vec3 rd){ float r = 1., t = .02; for (int i = 0; i < 32; i++){ float h = mappa(ro + rd * t); r = min(r, 10. * h / t); t += clamp(h, .01, .2); if (r < .01 || t > 4.) break; } return clamp(r, 0., 1.); }
 void main(){
   vec2 uv = (gl_FragCoord.xy * 2. - res) / res.y; vec3 ro = vec3(0., 0., 3.1), rd = normalize(vec3(uv * .62, -1.));
-  float tt = 0., hit = 0.; for (int i = 0; i < 120; i++){ float h = mappa(ro + rd * tt); if (h < .0015){ hit = 1.; break; } tt += h * .85; if (tt > 10.) break; }
+  float tt = 0., hit = 0.; for (int i = 0; i < 140; i++){ float h = mappa(ro + rd * tt); if (h < .0008){ hit = 1.; break; } tt += h * .8; if (tt > 10.) break; }
   if (hit < .5){ gl_FragColor = vec4(0.); return; }
-  vec3 p = ro + rd * tt; float m = mt; vec3 n = nor(p), L = normalize(vec3(-.5, .8, .7)), L2 = normalize(vec3(.8, -.2, .3));
-  float w = (dot(n, L) + .45) / 1.45, dif = max(0., w), a = ao(p, n);
-  vec3 sss = vec3(.75, .18, .1) * pow(clamp(1. - abs(dot(n, L)), 0., 1.), 2.) * .35;              // la luce che passa sotto la pelle
-  vec3 col = skin; if (m > .5) col = mix(skin, vec3(.95, .82, .8), .55);
-  float pori = .97 + .03 * sin(p.x * 140.) * sin(p.y * 133.) * sin(p.z * 127.);
-  vec3 h = normalize(L - rd); float sp = pow(max(0., dot(n, h)), m > .5 ? 60. : 22.) * (m > .5 ? .6 : .16);
-  float rim = pow(1. - max(0., dot(n, -rd)), 3.) * .25;
-  vec3 c = col * pori * (.16 + .9 * dif + .2 * max(0., dot(n, L2))) * (.4 + .6 * a) + sss * a + sp + rim * vec3(1., .8, .7);
-  gl_FragColor = vec4(pow(c, vec3(.9)), 1.);
-}`;
+  vec3 p = ro + rd * tt; mappa(p); float m = mt, ra = rugA, rs = rugS, up = unghiaPunta;
+  vec3 n = nor(p);
+  // la grana della pelle: pori e microrilievo, che piegano anche la normale
+  float g1 = vn(p * 95.), g2 = vn(p * 230.); n = normalize(n + (vec3(vn(p * 70. + 3.), vn(p * 70. + 7.), vn(p * 70. + 11.)) - .5) * .06);
+  vec3 L = normalize(vec3(-.55, .75, .65)), L2 = normalize(vec3(.7, -.3, .4)), V = -rd, H = normalize(L + V);
+  float a = ao(p, n), sh = ombra(p + n * .004, L), nl = dot(n, L);
+  vec3 sk = pow(skin, vec3(2.2));                                                                   // in luce lineare
+  sk = mix(sk, sk * vec3(1.08, .78, .72), (1. - a) * .55);                                           // pieghe e incavi più rossi
+  sk *= .9 + .2 * g1;
+  if (ra > 0. && m < .5) sk *= 1. - .25 * ra * smoothstep(.2, .9, sin(rs * 260. + vn(p * 40.) * 3.) * .5 + .5);   // le grinze sulle nocche
+  vec3 col = sk;
+  if (m > .5) col = mix(pow(vec3(.93, .78, .76), vec3(2.2)), pow(vec3(.98, .95, .9), vec3(2.2)), smoothstep(.75, .95, up));   // l'unghia, col bordo chiaro
+  float wrap = max(0., (nl + .45) / 1.45), dif = max(0., nl) * sh;
+  vec3 sss = vec3(1., .3, .2) * max(0., wrap - max(0., nl)) * .55 * a;                              // la luce che passa sotto la pelle
+  float fres = .04 + .96 * pow(1. - max(0., dot(n, V)), 5.), spec = pow(max(0., dot(n, H)), m > .5 ? 90. : 38.) * (m > .5 ? .9 : .22) * sh * (.5 + .5 * g2);
+  vec3 c = col * (vec3(1., .96, .9) * dif * 1.25 + sss + vec3(.55, .6, .72) * .16 * max(0., dot(n, L2)) + vec3(.35, .32, .32) * .22 * a) + spec * vec3(1., .97, .94) + fres * .08 * a;
+  c = c / (1. + c * .35);                                                                            // compressione morbida delle luci
+  gl_FragColor = vec4(pow(c, vec3(1. / 2.2)), 1.);
+}
+`;
     const sh = (tp, src) => { const s = gl.createShader(tp); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
     const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
     gl.useProgram(pr); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -7010,8 +7040,8 @@ function mani() {
   const tinta = Math.random() < .25 ? pick(P).map(v => v / 255) : null, n = Math.random() < .8 ? 2 : 1;
   const coppia = pick(['creazione', 'creazione', 'incontro', 'danza', 'stringere', 'contare']);
   const o = { n, coppia, skin: tinta ? skinT.map((v, i) => v * .55 + tinta[i] * .45) : skinT, bg: pick(['#050505', '#141210', '#e9e4da', 'col']), bgc: pick(P), sd: rnd(1000), hold: rnd(7, 11),
-    pa: pick(Object.keys(POSE)), pb: pick(Object.keys(POSE)), rollA: rnd(-.6, .6), rollB: rnd(-.6, .6), cambi: rnd(1.5, 3.5) };
-  if (coppia === 'creazione') { o.pa = 'creazione'; o.pb = 'indica'; }
+    pa: pick(Object.keys(POSE)), pb: pick(Object.keys(POSE)), rollA: rnd(-.35, .35), rollB: rnd(-.35, .35), cambi: rnd(1.5, 3.5) };
+  if (coppia === 'creazione') { o.pa = 'creazione'; o.pb = 'indica'; o.rollA = rnd(.5, 1.1); o.rollB = rnd(-.2, .1); }   // la mano che riceve col palmo un po' in su, quella che dà col dorso
   return scenaInizia('mani', o);
 }
 SCENE.mani = (g, w, h, t, dt, o) => {
