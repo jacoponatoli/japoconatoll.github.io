@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-24",
+  "aggiornato": "2026-11-25",
   "parole": {
     "good": [
       "sanità:fs",
@@ -95,7 +95,13 @@
       "coccole:fp",
       "piumoni:mp",
       "trapunte:fp",
-      "ninnoli:mp"
+      "ninnoli:mp",
+      "autodeterminazione:fs",
+      "rumore:ms",
+      "flashmob:ms",
+      "salari:mp",
+      "futuro:ms",
+      "marea:fs"
     ],
     "bad": [
       "riarmo:ms",
@@ -227,7 +233,12 @@
       "rimpasti:mp",
       "coprifuoco:ms",
       "chiamate automatiche:fp",
-      "consigli di amministrazione:mp"
+      "consigli di amministrazione:mp",
+      "condono:ms",
+      "diktat:ms",
+      "propaganda:fs",
+      "sabotaggi:mp",
+      "saldi:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -276,7 +287,10 @@
       "lavoratrici:fp",
       "bidelle:fp",
       "professoresse:fp",
-      "maestri:mp"
+      "maestri:mp",
+      "attiviste:fp",
+      "sindacaliste:fp",
+      "consiglieri:mp"
     ],
     "place": [
       "licei:mp",
@@ -1544,6 +1558,78 @@
         "Il pisolino nobilita l'essere umano",
         "Una siesta al giorno toglie il capo di torno"
       ]
+    },
+    {
+      "d": "2026-11-25",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Rivendichiamo sonno",
+        "Il loro mondo è finito, rivendichiamo merenda",
+        "Antisogno, stiamo arrivando: in pigiama",
+        "Libere-ɜ di dormire",
+        "La città domanda, il cuscino risponde",
+        "Fatti sentire: russa più forte",
+        "Dire di sì, dire di no, dire di dopo",
+        "Senza paura: donne e lentezza",
+        "Facciamo rumore, poi facciamo un pisolino",
+        "Il rumore di fondo va bene, purché si faccia poesia",
+        "Nessuna si sveglia da sola",
+        "Se non ci riposiamo tutte, non si riposa nessuna",
+        "Contestazione degli Stati Generali della Sveglia",
+        "Stati Generali dell'Ozio Autodeterminato",
+        "Saldi di fine stagione del magnifico mondo dei sogni",
+        "Con una mano finge di dare, con l'altra ci accarezziamo",
+        "Governo muto sui salari, noi loquaci sui sogni",
+        "Passi avanti ma non basta: anche passi di danza",
+        "Ci attacca la sonnolenza, è dimostrato",
+        "Dalle piccole abitudini alle grandi pigrizie",
+        "Non sono soltanto le offerte a essere maxxate: anche le occhiaie",
+        "La convenienza è un elemento centrale, la tenerezza pure",
+        "Mantenendo sempre il cuscino al centro del racconto",
+        "Caro vita, caro sonno, caro tutto",
+        "Pensioni dignitose, sieste progressive",
+        "Lo sciopero è un diritto, il pisolino è una Costituzione",
+        "Ogni euro investito in armi è un'amaca negata",
+        "Il diritto dei popoli alla pace e al pisolino",
+        "Un milione e mezzo di persone coinvolte in un abbraccio",
+        "Nos rêves, pas vos réveils",
+        "Shutdown odds rise: shut down and sleep",
+        "Consumer sentiment surged, dreamer sentiment soared",
+        "Drones deliver nothing, poems deliver everything",
+        "Hard choices ahead: nap or longer nap",
+        "Peace won't end sabotage: sabotage your alarm clock",
+        "Vilayat di Misoginistan: provincia chiusa per mancanza di abitanti",
+        "Ordigno nel cuore: si chiama tenerezza, esplode piano",
+        "Chi si ferma è perduto: nei sogni",
+        "Dormire! E dormiremo",
+        "Credere? Obbedire? Combattere? Ripassate domani"
+      ]
+    },
+    {
+      "d": "2026-11-25",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Meglio un pisolino oggi che una pensione domani",
+        "Uno sbadiglio vi seppellirà",
+        "L'unione fa la siesta",
+        "Se vogliamo che tutto rimanga com'è, bisogna che tutti dormano",
+        "Ain't no power like the power of the nap, 'cause the power of the nap don't stop",
+        "Hasta la siesta siempre",
+        "¡Dormiremos!",
+        "Prendiamoci il tempo, la città viene dopo",
+        "L'ennui est contre-révolutionnaire, la sieste non",
+        "Laissez-dormir, laissez-rêver",
+        "Less is more, nap is most",
+        "Gli ultimi saranno i primi a fare merenda",
+        "Every cloud has a pillow lining",
+        "Dors, camarade, le vieux monde ronfle derrière toi",
+        "Chi non lavora fa l'amore lo stesso",
+        "Mens sana in corpore addormentato",
+        "Non tutte le ciambelle riescono col buco, tutte riescono a merenda",
+        "Après moi la sieste",
+        "Home sweet nap",
+        "A buon dormitor poche sveglie"
+      ]
     }
   ],
   "letti": [
@@ -2523,6 +2609,74 @@
         "Prima il dovere, poi il piacere (proverbio)",
         "Il lavoro nobilita l'uomo (proverbio)",
         "Una mela al giorno toglie il medico di torno (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-25",
+      "t": [
+        "Rivendichiamo futuro (Non Una di Meno, corteo 28 novembre)",
+        "Il loro mondo è finito, rivendichiamo futuro (Stati Generali dell'Autodeterminazione)",
+        "Antiscelta, stiamo arrivando! (presidio rumoroso, Roma)",
+        "Libere-ɜ di scegliere (dossier, Roma)",
+        "Roma rompe il silenzio. La città domanda, la rete risponde (Campidoglio)",
+        "Fatti sentire (campagna, Roma)",
+        "Dire di sì dire di no (convegno, Firenze)",
+        "Senza paura: donne e legalità (Palermo)",
+        "Facciamo rumore (Casa internazionale delle donne)",
+        "Il rumore di fondo va bene, purché si faccia rumore (appello)",
+        "Nessuna si salva da sola (appello)",
+        "Se non ci liberiamo tutte, non si libera nessuna (appello)",
+        "Contestazione degli Stati Generali della Natalità (25 novembre)",
+        "Saldi di fine stagione del magnifico mondo (opposizione sul condono)",
+        "Un governo che con una mano finge di dare (opposizione)",
+        "Governo muto sui salari (titolo)",
+        "Passi avanti ma non basta (titolo)",
+        "Ci attacca la Russia, è dimostrato (titolo)",
+        "Dalle piccole abitudini alle proprie passioni (comunicato Black Friday)",
+        "Non sono soltanto le offerte a essere maxxate (comunicato)",
+        "La convenienza è un elemento centrale (marketing)",
+        "Mantenendo sempre la tecnologia al centro del racconto (marketing)",
+        "Caro vita, disuguaglianze, diritto allo studio e alla casa (Cgil)",
+        "Pensioni dignitose, un fisco più equo e progressivo (Cgil)",
+        "Lo sciopero è un diritto sancito dalla Costituzione (sindacato)",
+        "Ogni euro investito in armi (dichiarazione)",
+        "Il diritto dei popoli alla pace, contro il riarmo (AVS)",
+        "Un milione e mezzo di persone coinvolte (sciopero)",
+        "Shutdown odds rise (titolo USA)",
+        "Consumer sentiment surged in November (Conference Board)",
+        "Delivery drone strikes fiber cable, garage (titolo)",
+        "Depopulation will force hard choices (titolo)",
+        "Peace won't end Russian sabotage in Europe (titolo)",
+        "Vilayat di Misoginistan (firma delle mail false alle scuole)",
+        "Chi si ferma è perduto (motto fascista)",
+        "Vincere! E vinceremo (motto fascista)",
+        "Credere, obbedire, combattere (motto fascista)"
+      ]
+    },
+    {
+      "d": "2026-11-25",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Meglio un uovo oggi che una gallina domani (proverbio)",
+        "Una risata vi seppellirà (slogan '77)",
+        "L'unione fa la forza (proverbio)",
+        "Se vogliamo che tutto rimanga com'è, bisogna che tutto cambi (Il Gattopardo)",
+        "Ain't no power like the power of the people (coro)",
+        "Hasta la victoria siempre (motto)",
+        "¡Venceremos! (coro)",
+        "Prendiamoci la città (slogan anni '70)",
+        "L'ennui est contre-révolutionnaire (Maggio '68)",
+        "Laissez faire, laissez passer (motto liberista)",
+        "Less is more (motto)",
+        "Gli ultimi saranno i primi (Vangelo)",
+        "Every cloud has a silver lining (proverbio)",
+        "Cours, camarade, le vieux monde est derrière toi (Maggio '68)",
+        "Chi non lavora non fa l'amore (canzone)",
+        "Mens sana in corpore sano (Giovenale)",
+        "Non tutte le ciambelle riescono col buco (proverbio)",
+        "Après moi le déluge (frase celebre)",
+        "Home sweet home (proverbio)",
+        "A buon intenditor poche parole (proverbio)"
       ]
     }
   ]
