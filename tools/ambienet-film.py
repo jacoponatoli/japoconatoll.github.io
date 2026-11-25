@@ -91,6 +91,7 @@ if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8'))
     except Exception: pass
 idx['items'] = [it for it in idx['items'] if it.get('year', '').isdigit() and 1929 <= int(it['year']) <= 1972]   # solo film sonori fino al 1972
+for it in idx['items']: it['title'] = pulisci(it['title'])
 fatti = {it['id'] for it in idx['items']}
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 lingue = list(LINGUE)
