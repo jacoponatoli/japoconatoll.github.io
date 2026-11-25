@@ -5,7 +5,7 @@ e fa leggere ogni poesia a una voce sintetica sempre diversa: uomini, donne, voc
 voci di bambine e bambini. Voce neurale (Piper, voci italiane paola e riccardo); se manca, espeak-ng.
 Ogni voce cambia altezza, timbro, lentezza ed espressività. Salva un mp3 per poesia in out/ e out/index.json
 con i versi e il momento in cui ognuno comincia, così AMBIENET mostra il verso mentre viene letto.
-Tiene solo le ultime 48 poesie."""
+Tiene solo le ultime 48 poesie. Alla fine fa preparare anche le domande (ambienet-domande.py)."""
 import json, os, random, subprocess, wave, io, hashlib, datetime, struct
 
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
@@ -87,3 +87,7 @@ for fn in os.listdir(OUT):
     if fn.endswith('.mp3') and fn not in keep: os.remove(f'{OUT}/{fn}')
 idx['updated'] = stamp
 json.dump(idx, open(f'{OUT}/index.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+
+# le domande: una voce di macchina che interroga chi ascolta (tools/ambienet-domande.py, in out/q/)
+import sys
+subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ambienet-domande.py')], check=False)

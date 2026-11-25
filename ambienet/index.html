@@ -31,7 +31,7 @@ html.embed,html.embed body{background:transparent!important}html.embed body>*{di
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="poem" style="color:#f2e3b8">poetry</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="poem" style="color:#f2e3b8">poetry</span> · <span class="lg" data-k="question" style="color:#cfe8ff">questions</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
 'use strict';
@@ -91,7 +91,7 @@ const live=new Map();let liveId=0,flash=null;
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['poem','#f2e3b8',/^POESIA$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^DOMANDA$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -1242,6 +1242,40 @@ async function poesiaDeck(){
     await sleep(rr(360,780)*AX(1.3,1,1.2)/(1+EM.w.nostalgia*.6)*1000);
   }
 }
+/* QUESTIONS — a machine voice asks whoever is listening. Short questions, always new (a written repertoire and a small
+   grammar that composes thousands, prepared by the same GitHub Action as the poems): on the intellect, on intimacy, on what
+   is deep, on the relation between this voice and the listener, on where they are now, questions of mysticism.
+   Robotic but clear, above everything else; after the question the music withdraws and leaves a space for the answer, which
+   never comes. The emotional function leans the choice: mistica → mystical questions, nostalgia → intimate ones,
+   terra → where you are, aria → the intellect. In order the same question may come back, the same and different. */
+let qIdx=[];const qSeen=new Set();
+async function loadQuestions(){try{const j=await fetchJSON(POEM_BASE+'q/index.json?'+Date.now());if(j.items&&j.items.length)qIdx=j.items}catch(e){}}
+async function askOnce(buf,it,rate,again){
+  const lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(8,Math.pow(10,(-17-lvl)/20))),t=ctx.currentTime+.4,play=buf.duration/rate;
+  const s=ctx.createBufferSource();s.buffer=buf;s.playbackRate.value=rate;const g=ctx.createGain();g.gain.value=gain;
+  const hp=filt('highpass',120),w=ctx.createGain();w.gain.value=again?.35:.12;
+  s.connect(hp);hp.connect(g);g.connect(L.spoken);g.connect(w);w.connect(reverb);s.start(t);s.stop(t+play+.2);
+  log('DOMANDA',it.q,play+rr(6,10));setTimeout(()=>{try{g.disconnect()}catch(e){}},(play+4)*1000);
+  await sleep((play+.5)*1000)}
+async function domandeDeck(){
+  await sleep(rr(60,150)*1000);await loadQuestions();setInterval(loadQuestions,3*3600e3);
+  const KW={mistica:'mistica',nostalgia:'intimo',terra:'qui',aria:'mente'};
+  while(true){
+    if(!qIdx.length||speaking){await sleep(20000);continue}
+    let pool=qIdx.filter(x=>!qSeen.has(x.f));if(pool.length<4){qSeen.clear();pool=qIdx}
+    const wk={};for(const e in KW)wk[KW[e]]=EM.w[e];
+    const it=wpick(Object.fromEntries(pool.map((x,i)=>[i,1+3*(wk[x.kind]||0)])));const q=pool[+it];qSeen.add(q.f);
+    let buf;try{const r=await fetch(POEM_BASE+q.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(30000);continue}
+    if(speaking)continue;
+    speaking=true;master.gain.setTargetAtTime(.42,ctx.currentTime,.8);
+    await askOnce(buf,q,1,false);
+    master.gain.setTargetAtTime(.3,ctx.currentTime,1.5);                 /* the space for the answer */
+    await sleep(rr(5,10)*AX(1.4,1,.7)*1000);
+    if(R()<AX(.3,.15,.05)){master.gain.setTargetAtTime(.4,ctx.currentTime,.8);await askOnce(buf,q,pick([.94,.9]),true);await sleep(rr(5,9)*1000)} /* the same question, again: not the same */
+    speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,4);
+    await sleep(rr(110,260)*AX(1.3,1,.75)*1000);
+  }
+}
 async function spokenLoop(){
   await sleep(rr(120,240)*1000);let fails=0;
   while(true){
@@ -1577,6 +1611,7 @@ const LEGEND={
   gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
+  question:['#cfe8ff','Questions','A machine voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Robotic but clear, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
   spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
@@ -1618,7 +1653,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
