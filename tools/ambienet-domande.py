@@ -209,7 +209,7 @@ if not os.environ.get('STUB'):
 
 def synth(text):
     if voice:
-        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.14, 1.22), noise_scale=.6, noise_w=.8)
+        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.17, 1.25), noise_scale=.6, noise_w=.8)
         with wave.open('q.wav', 'rb') as rf: return rf.getframerate(), 'piper'
     if os.environ.get('STUB'):   # prova locale senza voci: un tono lungo quanto la frase
         sr = 22050; n = int(sr * (.6 + .07 * len(text)))
@@ -232,7 +232,7 @@ idx = {'items': [], 'asked': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8')); idx.setdefault('asked', [])
     except Exception: pass
-idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina']   # solo la voce attuale
+idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina' and it.get('v') == 2]   # solo la voce attuale
 asked = set(idx['asked']); stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 while made < N and tries < N * 40:
     tries += 1
@@ -242,7 +242,7 @@ while made < N and tries < N * 40:
     try: eng, dur = render(q, f'{OUT}/{h}.mp3')
     except Exception as e: print('errore', e); continue
     asked.add(q); idx['asked'].append(q); made += 1
-    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'bambino o bambina', 'dur': dur, 'made': stamp})
+    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'bambino o bambina', 'v': 2, 'dur': dur, 'made': stamp})
     print(f'{k:9s} {dur:5.2f}s  {q}')
 idx['items'] = idx['items'][:KEEP]
 idx['asked'] = idx['asked'][-700:]   # dopo molte altre, una domanda può tornare: l'uguale, diverso
