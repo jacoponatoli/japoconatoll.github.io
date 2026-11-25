@@ -1,0 +1,51 @@
+name: AMBIENET poesie lette
+# Compone poesie nuove con il compositore di POESIA LA NOTIZIA (titoli del giorno, forme dall'endecasillabo
+# alla terza rima) e le fa leggere a voci sintetiche sempre diverse. Gli mp3 vanno nel ramo "ambienet-poesia",
+# da cui AMBIENET li ascolta. Tre volte al giorno, dopo l'aggiornamento delle notizie.
+on:
+  push:
+    branches: [main]
+    paths: ["tools/ambienet-poesia.py", "tools/ambienet-poesia-compose.mjs", ".github/workflows/ambienet-poesia.yml"]
+  schedule:
+    - cron: "17 7,13,19 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ambienet-poesia
+  cancel-in-progress: false
+jobs:
+  poesia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Installa voci e strumenti
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          pip install -q piper-tts==1.2.0 || echo "piper non installato: si userà espeak-ng"
+          mkdir -p voices
+          H=https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT
+          for v in paola/medium/it_IT-paola-medium riccardo/x_low/it_IT-riccardo-x_low; do
+            n=$(basename $v); curl -sfL -o voices/$n.onnx $H/$v.onnx && curl -sfL -o voices/$n.onnx.json $H/$v.onnx.json || echo "voce $n non scaricata"
+          done
+      - name: Componi le poesie
+        run: N=6 node tools/ambienet-poesia-compose.mjs
+      - name: Fai leggere le poesie
+        run: |
+          mkdir -p out
+          git fetch -q --depth 1 origin ambienet-poesia && git --work-tree=out checkout -q FETCH_HEAD -- . || true
+          git reset -q
+          python3 tools/ambienet-poesia.py
+      - name: Salva nel ramo ambienet-poesia
+        run: |
+          cd out
+          git init -q -b ambienet-poesia
+          git config user.name "ambienet-bot"
+          git config user.email "ambienet-bot@users.noreply.github.com"
+          git add -A
+          git commit -qm "AMBIENET: poesie lette"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ambienet-poesia
