@@ -6753,51 +6753,105 @@ SCENE.poesia = (g, w, h, t, dt, o) => {
   }
 };
 
-/* ---------- TESCHI: sempre diversi ---------- */
+/* ---------- TESCHI realistici, sempre diversi ---------- */
+// cranio in vista frontale (o ruotato di tre quarti) costruito per poligoni, con proporzioni anatomiche:
+// volta, arcate sopraccigliari, orbite profonde, apertura nasale a pera col setto, zigomi, fosse temporali,
+// mascella e mandibola con denti uno per uno, suture, crepe, grana dell'osso; luce che si sposta
 const TESCHI_VISTI = new Set();
 function teschio() {
-  const d = REGIA.dis, P = palCss(), n = Math.random() < .7 ? 1 : d > .6 ? pick([3, 5, 7, 12]) : pick([2, 3, 5]);
-  const stile = pick(d < .3 ? ['memento', 'geometrico', 'calavera', 'geometrico'] : d > .7 ? ['psichedelico', 'calavera', 'citipati', 'geometrico', 'psichedelico'] : ['memento', 'calavera', 'geometrico', 'psichedelico', 'citipati']);
-  const nuovo = () => { let T, k = 0; do { T = { w: rnd(.75, 1.05), h: rnd(.85, 1.15), mento: rnd(.45, .75), zig: rnd(.05, .2), occhio: pick(['tondo', 'mandorla', 'esagono', 'cuore', 'goccia', 'quadro', 'stella']), oz: rnd(.1, .16), od: rnd(.17, .24), oy: rnd(-.08, .08), naso: pick(['cuore', 'triangolo', 'goccia', 'pera']), nz: rnd(.06, .12), denti: 4 + ((Math.random() * 9) | 0), dz: rnd(.08, .16), crepe: Math.random() < .4 ? 1 + ((Math.random() * 3) | 0) : 0, rot: gauss() * .12, c1: pick(P), c2: pick(P), c3: pick(P), petali: 5 + ((Math.random() * 8) | 0) }; } while (TESCHI_VISTI.has(JSON.stringify(T, (a, v) => typeof v === 'number' ? Math.round(v * 20) : v)) && ++k < 20); TESCHI_VISTI.add(JSON.stringify(T, (a, v) => typeof v === 'number' ? Math.round(v * 20) : v)); return T; };
-  const o = { stile, P, teschi: Array.from({ length: n }, nuovo), bg: stile === 'memento' ? pick(['#111', '#2a1d14', '#f1ece1']) : pick(P), hold: rnd(3.5, 6), sd: rnd(1000) };
+  const d = REGIA.dis, P = currentPalette().c.map(c => c.slice(0, 3)), n = Math.random() < .75 ? 1 : pick([2, 3, 5]);
+  const nuovo = () => { let T, k = 0, sig; do {
+    T = { cw: rnd(.92, 1.08), ch: rnd(.92, 1.1), ow: rnd(.24, .3), oh: rnd(.2, .27), oq: rnd(0, 1), ot: rnd(-.12, .12), nw: rnd(.13, .19), nh: rnd(.2, .27), zw: rnd(1, 1.12), jw: rnd(.72, .9), chin: rnd(.22, .32), jl: rnd(.88, 1),
+      apre: Math.random() < .35 ? rnd(.03, .12) : rnd(0, .02), manca: Array.from({ length: 20 }, () => Math.random() < .12), crepe: Math.random() < .4 ? 1 + ((Math.random() * 3) | 0) : 0, suture: Math.random() < .7,
+      osso: pick([[232, 222, 196], [224, 210, 178], [210, 200, 186], [238, 232, 218], [198, 180, 150], [226, 214, 196]]), yaw: Math.random() < .5 ? rnd(-.45, .45) : rnd(-.12, .12), tilt: gauss() * .08, luce: rnd(-.9, .2), sd: rnd(1000) };
+    sig = JSON.stringify(T, (a, v) => typeof v === 'number' ? Math.round(v * 30) : v); } while (TESCHI_VISTI.has(sig) && ++k < 20); TESCHI_VISTI.add(sig); return T; };
+  const fondo = pick(['buio', 'buio', 'nero', 'colore', 'colore']);
+  const o = { teschi: Array.from({ length: n }, nuovo), fondo, fc: pick(P), tinta: Math.random() < .3 ? pick(P) : null, hold: rnd(4, 7), oscilla: rnd(.1, .3) * (Math.random() < .5 ? -1 : 1) };
   return scenaInizia('teschio', o);
 }
-function disegnaTeschio(g, T, x, y, s, t, stile, o) {
-  const L = Math.max(1.2, s * .02), osso = stile === 'memento' ? '#efe7d4' : stile === 'psichedelico' ? T.c1 : stile === 'calavera' ? '#f7f3ea' : T.c1, nero = '#0b0b0b';
-  g.save(); g.translate(x, y); g.rotate(T.rot + Math.sin(t * .8) * .03); g.scale(s, s); g.lineWidth = L / s; g.strokeStyle = nero; g.lineJoin = 'round';
-  // il cranio e la mascella
-  g.fillStyle = osso; g.beginPath(); g.ellipse(0, -.12, .5 * T.w, .5 * T.h * .85, 0, Math.PI * .92, Math.PI * 2.08); const mx = .5 * T.w * T.mento, yj = .38 + T.zig;
-  g.lineTo(.5 * T.w * .88, .12); g.quadraticCurveTo(.5 * T.w * .8, .3, mx, yj); g.lineTo(-mx, yj); g.quadraticCurveTo(-.5 * T.w * .8, .3, -.5 * T.w * .88, .12); g.closePath(); g.fill(); g.stroke();
-  const ap = Math.max(0, Math.sin(t * 5)) * .04;   // la mascella che batte
-  g.beginPath(); g.moveTo(-mx * .95, yj - .02); g.lineTo(mx * .95, yj - .02); g.lineTo(mx * .8, yj + .14 + ap); g.quadraticCurveTo(0, yj + .22 + ap, -mx * .8, yj + .14 + ap); g.closePath(); g.fill(); g.stroke();
-  for (let i = 0; i < T.denti; i++) { const u = (i + .5) / T.denti, dx = -mx * .85 + u * mx * 1.7, dw = mx * 1.7 / T.denti * .8; g.fillStyle = stile === 'psichedelico' ? T.c3 : '#fbf8f0'; g.fillRect(dx - dw / 2, yj - .02 - T.dz, dw, T.dz); g.strokeRect(dx - dw / 2, yj - .02 - T.dz, dw, T.dz); g.fillRect(dx - dw / 2, yj - .02 + ap * .5, dw, T.dz * .8); g.strokeRect(dx - dw / 2, yj - .02 + ap * .5, dw, T.dz * .8); }
-  // gli occhi
-  for (const sx of [-1, 1]) { const ex = sx * T.od, ey = T.oy, r = T.oz; g.fillStyle = stile === 'calavera' ? T.c2 : nero; g.beginPath();
-    if (T.occhio === 'tondo') g.arc(ex, ey, r, 0, 6.28); else if (T.occhio === 'mandorla') g.ellipse(ex, ey, r * 1.2, r * .75, sx * .3, 0, 6.28); else if (T.occhio === 'quadro') g.rect(ex - r, ey - r * .8, r * 2, r * 1.6);
-    else if (T.occhio === 'cuore') { g.moveTo(ex, ey + r); g.bezierCurveTo(ex - r * 1.6, ey - r * .2, ex - r * .5, ey - r * 1.3, ex, ey - r * .4); g.bezierCurveTo(ex + r * .5, ey - r * 1.3, ex + r * 1.6, ey - r * .2, ex, ey + r); }
-    else if (T.occhio === 'goccia') { g.moveTo(ex + sx * r * 1.1, ey - r); g.quadraticCurveTo(ex - sx * r * 1.4, ey, ex, ey + r); g.quadraticCurveTo(ex + sx * r * 1.3, ey + r * .3, ex + sx * r * 1.1, ey - r); }
-    else { const nn = T.occhio === 'stella' ? 10 : 6; for (let q = 0; q < nn; q++) { const a = q / nn * 6.28, rr = T.occhio === 'stella' && q % 2 ? r * .5 : r; q ? g.lineTo(ex + Math.cos(a) * rr, ey + Math.sin(a) * rr) : g.moveTo(ex + Math.cos(a) * rr, ey + Math.sin(a) * rr); } g.closePath(); }
-    g.fill(); g.stroke();
-    if (stile === 'calavera') { for (let q = 0; q < T.petali; q++) { const a = q / T.petali * 6.28 + t * .3; g.fillStyle = q % 2 ? T.c1 : T.c3; g.beginPath(); g.ellipse(ex + Math.cos(a) * r * 1.45, ey + Math.sin(a) * r * 1.45, r * .32, r * .16, a, 0, 6.28); g.fill(); g.stroke(); } g.fillStyle = nero; g.beginPath(); g.arc(ex, ey, r * .35, 0, 6.28); g.fill(); }
-    if (stile === 'psichedelico') { for (let q = 4; q >= 1; q--) { g.fillStyle = o.P[(q + Math.floor(t * 4)) % o.P.length]; g.beginPath(); g.arc(ex, ey, r * q / 5, 0, 6.28); g.fill(); } } }
-  // il naso
-  g.fillStyle = stile === 'calavera' ? T.c3 : nero; g.beginPath(); const nz = T.nz, ny = T.oy + T.oz + .05;
-  if (T.naso === 'cuore') { g.moveTo(0, ny); g.bezierCurveTo(-nz * 1.4, ny + nz * .6, -nz * .6, ny + nz * 1.8, 0, ny + nz * 1.4); g.bezierCurveTo(nz * .6, ny + nz * 1.8, nz * 1.4, ny + nz * .6, 0, ny); } else if (T.naso === 'triangolo') { g.moveTo(0, ny); g.lineTo(nz, ny + nz * 1.6); g.lineTo(-nz, ny + nz * 1.6); }
-  else if (T.naso === 'goccia') { g.moveTo(0, ny); g.quadraticCurveTo(nz * 1.3, ny + nz * 1.6, 0, ny + nz * 1.6); g.quadraticCurveTo(-nz * 1.3, ny + nz * 1.6, 0, ny); } else { g.ellipse(-nz * .45, ny + nz, nz * .5, nz * .8, .3, 0, 6.28); g.ellipse(nz * .45, ny + nz, nz * .5, nz * .8, -.3, 0, 6.28); }
-  g.fill(); g.stroke();
-  // le crepe, i decori
-  g.strokeStyle = nero; for (let c = 0; c < T.crepe; c++) { g.beginPath(); let px = (c - 1) * .15, py = -.55; g.moveTo(px, py); for (let q = 0; q < 4; q++) { px += gauss() * .06; py += .07; g.lineTo(px, py); } g.stroke(); }
-  if (stile === 'calavera') { for (let q = 0; q < 7; q++) { g.fillStyle = q % 2 ? T.c2 : T.c1; g.beginPath(); g.arc(-.24 + q * .08, -.4, .025, 0, 6.28); g.fill(); g.stroke(); } g.fillStyle = T.c2; g.beginPath(); g.moveTo(0, -.55); g.lineTo(.06, -.45); g.lineTo(0, -.35); g.lineTo(-.06, -.45); g.closePath(); g.fill(); g.stroke(); }
-  if (stile === 'geometrico') { g.strokeStyle = T.c2; g.lineWidth = L / s * 1.5; for (let q = 0; q < 3; q++) { g.beginPath(); g.arc(0, -.2, .12 + q * .07, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); } }
-  if (stile === 'citipati') { for (let q = -2; q <= 2; q++) { g.save(); g.translate(q * .2, -.62 - Math.abs(q) * -.02); g.scale(.16, .16); g.fillStyle = '#f7f3ea'; g.beginPath(); g.arc(0, 0, .5, 0, 6.28); g.fill(); g.lineWidth = L / s / .16; g.stroke(); g.fillStyle = nero; g.beginPath(); g.arc(-.18, 0, .13, 0, 6.28); g.arc(.18, 0, .13, 0, 6.28); g.fill(); g.restore(); }
-    for (const sx of [-1, 1]) { g.fillStyle = T.c2; g.beginPath(); g.moveTo(sx * .45, -.55); g.quadraticCurveTo(sx * .75, -.5, sx * .62, -.2); g.lineTo(sx * .5, -.3); g.closePath(); g.fill(); g.stroke(); } }
+function disegnaTeschio(g, T, X, Y, S, t, o) {
+  const yaw = T.yaw + Math.sin(t * .5) * o.oscilla * .4, cyw = Math.cos(yaw), syw = Math.sin(yaw);
+  const Zd = (x, y) => Math.sqrt(Math.max(0, 1 - (x / .56) ** 2)) * .5;
+  const tp = (x, y) => [X + (x * cyw + Zd(x, y) * syw) * S, Y + (y + x * T.tilt) * S];
+  // curve lisce: catmull-rom chiusa o aperta
+  const liscia = (pts, chiusa = true, k = 8) => { const out = [], n = pts.length, P = i => pts[chiusa ? (i + n) % n : clamp(i, 0, n - 1)];
+    for (let i = 0; i < (chiusa ? n : n - 1); i++) { const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2); for (let j = 0; j < k; j++) { const s = j / k, s2 = s * s, s3 = s2 * s;
+      out.push([0, 1].map(c => .5 * (2 * p1[c] + (-p0[c] + p2[c]) * s + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * s2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * s3))); } } if (!chiusa) out.push(pts[n - 1]); return out; };
+  const specchia = half => half.concat(half.slice(1, -1).reverse().map(([x, y]) => [-x, y]));
+  const path = pts => { g.beginPath(); pts.forEach((p, i) => { const q = tp(p[0], p[1]); i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); }); g.closePath(); };
+  const fill = (pts, f, blur, alpha) => { g.save(); if (blur) g.filter = `blur(${(S * blur).toFixed(1)}px)`; if (alpha != null) g.globalAlpha = alpha; path(pts); g.fillStyle = f; g.fill(); g.restore(); };
+  const ell = (cx, cy, rx, ry, n = 36) => Array.from({ length: n }, (_, i) => [cx + Math.cos(i / n * 6.2832) * rx, cy + Math.sin(i / n * 6.2832) * ry]);
+  const ob = T.osso, tin = o.tinta, rgb = (f = 1, a = 1) => { const c = tin ? ob.map((v, i) => v * .65 + tin[i] * .35) : ob; return `rgba(${c.map(v => Math.round(clamp(v * f, 0, 255))).join(',')},${a})`; };
+  const lx = X + (Math.cos(T.luce + Math.sin(t * .3) * .3) * .5) * S, ly = Y - S * .9;
+  const cw = T.cw, ch = T.ch, zw = T.zw, ap = T.apre + Math.max(0, Math.sin(t * 1.2)) * .012;
+  // ---------- mandibola (si apre: scende di ap) ----------
+  const jw = T.jw, chin = T.chin;
+  const J = T.jl, mandH = [[0, .66 + ap], [.24, .65 + ap], [.33, .6 + ap * .7], [.39 * cw, .44], [.37 * cw, .32], [.41 * jw / .8, .64 + ap * .5], [.36 * jw / .8, .8 * J + ap], [.21, .93 * J + ap], [chin * .45, .99 * J + ap], [0, 1.0 * J + ap]];
+  const mand = liscia(specchia(mandH));
+  { const gr = g.createRadialGradient(lx, ly, S * .05, X, Y, S * 1.25); gr.addColorStop(0, rgb(1.12)); gr.addColorStop(.55, rgb(.92)); gr.addColorStop(.9, rgb(.62)); gr.addColorStop(1, rgb(.45)); fill(mand, gr); }
+  g.save(); path(mand); g.strokeStyle = 'rgba(25,16,8,.7)'; g.lineWidth = S * .005; g.stroke(); g.restore();
+  fill(liscia(specchia([[0, .96 * J + ap], [chin * .35, .93 * J + ap], [.1, .86 * J + ap], [0, .82 * J + ap]])), rgb(1.12), .02, .45);   // la protuberanza del mento
+  for (const sx of [-1, 1]) { fill(ell(sx * .16, .83 * J + ap, .013, .009, 12), 'rgba(18,12,6,.9)'); fill(liscia([[.3, .66 + ap], [.4, .5], [.4, .7 + ap], [.32, .8 + ap]].map(([x, y]) => [x * sx, y])), 'rgba(30,18,8,.4)', .03); }
+  // ---------- denti: un'arcata vista di fronte, i laterali che girano e si scuriscono ----------
+  const arcata = (y0, giu, off) => { const n = 16; for (let i = 0; i < n; i++) { const f0 = (-80 + 160 * i / n) * Math.PI / 180, f1 = (-80 + 160 * (i + 1) / n) * Math.PI / 180, x0 = .27 * Math.sin(f0), x1 = .27 * Math.sin(f1), dep = Math.cos((f0 + f1) / 2), k = Math.abs(i - (n - 1) / 2);
+      if (T.manca[(i + off) % 20]) continue; const hh = (k < 2 ? .1 : k < 3 ? .095 : k < 4 ? .11 : .085 - k * .004) * (giu ? .82 : 1), y1 = giu ? y0 + hh : y0 - hh, gap = (x1 - x0) * .06;
+      const pts = [[x0 + gap, y0], [x0 + gap * .5, y0 + (y1 - y0) * .7], [x0 + (x1 - x0) * .25, y1], [x0 + (x1 - x0) * .75, y1], [x1 - gap * .5, y0 + (y1 - y0) * .7], [x1 - gap, y0]];
+      const q0 = tp(0, y0), q1 = tp(0, y1), gr = g.createLinearGradient(q0[0], q0[1], q1[0], q1[1]); const lum = .55 + .5 * dep; gr.addColorStop(0, `rgba(${Math.round(205 * lum)},${Math.round(192 * lum)},${Math.round(160 * lum)},1)`); gr.addColorStop(1, `rgba(${Math.round(250 * lum)},${Math.round(244 * lum)},${Math.round(222 * lum)},1)`);
+      path(liscia(pts, true, 3)); g.fillStyle = gr; g.fill(); g.strokeStyle = 'rgba(40,28,14,.7)'; g.lineWidth = S * .0035; g.stroke(); } };
+  fill(liscia(specchia([[0, .5], [.2, .495], [.3, .51], [.31, .6 + ap * .5], [.24, .67 + ap], [0, .675 + ap]])), 'rgba(10,6,3,.95)');   // il buio della bocca
+  fill(liscia(specchia([[0, .655 + ap], [.2, .65 + ap], [.27, .63 + ap], [.27, .68 + ap], [0, .69 + ap]])), rgb(.95));   // la gengiva ossea di sotto
+  arcata(.66 + ap, false, 10);   // denti di sotto (crescono verso l'alto)
+  // ---------- cranio e faccia ----------
+  const cranH = [[0, -.8 * ch], [.28 * cw, -.75 * ch], [.45 * cw, -.55 * ch], [.52 * cw, -.28], [.5 * cw, -.06], [.47 * cw, .03], [.52 * zw, .1], [.5 * zw, .2], [.42, .27], [.33, .33], [.29, .44], [.28, .5], [.14, .51], [0, .5]];
+  const cran = liscia(specchia(cranH));
+  { const gr = g.createRadialGradient(lx, ly, S * .05, X, Y - S * .1, S * 1.15); gr.addColorStop(0, rgb(1.15)); gr.addColorStop(.5, rgb(.95)); gr.addColorStop(.85, rgb(.7)); gr.addColorStop(1, rgb(.45)); fill(cran, gr); }
+  g.save(); path(cran); g.clip();   // ombre e luci dentro il cranio
+  fill(cran, 'rgba(0,0,0,0)'); g.save(); g.filter = `blur(${(S * .04).toFixed(1)}px)`; path(cran); g.strokeStyle = 'rgba(30,20,10,.55)'; g.lineWidth = S * .08; g.stroke(); g.restore();   // bordo che gira
+  for (const sx of [-1, 1]) {
+    fill(liscia([[.36, -.18], [.5, -.12], [.5, .06], [.42, .08], [.36, -.02]].map(([x, y]) => [x * sx, y])), 'rgba(40,26,12,.45)', .03);   // fossa temporale
+    fill(liscia([[.17, .3], [.3, .28], [.33, .42], [.25, .46], [.17, .4]].map(([x, y]) => [x * sx, y])), 'rgba(40,26,12,.4)', .03);   // l'incavo sotto lo zigomo
+    fill(ell(sx * .36 * zw, .14, .1, .045), rgb(1.25, .8), .02);   // lo zigomo in luce
+    fill(ell(sx * .2, -.2, .15, .04), rgb(1.2, .7), .015);   // l'arcata sopraccigliare
+  }
+  fill(ell(0, -.48 * ch, .28, .18), rgb(1.18, .55), .05);   // la fronte in luce
+  // suture e crepe
+  g.strokeStyle = 'rgba(70,50,28,.6)'; g.lineWidth = S * .0035;
+  if (T.suture) { g.beginPath(); for (let i = 0; i <= 50; i++) { const u = i / 50, x = (u - .5) * .9 * cw, y = -.6 * ch + (u - .5) ** 2 * 1.1 + (vhash(i, T.sd) - .5) * .02, q = tp(x, y); i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); } g.stroke(); }
+  g.strokeStyle = 'rgba(25,15,6,.85)'; g.lineWidth = S * .005; for (let c = 0; c < T.crepe; c++) { g.beginPath(); let x = (vhash(c, T.sd) - .5) * .5, y = -.75 * ch; let q = tp(x, y); g.moveTo(q[0], q[1]); for (let k = 0; k < 7; k++) { x += (vhash(c * 9 + k, T.sd) - .5) * .08; y += .045; q = tp(x, y); g.lineTo(q[0], q[1]); } g.stroke(); }
   g.restore();
+  g.save(); path(cran); g.strokeStyle = 'rgba(25,16,8,.7)'; g.lineWidth = S * .005; g.stroke(); g.restore();
+  // ---------- orbite ----------
+  for (const sx of [-1, 1]) { const ox = sx * .205, oy = 0, rx = T.ow / 2, ry = T.oh / 2, sq = 2.2 + T.oq * 2.2, rot = sx * (.12 + T.ot);
+    const sup = (k2, dy = 0) => Array.from({ length: 48 }, (_, i) => { const a = i / 48 * 6.2832, c = Math.cos(a), s2 = Math.sin(a), x = Math.sign(c) * Math.abs(c) ** (2 / sq) * rx * k2, y = Math.sign(s2) * Math.abs(s2) ** (2 / sq) * ry * k2 * (s2 > 0 ? 1.08 : .92);
+      return [ox + x * Math.cos(rot) - y * Math.sin(rot), oy + dy + x * Math.sin(rot) + y * Math.cos(rot)]; });
+    fill(sup(1.18, .01), 'rgba(30,20,10,.55)', .02);   // l'ombra del bordo
+    const q = tp(ox + sx * .02, oy + .03), gr = g.createRadialGradient(q[0], q[1], S * .01, q[0], q[1], S * rx * 1.05); gr.addColorStop(0, 'rgb(3,2,1)'); gr.addColorStop(.55, 'rgb(14,9,5)'); gr.addColorStop(.85, 'rgb(60,42,24)'); gr.addColorStop(1, rgb(.55));
+    fill(sup(1), gr); fill(sup(.55, .05).map(([x, y]) => [x + sx * .03, y]), 'rgba(0,0,0,.8)', .02);   // la fessura in fondo
+    g.save(); path(sup(1)); g.strokeStyle = rgb(1.2, .7); g.lineWidth = S * .008; g.stroke(); g.restore(); }
+  // ---------- apertura nasale a pera, setto, spina nasale ----------
+  const nw = T.nw / 2, nt = .1, nb = nt + T.nh;
+  const nasoH = [[0, nt], [nw * .45, nt + T.nh * .15], [nw * .85, nt + T.nh * .55], [nw, nt + T.nh * .82], [nw * .6, nb], [0, nb - .012]];
+  const naso = liscia(specchia(nasoH));
+  fill(naso.map(([x, y]) => [x * 1.25, y + .005]), rgb(1.15, .7), .01);
+  { const q = tp(0, (nt + nb) / 2), gr = g.createRadialGradient(q[0], q[1] + S * .04, 0, q[0], q[1], S * T.nh * .7); gr.addColorStop(0, 'rgb(4,2,1)'); gr.addColorStop(1, 'rgb(34,22,12)'); fill(naso, gr); }
+  fill([[-.007, nt + .04], [.007, nt + .04], [.012, nb - .015], [-.012, nb - .015]], rgb(.55));   // il setto
+  fill([[-.02, nb - .01], [.02, nb - .01], [0, nb + .02]], rgb(1.05));   // la spina nasale
+  fill(ell(0, .02, .03, .05), rgb(1.15, .6), .01);   // l'osso del naso in luce
+  // ---------- mascella e denti di sopra ----------
+  fill(liscia(specchia([[0, .4], [.12, .41], [.26, .44], [.29, .5], [.15, .505], [0, .505]])), rgb(.95));
+  for (let i = -3; i <= 3; i++) fill(ell(i * .07, .455, .02, .035, 12), rgb(1.1, .35), .01);   // le radici sotto la gengiva
+  arcata(.502, true, 0);
+  // grana dell'osso
+  g.save(); g.globalAlpha = .14; path(cran); g.clip(); for (let i = 0; i < 360; i++) { const q = tp((vhash(i, T.sd + 3) - .5) * 1.1 * cw, -.8 * ch + vhash(T.sd, i) * 1.35); g.fillStyle = vhash(i, 7) < .5 ? '#2a1d10' : '#ffffff'; g.fillRect(q[0], q[1], S * .005, S * .005); } g.restore();
 }
 SCENE.teschio = (g, w, h, t, dt, o) => {
-  const m = Math.min(w, h); g.fillStyle = o.bg; g.fillRect(0, 0, w, h);
-  if (o.stile === 'psichedelico') { for (let r = 10; r >= 1; r--) { g.fillStyle = o.P[(r + Math.floor(t * 3)) % o.P.length]; g.beginPath(); g.arc(w / 2, h / 2, Math.hypot(w, h) / 2 * r / 10, 0, 6.28); g.fill(); } }
-  const n = o.teschi.length, cols = Math.ceil(Math.sqrt(n * w / h)), rows = Math.ceil(n / cols), s = n === 1 ? m * .78 : Math.min(w / cols, h / rows) * .85;
-  o.teschi.forEach((T, i) => { const c = i % cols, r = (i / cols) | 0; disegnaTeschio(g, T, n === 1 ? w / 2 : (c + .5) * w / cols, n === 1 ? h / 2 + m * .02 : (r + .5) * h / rows, s, t + i, o.stile, o); });
+  const m = Math.min(w, h);
+  if (o.fondo === 'colore') { g.fillStyle = `rgb(${o.fc.join(',')})`; g.fillRect(0, 0, w, h); }
+  else { const gr = g.createRadialGradient(w / 2, h * .4, 0, w / 2, h / 2, Math.hypot(w, h) * .6); gr.addColorStop(0, o.fondo === 'nero' ? '#151515' : '#2c2620'); gr.addColorStop(1, '#030303'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }
+  const n = o.teschi.length, cols = n === 1 ? 1 : n === 2 ? 2 : n === 3 ? 3 : 3, rows = Math.ceil(n / cols), S = n === 1 ? m * .46 : Math.min(w / cols, h / rows) * .4;
+  o.teschi.forEach((T, i) => { const c = i % cols, r = (i / cols) | 0; const X = n === 1 ? w / 2 : (c + .5) * w / cols, Y = n === 1 ? h * .5 : (r + .5) * h / rows;
+    g.save(); g.filter = `blur(${(S * .05).toFixed(1)}px)`; g.fillStyle = 'rgba(0,0,0,.5)'; g.beginPath(); g.ellipse(X + S * .05, Y + S * 1.05, S * .5, S * .07, 0, 0, 6.28); g.fill(); g.restore();   // l'ombra sotto
+    disegnaTeschio(g, T, X, Y, S, t + i * 1.7, o); });
 };
 
 // PIXEL: l'immagine si sgrana in blocchi per un secondo o due, dai pixel minuscoli ai quadri enormi;
@@ -7256,7 +7310,7 @@ addEventListener('keydown', e => {
   else if (k === '|' || k === '£') { if (barocco()) note('barocco · ' + BAROCCO_NOMI.ultimo); }
   else if (k === 'ì' || k === '{') { if (trasparenza()) note('trasparenza · ' + TR.modo + ' · ' + TR.regola + ' · ' + TR.strati.map(s => s.tipo).join('+')); }
   else if (k === '}' || k === '§') { if (poesiaVisiva()) note('poesia visiva · ' + POESIA_NOMI.ultimo); }
-  else if (k === '$' || k === '€') { if (teschio()) note('teschi · ' + SC.o.stile + ' · ' + SC.o.teschi.length); }
+  else if (k === '$' || k === '€') { if (teschio()) note('teschi · ' + SC.o.teschi.length); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
