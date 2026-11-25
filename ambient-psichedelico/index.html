@@ -6416,7 +6416,7 @@ function cielo() {
   const fondo = pick(['#02030a', '#050b1f', '#0a0718', '#000000', '#06142e']), P = palCss(), colorate = Math.random() < .4;
   const stelle = Array.from({ length: Math.round(rnd(300, 900)) }, () => ({ x: rnd(-.2, 1.2), y: rnd(-.2, 1.2), r: Math.pow(Math.random(), 6) * 2.2 + .3, ph: rnd(6.28), c: colorate && Math.random() < .3 ? pick(P) : pick(['#ffffff', '#fff4e0', '#e0ecff', '#ffe9c4']) }));
   const cost = nomi.slice(0, n).map((k, i) => ({ nome: k, ...COSTELLAZIONI[k], cx: n === 1 ? .5 : (i + .5) / n, cy: rnd(.35, .65), sc: rnd(.75, 1.15) / n ** .3, rot: gauss() * .25, t0: .5 + i * rnd(1.2, 2.2) }));
-  return scenaInizia('cielo', { fondo, stelle, cost, rot: (Math.random() < .5 ? -1 : 1) * rnd(.004, .02) * (1 + d), via: Math.random() < .5 ? [] : null, colore: colorate ? pick(P) : 'rgba(170,200,255,.8)', etichette: Math.random() < .7, hold: rnd(7, 11) });
+  return scenaInizia('cielo', { fondo, stelle, cost, rot: (Math.random() < .5 ? -1 : 1) * rnd(.004, .02) * (1 + d), via: Math.random() < .5 ? [] : null, colore: colorate ? pick(P) : 'rgba(170,200,255,.8)', etichette: false, hold: rnd(7, 11) });
 }
 SCENE.cielo = (g, w, h, t, dt, o) => {
   const m = Math.min(w, h); g.fillStyle = o.fondo; g.fillRect(0, 0, w, h);
