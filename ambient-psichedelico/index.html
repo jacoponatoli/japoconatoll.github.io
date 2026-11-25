@@ -1652,6 +1652,89 @@ P.volto = {
   }
 };
 
+/* ---------- IMMAGINI AMBIGUE: tra astratto e figurativo ----------
+   Un campo di rumore e un campo "figurativo" (un paesaggio, una figura, un volto) si mescolano; le curve di livello del
+   campo misto sono i confini delle regioni. Il grado di figurazione non segue un ciclo: è un cammino imprevedibile
+   (rumore su rumore, più agitato verso il caos) che a volte sale fino quasi a far riconoscere la cosa, a volte si
+   ferma a un accenno, poi ricade nell'astratto e intanto il soggetto cambia. Quando l'immagine arriva al punto
+   ambiguo — non ancora una figura, non più una macchia — il flusso si ferma per un attimo, poi riparte. */
+const FERMO = { until: 0, colorsStill: false };
+const SOGGETTI = {
+  paesaggio: ['montagne', 'colline col sole', 'mare all\'orizzonte', 'isola', 'valle'],
+  figura: ['in piedi', 'braccia alzate', 'seduta', 'due figure', 'che cammina'],
+  volto: ['frontale', 'grande', 'tre quarti', 'due volti', 'volto nel paesaggio'],
+};
+P.ambigua = {
+  get name() { return 'immagine ambigua: ' + this.fam + ' (' + this.sog + ') · figurazione ' + this.f.toFixed(2); },
+  init() { this.t = rnd(1000); this.f = 0; this.fp = 0; this.peak = false; this.lv = 6 + ((Math.random() * 7) | 0); this.nuovo(); this.ox = rnd(100); this.oy = rnd(100); },
+  nuovo() {   // un nuovo soggetto, con posizioni e proporzioni sempre diverse
+    this.fam = pick(Object.keys(SOGGETTI)); this.sog = pick(SOGGETTI[this.fam]); this.seed = rnd(1000);
+    this.cx = rnd(.35, .65); this.cy = rnd(.4, .6); this.sc = rnd(.8, 1.25); this.sx = rnd(.15, .85); this.sy = rnd(.12, .35); this.hz = rnd(.45, .7);
+  },
+  fig(x, y, asp) {   // il campo figurativo, in [0..1]
+    const g = (dx, dy, w) => Math.exp(-(dx * dx + dy * dy) / (w * w));
+    const cap = (px, py, ax, ay, bx, by, w) => { const vx = bx - ax, vy = by - ay, k = clamp(((px - ax) * vx + (py - ay) * vy) / (vx * vx + vy * vy), 0, 1); return g(px - ax - vx * k, py - ay - vy * k, w); };
+    const X = x - (asp - 1) / 2, s = this.sc, br = .01 * Math.sin(this.t * .05);
+    if (this.fam === 'paesaggio') {
+      let v = 0; const L = this.sog === 'montagne' ? 4 : 3;
+      for (let i = 0; i < L; i++) { const ridge = this.hz + i * .1 - (this.sog === 'montagne' ? .25 : .12) * fbm(X * (2 + i) + this.seed + i * 7, i * 3.1, 3) + (this.sog === 'isola' ? .18 * Math.pow(Math.abs(X - this.cx) * 2, 2) : 0);
+        v += 1 / (1 + Math.exp(-(y - ridge) * 40)) / L; }
+      if (this.sog === 'colline col sole' || this.sog === 'valle') v = Math.max(v, .9 * g(X - this.sx, y - this.sy, .09 * s));
+      if (this.sog === 'mare all\'orizzonte' && y > this.hz) v = .55 + .35 * Math.sin((y - this.hz) * 60 + Math.sin(X * 9 + this.t * .05) * 2) * (y - this.hz);
+      return v;
+    }
+    if (this.fam === 'figura') {
+      const fig = (cx, cy, k, pose) => { const h = .7 * s * k; let v = g(X - cx, y - (cy - h * .55), .08 * s * k);
+        v = Math.max(v, cap(X, y, cx, cy - h * .42, cx, cy + h * .05, .09 * s * k));
+        const ay = pose === 'braccia alzate' ? -.8 : pose === 'seduta' ? .0 : .1, sw = pose === 'che cammina' ? Math.sin(this.t * .06) * .08 : 0;
+        for (const sg of [-1, 1]) { v = Math.max(v, cap(X, y, cx, cy - h * .35, cx + sg * h * (.28 + sw * sg), cy + h * ay, .045 * s * k));
+          v = Math.max(v, pose === 'seduta' ? cap(X, y, cx, cy + h * .05, cx + sg * h * .3, cy + h * .15, .05 * s * k) : cap(X, y, cx, cy + h * .05, cx + sg * h * (.12 + sw * sg), cy + h * .55, .05 * s * k)); }
+        return v; };
+      if (this.sog === 'due figure') return Math.max(fig(this.cx - .12, this.cy, .9, 'in piedi'), fig(this.cx + .12, this.cy + .02, .8, 'braccia alzate'));
+      return fig(this.cx, this.cy, 1, this.sog);
+    }
+    const volto = (cx, cy, k, tq) => { const a = .2 * s * k, b = .27 * s * k, dx = (X - cx) / a, dy = (y - cy) / b; let v = Math.exp(-Math.pow(dx * dx + dy * dy, 2) * .9);
+      const o = tq ? .35 : 0, ex = .42 * a;
+      for (const sg of [-1, 1]) v -= .55 * g(X - cx - (sg * ex - o * a * .3) - br, y - cy + .12 * b, .07 * s * k);   // gli occhi
+      v -= .4 * cap(X, y, cx - .35 * a - o * a * .2, cy + .45 * b, cx + .35 * a - o * a * .2, cy + .45 * b + Math.sin(this.t * .03) * .02, .04 * s * k);   // la bocca
+      v += .25 * cap(X, y, cx - o * a * .3, cy - .05 * b, cx - o * a * .3 + .04 * a, cy + .22 * b, .05 * s * k);   // il naso
+      return v; };
+    if (this.sog === 'due volti') return Math.max(volto(this.cx - .17, this.cy, .75, 0), volto(this.cx + .17, this.cy, .75, 1));
+    if (this.sog === 'volto nel paesaggio') { let v = 0; for (let i = 0; i < 3; i++) v += 1 / (1 + Math.exp(-(y - (.62 + i * .1 - .1 * fbm(X * 3 + i, i, 2))) * 30)) / 3; return Math.max(v * .8, volto(this.cx, this.cy - .1, .85, 0)); }
+    return volto(this.cx, this.cy, this.sog === 'grande' ? 1.6 : 1, this.sog === 'tre quarti');
+  },
+  step() {
+    this.t++;
+    const d = typeof REGIA !== 'undefined' ? REGIA.dis : .5, sp = .002 + .004 * d;   // verso il caos la figurazione si agita di più
+    const target = clamp((fbm(this.t * sp + this.seed, 7.3, 3) - .3) * 2.3 * (.75 + .5 * fbm(this.t * sp * .37, 2.1, 2)), 0, 1);
+    this.fp = this.f; this.f += (target - this.f) * .05;
+    // arrivato in cima, sulla soglia dell'ambiguità: un attimo di sosta
+    if (this.f < this.fp && !this.peak && this.f > .55 && typeof REGIA !== 'undefined' && REGIA.on && Math.random() < .75 && performance.now() > FERMO.until + 3000) {
+      FERMO.until = performance.now() + rnd(700, 1600); FERMO.colorsStill = Math.random() < .5; }
+    if (this.f < this.fp) this.peak = true; if (this.f > this.fp + .0005) this.peak = false;
+    if (this.f < .08 && Math.random() < .01) this.nuovo();   // quando è tornata astratta, cambia soggetto
+  },
+  render(c) {
+    const gw = 112, gh = Math.max(40, Math.round(112 * H / W)), asp = gw / gh, F = this.F && this.F.length === gw * gh ? this.F : (this.F = new Float32Array(gw * gh));
+    const f = this.f, tt = this.t * .004;
+    let mn = 1e9, mx = -1e9;
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) { const x = i / gh, y = j / gh, k = j * gw + i;
+      const n = fbm(x * 2.5 + this.ox + tt, y * 2.5 + this.oy - tt * .7, 3), v = (1 - f) * n + f * this.fig(x, y * 1, asp * 1) ;
+      F[k] = v; if (v < mn) mn = v; if (v > mx) mx = v; }
+    const sx = W / (gw - 1), sy = H / (gh - 1); c.beginPath();
+    for (let l = 1; l <= this.lv; l++) { const iso = mn + (mx - mn) * l / (this.lv + 1);   // curve di livello (marching squares)
+      for (let j = 0; j < gh - 1; j++) for (let i = 0; i < gw - 1; i++) {
+        const a = F[j * gw + i], b = F[j * gw + i + 1], cc = F[(j + 1) * gw + i + 1], d = F[(j + 1) * gw + i];
+        const code = (a > iso ? 8 : 0) | (b > iso ? 4 : 0) | (cc > iso ? 2 : 0) | (d > iso ? 1 : 0); if (code === 0 || code === 15) continue;
+        const T = [(i + (iso - a) / (b - a)) * sx, j * sy], R = [(i + 1) * sx, (j + (iso - b) / (cc - b)) * sy], B = [(i + (iso - d) / (cc - d)) * sx, (j + 1) * sy], L = [i * sx, (j + (iso - a) / (d - a)) * sy];
+        const seg = (p, q) => { c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); };
+        switch (code) { case 1: case 14: seg(L, B); break; case 2: case 13: seg(B, R); break; case 3: case 12: seg(L, R); break; case 4: case 11: seg(T, R); break;
+          case 5: seg(L, T); seg(B, R); break; case 6: case 9: seg(T, B); break; case 7: case 8: seg(L, T); break; case 10: seg(T, R); seg(L, B); break; }
+      } }
+    c.stroke();
+  }
+};
+
 /* ---------- ARTE ISLAMICA: stelle e girih col metodo dei "poligoni in contatto" (Hankin) ---------- */
 // su una tassellatura regolare, da ogni punto medio dei lati partono due raggi inclinati di θ;
 // i raggi dei lati vicini si incontrano e disegnano stelle e rosoni. θ varia lentamente: le stelle respirano.
@@ -2529,7 +2612,7 @@ const EVENTS = [
    Il TEMPO cambia anche lui: lento, medio, veloce, frenesia. Le soste sono solo su mandala e lettera, brevi.
    Con ?libero nell'indirizzo torna il montaggio casuale di prima. */
 const ENGINES = ['tagli', 'cammini', 'tasselli', 'alberi', 'celle', 'onde', 'cerchi', 'spirali', 'griglia', 'forme', 'raggi', 'turing', 'automi', 'wolfram', 'attrattore', 'julia',
-  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos', 'fosfeni', 'knoll', 'blotter', 'natura', 'natura', 'volto'];
+  'fillotassi', 'douady', 'mosaico', 'disco', 'concreto', 'illusioni', 'lettere', 'yturralde', 'labirinto', 'tessuti', 'islamica', 'boetti', 'fiori', 'rorschach', 'sagome', 'bestiario', 'omaggi', 'mandala', 'solidi', 'canale', 'caos', 'fosfeni', 'knoll', 'blotter', 'natura', 'natura', 'volto', 'ambigua', 'ambigua'];
 // Galanter: i sistemi stanno su un asse dall'ordine al disordine; la complessità effettiva sta nel mezzo
 const ORDINATI = ['blotter', 'natura', 'fosfeni', 'griglia', 'tasselli', 'wolfram', 'mosaico', 'disco', 'concreto', 'islamica', 'tessuti', 'fillotassi', 'labirinto', 'yturralde', 'canale', 'caos', 'mandala', 'douady', 'boetti'];
 const DISORDINATI = ['natura', 'knoll', 'tagli', 'cammini', 'celle', 'onde', 'forme', 'alberi', 'raggi', 'turing', 'automi', 'rorschach', 'attrattore', 'cerchi', 'canale', 'lettere'];
@@ -2584,6 +2667,7 @@ const MOVES = {
   lettera: [.6, () => letteraSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
+  ambigua: [.6, () => { if (!active.some(a => a.proc === P.ambigua && a.target === 1)) entraMotore(P.ambigua); }],
   volto: [.5, () => { if (!active.some(a => a.proc === P.volto && a.target === 1)) entraMotore(P.volto); }],
   sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
 };
@@ -2591,7 +2675,7 @@ function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale; lorenz(dt);
-  if (RIT.phase || MONO.phase || TD.phase || FO.hold) return;
+  if (RIT.phase || MONO.phase || TD.phase || FO.hold || performance.now() < FERMO.until) return;
   if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
     if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
     else { if ((REGIA.cut -= dt) <= 0) { REGIA.cut = rnd(.08, .22); REGIA.n++;
@@ -2601,7 +2685,7 @@ function regiaTick(dt) {
       return; }
   }
   if (!active.some(a => a.target === 1 && !a.proc.persist)) cambiaMotore();
-  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : (REGIA.tempo === 'lento' ? 14 : 8) * (a.proc === P.mandala ? 1.8 : 1))) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
+  for (const a of active) if (a.target === 1 && !a.proc.persist && (a.age = (a.age || 0) + dt) > (REGIA.voce && (a.proc === P.lettere || a.proc === P.boetti) ? 20 : (REGIA.tempo === 'lento' ? 14 : 8) * (a.proc === P.mandala ? 1.8 : a.proc === P.ambigua ? 2.2 : 1))) { a.target = 0; a.rate = rnd(...T().tr); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); cambiaMotore(); break; }
   if ((REGIA.cut -= dt) > 0) return;
   REGIA.cut = rnd(...T().cut); REGIA.n++;
   const k = 1 + Math.floor(Math.random() * T().combo);   // a volte cambiano più cose insieme
@@ -3236,12 +3320,12 @@ function loop(t) {
     else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) { MONO.phase = 'out'; } if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
     else { MONO.a -= dt / (REGIA.on ? .5 : 1.8); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
   }
-  const still = rituale(dt);
+  const fermo = performance.now() < FERMO.until, still = rituale(dt) || fermo;   // la sosta breve sull'immagine ambigua
   if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
   if (!window.__noev) { if (REGIA.on) regiaTick(dt); else if (!RIT.phase && !MONO.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn(); }
   // derive lente dei parametri globali
   if (still) {   // sosta: la forma è ferma; il colore resta fermo oppure continua a scorrere
-    if (!RIT.colorsStill) { S.hue += S.hueV * dt; S.cyc += (S.cycV || .25) * dt; S.bandOff += S.bandV * 30 * dt; }
+    if (!(fermo ? FERMO.colorsStill : RIT.colorsStill)) { S.hue += S.hueV * dt; S.cyc += (S.cycV || .25) * dt; S.bandOff += S.bandV * 30 * dt; }
     frame(t, 0); return;
   }
   S.hueV += (S.hueVt - S.hueV) * dt * .4; S.hue += S.hueV * dt;
@@ -3265,7 +3349,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = (REGIA.on ? `${FO.kind ? 'fosfeni: ' + FONOMI[FO.kind] + ' · ' : ''}${FL.on ? 'lampeggio ' + (FL.tipo || '') + (FLF.forma ? ' → ' + FLF.forma : '') + ' · ' : ''}${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ? immagine ambigua · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -3298,7 +3382,7 @@ addEventListener('keydown', e => {
   else if (k === '2') apparizione(P.labirinto);
   else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
-  else if (k === "'" || k === '+' || k === '<' || k === '*') { const q = k === "'" ? P.volto : k === '+' ? P.natura : k === '<' ? P.blotter : (Math.random() < .5 ? P.fosfeni : P.knoll); if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
+  else if (k === "'" || k === '+' || k === '<' || k === '*' || k === '?') { const q = k === '?' ? P.ambigua : k === "'" ? P.volto : k === '+' ? P.natura : k === '<' ? P.blotter : (Math.random() < .5 ? P.fosfeni : P.knoll); if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
   else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
   else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
   else if (k === '1') { if (active.length >= 3) leave(); enter(P.labirinto); }
@@ -3325,7 +3409,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
