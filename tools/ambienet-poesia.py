@@ -91,3 +91,5 @@ json.dump(idx, open(f'{OUT}/index.json', 'w', encoding='utf-8'), ensure_ascii=Fa
 # le domande: una voce di macchina che interroga chi ascolta (tools/ambienet-domande.py, in out/q/)
 import sys
 subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ambienet-domande.py')], check=False)
+# i dialoghi dei film: brevi scene parlate da film di ogni lingua (tools/ambienet-film.py, in out/f/)
+subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ambienet-film.py')], check=False)
