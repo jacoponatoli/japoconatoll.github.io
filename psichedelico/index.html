@@ -3178,7 +3178,7 @@ function mostro() {
   const d = REGIA.dis, sg = () => (Math.random() < .5 ? -1 : 1);
   Object.assign(MO, { phase: 'attesa', t: 0, vin: pick(['punto', 'zoom', 'lancio', 'punto']), vout: pick(['punto', 'via', 'zoom']), tin: rnd(.5, 1.6), tout: rnd(.5, 1.4),
     hold: rnd(3.5, 7), dyn: d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']), rot: 0, vr: gauss() * .3, px: 0, py: 0, vx: gauss() * .03, vy: gauss() * .02,
-    dir: [sg() * rnd(.6, 1), sg() * rnd(.3, 1)], bg: pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa', '#000000']), solido: Math.random() < .3, sc: rnd(.75, 1) });
+    dir: [sg() * rnd(.6, 1), sg() * rnd(.3, 1)], bg: pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa', '#000000']), solido: false, sc: rnd(.75, 1) });
   return true;
 }
 function mostroProcessa() {   // scontorna il fondo (il colore dell'angolo) e ricolora: i cinque colori di MOSTRAI → la palette che scorre
