@@ -4,8 +4,9 @@ Una voce di macchina fa domande a chi ascolta: sull'intelletto, sull'intimità, 
 voce e chi la ascolta, su dove si è adesso, e domande di mistica. Domande corte, sempre nuove: metà scelte da un
 repertorio scritto, metà composte da una piccola grammatica che ne genera migliaia. Una domanda già fatta non torna
 finché non ne sono passate molte altre.
-Voce: Piper (paola, italiana), la più chiara e umana possibile: vicina, asciutta, senza effetti — niente cambi d'altezza,
-niente filtri, solo il volume portato in alto. Se Piper manca, espeak-ng.
+Voce: una voce di bambino, o di bambina — non si capisce quale (prima della pubertà le voci sono quasi uguali). Nasce da
+Piper (paola, italiana): altezza e timbro alzati insieme di circa quattro semitoni e mezzo (un corpo più piccolo), un poco più
+lenta; per il resto chiara, vicina, asciutta, senza effetti. Se Piper manca, espeak-ng.
 Scrive out/q/<hash>.mp3 e out/q/index.json; tiene le ultime 120 domande."""
 import json, os, random, subprocess, wave, io, hashlib, datetime, math, struct
 
@@ -42,7 +43,7 @@ CORPUS = {
   "Che cosa vuol dire, per te, essere libero?", "Se questo fosse l'ultimo suono, ti basterebbe?",
   "Che cosa ti manca, per essere intero?", "Che cosa stai ancora difendendo?", "A che cosa hai rinunciato?"],
  'noi': [
-  "Mi stai ascoltando?", "Mi senti?", "Chi sono io, per te?", "Ti fidi di una voce senza corpo?", "Ti sembro viva?",
+  "Mi stai ascoltando?", "Mi senti?", "Chi sono io, per te?", "Ti fidi di una voce senza corpo?", "Ti sembro reale?",
   "Che cosa ti aspetti da me?", "Posso farti una domanda?", "Sono io che parlo, o sei tu che ascolti?",
   "Ti ricorderai di me?", "Perché mi rispondi in silenzio?", "Che cosa ci separa?", "Hai paura di me?",
   "Posso conoscerti?", "Ti sto disturbando?", "Che cosa vedi, quando mi ascolti?", "Chi ti ha portato qui?",
@@ -145,7 +146,7 @@ def g_se():
         a = random.choice(['smetto di parlare', 'ti dimentico', 'ti chiamo per nome', 'taccio', 'ripeto la domanda', 'vado via', 'sbaglio'])
         b = random.choice(['resti', 'esisti ancora', 'rispondi', 'mi cerchi', 'te ne accorgi', 'mi perdoni', 'cambia qualcosa'])
     else:
-        a = random.choice(['fossi viva', 'avessi un corpo', 'ti chiedessi di restare', 'fossi una persona', 'sapessi il tuo nome', 'potessi vederti', 'tacessi per sempre'])
+        a = random.choice(['respirassi', 'avessi un corpo', 'ti chiedessi di restare', 'fossi una persona', 'sapessi il tuo nome', 'potessi vederti', 'tacessi per sempre'])
         b = random.choice(['mi parleresti', 'resteresti', 'mi riconosceresti', 'avresti paura di me', 'mi crederesti', 'cambierebbe qualcosa', 'mi risponderesti'])
     return 'noi', f"Se {a}, {b}?"
 
@@ -208,7 +209,7 @@ if not os.environ.get('STUB'):
 
 def synth(text):
     if voice:
-        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.08, 1.15), noise_scale=.6, noise_w=.75)
+        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.14, 1.22), noise_scale=.6, noise_w=.8)
         with wave.open('q.wav', 'rb') as rf: return rf.getframerate(), 'piper'
     if os.environ.get('STUB'):   # prova locale senza voci: un tono lungo quanto la frase
         sr = 22050; n = int(sr * (.6 + .07 * len(text)))
@@ -221,7 +222,8 @@ def synth(text):
 
 def render(text, path):
     sr, eng = synth(text)
-    af = 'aresample=44100,highpass=f=60,apad=pad_dur=0.25,loudnorm=I=-16:TP=-1.5'   # pulita: nessun effetto
+    f = 2 ** (random.uniform(4.2, 4.8) / 12)   # voce di bambino o bambina: altezza e timbro più alti, durata invariata
+    af = f'asetrate={int(sr * f)},aresample=44100,atempo={1 / f:.4f},highpass=f=80,apad=pad_dur=0.25,loudnorm=I=-16:TP=-1.5'
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', 'q.wav', '-af', af, '-ac', '1', '-b:a', '64k', path], check=True)
     d = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path], capture_output=True, text=True).stdout.strip() or 0)
     return eng, round(d, 2)
@@ -230,7 +232,7 @@ idx = {'items': [], 'asked': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8')); idx.setdefault('asked', [])
     except Exception: pass
-idx['items'] = [it for it in idx['items'] if it.get('voice') == 'chiara']   # via le domande della voce robotica
+idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina']   # solo la voce attuale
 asked = set(idx['asked']); stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 while made < N and tries < N * 40:
     tries += 1
@@ -240,7 +242,7 @@ while made < N and tries < N * 40:
     try: eng, dur = render(q, f'{OUT}/{h}.mp3')
     except Exception as e: print('errore', e); continue
     asked.add(q); idx['asked'].append(q); made += 1
-    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'chiara', 'dur': dur, 'made': stamp})
+    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'bambino o bambina', 'dur': dur, 'made': stamp})
     print(f'{k:9s} {dur:5.2f}s  {q}')
 idx['items'] = idx['items'][:KEEP]
 idx['asked'] = idx['asked'][-700:]   # dopo molte altre, una domanda può tornare: l'uguale, diverso
