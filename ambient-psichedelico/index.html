@@ -5127,6 +5127,163 @@ function formaSecca() {
   return true;
 }
 
+
+// ASTRATTI: citazioni dirette della pittura astratta, generate ogni volta da capo, ferme per 1–2 secondi.
+// Kandinsky, Rothko, Pollock, de Kooning, Richter (spatola, carte dei colori, strip), Reinhardt (nero su nero),
+// minimalismo (Malevič, Newman, Stella, Agnes Martin, Ellsworth Kelly).
+const ASTRATTI = ['monet', 'monet', 'puntinismo', 'puntinismo', 'macchiaioli', 'macchiaioli', 'kandinsky', 'kandinsky', 'rothko', 'rothko', 'pollock', 'pollock', 'dekooning', 'richter', 'richter', 'reinhardt', 'malevic', 'newman', 'stella', 'martin', 'kelly'];
+
+function paesaggioBase(w, h) {   // un paesaggio semplice da scomporre: cielo, sole, acqua o prato, alberi, riva
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'), m = Math.min(w, h), oriz = h * rnd(.35, .6), acqua = Math.random() < .6;
+  let gr = g.createLinearGradient(0, 0, 0, oriz); gr.addColorStop(0, hsl(rnd(.52, .62), .6, .6)); gr.addColorStop(1, hsl(rnd(.05, .15), .7, .78)); g.fillStyle = gr; g.fillRect(0, 0, w, oriz);
+  if (Math.random() < .7) { g.fillStyle = hsl(rnd(.08, .14), .9, .7); g.beginPath(); g.arc(rnd(.2, .8) * w, oriz * rnd(.3, .8), m * rnd(.05, .1), 0, 6.28); g.fill(); }
+  gr = g.createLinearGradient(0, oriz, 0, h); gr.addColorStop(0, acqua ? hsl(.55, .6, .55) : hsl(.25, .5, .5)); gr.addColorStop(1, acqua ? hsl(.6, .6, .35) : hsl(.18, .5, .4)); g.fillStyle = gr; g.fillRect(0, oriz, w, h - oriz);
+  if (acqua) { g.fillStyle = hsl(.22, .5, .42); g.beginPath(); g.moveTo(0, h); g.lineTo(0, h * .8); g.quadraticCurveTo(w * .5, h * rnd(.75, .9), w, h * rnd(.85, 1)); g.lineTo(w, h); g.fill(); }
+  for (let i = 0; i < 2 + ((Math.random() * 6) | 0); i++) { const x = rnd(w), b = oriz + rnd(0, h - oriz) * .5, th = m * rnd(.15, .45); g.fillStyle = hsl(.08, .4, .25); g.fillRect(x - m * .006, b - th, m * .012, th); g.fillStyle = hsl(rnd(.22, .33), .55, rnd(.2, .35)); g.beginPath(); g.ellipse(x, b - th, m * rnd(.04, .09), th * rnd(.3, .5), 0, 0, 6.28); g.fill(); }
+  return c;
+}
+function astratto(kind) {
+  if (MONO.phase || RIT.phase || TD.phase) return false;
+  kind = kind || pick(ASTRATTI);
+  const cv = MONO.cv; cv.width = Math.round(view.width / 2); cv.height = Math.round(view.height / 2);
+  const g = cv.getContext('2d'), w = cv.width, h = cv.height, m = Math.min(w, h), R = (a, b) => rnd(a, b), col = a => pick(a);
+  g.save(); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none'; g.lineCap = 'round'; g.lineJoin = 'round';
+  let nome = kind;
+  switch (kind) {
+
+    case 'monet': {   // la cattedrale di Rouen: la facciata gotica sciolta nella luce di un'ora del giorno, a tocchi spessi
+      const ORE = { mattino: [['#9fb4d8', '#c7b8d9', '#e9c9d2'], ['#7d8fc2', '#a68fb8', '#5f6fa8']], mezzogiorno: [['#f3e7b9', '#f7f0d8', '#e9d48a'], ['#c9b07a', '#b7a6c9', '#d9c08f']],
+        tramonto: [['#f2a65a', '#f6c879', '#e8794a'], ['#5a6fb0', '#8c5f9e', '#3f5f8f']], grigio: [['#c9c9c4', '#b9bfc8', '#dcd7cc'], ['#8e939c', '#a19a8e', '#7d8590']], nebbia: [['#d8dde6', '#e8e4ea', '#cfd6e2'], ['#b3bccb', '#c2b9cc', '#a9b4c6']] };
+      const ora = pick(Object.keys(ORE)), [LUCE, OMBRA] = ORE[ora], cielo = ora === 'tramonto' ? ['#f0b77a', '#c9a0c0', '#8fa6d3'] : ora === 'mattino' ? ['#b9c9e6', '#d7c8e2', '#e6d6c6'] : ['#cfd8e8', '#e4e2dc', '#b9c4d8'];
+      const mk = document.createElement('canvas'); mk.width = w; mk.height = h; const q = mk.getContext('2d'); q.fillStyle = '#000';
+      const fw = w * R(.55, .75), fx = (w - fw) / 2, top = h * R(.05, .15), tw = fw * R(.18, .24);
+      q.fillRect(fx, top + h * .18, fw, h); q.fillRect(fx, top, tw, h); q.fillRect(fx + fw - tw, top, tw, h);   // corpo e torri
+      q.beginPath(); q.moveTo(fx + tw, top + h * .18); q.lineTo(w / 2, top + h * .02); q.lineTo(fx + fw - tw, top + h * .18); q.fill();   // il timpano
+      for (const x of [fx + tw / 2, fx + fw - tw / 2]) { q.beginPath(); q.moveTo(x - tw * .3, top); q.lineTo(x, top - h * .1); q.lineTo(x + tw * .3, top); q.fill(); }   // le cuspidi
+      const sh = document.createElement('canvas'); sh.width = w; sh.height = h; const z = sh.getContext('2d'); z.fillStyle = '#000';   // le ombre: portali, rosone, archi
+      const pw = fw * .16; for (const cx of [w / 2, w / 2 - fw * .3, w / 2 + fw * .3]) { const ww = cx === w / 2 ? pw * 1.3 : pw * .85, ty = h * .62; z.beginPath(); z.moveTo(cx - ww / 2, h); z.lineTo(cx - ww / 2, ty); z.quadraticCurveTo(cx, ty - ww * 1.2, cx + ww / 2, ty); z.lineTo(cx + ww / 2, h); z.fill(); }
+      z.beginPath(); z.arc(w / 2, top + h * .3, fw * .1, 0, 6.28); z.fill(); for (let i = 0; i < 6; i++) { const cx = fx + fw * (.12 + i * .152), ty = top + h * .45; z.fillRect(cx - fw * .025, ty, fw * .05, h * .1); }
+      const MD = q.getImageData(0, 0, w, h).data, SD = z.getImageData(0, 0, w, h).data;
+      g.fillStyle = cielo[1]; g.fillRect(0, 0, w, h); g.lineCap = 'round';
+      const n = Math.round(w * h / 9);
+      for (let i = 0; i < n; i++) { const x = R(0, w), y = R(0, h), k = ((y | 0) * w + (x | 0)) * 4, dentro = MD[k + 3] > 0, ombra = SD[k + 3] > 0;
+        const P = !dentro ? cielo : ombra ? OMBRA : (Math.random() < .25 ? OMBRA : LUCE); g.strokeStyle = pick(P); g.globalAlpha = R(.55, .95); g.lineWidth = m * R(.006, .016);
+        const a = (dentro ? 1.5708 : 0) + gauss() * .6, L = m * R(.008, .028); g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
+      g.globalAlpha = 1; nome = 'Monet, cattedrale di Rouen (' + ora + ')'; break; }
+    case 'puntinismo': {   // Seurat e Signac: un paesaggio semplice scomposto in punti di colore puro, che si mescolano nell'occhio
+      const base = paesaggioBase(w, h), BD = base.getContext('2d').getImageData(0, 0, w, h).data, signac = Math.random() < .4;
+      g.fillStyle = '#f4efe2'; g.fillRect(0, 0, w, h); const r0 = m * (signac ? R(.007, .012) : R(.003, .006)), n = Math.round(w * h / (r0 * r0 * (signac ? 1.6 : 2.2)));
+      for (let i = 0; i < n; i++) { const x = R(0, w), y = R(0, h), k = ((y | 0) * w + (x | 0)) * 4, c = rgb2hsl(BD[k], BD[k + 1], BD[k + 2]);
+        const v = Math.random(), hh = v < .6 ? c[0] + gauss() * .03 : v < .8 ? c[0] + .08 : v < .93 ? c[0] - .08 : c[0] + .5;   // il colore, i suoi vicini, ogni tanto il complementare
+        g.fillStyle = hsl(hh, clamp(c[1] * 1.3 + .15, 0, 1), clamp(c[2] + gauss() * .08, .08, .92));
+        if (signac) g.fillRect(x - r0 / 2, y - r0 / 2, r0 * R(.8, 1.3), r0 * R(.8, 1.3)); else { g.beginPath(); g.arc(x, y, r0 * R(.7, 1.1), 0, 6.28); g.fill(); } }
+      nome = signac ? 'Signac, tasselli' : 'Seurat, puntinismo'; break; }
+    case 'macchiaioli': {   // Fattori, Lega, Signorini: campi piatti di luce e d'ombra, il muro bianco al sole, le figure come macchie
+      const cielo = pick(['#cfe0ea', '#e8e2cf', '#bcd3e3', '#f0ead6']), Y = [R(.25, .45), 0, 0, 0]; Y[1] = Y[0] + R(.04, .1); Y[2] = Y[1] + R(.15, .3); Y[3] = 1;
+      g.fillStyle = cielo; g.fillRect(0, 0, w, h);
+      const fascia = (y0, y1, c) => { g.fillStyle = c; g.beginPath(); g.moveTo(0, y0 * h); for (let x = 0; x <= w; x += w / 12) g.lineTo(x, y0 * h + gauss() * h * .008); g.lineTo(w, y1 * h); g.lineTo(0, y1 * h); g.fill(); };
+      fascia(Y[0], Y[1], pick(['#8fa3a8', '#9aa889', '#7f8f9a']));             // le colline lontane
+      fascia(Y[1], Y[2], pick(['#c9b06b', '#b8a25a', '#d1bd7c', '#a7a35f']));   // il campo al sole
+      fascia(Y[2], Y[3], pick(['#6f6a3e', '#857b45', '#5d6a3a']));             // il primo piano in ombra
+      if (Math.random() < .7) { const x = R(.05, .55) * w, ww = R(.25, .45) * w, y = (Y[1] - R(.02, .08)) * h, hh = R(.08, .16) * h; g.fillStyle = '#f3efe4'; g.fillRect(x, y, ww, hh); g.fillStyle = pick(['#c46a3c', '#a95b3a']); g.fillRect(x, y - hh * .12, ww, hh * .14); g.fillStyle = 'rgba(80,70,60,.55)'; g.fillRect(x, y + hh * .85, ww, hh * .2); }   // il muro bianco
+      for (let i = 0; i < 2 + poisson(4); i++) { const x = R(.05, .95) * w, y = R(Y[1] + .02, Y[2] + .05) * h, sc = h * R(.09, .2) * (.5 + y / h); const corpo = pick(['#2b2a28', '#5a3a2a', '#ede7da', '#7a2f2a', '#39465a']);
+        g.fillStyle = 'rgba(40,35,30,.45)'; g.fillRect(x - sc * .2, y, sc * .9, sc * .08);   // l'ombra portata
+        g.fillStyle = corpo; if (Math.random() < .4) g.fillRect(x - sc * .5, y - sc * .45, sc * 1.1, sc * .45); else g.fillRect(x - sc * .12, y - sc, sc * .24, sc);   // un bue o una figura
+        g.fillStyle = pick(['#f3efe4', '#d9c9a3', '#2b2a28']); g.fillRect(x - sc * .1, y - sc * 1.12, sc * .2, sc * .14); }
+      nome = 'Macchiaioli'; break; }
+    case 'kandinsky': {   // Composizione: cerchi con l'alone, anelli, linee nere, triangoli, scacchiere, archi su un fondo chiaro
+      const K = ['#e8b923', '#d7262b', '#1f4e9c', '#111', '#7b3f98', '#c98a2e', '#e48aa8', '#2e8b57', '#f2e6c9', '#3fa7d6'];
+      const bg = g.createLinearGradient(0, 0, w, h); bg.addColorStop(0, pick(['#efe6d2', '#f1ead8', '#e9dfc4', '#ddd6c6'])); bg.addColorStop(1, pick(['#d9cfb4', '#cfd6d8', '#e6d5bf'])); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+      g.globalCompositeOperation = 'multiply';
+      for (let i = 0; i < 3 + poisson(3); i++) { g.beginPath(); const x = R(0, w), y = R(0, h), r = m * R(.05, .25); g.moveTo(x, y - r); g.lineTo(x + r * R(.6, 1.4), y + r); g.lineTo(x - r * R(.6, 1.4), y + r * R(.3, 1)); g.closePath(); g.fillStyle = col(K); g.globalAlpha = R(.35, .8); g.fill(); }
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      { const x = R(.15, .35) * w, y = R(.15, .35) * h, r = m * R(.12, .2); g.fillStyle = '#111'; g.beginPath(); g.arc(x, y, r * 1.35, 0, 6.28); g.fill(); g.fillStyle = col(K); g.beginPath(); g.arc(x, y, r, 0, 6.28); g.fill(); g.fillStyle = col(K); g.beginPath(); g.arc(x + r * .2, y - r * .1, r * .55, 0, 6.28); g.fill(); }
+      for (let i = 0; i < 4 + poisson(6); i++) { const x = R(0, w), y = R(0, h), r = m * R(.015, .09), n = 1 + ((Math.random() * 4) | 0); for (let k = n; k >= 1; k--) { g.beginPath(); g.arc(x, y, r * k / n, 0, 6.28); g.fillStyle = col(K); g.fill(); } }
+      g.strokeStyle = '#111'; g.lineCap = 'butt';
+      for (let i = 0; i < 10 + poisson(12); i++) { g.lineWidth = Math.random() < .7 ? R(.6, 2) : R(3, 7); g.beginPath(); const x = R(-w * .1, w), y = R(0, h), a = R(0, 6.28), L = m * R(.15, .9); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
+      for (let i = 0; i < 2 + poisson(3); i++) { g.lineWidth = R(1, 4); g.beginPath(); g.arc(R(0, w), R(0, h), m * R(.08, .4), R(0, 6.28), R(0, 6.28) + R(.6, 2.5)); g.stroke(); }
+      for (let i = 0; i < 1 + poisson(1.5); i++) { const x = R(0, w * .85), y = R(0, h * .85), n = 2 + ((Math.random() * 4) | 0), c = m * R(.015, .035), A = col(K), B = Math.random() < .5 ? '#111' : '#f4efe2'; for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) { g.fillStyle = (a + b) & 1 ? A : B; g.fillRect(x + a * c, y + b * c, c, c); } }
+      for (let i = 0; i < 2 + poisson(3); i++) { g.fillStyle = col(K); g.beginPath(); g.arc(R(0, w), R(0, h), m * R(.004, .015), 0, 6.28); g.fill(); }
+      nome = 'Kandinsky, composizione'; break; }
+    case 'rothko': {   // campi di colore che respirano: due o tre rettangoli dai bordi sfumati
+      const PAL = [['#5a1012', '#c2361f', '#e06b1e', '#3c0b0d'], ['#d9661c', '#f2c12e', '#c8341c', '#e8891d'], ['#1c1b1f', '#4a2c2a', '#5d2f2b', '#2a2526'], ['#22355c', '#2f6f73', '#7aa36b', '#1b2a40'],
+        ['#e9c96a', '#f6eee0', '#e48e2c', '#f2dca0'], ['#6b2a4d', '#c24a72', '#3a1a33', '#e07a5f'], ['#3b3b3b', '#6e6e6e', '#191919', '#5a4a3a'], ['#8c1c13', '#1d3557', '#bf4342', '#e9c46a']];
+      const P = pick(PAL); g.fillStyle = P[0]; g.fillRect(0, 0, w, h);
+      const n = 2 + ((Math.random() * 2) | 0), mx = w * R(.07, .12), top = h * R(.05, .09), gap = h * R(.025, .06), tot = h - 2 * top - gap * (n - 1), hs = Array.from({ length: n }, () => R(.6, 1.6)), sm = hs.reduce((a, b) => a + b, 0);
+      let y = top; for (let i = 0; i < n; i++) { const hh = tot * hs[i] / sm, c = P[1 + i % 3];
+        for (let k = 0; k < 4; k++) { g.filter = `blur(${(m * R(.008, .02)).toFixed(1)}px)`; g.globalAlpha = R(.5, .8); g.fillStyle = c; g.fillRect(mx + R(-3, 3), y + R(-3, 3), w - 2 * mx + R(-4, 4), hh + R(-4, 4)); }
+        y += hh + gap; }
+      g.filter = 'none'; g.globalAlpha = 1; nome = 'Rothko'; break; }
+    case 'pollock': {   // dripping: fili che corrono su tutto il campo, strato dopo strato, schizzi
+      const BG = pick(['#cbbd9c', '#d8cdb3', '#b9ad93', '#2a2a2a', '#e3dccb']), C = shuffled(['#111', '#f4f1ea', '#8a8d8f', '#c8a24a', '#9c3b25', '#2c5d63', '#e1c16e', '#5b4636']).slice(0, 3 + ((Math.random() * 3) | 0));
+      g.fillStyle = BG; g.fillRect(0, 0, w, h);
+      for (const c of C) { g.strokeStyle = g.fillStyle = c;
+        for (let i = 0; i < 25 + poisson(30); i++) { let x = R(-w * .1, w * 1.1), y = R(-h * .1, h * 1.1), a = R(0, 6.28), lw = R(.4, 3.2);
+          for (let k = 0; k < 40 + poisson(60); k++) { a += gauss() * .45; const st = m * R(.004, .03), nx = x + Math.cos(a) * st, ny = y + Math.sin(a) * st; lw = clamp(lw + gauss() * .5, .2, 5); g.lineWidth = lw; g.beginPath(); g.moveTo(x, y); g.lineTo(nx, ny); g.stroke(); x = nx; y = ny;
+            if (Math.random() < .02) { g.beginPath(); g.arc(x + gauss() * 8, y + gauss() * 8, R(.8, 3.5), 0, 6.28); g.fill(); } } }
+        for (let i = 0; i < poisson(40); i++) { g.beginPath(); g.arc(R(0, w), R(0, h), R(.5, 3), 0, 6.28); g.fill(); } }
+      nome = 'Pollock'; break; }
+    case 'dekooning': {   // pennellate larghe e angolose, rosa, gialli, blu cobalto, bianco, e linee nere che le attraversano
+      const C = ['#e8a0a0', '#f3d34a', '#1f4fa8', '#f4efe6', '#e46a3a', '#7fb3c9', '#c94f6d', '#f2c9a0', '#5e8c4a'];
+      g.fillStyle = pick(['#efe4d0', '#f1d9c4', '#e6e0d2']); g.fillRect(0, 0, w, h); g.lineCap = 'butt'; g.lineJoin = 'miter';
+      for (let i = 0; i < 26 + poisson(20); i++) { g.strokeStyle = pick(C); g.globalAlpha = R(.7, .95); g.lineWidth = m * R(.05, .16); g.beginPath(); let x = R(-.1, 1.1) * w, y = R(-.1, 1.1) * h, a = R(0, 6.28); g.moveTo(x, y);
+        for (let k = 0; k < 1 + ((Math.random() * 3) | 0); k++) { a += R(-2, 2); x += Math.cos(a) * m * R(.1, .4); y += Math.sin(a) * m * R(.1, .4); g.lineTo(x, y); } g.stroke(); }
+      g.globalAlpha = 1; g.strokeStyle = '#151515'; for (let i = 0; i < 4 + poisson(5); i++) { g.lineWidth = R(1, 4); g.beginPath(); let x = R(0, w), y = R(0, h); g.moveTo(x, y); for (let k = 0; k < 3; k++) { x += gauss() * m * .2; y += gauss() * m * .2; g.lineTo(x, y); } g.stroke(); }
+      nome = 'de Kooning'; break; }
+    case 'richter': { const tipo = pick(['spatola', 'spatola', 'colori', 'strip']);
+      if (tipo === 'colori') {   // carte dei colori: una griglia di colori a caso, con i giunti bianchi
+        const n = pick([4, 5, 8, 10, 12, 16, 25]), cw = w / n, chh = h / Math.max(2, Math.round(n * h / w)), gp = Math.random() < .5 ? Math.max(1, cw * .06) : 0;
+        g.fillStyle = '#f2f0ea'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += chh) for (let x = 0; x < w; x += cw) { g.fillStyle = hsl(Math.random(), R(.3, 1), R(.15, .8)); g.fillRect(x + gp / 2, y + gp / 2, cw - gp, chh - gp); }
+        nome = 'Richter, carta dei colori'; }
+      else if (tipo === 'strip') {   // strip: righe orizzontali sottilissime di colori diversi
+        const C = Array.from({ length: 6 + ((Math.random() * 10) | 0) }, () => hsl(Math.random(), R(.4, 1), R(.15, .85))); let y = 0; while (y < h) { const t = Math.max(1, Math.pow(Math.random(), 2.5) * h * .03); g.fillStyle = pick(C); g.fillRect(0, y, w, t + .5); y += t; }
+        nome = 'Richter, strip'; }
+      else {   // spatola: campi di colore trascinati con la racla, che si strappano e lasciano vedere sotto
+        const C = shuffled(['#c62828', '#1565c0', '#f9a825', '#2e7d32', '#ececec', '#212121', '#6a1b9a', '#ef6c00', '#90a4ae', '#ad1457']).slice(0, 4 + ((Math.random() * 3) | 0));
+        g.fillStyle = pick(C); g.fillRect(0, 0, w, h); for (let i = 0; i < 18; i++) { g.fillStyle = pick(C); g.fillRect(R(-.2, 1) * w, R(-.2, 1) * h, R(.1, .7) * w, R(.05, .5) * h); }
+        const vert = Math.random() < .35;
+        for (let pass = 0; pass < 120; pass++) { const bh = R(2, h * .12), y = R(-bh, vert ? w : h), dx = gauss() * m * .25; g.globalAlpha = R(.5, .95);
+          if (vert) g.drawImage(cv, y, 0, bh, h, y + R(-2, 2), dx, bh, h); else g.drawImage(cv, 0, y, w, bh, dx, y + R(-2, 2), w, bh); }
+        g.globalAlpha = 1; nome = 'Richter, astratto con la spatola'; }
+      break; }
+    case 'reinhardt': {   // nero su nero: la croce si vede appena, nove quadrati di neri diversi
+      const b0 = [13, 13, 15], tint = pick([[3, 0, 0], [0, 2, 0], [0, 0, 4], [2, 1, 0]]), A = `rgb(${b0.join(',')})`, B = `rgb(${b0.map((v, i) => v + 4 + tint[i]).join(',')})`, Cc = `rgb(${b0.map((v, i) => v + 8 - tint[i]).join(',')})`;
+      g.fillStyle = '#0b0b0c'; g.fillRect(0, 0, w, h); const sd = m * .9, x0 = (w - sd) / 2, y0 = (h - sd) / 2, c = sd / 3;
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) { g.fillStyle = a === 1 && b === 1 ? Cc : a === 1 || b === 1 ? B : A; g.fillRect(x0 + a * c, y0 + b * c, c + .5, c + .5); }
+      nome = 'Reinhardt, nero su nero'; break; }
+    case 'malevic': { const t = pick(['quadrato nero', 'bianco su bianco', 'quadrato rosso', 'croce nera', 'cerchio nero']);
+      const bg = t === 'bianco su bianco' ? '#ece9e1' : '#efece4'; g.fillStyle = bg; g.fillRect(0, 0, w, h); const sd = m * R(.5, .72);
+      g.save(); g.translate(w / 2 + gauss() * m * .03, h / 2 + gauss() * m * .03); g.rotate(t === 'bianco su bianco' ? R(.15, .5) : gauss() * .03);
+      g.fillStyle = t === 'bianco su bianco' ? '#f7f6f2' : t === 'quadrato rosso' ? '#c8281e' : '#111';
+      if (t === 'croce nera') { g.fillRect(-sd / 2, -sd / 8, sd, sd / 4); g.fillRect(-sd / 8, -sd / 2, sd / 4, sd); } else if (t === 'cerchio nero') { g.beginPath(); g.arc(0, 0, sd * .4, 0, 6.28); g.fill(); } else g.fillRect(-sd / 2, -sd / 2, sd, sd);
+      g.restore(); nome = 'Malevič, ' + t; break; }
+    case 'newman': {   // campo di colore e una o più zip verticali
+      const F = pick(['#b3121b', '#1b3a8a', '#e86a17', '#0f0f0f', '#efe9dc', '#5a1c2e', '#f2c230']); g.fillStyle = F; g.fillRect(0, 0, w, h);
+      for (let i = 0; i < 1 + ((Math.random() * 3) | 0); i++) { const x = R(.15, .85) * w, zw = w * R(.004, .03); g.fillStyle = pick(['#f2efe6', '#e8a33a', '#111', '#d6262b', '#2a64b8', '#f4d03f']); g.fillRect(x, 0, zw, h); }
+      nome = 'Newman, zip'; break; }
+    case 'stella': {   // strisce concentriche che seguono il bordo, separate da filetti; o le pitture nere
+      const nero = Math.random() < .45, C = nero ? ['#111'] : shuffled(['#e53935', '#fdd835', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00acc1', '#f06292']).slice(0, 3 + ((Math.random() * 4) | 0));
+      g.fillStyle = nero ? '#e9e4d8' : '#f3f0ea'; g.fillRect(0, 0, w, h); const st = m * R(.025, .05), pin = Math.max(1, st * .08), forma = pick(['quadrato', 'quadrato', 'rombo']);
+      let k = 0; for (let r = m * .5; r > st; r -= st + pin) { g.fillStyle = C[k++ % C.length]; g.beginPath(); if (forma === 'rombo') { g.moveTo(w / 2, h / 2 - r); g.lineTo(w / 2 + r, h / 2); g.lineTo(w / 2, h / 2 + r); g.lineTo(w / 2 - r, h / 2); } else g.rect(w / 2 - r, h / 2 - r, 2 * r, 2 * r);
+        const r2 = r - st; if (forma === 'rombo') { g.moveTo(w / 2, h / 2 - r2); g.lineTo(w / 2 - r2, h / 2); g.lineTo(w / 2, h / 2 + r2); g.lineTo(w / 2 + r2, h / 2); } else { g.moveTo(w / 2 - r2, h / 2 - r2); g.lineTo(w / 2 - r2, h / 2 + r2); g.lineTo(w / 2 + r2, h / 2 + r2); g.lineTo(w / 2 + r2, h / 2 - r2); }
+        g.fill('evenodd'); }
+      nome = nero ? 'Stella, pittura nera' : 'Stella, strisce concentriche'; break; }
+    case 'martin': {   // griglia a matita su un fondo pallido, a volte con bande di colore tenuissimo
+      g.fillStyle = pick(['#f1ede3', '#efe8dc', '#ebe6df']); g.fillRect(0, 0, w, h);
+      if (Math.random() < .5) { const n = 4 + ((Math.random() * 10) | 0), C = [pick(['#e9d3cf', '#d7e2e8', '#efe1c6']), pick(['#f1ede3', '#dfe6dc'])]; for (let i = 0; i < n; i++) { g.fillStyle = C[i % 2]; g.fillRect(0, i * h / n, w, h / n + 1); } }
+      g.strokeStyle = 'rgba(70,70,80,.45)'; g.lineWidth = .6; const sd = m * .92, x0 = (w - sd) / 2, y0 = (h - sd) / 2, nx = pick([12, 18, 24, 36, 48]), ny = Math.random() < .5 ? nx : nx * pick([2, 3]);
+      g.beginPath(); for (let i = 0; i <= nx; i++) { g.moveTo(x0 + i * sd / nx, y0); g.lineTo(x0 + i * sd / nx, y0 + sd); } for (let j = 0; j <= ny; j++) { g.moveTo(x0, y0 + j * sd / ny); g.lineTo(x0 + sd, y0 + j * sd / ny); } g.stroke();
+      nome = 'Agnes Martin'; break; }
+    case 'kelly': {   // pannelli di colore puro uno accanto all'altro, o una sola forma curva
+      const C = shuffled(['#d62828', '#f7c600', '#1d4ed8', '#111', '#f4f1ea', '#16a34a', '#f97316', '#7c3aed']);
+      if (Math.random() < .6) { const n = 2 + ((Math.random() * 4) | 0); for (let i = 0; i < n; i++) { g.fillStyle = C[i]; g.fillRect(i * w / n, 0, w / n + 1, h); } nome = 'Kelly, pannelli'; }
+      else { g.fillStyle = C[4] === '#111' ? '#f4f1ea' : C[4]; g.fillRect(0, 0, w, h); g.fillStyle = C[0]; g.beginPath(); const cx = R(.3, .7) * w; g.moveTo(cx - m * .45, h); g.quadraticCurveTo(cx + R(-.2, .2) * w, -h * R(.2, .6), cx + m * .45, h); g.closePath(); g.fill(); nome = 'Kelly, forma curva'; } break; }
+  }
+  g.restore();
+  MONO.segno = nome; MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.2) : rnd(3, 6); MONO.mode = 'astratto'; MONO.pix = false; MONO.fin = rnd(.4, .9); MONO.fout = rnd(.4, .9);
+  return true;
+}
+
 // ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
 const TD = { phase: '', t: 0, hold: 0, tex: document.createElement('canvas') };
 TD.tex.width = 640; TD.tex.height = 400;
@@ -5447,6 +5604,7 @@ const MOVES = {
   mandala: [.7, () => apparizione(P.mandala)],
   lettera: [.6, () => letteraSecca()],
   forma: [.6, () => formaSecca()],
+  astratto: [.75, () => astratto()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -6483,6 +6641,7 @@ addEventListener('keydown', e => {
   else if (k === '>') { if (lotta()) note('lotta · ' + LT.modo + ' · ' + LT.fonte); }
   else if (k === '~' || k === 'ù') { if (fluido()) note(FLU.on ? 'fluido · ' + FLU.modo : 'fine del fluido'); }
   else if (k === '^' || k === 'ò') { if (formaSecca()) note('forma · ' + MONO.segno); }
+  else if (k === 'è' || k === '[') { if (astratto()) note('astratto · ' + MONO.segno); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
@@ -6513,7 +6672,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
