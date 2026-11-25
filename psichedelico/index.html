@@ -2524,7 +2524,7 @@ function texTri(g, img, s0, s1, s2, d0, d1, d2) { // mappa affine: triangolo del
 function draw3D(dt) {
   TD.t += dt; const VW = view.width, VH = view.height, m = Math.min(VW, VH);
   const tin = TD.tin || 2.2, tout = TD.tout || 2;
-  if (TD.phase === 'in' && TD.t > tin) { TD.phase = 'gira'; TD.t = 0; } else if (TD.phase === 'gira' && TD.t > TD.hold) { TD.phase = 'out'; TD.t = 0; } else if (TD.phase === 'out' && TD.t > tout) { TD.phase = ''; if (TD.mostro) { TD.mostro = false; TD.src = null; if (MO.fr) { MO.fr.remove(); MO.fr = null; } } return; }
+  if (TD.phase === 'in' && TD.t > tin) { TD.phase = 'gira'; TD.t = 0; } else if (TD.phase === 'gira' && TD.t > TD.hold) { TD.phase = 'out'; TD.t = 0; } else if (TD.phase === 'out' && TD.t > tout) { TD.phase = ''; if (TD.mostro) { TD.mostro = false; TD.src = null; } return; }
   const e = TD.phase === 'in' ? ease(clamp(TD.t / tin, 0, 1)) : TD.phase === 'out' ? 1 - ease(clamp(TD.t / tout, 0, 1)) : 1;
   const modo = TD.phase === 'out' ? TD.vout : TD.vin;
   if (TD.dyn === 'caotico') { TD.wx += gauss() * 3 * dt; TD.wy += gauss() * 3 * dt; TD.wz += gauss() * 2 * dt; TD.wx *= .995; TD.wy *= .995; }
@@ -2532,7 +2532,8 @@ function draw3D(dt) {
   TD.ang[0] += TD.wx * dt * osc; TD.ang[1] += TD.wy * dt * osc; TD.ang[2] += TD.wz * dt * osc;
   if (modo === 'spirale' && TD.phase === 'in') TD.ang[2] += (1 - e) * 6 * dt;
   TD.px += TD.vx * dt; TD.py += TD.vy * dt; if (Math.abs(TD.px) > .25) TD.vx *= -1; if (Math.abs(TD.py) > .18) TD.vy *= -1;
-  if (TD.mostro) mostroProcessa(); const tx = TD.tex.getContext('2d'); if (TD.mostro) { tx.fillStyle = TD.bg || '#000'; tx.fillRect(0, 0, TD.tex.width, TD.tex.height); } tx.drawImage(TD.src || view, 0, 0, TD.tex.width, TD.tex.height);   // la texture è l'immagine viva
+  if (TD.mostro) mostroProcessa(); const tx = TD.tex.getContext('2d'); if (TD.mostro) { const W2 = TD.tex.width, H2 = TD.tex.height; tx.drawImage(view, 0, 0, W2, H2); tx.drawImage(MO.cv, (W2 - H2 * 1.1) / 2, -H2 * .05, H2 * 1.1, H2 * 1.1); }   // la pelle del solido: l'immagine viva e sopra il mostro
+  else tx.drawImage(view, 0, 0, TD.tex.width, TD.tex.height);   // la texture è l'immagine viva
   vctx.save(); if (TD.bg) { vctx.globalAlpha = e; vctx.fillStyle = TD.bg; vctx.fillRect(0, 0, VW, VH); vctx.globalAlpha = 1; }
   // da piatto a solido, ma ogni volta in un modo diverso: la pagina che si chiude, il lancio da un punto, lo zoom, la piega, il vortice
   const S = m * (TD.sz || .26); let sx, sy, sz;
@@ -3166,10 +3167,14 @@ const MO = { phase: '', t: 0, fr: null, cv: document.createElement('canvas'), ul
 MO.cx = MO.cv.getContext('2d', { willReadFrequently: true });
 const MOBASE = [[227, 5, 27], [255, 213, 0], [11, 63, 168], [255, 255, 255], [0, 0, 0]];
 function mostroSrc() { try { const d = MO.fr && MO.fr.contentDocument, c = d && d.getElementById('cv'); return c && c.width > 10 ? c : null; } catch (e) { return null; } }
+function mostroPrepara() {   // MOSTRAI gira nascosto, già pronto, da una copia sullo stesso dominio
+  if (MO.fr) return; const f = document.createElement('iframe'); f.src = location.protocol.startsWith('http') ? '/psichedelico/mostrai.html' : 'mostrai.html';
+  f.style.cssText = 'position:fixed;left:0;top:0;width:420px;height:420px;border:0;opacity:.001;pointer-events:none;z-index:-1'; f.setAttribute('aria-hidden', 'true'); document.body.appendChild(f); MO.fr = f;
+}
+setTimeout(mostroPrepara, 6000);
 function mostro() {
   if (MO.phase || TD.phase || MONO.phase || RIT.phase) return false;
-  if (!MO.fr) { const f = document.createElement('iframe'); f.src = location.protocol.startsWith('http') ? '/MOSTRAI/' : '../MOSTRAI/index.html';
-    f.style.cssText = 'position:fixed;left:0;top:0;width:520px;height:520px;border:0;opacity:.001;pointer-events:none;z-index:-1'; f.setAttribute('aria-hidden', 'true'); document.body.appendChild(f); MO.fr = f; }
+  if (!mostroSrc()) { mostroPrepara(); return false; }   // il generatore non è ancora pronto: niente vuoto grigio, riproverà
   const d = REGIA.dis, sg = () => (Math.random() < .5 ? -1 : 1);
   Object.assign(MO, { phase: 'attesa', t: 0, vin: pick(['punto', 'zoom', 'lancio', 'punto']), vout: pick(['punto', 'via', 'zoom']), tin: rnd(.5, 1.6), tout: rnd(.5, 1.4),
     hold: rnd(3.5, 7), dyn: d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']), rot: 0, vr: gauss() * .3, px: 0, py: 0, vx: gauss() * .03, vy: gauss() * .02,
@@ -3196,14 +3201,14 @@ function drawMostro(dt) {
   MO.t += dt; const VW = view.width, VH = view.height, m = Math.min(VW, VH);
   if (MO.phase === 'attesa') {   // il vuoto si apre mentre il mostro si sveglia
     vctx.save(); vctx.globalAlpha = clamp(MO.t / .4, 0, 1); vctx.fillStyle = MO.bg; vctx.fillRect(0, 0, VW, VH); vctx.restore();
-    if (mostroSrc() && MO.t > .9) {
+    if (mostroSrc() && MO.t > .35) {
       if (MO.solido) { MO.phase = ''; entra3D(); TD.src = MO.cv; TD.bg = MO.bg; TD.mostro = true; return; }
       MO.phase = 'in'; MO.t = 0; }
-    else if (MO.t > 5) { MO.phase = ''; if (MO.fr) { MO.fr.remove(); MO.fr = null; } }   // MOSTRAI non risponde: niente evento
+    else if (MO.t > 1) MO.phase = '';   // MOSTRAI non risponde: il vuoto si richiude subito
     return;
   }
   if (MO.phase === 'in' && MO.t > MO.tin) { MO.phase = 'gira'; MO.t = 0; } else if (MO.phase === 'gira' && MO.t > MO.hold) { MO.phase = 'out'; MO.t = 0; }
-  else if (MO.phase === 'out' && MO.t > MO.tout) { MO.phase = ''; if (MO.fr) { MO.fr.remove(); MO.fr = null; } return; }
+  else if (MO.phase === 'out' && MO.t > MO.tout) { MO.phase = ''; return; }
   if (!mostroProcessa()) return;
   const e = MO.phase === 'in' ? ease(clamp(MO.t / MO.tin, 0, 1)) : MO.phase === 'out' ? 1 - ease(clamp(MO.t / MO.tout, 0, 1)) : 1, modo = MO.phase === 'out' ? MO.vout : MO.vin;
   if (MO.dyn === 'caotico') { MO.vr += gauss() * 1.5 * dt; MO.vr *= .97; MO.vx += gauss() * .05 * dt; MO.vy += gauss() * .04 * dt; }
@@ -3526,7 +3531,7 @@ addEventListener('keydown', e => {
   else if (k === '2') apparizione(P.labirinto);
   else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
-  else if (k === '!') { if (mostro()) note('MOSTRAI'); }
+  else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
   else if (k === "'" || k === '+' || k === '<' || k === '*' || k === '?') { const q = k === '?' ? P.ambigua : k === "'" ? P.volto : k === '+' ? P.natura : k === '<' ? P.blotter : (Math.random() < .5 ? P.fosfeni : P.knoll); if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
   else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
   else if (k === 'enter') { if (REGIA.on) { nuovoTempo(); note('tempo: ' + REGIA.tempo); } }
