@@ -29,23 +29,34 @@ def get(url, t=30):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=t).read()
 
 def cerca(lingua):
-    q = f'mediatype:movies AND {COLL} AND language:({LINGUE[lingua]}) AND NOT identifier:jesus-film* AND NOT collection:silent_films AND NOT subject:silent'
+    q = f'mediatype:movies AND {COLL} AND language:({LINGUE[lingua]}) AND year:[1929 TO 1972] AND NOT identifier:jesus-film* AND NOT collection:silent_films AND NOT subject:silent'
     base = 'https://archive.org/advancedsearch.php?' + urllib.parse.urlencode({'q': q, 'fl[]': ['identifier', 'title', 'year', 'creator'], 'rows': 100, 'output': 'json'}, doseq=True)
     j = json.loads(get(base + '&page=1')); n = j['response']['numFound']
     if n > 100: j = json.loads(get(base + f'&page={random.randint(1, min(30, (n + 99) // 100))}'))
     return j['response']['docs']
+
+def secondi(x):   # la durata può essere 4405.3, '01:13:25' o '110:58'
+    try:
+        if isinstance(x, str) and ':' in x:
+            v = 0
+            for p in x.split(':'): v = v * 60 + float(p)
+            return v
+        return float(x or 0)
+    except ValueError: return 0
+
+def pulisci(t):   # il titolo senza anni, parentesi e note
+    t = re.sub(r'\s*[\(\[][^\)\]]*([\)\]]|$)', '', t); t = re.sub(r'^\d{4}\s+', '', t); t = re.sub(r'\s+(19|20)\d\d\s*$', '', t)
+    return re.sub(r'\s+', ' ', t).strip(' -_.,') or t
 
 def sorgente(ident):
     m = json.loads(get(f'https://archive.org/metadata/{ident}'))
     fs = [f for f in m.get('files', []) if re.search(r'\.(mp4|ogv|mpeg|mpg|avi|mkv|mp3)$', f.get('name', ''), re.I)]
     if not fs: return None, 0
     pref = lambda f: (0 if f['name'].lower().endswith('.mp3') else 1 if '512kb' in f['name'].lower() else 2 if f['name'].lower().endswith('.mp4') else 3)
-    f = sorted(fs, key=pref)[0]; dur = float(f.get('length', 0) or 0)
-    if not dur:
-        for g in fs:
-            try: dur = float(g.get('length', 0) or 0)
-            except ValueError: dur = 0
-            if dur: break
+    f = sorted(fs, key=pref)[0]; dur = 0
+    for g in [f] + fs:
+        dur = secondi(g.get('length', 0))
+        if dur: break
     return f'https://archive.org/download/{ident}/{urllib.parse.quote(f["name"])}', dur
 
 def ascolta(url, t0, sec=70):
@@ -79,6 +90,7 @@ idx = {'items': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8'))
     except Exception: pass
+idx['items'] = [it for it in idx['items'] if it.get('year', '').isdigit() and 1929 <= int(it['year']) <= 1972]   # solo film sonori fino al 1972
 fatti = {it['id'] for it in idx['items']}
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 lingue = list(LINGUE)
@@ -103,7 +115,7 @@ while made < N and tries < N * 5:
                         '-af', 'highpass=f=70,afade=t=in:d=0.08,afade=t=out:st=%.2f:d=0.25,loudnorm=I=-20:TP=-2' % max(0, L - .25),
                         '-ac', '1', '-b:a', '48k', f'{OUT}/{name}'], capture_output=True)
     if r.returncode: print('ffmpeg', r.stderr[:200]); continue
-    tit = d.get('title') or d['identifier']; tit = tit if isinstance(tit, str) else tit[0]
+    tit = d.get('title') or d['identifier']; tit = pulisci(tit if isinstance(tit, str) else tit[0])
     yr = d.get('year'); yr = (yr[0] if isinstance(yr, list) else yr) or ''
     cr = d.get('creator') or ''; cr = cr[0] if isinstance(cr, list) else cr
     idx['items'].insert(0, {'f': f'f/{name}', 'id': d['identifier'], 'title': tit[:90], 'year': str(yr)[:4], 'creator': cr[:60], 'lang': lingua, 'at': int(t0 + a), 'dur': round(L, 1), 'made': stamp})

@@ -93,7 +93,7 @@ const live=new Map();let liveId=0,flash=null;
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -1303,6 +1303,61 @@ async function domandeDeck(){
     await sleep(rr(110,260)*AX(1.3,1,.75)*1000);
   }
 }
+/* FILM DIALOGUES — now and then a short scene of dialogue from a film: public-domain films of every kind and every
+   language found on the Internet Archive (a GitHub Action listens to a minute of each and keeps 7–16 s where people
+   really talk). Heard as through a radio or a telephone of every kind and era, each time a different register. */
+let filmIdx=[];const filmSeen=new Set();
+async function loadFilms(){try{const j=await fetchJSON(POEM_BASE+'f/index.json?'+Date.now());if(j.items&&j.items.length)filmIdx=j.items}catch(e){}}
+const LANG_EN={italiano:'Italian',francese:'French',tedesco:'German',spagnolo:'Spanish',giapponese:'Japanese',russo:'Russian',portoghese:'Portuguese',cinese:'Chinese',hindi:'Hindi',polacco:'Polish',ceco:'Czech',svedese:'Swedish',greco:'Greek',turco:'Turkish',arabo:'Arabic',ungherese:'Hungarian',olandese:'Dutch',inglese:'English'};
+const REGISTERS=['AM radio','shortwave','distant FM','walkie-talkie','police scanner','landline','old telephone','mobile phone','answering machine','intercom','from the moon'];
+function transmission(kind,t,play,out,fx){
+  const chain=(...ns)=>{for(let i=0;i<ns.length-1;i++)ns[i].connect(ns[i+1]);return ns[0]};
+  const pk=(f,gn,q=1)=>{const b=filt('peaking',f,q);b.gain.value=gn;return b};
+  const lfo=(param,rate,depth)=>{const o=ctx.createOscillator();o.frequency.value=rate;const g=ctx.createGain();g.gain.value=depth;o.connect(g);g.connect(param);o.start(t);o.stop(t+play+1)};
+  switch(kind){
+    case 'AM radio':{const fd=ctx.createGain();fd.gain.value=.85;lfo(fd.gain,rr(.1,.3),.12);
+      noise(t,play,{freq:rr(1800,3000),q:.5,gain:.006,attack:.3,release:.3,dest:fx});return chain(filt('highpass',rr(250,400)),filt('lowpass',rr(2600,3600)),pk(1500,4),shaper(rr(2,4)),fd,out)}
+    case 'shortwave':{const fd=ctx.createGain();fd.gain.value=.62;lfo(fd.gain,rr(.25,.9),.38);   /* selective fading */
+      const o=ctx.createOscillator();o.frequency.setValueAtTime(rr(700,1600),t);o.frequency.linearRampToValueAtTime(rr(700,1600),t+play);const og=ctx.createGain();og.gain.value=.004;o.connect(og);og.connect(fx);o.start(t);o.stop(t+play);   /* the heterodyne whistle */
+      noise(t,play,{freq:rr(1500,3000),q:.4,gain:.016,attack:.5,release:.5,dest:fx});return chain(filt('highpass',rr(450,650)),filt('lowpass',rr(2000,2700)),shaper(rr(4,7)),fd,out)}
+    case 'distant FM':{const w=ctx.createGain();w.gain.value=.25;out.connect(w);w.connect(reverb);noise(t,play,{freq:6000,q:.3,gain:.003,attack:.3,release:.3,dest:fx});return chain(filt('highpass',90),filt('lowpass',rr(7000,10000)),shaper(1.3),out)}
+    case 'walkie-talkie':noise(t-.3,.3,{freq:3000,q:.4,gain:.04,dest:fx});noise(t+play,.4,{freq:3000,q:.4,gain:.04,dest:fx});return chain(filt('highpass',rr(600,800)),filt('lowpass',rr(2200,2800)),shaper(rr(7,11)),out);
+    case 'police scanner':beep([1000],t-.4,.18,.025,fx,'square');noise(t+play,.35,{freq:3500,q:.4,gain:.035,dest:fx});noise(t,play,{freq:4000,q:.4,gain:.005,attack:.2,release:.2,dest:fx});
+      return chain(filt('highpass',500),filt('lowpass',2900),shaper(rr(5,8)),out);
+    case 'landline':return chain(filt('highpass',300,1),filt('lowpass',3400,1),shaper(2.5),out);
+    case 'old telephone':noise(t,play,{freq:rr(2000,5000),q:.3,gain:.008,attack:.2,release:.2,dest:fx});return chain(filt('highpass',rr(380,480)),filt('lowpass',rr(2500,3000)),pk(1000,8,1.5),shaper(rr(4,6)),out);
+    case 'mobile phone':{const q=ctx.createWaveShaper(),c=new Float32Array(1024),st=ri(10,24);for(let i=0;i<1024;i++)c[i]=Math.round((i/512-1)*st)/st;q.curve=c;const dg=ctx.createGain();   /* coarse digital voice, with dropouts */
+      for(let i=0,n=ri(1,4);i<n;i++){const s=t+rr(.5,Math.max(.6,play-.5));dg.gain.setValueAtTime(1,s);dg.gain.setValueAtTime(rr(0,.1),s+.01);dg.gain.setValueAtTime(1,s+rr(.06,.2))}
+      return chain(filt('highpass',250),filt('lowpass',rr(3000,3500)),q,dg,out)}
+    case 'answering machine':beep([1000],t-.7,.4,.04,fx);noise(t,play,{freq:5000,q:.2,gain:.006,attack:.2,release:.2,dest:fx});return chain(filt('highpass',250),filt('lowpass',rr(2800,3400)),shaper(2),out);
+    case 'intercom':beep([50,100],t,play,.008,fx);return chain(filt('highpass',rr(500,700)),filt('lowpass',rr(2600,3200)),shaper(rr(5,8)),out);
+    default:noise(t,play,{freq:rr(1500,2500),q:.6,gain:.01,attack:.3,release:.3,dest:fx});beep([2525],t-.3,.25,.025,fx);beep([2475],t+play,.25,.025,fx);   /* Apollo, with the Quindar tones */
+      return chain(filt('highpass',rr(350,500),1),pk(1800,5),shaper(rr(3,6)),filt('lowpass',rr(2400,3000),1),out);
+  }
+}
+async function filmDeck(){
+  await sleep(rr(200,400)*1000);await loadFilms();setInterval(loadFilms,3*3600e3);
+  while(true){
+    await hush();
+    if(!filmIdx.length||speaking){await sleep(30000);continue}
+    let pool=filmIdx.filter(x=>!filmSeen.has(x.f));if(!pool.length){filmSeen.clear();pool=filmIdx}
+    const it=R()<.5?pool[0]:pick(pool);filmSeen.add(it.f);
+    let buf;try{const r=await fetch(POEM_BASE+it.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(60000);continue}
+    if(still||speaking)continue;
+    const kind=pick(REGISTERS),rate=R()<.25?pick([.95,.91]):1,lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(8,Math.pow(10,(-23-lvl)/20)))*1.4,t=ctx.currentTime+.7,play=buf.duration/rate;
+    const out=ctx.createGain(),fx=ctx.createGain();
+    out.gain.setValueAtTime(0,t-.1);out.gain.linearRampToValueAtTime(gain,t+.12);out.gain.setValueAtTime(gain,t+play-.15);out.gain.linearRampToValueAtTime(0,t+play+.3);out.connect(L.spoken);
+    fx.gain.value=1;fx.connect(L.spoken);
+    const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;
+    if(kind==='answering machine'){const o=ctx.createOscillator();o.frequency.value=rr(.5,1.2);const og=ctx.createGain();og.gain.value=.006;o.connect(og);og.connect(src.playbackRate);o.start(t);o.stop(t+play+.5)}   /* the wow of the cassette */
+    src.connect(transmission(kind,t,play,out,fx));src.start(t);src.stop(t+play+.2);
+    speaking=true;master.gain.setTargetAtTime(.6,ctx.currentTime,1.2);
+    const line=log('FILM',`${it.title}${it.year?' ('+it.year+')':''} · ${LANG_EN[it.lang]||it.lang} · ${kind}${slowTag(rate)}`);
+    await sleep((play+1)*1000);unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);
+    setTimeout(()=>{try{out.disconnect();fx.disconnect()}catch(e){}},2000);
+    await sleep(rr(240,560)*AX(1.2,1,.8)*1000);
+  }
+}
 async function spokenLoop(){
   await sleep(rr(120,240)*1000);let fails=0;
   while(true){
@@ -1639,7 +1694,7 @@ const LEGEND={
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
   question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). Every question is also written across the whole screen, white on black, in the lettering of SLOGAN. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
-  spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
+  spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak. Now and then also a short scene of dialogue from a film — public-domain films of every kind and language — heard as through a radio or a telephone of every era: AM, shortwave, distant FM, walkie-talkie, police scanner, landline, old telephone, mobile phone, answering machine, intercom, the Moon.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
   cosmos:['#ff8a3d','Cosmos','Sounds from space: NASA sonifications of telescope data (black holes, nebulae, galaxies) and radio and plasma waves recorded by space probes around Jupiter, Saturn and the Sun — from NASA’s audio library and the Internet Archive. Barely touched: a little slower, a little reverb.'],
@@ -1680,7 +1735,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
