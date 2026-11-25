@@ -5746,6 +5746,16 @@ const MOVES = {
   microscopio: [.45, () => microscopio()],
   cielo: [.45, () => cielo()],
   cinema: [.6, () => cinema()],
+  metamorfosi: [.45, () => metamorfosi()],
+  zoom: [.45, () => zoomInfinito()],
+  loop: [.5, () => loopImmagine()],
+  retroazione: [.45, () => retroazione()],
+  rutt: [.38, () => ruttEtra()],
+  iperbolico: [.45, () => iperbolico()],
+  luce: [.5, () => luceLiquida()],
+  cimatica: [.42, () => cimatica()],
+  kene: [.38, () => kene()],
+  wilson: [.42, () => lettering()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -5762,7 +5772,8 @@ function regiaTick(dt) {
   S.tscale += (S.tscaleT - S.tscale) * Math.min(1, dt * 2);   // i cambi di velocità si sentono subito
   if ((REGIA.tT -= dt) <= 0) nuovoTempo();
   REGIA.I = S.tscale; lorenz(dt);
-  if (RIT.phase || MONO.phase || TD.phase || MO.phase || SC.on || FO.hold || performance.now() < FERMO.until) return;
+  if (RIT.phase || MONO.phase || TD.phase || MO.phase || SC.on || FO.hold || performance.now() < FERMO.until || LP.phase === 'play') return;
+  if (metaTick(dt)) return;   // la metamorfosi: nessun taglio
   if (REGIA.over) {   // SOVRACCARICO: per pochi secondi tutto insieme, tagli fittissimi, fino a quattro motori
     if (performance.now() > REGIA.over) { REGIA.over = 0; S.tscaleT = rnd(...T().ts); const live = active.filter(a => a.target === 1 && !a.proc.persist); for (const a of live.slice(0, Math.max(0, live.length - 2))) { a.target = 0; a.rate = rnd(2, 4); a.shape = 'cerchio'; a.cx = rnd(W); a.cy = rnd(H); } S.tile = { nx: 1, ny: 1, mode: 'specchio', grid: false }; }
     else { if ((REGIA.cut -= dt) <= 0) { REGIA.cut = rnd(.08, .22); REGIA.n++;
@@ -5782,6 +5793,9 @@ function regiaTick(dt) {
     const ax = asse();
     if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
     if (ax === 'disordine') { w.glitch *= 2; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
+    if (ax === 'ordine') { w.metamorfosi *= 1.8; w.loop *= 1.6; w.iperbolico *= 1.5; w.kene *= 1.4; w.cimatica *= 1.4; w.retroazione *= .6; w.rutt *= .7; }
+    if (ax === 'disordine') { w.retroazione *= 1.6; w.rutt *= 1.4; w.luce *= 1.3; w.zoom *= 1.3; w.metamorfosi *= .4; w.kene *= .6; }
+    if (MF.on || NV.mode || LP.phase) { w.metamorfosi = w.zoom = w.loop = w.retroazione = w.rutt = 0; }
     let m;
     if (REGIA.modo === 'caos') {   // la mossa è quella che l'attrattore indica sull'anello delle mosse: vicine fra loro, con memoria
       const ks = Object.keys(w).filter(x => w[x] > 0), tot = ks.reduce((a, x) => a + w[x], 0);   // l'anello è diviso in archi proporzionali al peso di ogni mossa
@@ -6879,10 +6893,293 @@ function frame(t, dt) {
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   if (FLU.on && FLU.scia < 1) { vctx.imageSmoothingEnabled = true; vctx.globalAlpha = FLU.scia; vctx.drawImage(work, 0, 0, view.width, view.height); vctx.globalAlpha = 1; }   // la scia
   else vctx.drawImage(work, 0, 0, view.width, view.height);
+  nuoviFilm(Math.min(.1, dt || .033));
   passaggioDraw(); scenaDraw(Math.min(.1, dt || .033)); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
+
+
+/* =================== LA METAMORFOSI, LO ZOOM INFINITO, IL LOOP, LA RETROAZIONE, IL RUTT-ETRA,
+   IL DISCO IPERBOLICO, LA LUCE LIQUIDA, LA CIMATICA, IL KENÉ, IL LETTERING CHE SI SCIOGLIE ===================
+   Non altre immagini ma altri modi del tempo: una cosa che diventa l'altra senza taglio, la caduta dentro l'immagine,
+   il tempo che si incanta, l'immagine che guarda sé stessa, il suono che disegna. */
+
+// ---------- METAMORFOSI: per 20–40 s nessun taglio; i motori entrano ed escono lentissimi e i confini si fondono ----------
+const MF = { on: false, until: 0, next: 0 };
+function metamorfosi() {
+  if (MF.on || SC.on || MONO.phase || RIT.phase || TD.phase || LP.phase) return false;
+  Object.assign(MF, { on: true, until: performance.now() + rnd(20, 40) * 1000, next: 0 });
+  if (S.warp.type === 'nessuna' && Math.random() < .7) S.warp.next = 'liquido';
+  S.tscaleT = rnd(.8, 1.5); return true;
+}
+function metaTick(dt) {
+  if (!MF.on) return false;
+  if (performance.now() > MF.until) { MF.on = false; return false; }
+  if ((MF.next -= dt) <= 0) {
+    MF.next = rnd(5, 9);
+    const live = active.filter(a => a.target === 1 && !a.proc.persist);
+    if (live.length >= 2) { const o = live[0]; o.target = 0; o.rate = rnd(.05, .1); o.shape = 'tutto'; }
+    enter(motoreNuovo()); const a = active[active.length - 1]; a.rate = rnd(.05, .1); a.shape = 'tutto';
+    if (Math.random() < .45) { newPalette(); S.palDur = rnd(6, 12); }
+    if (Math.random() < .3) { S.hueVt = pick([-1, 1]) * rnd(.05, .2); S.cycVt = pick([-1, 1]) * rnd(.1, .3); }
+  }
+  return true;
+}
+
+// ---------- IL LOOP NELL'IMMAGINE: due o tre secondi si ripetono identici, poi a ogni giro qualcosa devia ----------
+const LP = { phase: '', frames: [], need: 0, odd: 0, i: 0, rep: 0, reps: 0, dev: '', hue: 0 };
+function loopImmagine() {
+  if (LP.phase || MF.on || SC.on || MONO.phase || RIT.phase || TD.phase || !W) return false;
+  Object.assign(LP, { phase: 'rec', frames: [], need: Math.round(rnd(22, 42)), odd: 0, i: 0, rep: 0, reps: 2 + Math.round(rnd(1, 5)),
+    dev: pick(['vivo', 'vivo', 'tinta', 'specchio', 'scala']), hue: pick([-1, 1]) * rnd(12, 40) }); return true;
+}
+function loopFilm(dt) {
+  if (!LP.phase) return;
+  if (LP.phase === 'rec') {   // registra a 15 fotogrammi al secondo, alla risoluzione del film
+    if ((LP.odd ^= 1)) { const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(work, 0, 0); LP.frames.push(c); }
+    if (LP.frames.length >= LP.need) { LP.phase = 'play'; LP.i = 0; LP.rep = 0; }
+    return;
+  }
+  const n = LP.frames.length; LP.i += dt * 15;
+  if (LP.i >= n) { LP.i -= n; LP.rep++; if (LP.rep >= LP.reps) { LP.phase = ''; LP.frames = []; return; } }
+  const fr = LP.frames[Math.min(n - 1, LP.i | 0)], u = LP.rep / LP.reps, vw = view.width, vh = view.height;
+  const mix = LP.dev === 'vivo' ? Math.pow(u, 1.4) * .95 : u * .35;   // a ogni giro il presente filtra un po' di più
+  vctx.save(); vctx.globalAlpha = 1 - mix; vctx.imageSmoothingEnabled = true;
+  if (LP.dev === 'tinta' && LP.rep) vctx.filter = `hue-rotate(${LP.hue * LP.rep}deg)`;
+  if (LP.dev === 'specchio' && LP.rep % 2) { vctx.translate(vw, 0); vctx.scale(-1, 1); }
+  if (LP.dev === 'scala' && LP.rep) { const s = 1 + .06 * LP.rep; vctx.translate(vw / 2, vh / 2); vctx.scale(s, s); vctx.rotate(.02 * LP.rep); vctx.translate(-vw / 2, -vh / 2); }
+  vctx.drawImage(fr, 0, 0, vw, vh); vctx.restore();
+}
+
+// ---------- ZOOM INFINITO, RETROAZIONE, RUTT-ETRA: modi che guardano il film stesso ----------
+const NV = { mode: '', t: 0, dur: 0, tin: 1, tout: 1, o: {}, u: 0 };
+const nvA = document.createElement('canvas'), nvB = document.createElement('canvas'), nvS = document.createElement('canvas');
+const nvSx = nvS.getContext('2d', { willReadFrequently: true });
+function nvInizia(mode, o, dur) {
+  if (NV.mode || SC.on || MONO.phase || RIT.phase || TD.phase || LP.phase === 'play' || !view.width) return false;
+  Object.assign(NV, { mode, t: 0, dur: dur || rnd(6, 11), tin: rnd(.8, 1.5), tout: rnd(.8, 1.5), o, u: 0 }); return true;
+}
+function zoomInfinito() {
+  const d = REGIA.dis;
+  return nvInizia('zoom', { r: rnd(.42, .62), per: rnd(1.6, 3.6) * (d < .3 ? 1.4 : d > .7 ? .7 : 1), dir: Math.random() < .8 ? 1 : -1,
+    rot: Math.random() < .5 ? 0 : pick([-1, 1]) * rnd(.15, .6), bordo: Math.random() < .5, dx: rnd(-.08, .08), dy: rnd(-.08, .08) });
+}
+function retroazione() {
+  const d = REGIA.dis, modo = pick(d < .3 ? ['tunnel', 'spirale', 'specchio'] : d > .7 ? ['spirale', 'esplosione', 'deriva'] : ['tunnel', 'spirale', 'deriva', 'specchio', 'esplosione']);
+  nvA.width = nvB.width = Math.round(view.width / 2); nvA.height = nvB.height = Math.round(view.height / 2);
+  const ok = nvInizia('retroazione', { modo, rot: pick([-1, 1]) * rnd(.01, .06) * (modo === 'spirale' ? 2 : 1), sc: modo === 'esplosione' ? rnd(1.04, 1.09) : modo === 'tunnel' ? rnd(.92, .97) : rnd(.97, 1.03),
+    viv: rnd(.25, .45), hue: rnd(1, 4) * pick([-1, 1]), dx: modo === 'deriva' ? rnd(-3, 3) : 0, dy: modo === 'deriva' ? rnd(-3, 3) : 0 });
+  if (ok) nvA.getContext('2d').drawImage(view, 0, 0, nvA.width, nvA.height);
+  return ok;
+}
+function ruttEtra() {
+  const d = REGIA.dis;
+  return nvInizia('rutt', { righe: Math.round(d < .3 ? rnd(22, 36) : d > .7 ? rnd(45, 80) : rnd(30, 55)), amp: rnd(.1, .25), tilt: rnd(.15, .55),
+    colore: pick(['film', 'film', 'verde', 'palette', 'bianco']), vert: Math.random() < .2, lw: rnd(1, 2.4) });
+}
+function nuoviFilm(dt) {
+  loopFilm(dt);
+  if (!NV.mode) return;
+  NV.t += dt; const t = NV.t, T2 = NV.tin + NV.dur, T3 = T2 + NV.tout;
+  if (t > T3) { NV.mode = ''; return; }
+  const e = t < NV.tin ? ease(t / NV.tin) : t < T2 ? 1 : 1 - ease((t - T2) / NV.tout), vw = view.width, vh = view.height, o = NV.o;
+  if (NV.mode === 'zoom') {   // il film dentro il film dentro il film (Droste): si cade dentro senza fine
+    if (nvS.width !== Math.round(vw / 2) || nvS.height !== Math.round(vh / 2)) { nvS.width = Math.round(vw / 2); nvS.height = Math.round(vh / 2); }
+    nvSx.drawImage(view, 0, 0, nvS.width, nvS.height);
+    NV.u = ((t / o.per) * o.dir % 1 + 1) % 1; const Z = Math.pow(o.r, -NV.u);
+    vctx.save(); vctx.globalAlpha = e; vctx.imageSmoothingEnabled = true;
+    for (let i = 0; i < 10; i++) {
+      const s = Z * Math.pow(o.r, i); if (s * vw < 3) break;
+      const cx = vw / 2 + o.dx * vw * (1 - s), cy = vh / 2 + o.dy * vh * (1 - s);
+      vctx.save(); vctx.translate(cx, cy); vctx.rotate(o.rot * (i - NV.u)); vctx.scale(s, s);
+      vctx.drawImage(nvS, -vw / 2, -vh / 2, vw, vh);
+      if (o.bordo && i) { vctx.lineWidth = 6 / s; vctx.strokeStyle = '#000'; vctx.strokeRect(-vw / 2, -vh / 2, vw, vh); }
+      vctx.restore();
+    }
+    vctx.restore(); return;
+  }
+  if (NV.mode === 'retroazione') {   // la telecamera puntata sul suo monitor: l'immagine rientra in sé, ruotata, scalata, con la tinta che gira
+    const w = nvA.width, h = nvA.height, b = nvB.getContext('2d');
+    b.save(); b.globalAlpha = 1; b.filter = `hue-rotate(${o.hue}deg) saturate(1.08)`; b.clearRect(0, 0, w, h);
+    b.translate(w / 2 + o.dx, h / 2 + o.dy); b.rotate(o.rot); b.scale(o.modo === 'specchio' ? -o.sc : o.sc, o.sc); b.translate(-w / 2, -h / 2);
+    b.drawImage(nvA, 0, 0); b.restore();
+    b.save(); b.globalAlpha = o.viv; b.drawImage(view, 0, 0, w, h); b.restore();
+    nvA.getContext('2d').clearRect(0, 0, w, h); nvA.getContext('2d').drawImage(nvB, 0, 0);
+    vctx.save(); vctx.globalAlpha = e; vctx.imageSmoothingEnabled = true; vctx.drawImage(nvA, 0, 0, vw, vh); vctx.restore(); return;
+  }
+  if (NV.mode === 'rutt') {   // il Rutt-Etra: l'immagine diventa un rilievo di righe sollevate dalla luce
+    const R = o.righe, C = Math.round(R * 2.2);
+    if (nvS.width !== C || nvS.height !== R) { nvS.width = C; nvS.height = R; }
+    nvSx.drawImage(view, 0, 0, C, R); const d = nvSx.getImageData(0, 0, C, R).data;
+    vctx.save(); vctx.globalAlpha = e; vctx.fillStyle = '#000'; vctx.fillRect(0, 0, vw, vh);
+    vctx.lineWidth = o.lw * (vw / 1200); vctx.lineJoin = 'round';
+    const tilt = o.tilt * (.8 + .2 * Math.sin(t * .4)), amp = o.amp * vh * (.85 + .15 * Math.sin(t * .7)), pal = palCss();
+    for (let j = 0; j < R; j++) {
+      const yb = vh * (.12 + .8 * (tilt * (j / R) ** 1.6 + (1 - tilt) * j / R)), sx = vw * (.04 + .02 * tilt * (1 - j / R));
+      let px = 0, py = 0;
+      for (let i = 0; i < C; i++) {
+        const q = (j * C + i) * 4, L = (.3 * d[q] + .59 * d[q + 1] + .11 * d[q + 2]) / 255;
+        const x = sx + (vw - 2 * sx) * i / (C - 1), y = yb - L * amp * (.4 + .6 * j / R);
+        if (i) { vctx.strokeStyle = o.colore === 'film' ? `rgb(${d[q]},${d[q + 1]},${d[q + 2]})` : o.colore === 'verde' ? `rgba(80,255,120,${.35 + .65 * L})` : o.colore === 'bianco' ? `rgba(255,255,255,${.3 + .7 * L})` : pal[(j + (L * 4 | 0)) % pal.length];
+          vctx.beginPath(); vctx.moveTo(px, py); vctx.lineTo(x, y); vctx.stroke(); }
+        px = x; py = y;
+      }
+    }
+    vctx.restore();
+  }
+}
+
+// ---------- IL DISCO IPERBOLICO: tassellature {p,q} nel disco di Poincaré, come i Limiti del cerchio di Escher ----------
+const PQ = [[3, 7], [7, 3], [4, 5], [5, 4], [4, 6], [6, 4], [3, 8], [8, 3], [5, 5], [4, 8], [3, 10], [6, 6]];
+function iperbolico() {
+  const [p, q] = pick(PQ), a = Math.PI / p, b = Math.PI / q, r = Math.sin(a) / Math.sqrt(Math.cos(b) ** 2 - Math.sin(a) ** 2), d0 = Math.sqrt(1 + r * r);
+  const c = currentPalette().c.map(x => x.slice(0, 3).map(Math.round));
+  return scenaInizia('iperbolico', { p, q, sa: Math.sin(a), ca: Math.cos(a), r, d0, c, k: 1 + ((Math.random() * Math.min(5, c.length)) | 0), linee: Math.random() < .7,
+    fondo: Math.random() < .6 ? [0, 0, 0] : pick(c), wa: rnd(.05, .2), wb: rnd(.04, .15), am: rnd(.2, .55), wr: pick([-1, 1]) * rnd(.03, .15), cv: document.createElement('canvas'), hold: rnd(7, 11) });
+}
+SCENE.iperbolico = (g, w, h, t, dt, o) => {
+  const m = Math.min(w, h), S0 = Math.min(300, Math.round(m * .9)), cv = o.cv;
+  if (!o.id || cv.width !== S0) { cv.width = cv.height = S0; o.id = cv.getContext('2d').createImageData(S0, S0); }
+  const D = o.id.data, ax = o.am * Math.cos(t * o.wa * 6.28), ay = o.am * Math.sin(t * o.wb * 6.28), th = t * o.wr * 6.28, ct = Math.cos(th), st = Math.sin(th);
+  const sa = o.sa, ca = o.ca, rr = o.r * o.r, d0 = o.d0, NC2 = o.c.length, lw = o.linee ? .012 : -1, F = o.fondo;
+  for (let j = 0; j < S0; j++) for (let i = 0; i < S0; i++) {
+    let x = (i + .5) / S0 * 2 - 1, y = (j + .5) / S0 * 2 - 1; const k4 = (j * S0 + i) * 4, r2 = x * x + y * y;
+    if (r2 >= 1) { D[k4] = F[0]; D[k4 + 1] = F[1]; D[k4 + 2] = F[2]; D[k4 + 3] = 255; continue; }
+    // moto iperbolico: (z − a) / (1 − ā z), poi una rotazione
+    const nx = x - ax, ny = y - ay, dx = 1 - (ax * x + ay * y), dy = -(ax * y - ay * x), dd = dx * dx + dy * dy;
+    let zx = (nx * dx + ny * dy) / dd, zy = (ny * dx - nx * dy) / dd; x = zx * ct - zy * st; y = zx * st + zy * ct;
+    let n = 0, inv = 0;
+    for (let it = 0; it < 60; it++) {
+      let ch = false;
+      if (y < 0) { y = -y; n++; ch = true; }
+      const s = -x * sa + y * ca; if (s > 0) { x += 2 * s * sa; y -= 2 * s * ca; n++; ch = true; }
+      const ux = x - d0, q2 = ux * ux + y * y; if (q2 < rr) { const f = rr / q2; x = d0 + ux * f; y = y * f; n++; inv++; ch = true; }
+      if (!ch) break;
+    }
+    const col = o.c[(inv * o.k + (n & 1)) % NC2];
+    let L = 1;
+    if (lw > 0) { const e1 = y, e2 = Math.abs(-x * sa + y * ca), e3 = Math.abs(Math.sqrt((x - d0) ** 2 + y * y) - o.r), em = Math.min(e1, e2, e3); if (em < lw) L = .15; }
+    D[k4] = col[0] * L; D[k4 + 1] = col[1] * L; D[k4 + 2] = col[2] * L; D[k4 + 3] = 255;
+  }
+  cv.getContext('2d').putImageData(o.id, 0, 0);
+  g.fillStyle = `rgb(${F.join(',')})`; g.fillRect(0, 0, w, h); g.imageSmoothingEnabled = true; g.drawImage(cv, (w - m) / 2, 0, m, m);
+};
+
+// ---------- LA LUCE LIQUIDA: olio e inchiostri tra due vetri sul proiettore, come negli spettacoli di luce degli anni Sessanta ----------
+function luceLiquida() {
+  const P = currentPalette().c.map(x => x.slice(0, 3).map(Math.round)), d = REGIA.dis, nInk = d > .7 ? 3 : pick([2, 3]);
+  const inks = Array.from({ length: nInk }, () => ({ c: pick(P), b: Array.from({ length: 5 + ((Math.random() * 5) | 0) }, () => ({ x: rnd(), y: rnd(), r: rnd(.1, .26), vx: gauss() * .02, vy: gauss() * .02, ph: rnd(6.28) })) }));
+  return scenaInizia('luce', { inks, luce: Math.random() < .45 ? [255, 246, 228] : pick(P).map(v => Math.min(255, v * 1.15 + 30)), bolle: Array.from({ length: 8 + ((Math.random() * 14) | 0) }, () => ({ x: rnd(), y: rnd(), r: rnd(.01, .05), vx: gauss() * .01, vy: gauss() * .01 })),
+    per: rnd(2.5, 6) * (d > .7 ? .6 : 1), lampada: Math.random() < .6, cv: document.createElement('canvas'), hold: rnd(7, 11) });
+}
+SCENE.luce = (g, w, h, t, dt, o) => {
+  const cw = 200, ch = Math.max(60, Math.round(200 * h / w)), cv = o.cv; if (!o.id || cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; o.id = cv.getContext('2d').createImageData(cw, ch); }
+  const D = o.id.data, ar = cw / ch, puls = 1 + .22 * Math.sin(t / o.per * 6.28) + .1 * Math.sin(t / o.per * 15.7);
+  for (const k of o.inks) for (const b of k.b) { b.vx += (gauss() * .02 - b.vx * .2) * dt + Math.sin(b.y * 6 + t * .3) * .004 * dt; b.vy += (gauss() * .02 - b.vy * .2) * dt + Math.cos(b.x * 5 - t * .2) * .004 * dt; b.x = mod(b.x + b.vx * dt, 1); b.y = mod(b.y + b.vy * dt, 1); }
+  for (const b of o.bolle) { b.x = mod(b.x + b.vx * dt, 1); b.y = mod(b.y + b.vy * dt, 1); }
+  const Lc = o.luce;
+  for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+    const x = i / cw, y = j / ch; let R = Lc[0], G = Lc[1], B = Lc[2], edge = 0;
+    for (const k of o.inks) {
+      let f = 0; for (const b of k.b) { let dx = Math.abs(x - b.x); dx = Math.min(dx, 1 - dx) * ar; let dy = Math.abs(y - b.y); dy = Math.min(dy, 1 - dy); const rr = b.r * puls * (1 + .15 * Math.sin(t * 1.3 + b.ph)); f += rr * rr / (dx * dx + dy * dy + 1e-4); }
+      const a = clamp((f - .6) / .8, 0, 1), aa = a * a * (3 - 2 * a);
+      R *= 1 - aa * (1 - k.c[0] / 255); G *= 1 - aa * (1 - k.c[1] / 255); B *= 1 - aa * (1 - k.c[2] / 255);
+      edge = Math.max(edge, Math.exp(-(((f - 1) / .18) ** 2)));
+    }
+    let bl = 1; for (const b of o.bolle) { let dx = Math.abs(x - b.x); dx = Math.min(dx, 1 - dx) * ar; const dy = y - b.y, dd = Math.sqrt(dx * dx + dy * dy) / (b.r * puls); if (dd < 1.12) bl = dd < .88 ? 1.18 : .7; }
+    const v = (o.lampada ? Math.max(.15, 1 - ((x - .5) * ar) ** 2 * .9 - ((y - .5) * 1.6) ** 2 * .5) : 1) * (1 + edge * .3) * bl;
+    const k4 = (j * cw + i) * 4; D[k4] = R * v; D[k4 + 1] = G * v; D[k4 + 2] = B * v; D[k4 + 3] = 255;
+  }
+  cv.getContext('2d').putImageData(o.id, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cv, 0, 0, w, h);
+};
+
+// ---------- LA CIMATICA: la sabbia sulla piastra che vibra (Chladni, Hans Jenny) si raccoglie sulle linee dove la nota non muove ----------
+function cimatica() {
+  const P = palCss(), sabbia = Math.random() < .5 ? '#f3ead2' : pick(P);
+  let fondo = Math.random() < .55 ? '#0b0b0b' : pick(P); if (fondo === sabbia) fondo = '#0b0b0b';
+  const o = { sabbia, fondo, n: 0, m: 0, s: 1, next: 0, pt: Array.from({ length: 9000 }, () => [rnd(), rnd()]), freq: 0, hold: rnd(9, 14) };
+  cimaModo(o); return scenaInizia('cimatica', o);
+}
+function cimaModo(o) {
+  let n, m; do { n = 1 + ((Math.random() * 7) | 0); m = 1 + ((Math.random() * 7) | 0); } while (n === m || (n === o.n && m === o.m));
+  Object.assign(o, { n, m, s: pick([1, -1]), next: rnd(2.8, 4.5) }); o.freq = 55 * Math.sqrt((n * n + m * m) / 2);
+}
+SCENE.cimatica = (g, w, h, t, dt, o) => {
+  if ((o.next -= dt) <= 0) cimaModo(o);
+  const PI = Math.PI, n = o.n * PI, m = o.m * PI, s = o.s;
+  for (const p of o.pt) {   // la sabbia salta dove la piastra vibra e scivola verso le linee dove resta ferma
+    const x = p[0], y = p[1], cnx = Math.cos(n * x), cmy = Math.cos(m * y), cmx = Math.cos(m * x), cny = Math.cos(n * y), f = cnx * cmy - s * cmx * cny;
+    const gx = -n * Math.sin(n * x) * cmy + s * m * Math.sin(m * x) * cny, gy = -m * cnx * Math.sin(m * y) + s * n * cmx * Math.sin(n * y), z = Math.abs(f) * .012 + .0012;
+    p[0] = clamp(x - .0012 * f * gx + gauss() * z, 0, 1); p[1] = clamp(y - .0012 * f * gy + gauss() * z, 0, 1);
+  }
+  const L = Math.min(w, h) * .9, x0 = (w - L) / 2, y0 = (h - L) / 2;
+  g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.fillStyle = o.fondo; g.fillRect(x0, y0, L, L);
+  g.fillStyle = o.sabbia; const sz = Math.max(1, L / 300); for (const p of o.pt) g.fillRect(x0 + p[0] * L, y0 + p[1] * L, sz, sz);
+};
+
+// ---------- IL KENÉ: i disegni degli Shipibo-Konibo (Amazzonia peruviana), canti resi visibili; qui un disegno nuovo, nella loro grammatica ----------
+function kene() {
+  const P = palCss(), terra = Math.random() < .55;
+  const fondo = terra ? pick(['#efe3c8', '#e8d9b5', '#d9c19a']) : pick(P), linea = terra ? pick(['#1a120c', '#3a2416', '#5b1a12']) : '#000', fine = terra ? pick(['#3a2416', '#7a2e1c', '#1a120c']) : pick(P);
+  const gx = 12 + ((Math.random() * 7) | 0), gy = Math.round(gx * .62), seg = [], used = new Set(), key = (a, b, c, d) => a < c || (a === c && b < d) ? `${a},${b},${c},${d}` : `${c},${d},${a},${b}`;
+  // cammini ad angolo retto in un quarto, poi specchiati: la simmetria del disegno
+  for (let k = 0; k < 12 + ((Math.random() * 9) | 0); k++) {
+    let x = (Math.random() * gx) | 0, y = (Math.random() * gy) | 0, dir = (Math.random() * 4) | 0;
+    for (let st = 0; st < 6 + ((Math.random() * 14) | 0); st++) {
+      if (Math.random() < .35) dir = (dir + pick([1, 3])) % 4;
+      const nx = x + [1, 0, -1, 0][dir], ny = y + [0, 1, 0, -1][dir];
+      if (nx < 0 || ny < 0 || nx > gx || ny > gy) { dir = (dir + 2) % 4; continue; }
+      const kk = key(x, y, nx, ny); if (!used.has(kk)) { used.add(kk); seg.push([x, y, nx, ny]); } x = nx; y = ny;
+    }
+  }
+  for (let k = 0; k < 2 + ((Math.random() * 3) | 0); k++) { const x = 1 + ((Math.random() * (gx - 1)) | 0), y = 1 + ((Math.random() * (gy - 1)) | 0);   // le croci
+    for (const [a, b, c, d] of [[x - 1, y, x + 1, y], [x, y - 1, x, y + 1]]) { seg.push([a, b, (a + c) / 2, (b + d) / 2]); seg.push([(a + c) / 2, (b + d) / 2, c, d]); } }
+  return scenaInizia('kene', { fondo, linea, fine, gx, gy, seg, hold: rnd(8, 12) });
+}
+SCENE.kene = (g, w, h, t, dt, o) => {
+  const m = Math.min(w, h); g.fillStyle = o.fondo; g.fillRect(0, 0, w, h);
+  const cell = Math.min(w / (o.gx * 2 + 1), h / (o.gy * 2 + 1)), ox = w / 2, oy = h / 2;
+  const shown = Math.min(o.seg.length, Math.floor((SC.t - SC.tin * .3) * o.seg.length / 5.5));   // il disegno si traccia come si canta
+  const mir = (x, y) => [[ox + x * cell, oy + y * cell], [ox - x * cell, oy + y * cell], [ox + x * cell, oy - y * cell], [ox - x * cell, oy - y * cell]];
+  g.lineCap = 'square';
+  for (const [col, lw, off] of [[o.fine, cell * .06, .3], [o.fine, cell * .06, -.3], [o.linea, cell * .22, 0]]) {
+    g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+    for (let i = 0; i < Math.max(0, shown); i++) { const [a, b, c, d] = o.seg[i], vert = a === c;
+      const A = mir(a + (vert ? off : 0), b + (vert ? 0 : off)), B = mir(c + (vert ? off : 0), d + (vert ? 0 : off));
+      for (let q = 0; q < 4; q++) { g.moveTo(A[q][0], A[q][1]); g.lineTo(B[q][0], B[q][1]); } }
+    g.stroke();
+  }
+  if (SC.t < SC.tin + 2.4) { g.globalAlpha = clamp(Math.min(SC.t - SC.tin * .5, SC.tin + 2.4 - SC.t), 0, 1) * .8; g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 3; g.font = `${Math.round(m * .03)}px "Courier New", monospace`; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    const s = 'kené · Shipibo-Konibo, Amazzonia peruviana: il canto che diventa disegno'; g.strokeText(s, m * .04, h - m * .04); g.fillText(s, m * .04, h - m * .04); g.globalAlpha = 1; }
+};
+
+// ---------- IL LETTERING CHE SI SCIOGLIE: come i manifesti di Wes Wilson, le lettere gonfiano fino a riempire una forma ----------
+const PAROLE_W = ['LUCE', 'VUOTO', 'ONDA', 'SOGNO', 'TUTTO', 'NIENTE', 'ADESSO', 'QUI', 'ANIMA', 'MARE', 'SOLE', 'TEMPO', 'OLTRE', 'DENTRO', 'INFINITO', 'RESPIRA', 'GUARDA', 'FIORE', 'NOTTE', 'ORA', 'OM', 'ALTROVE', 'SEMPRE', 'MAI', 'ACQUA', 'FUOCO', 'ARIA', 'TERRA', 'CIELO', 'SPECCHIO', 'PSICHEDELICO', 'VISIONE', 'SILENZIO', 'AMORE'];
+function lettering() {
+  const P = currentPalette().c.map(x => x.slice(0, 3)), hsl = P.map(c => rgb2hsl(...c));
+  let A = 0, B = 1, best = -1; for (let i = 0; i < P.length; i++) for (let j = 0; j < P.length; j++) if (i !== j) { const dh = Math.abs(((hsl[i][0] - hsl[j][0]) % 1 + 1.5) % 1 - .5), sc = dh - Math.abs(hsl[i][2] - hsl[j][2]) * .6; if (sc > best) { best = sc; A = i; B = j; } }
+  const coppie = [['#e8222b', '#18a04a'], ['#ff7a00', '#1c4fd8'], ['#e020a0', '#26c43c'], ['#f0e020', '#7a28d0'], ['#ff3a2a', '#20b8c8']];
+  const [fondo, segno] = Math.random() < .5 ? [P[A], P[B]].map(c => `rgb(${c.map(Math.round).join(',')})`) : pick(coppie);
+  const n = pick([1, 1, 2, 2, 3]), righe = Array.from({ length: n }, () => pick(PAROLE_W));
+  const cv = document.createElement('canvas'), tw = 900, th = 260 * n; cv.width = tw; cv.height = th; const c = cv.getContext('2d');
+  c.fillStyle = segno; c.textAlign = 'center'; c.textBaseline = 'middle';
+  righe.forEach((r, i) => { c.font = `800 200px "Archivo", "Arial Black", sans-serif`; const mw = c.measureText(r).width; c.save(); c.translate(tw / 2, (i + .5) * th / n); c.scale(tw * .98 / mw, 1.25); c.fillText(r, 0, 0); c.restore(); });
+  return scenaInizia('lettering', { fondo, segno, cv, forma: pick(['cerchio', 'fiamma', 'vaso', 'goccia', 'clessidra', 'onda']), sciogli: rnd(.4, 1), parole: righe.join(' '), hold: rnd(6, 10) });
+}
+SCENE.lettering = (g, w, h, t, dt, o) => {
+  g.fillStyle = o.fondo; g.fillRect(0, 0, w, h);
+  const H0 = h * .92, top = (h - H0) / 2, cx = w / 2, Wm = Math.min(w * .92, H0 * 1.25), cv = o.cv, th = cv.height, tw = cv.width;
+  const spec = { cerchio: u => Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 2)), fiamma: u => Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.1)), .7) * (.35 + .65 * u), vaso: u => .45 + .3 * Math.sin(u * 9.4 - 1) * (1 - u * .3) + .2 * u,
+    goccia: u => u < .55 ? Math.pow(u / .55, 1.3) * .7 : Math.sqrt(Math.max(0, 1 - ((u - .55) / .45) ** 2)), clessidra: u => .3 + .7 * Math.abs(2 * u - 1), onda: u => .75 + .25 * Math.sin(u * 12.6 + t) }[o.forma];
+  const melt = o.sciogli * Math.min(1, t / 6);
+  for (let y = 0; y < H0; y += 1) {
+    const u = y / H0, hw = spec(u) * Wm / 2; if (hw < 1) continue;
+    const wob = Math.sin(u * 23 + t * 1.7) * Wm * .015 * melt + Math.sin(u * 7 - t * .9) * Wm * .03 * melt;
+    let sy = u * th + Math.sin(u * 17 + t * 2.1) * th * .012 * melt; sy = clamp(sy, 0, th - 1);
+    g.drawImage(cv, 0, sy | 0, tw, 1, cx - hw + wob, top + y, hw * 2, 1.6);
+  }
+};
 
 /* =================== CICLO =================== */
 let last = performance.now(), paused = false, showLines = false;
@@ -6925,7 +7222,7 @@ function updateInfo() {
   if (performance.now() < noteUntil) return;
   info.textContent = (REGIA.on ? `${FO.kind ? 'fosfeni: ' + FONOMI[FO.kind] + ' · ' : ''}${FL.on ? 'lampeggio ' + (FL.tipo || '') + (FLF.forma ? ' → ' + FLF.forma : '') + ' · ' : ''}${REGIA.modo} · ${asse()} ${REGIA.dis.toFixed(2)} · tempo: ${REGIA.over ? 'SOVRACCARICO' : REGIA.tempo}${REGIA.voce ? ' · voce' : ''} · velocità ${S.tscale.toFixed(1)} · tagli ${REGIA.n}\n` : '') + `${active.map(a => a.proc.name + (a.target ? '' : ' ↘')).join(' × ')}  ·  ${S.palTo.name}  ·  simmetria: ${S.sym}\n` +
     `mosaico: ${S.tile.nx}×${S.tile.ny} ${S.tile.nx > 1 ? S.tile.mode : ''}  ·  distorsione: ${S.warp.next}  ·  eco: ${S.echo.on ? 'sì' : 'no'}\n` +
-    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ? immagine ambigua · ! mostro (MOSTRAI) · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · L: confini · P: pausa · F: schermo intero`;
+    `spazio/clic: nuovo processo · ↓: togli · C: colori · K: simmetria · T: mosaico · D: distorsione · E: eco · M: mandala · V: telecamera · A: figura · O: omaggio · I: illusione · X: lettere · N: monocromo · H: bande · B: Boetti · J: arte islamica · Q: solidi · Y: quadri classici · W: arte concreta · 7: Yturralde · 6: Rorschach · 5: sagome · 4: lettera a piena pagina · 3: entrata nel 3D · 2: labirinto fermo · 1: labirinto nel flusso · Invio: cambia tempo · , canale di Shannon · . gioco del caos · - caso/caos · ? immagine ambigua · ! mostro (MOSTRAI) · ' volto · + natura · < blotter · * fosfeni · 9: tessuto fermo · 8: tessuto nel flusso · U: spirali (girasoli, mosaici romani, dischi polari, Douady–Couder) · R: glitch · Z: lampeggio · 0: lampeggio sì/no · G: fiori · S: serie · ; metamorfosi · : zoom infinito · _ loop · % retroazione · $ Rutt-Etra · / disco iperbolico · & luce liquida · ( cimatica · ) kené · " o ì lettering · L: confini · P: pausa · F: schermo intero`;
 }
 let uiTimer;
 function note(msg) { noteUntil = performance.now() + 4000; document.body.classList.add('ui'); info.textContent = msg; clearTimeout(uiTimer); uiTimer = setTimeout(() => document.body.classList.remove('ui'), 4000); }
@@ -6965,6 +7262,16 @@ addEventListener('keydown', e => {
   else if (k === 'à' || k === ']') { if (microscopio()) note('microscopio'); }
   else if (k === '@' || k === '°') { if (cielo()) note('cielo: ' + SC.o.cost.map(c => c.nome).join(', ')); }
   else if (k === 'ç' || k === '`' || k === '\\') { if (cinema()) note('cinema · ' + CINE_NOMI[SC.o.k]); }
+  else if (k === ';') { if (metamorfosi()) note('metamorfosi'); }
+  else if (k === ':') { if (zoomInfinito()) note('zoom infinito'); }
+  else if (k === '_') { if (loopImmagine()) note('loop · ' + LP.dev); }
+  else if (k === '%') { if (retroazione()) note('retroazione · ' + NV.o.modo); }
+  else if (k === '$') { if (ruttEtra()) note('Rutt-Etra · ' + NV.o.colore); }
+  else if (k === '/') { if (iperbolico()) note('disco iperbolico {' + SC.o.p + ',' + SC.o.q + '}'); }
+  else if (k === '&') { if (luceLiquida()) note('luce liquida'); }
+  else if (k === '(') { if (cimatica()) note('cimatica'); }
+  else if (k === ')') { if (kene()) note('kené'); }
+  else if (k === '"' || k === 'ì') { if (lettering()) note('lettering · ' + SC.o.parole + ' · ' + SC.o.forma); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
@@ -6995,7 +7302,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, TD, MF, LP, NV }; window.__NUOVI = { metamorfosi, zoomInfinito, loopImmagine, retroazione, ruttEtra, iperbolico, luceLiquida, cimatica, kene, lettering, SC, NV, LP, MF }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
@@ -7162,6 +7469,14 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
   let cuoreNext = 0;
   const cuore = t0 => { osc('sine', 62, t0, .16, .55, null, 38); osc('sine', 55, t0 + .22, .14, .35, null, 34); };   // il cuore: i vasi pulsano col suo battito
 
+  let cima = null;
+  function notaCima(fq) {   // la nota della piastra: cambia quando cambia la figura di Chladni
+    const c = A.ctx, t = c.currentTime;
+    if (fq && !cima) { const o = c.createOscillator(), o2 = c.createOscillator(), e = c.createGain(), e2 = c.createGain(); o.frequency.value = fq; o2.frequency.value = fq * 2; e2.gain.value = .25;
+      o2.connect(e2); e2.connect(e); o.connect(e); e.gain.value = 0; e.connect(N.bell); o.start(); o2.start(); cima = { o, o2, e }; e.gain.setTargetAtTime(.05, t, .4); }
+    if (cima && fq) { cima.o.frequency.setTargetAtTime(fq, t, .05); cima.o2.frequency.setTargetAtTime(fq * 2, t, .05); }
+    if (cima && !fq) { const x = cima; cima = null; x.e.gain.setTargetAtTime(0, t, .4); setTimeout(() => { try { x.o.stop(); x.o2.stop(); } catch (er) {} }, 2500); }
+  }
   function regola() {
     if (!N || !window.__PS) return; ({ REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv } = window.__PS);
     const c = A.ctx, t = c.currentTime, k = .15;
@@ -7214,6 +7529,15 @@ window.__S = S; window.__active = active; window.__enter = enter; window.__P = P
       if (FL.on) { const dtF = (performance.now() - FL.t0) / 1000, D = Math.max(.1, (FL.until - FL.t0) / 1000), fi = FL.f0 + (FL.f1 - FL.f0) * dtF / D; if (fi <= 30) { on = true; bf = fi; bc = 330; bg = .045; } }
       else if (fk === 'chiusi' || (fk === 'ganzfeld' && fu < .72)) on = true;
       binaurale(on, bf, bc, bg); }
+    // i modi nuovi di PSICHEDELICO: la cimatica fa sentire la nota che disegna la figura; il loop incanta il suono;
+    // la retroazione lo fa rientrare in sé; lo zoom infinito apre il filtro a ogni caduta; la luce liquida lo scurisce e lo bagna; la metamorfosi toglie gli scatti
+    { const PSn = window.__PS, sc = PSn.SC, nv = PSn.NV, lp = PSn.LP, mf = PSn.MF;
+      notaCima(sc && sc.on && sc.tipo === 'cimatica' ? sc.o.freq : 0);
+      if (lp && lp.phase === 'play') { fb = Math.max(fb, .8); wet = Math.max(wet, .65); tr = 0; }
+      if (nv && nv.mode === 'retroazione') { fb = Math.max(fb, .78); wet = Math.max(wet, .6); }
+      if (nv && nv.mode === 'zoom') f *= .6 + 1.6 * (nv.u || 0);
+      if (sc && sc.on && sc.tipo === 'luce') { f = Math.min(f, 1600); wet = Math.max(wet, .5); }
+      if (mf && mf.on) { tr = 0; pr = Math.min(pr, .08); } }
     // ogni taglio del montaggio: uno scatto del filtro e un salto dell'eco (lo stiramento del nastro)
     if (REGIA.n !== ultimoTaglio) {
       if (ultimoTaglio >= 0 && !m && !l) {
