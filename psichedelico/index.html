@@ -5748,6 +5748,8 @@ const MOVES = {
   cinema: [.6, () => cinema()],
   barocco: [.6, () => barocco()],
   trasparenza: [.8, () => trasparenza()],
+  poesia: [.7, () => poesiaVisiva()],
+  teschio: [.45, () => teschio()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -6682,6 +6684,122 @@ function trasparenzaDraw(dt) {
   vctx.save(); vctx.globalAlpha = TR.modo === 'passaggio' ? 1 : clamp(e * 1.5, 0, 1); vctx.imageSmoothingEnabled = false; vctx.drawImage(TR.cv, 0, 0, view.width, view.height); vctx.restore();
 }
 
+/* ---------- POESIA VISIVA: le lettere combinate come nella poesia visiva e concreta, italiana e internazionale ---------- */
+const POESIE = ['libere', 'libere', 'calligramma', 'silenzio', 'silenzio', 'ordine', 'costellazione', 'mela', 'lusso', 'cancellatura', 'cancellatura', 'cerchi', 'belloli', 'zeroglifici', 'fiume', 'macchina', 'lettrismo', 'ping', 'o'];
+const POESIA_NOMI = { libere: 'parole in libertà (Marinetti)', calligramma: 'calligramma (Apollinaire)', silenzio: 'silenzio (Gomringer)', ordine: 'ordine/disordine (Timm Ulrichs)', costellazione: 'costellazione (Gomringer)', mela: 'mela (Reinhard Döhl)', lusso: 'lusso/lisso (Augusto de Campos)',
+  cancellatura: 'cancellatura (Emilio Isgrò)', cerchi: 'dischi di testo (Ferdinand Kriwet)', belloli: 'testi-poemi (Carlo Belloli)', zeroglifici: 'zeroglifici (Adriano Spatola)', fiume: 'fiume / isola (Seiichi Niikuni)', macchina: 'dattilopoema (Houédard, Chopin)', lettrismo: 'lettrismo (Isou)', ping: 'ping pong (Gomringer)', o: 'la O (Mirella Bentivoglio)' };
+const ONOMA = ['ZANG', 'TUMB', 'TUUUM', 'TATATATA', 'BRRRR', 'ZZZZ', 'PIC PAC', 'FLIC FLAC', 'TRAAK', 'SCRABRRR', 'VLAN', 'BUUM', 'ZUM', 'CRAAK', 'DUM DUM', 'SSSSS', 'TA TA', 'URRAAA'];
+const PAROLE_V = ['luce', 'occhio', 'mare', 'notte', 'fuoco', 'velocità', 'cielo', 'vento', 'città', 'macchina', 'rumore', 'sole', 'colore', 'segno', 'spazio', 'tempo', 'corpo', 'voce', 'onda', 'nulla', 'tutto', 'più', 'meno', 'sì', 'no', 'io', 'tu', 'qui', 'ora', 'sempre', 'mai'];
+const VFONT = ['"Helvetica Neue", Helvetica, Arial, sans-serif', '"Futura", "Century Gothic", sans-serif', 'Georgia, serif', '"Courier New", monospace', '"Times New Roman", serif', 'Impact, sans-serif', '"Arial Black", sans-serif', 'Didot, "Bodoni 72", serif', 'Rockwell, serif'];
+function poesiaVisiva(k) {
+  const d = REGIA.dis; k = k || pick(d < .3 ? ['silenzio', 'ordine', 'costellazione', 'mela', 'lusso', 'belloli', 'fiume', 'ping', 'o', 'cerchi', 'calligramma'] : d > .7 ? ['libere', 'libere', 'zeroglifici', 'lettrismo', 'cancellatura', 'macchina', 'calligramma', 'cerchi'] : POESIE);
+  const P = palCss(), bw = Math.random() < .55, fg = bw ? (Math.random() < .5 ? '#111' : '#f4f1ea') : pick(P); let bg = bw ? (fg === '#111' ? '#f4f1ea' : '#111') : pick(P.filter(c => c !== fg)) || '#111';
+  const o = { k, fg, bg, P, colori: !bw && Math.random() < .5, font: pick(VFONT), sd: rnd(1000), hold: rnd(5, 8), parola: pick(PAROLE_V) };
+  if (k === 'libere') o.pezzi = Array.from({ length: 14 + ((Math.random() * 16) | 0) }, () => ({ s: Math.random() < .5 ? pick(ONOMA) : Math.random() < .7 ? pick(PAROLE_V).toUpperCase() : pick(['+', '−', '×', '=', '∞', '%', '!!!', '→', '>']), x: rnd(), y: rnd(), r: gauss() * .5, z: rnd(.03, .16), f: pick(VFONT), w: pick(['400', '700', '900', 'italic 700']), c: Math.random(), t0: rnd(0, 3), v: rnd(-.04, .04) }));
+  if (k === 'cancellatura') { o.righe = Array.from({ length: 14 }, () => Array.from({ length: 6 + ((Math.random() * 6) | 0) }, () => pick(PAROLE_V.concat(['il', 'di', 'che', 'la', 'una', 'nel', 'come', 'per', 'non']))).join(' ')); o.salva = new Set(Array.from({ length: 2 + ((Math.random() * 3) | 0) }, () => (Math.random() * 14) | 0)); }
+  if (k === 'lettrismo') o.lett = Array.from({ length: 60 }, () => ({ c: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0], x: rnd(), y: rnd(), r: rnd(6.28), z: rnd(.03, .2), vr: gauss() * .5 }));
+  if (k === 'zeroglifici') o.lett = Array.from({ length: 10 + ((Math.random() * 10) | 0) }, () => ({ c: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0], x: rnd(.1, .9), y: rnd(.1, .9), z: rnd(.15, .45), cx: rnd(), cy: rnd(), cw: rnd(.3, .7), r: gauss() * .3 }));
+  POESIA_NOMI.ultimo = POESIA_NOMI[k];
+  return scenaInizia('poesia', o);
+}
+SCENE.poesia = (g, w, h, t, dt, o) => {
+  const m = Math.min(w, h), cx = w / 2, cy = h / 2, F = (sz, wt = '700') => `${wt} ${Math.round(sz)}px ${o.font}`, col = i => o.colori ? o.P[((i % o.P.length) + o.P.length) % o.P.length] : o.fg;
+  g.fillStyle = o.bg; g.fillRect(0, 0, w, h); g.fillStyle = o.fg; g.strokeStyle = o.fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const cresce = clamp(t / 3, 0, 1);
+  switch (o.k) {
+    case 'libere': for (const p of o.pezzi) { if (t < p.t0) continue; const z = p.z * m * (1 + .2 * Math.sin(t * 2 + p.x * 9)); g.save(); g.translate((p.x + p.v * t) * w, p.y * h); g.rotate(p.r); g.font = `${p.w} ${Math.round(z)}px ${p.f}`; g.fillStyle = o.colori ? o.P[(p.c * o.P.length) | 0] : o.fg; g.fillText(p.s, 0, 0); g.restore(); } break;
+    case 'calligramma': {   // le parole cadono come pioggia, o disegnano una forma
+      g.font = F(m * .04, '400'); const testo = ('il ' + o.parola + ' piove ' + o.parola + ' cade ').repeat(6);
+      if (o.sd % 2 < 1) { for (let c = 0; c < 9; c++) { const x = w * (.1 + c * .1) + Math.sin(c) * w * .02; for (let i = 0; i < 26; i++) { const y = ((i * m * .045 + t * m * .1 * (1 + c % 3 * .3)) % (h * 1.1)) - h * .05; g.fillStyle = col(c); g.fillText(testo[(i + c * 7) % testo.length], x + i * m * .006, y); } } }
+      else { const n = Math.floor(160 * cresce); for (let i = 0; i < n; i++) { const a = i / 160 * 6.28, r = m * .38 * (1 - Math.cos(a)) * .55; g.save(); g.translate(cx + Math.sin(a) * r * 1.2, cy - m * .25 + r - m * .05); g.rotate(a); g.fillStyle = col(i); g.fillText(testo[i % testo.length], 0, 0); g.restore(); } }
+      break; }
+    case 'silenzio': {   // la griglia della parola, col vuoto nel mezzo
+      const pw = 'silenzio', rows = 5, cols = 3, cw = w / (cols + .5), rh = h / (rows + 1); g.font = F(Math.min(cw / pw.length * 1.6, rh * .6), '400');
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { if (r === 2 && c === 1) continue; if ((r * cols + c) / (rows * cols) > cresce) continue; g.fillStyle = col(r + c); g.fillText(pw, cw * (c + .75), rh * (r + 1)); } break; }
+    case 'ordine': {   // ordine ordine ordine… e una sola parola fuori posto
+      const rows = 9, cols = 5; g.font = F(Math.min(w / cols / 6 * 1.5, h / rows * .6), '400'); const ri = (o.sd | 0) % rows, ci = (o.sd * 7 | 0) % cols;
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { const fuori = r === ri && c === ci; g.save(); g.translate(w * (c + .5) / cols, h * (r + .5) / rows); if (fuori) g.rotate(Math.sin(t * 3) * .4 + .3); g.fillStyle = fuori ? col(3) : col(0); g.fillText(fuori ? 'disordine' : 'ordine', 0, fuori ? Math.sin(t * 5) * 5 : 0); g.restore(); } break; }
+    case 'costellazione': {   // poche parole disposte nello spazio, che si cercano
+      const ws = ['vento', 'acqua', 'luce', 'ombra', 'pietra', o.parola]; g.font = F(m * .07, '400'); ws.forEach((p, i) => { const a = i / ws.length * 6.28 + t * .1, r = m * (.15 + .2 * ((i * 37) % 5) / 5); g.fillStyle = col(i); g.fillText(p, cx + Math.cos(a) * r * 1.5, cy + Math.sin(a) * r); }); break; }
+    case 'mela': {   // la parola mela che disegna la mela, e dentro un verme
+      g.font = F(m * .035, '700'); const n = Math.floor(400 * cresce); let k = 0, vi = (o.sd * 13 | 0) % 300;
+      for (let y = -.4; y < .4 && k < n; y += .045) for (let x = -.45; x < .45 && k < n; x += .075) { const r = Math.hypot(x * 1.05, (y + .02) * 1.12), ang = Math.atan2(y, x), lim = .4 * (1 - .12 * Math.cos(ang * 2 - 1.57) - .06 * (y < -.3 ? 1 : 0)); if (r > lim) continue; g.fillStyle = k === vi ? col(4) : col(0); g.fillText(k === vi ? 'verme' : 'mela', cx + x * m * 1.3, cy + y * m * 1.15); k++; }
+      g.fillText('mela', cx + m * .03, cy - m * .52); break; }
+    case 'lusso': {   // la parola grande costruita con la parola piccola
+      const big = 'LUSSO', small = 'lusso'; if (!o.D) { const mk = document.createElement('canvas'); mk.width = w; mk.height = h; const q = mk.getContext('2d'); q.font = `900 ${Math.round(m * .5)}px ${o.font}`; q.textAlign = 'center'; q.textBaseline = 'middle'; q.fillStyle = '#fff'; q.fillText(big, cx, cy, w * .95); o.D = q.getImageData(0, 0, w, h).data; }
+      const D = o.D; g.font = F(m * .03, '400'); const st = m * .032; let k = 0;
+      for (let y = st / 2; y < h; y += st) for (let x = st; x < w; x += st * 2.2) { if (D[((y | 0) * w + (x | 0)) * 4] < 128) continue; if (k++ > 600 * cresce) break; g.fillStyle = col(k); g.fillText(vhash(k, 3) < .02 ? 'lisso' : small, x, y); } break; }
+    case 'cancellatura': {   // il testo cancellato a pennarello nero: restano poche parole
+      g.fillStyle = o.bg; g.fillRect(0, 0, w, h); g.textAlign = 'left'; g.font = F(m * .04, '400'); const lh = h / 16;
+      o.righe.forEach((r, i) => { const y = lh * (i + 1.5); g.fillStyle = o.fg; g.fillText(r, w * .08, y, w * .84); const u = clamp((t - i * .25) / 1, 0, 1); if (!o.salva.has(i)) { g.fillStyle = o.fg === '#f4f1ea' ? '#f4f1ea' : '#111'; g.fillRect(w * .07, y - lh * .35, w * .86 * u, lh * .7); } }); break; }
+    case 'cerchi': {   // dischi di testo che ruotano, una lettera dopo l'altra lungo i cerchi
+      const testo = (o.parola + ' ' + pick(PAROLE_V) + ' ').toUpperCase(); g.font = F(m * .045, '700');
+      for (let r = 1; r <= 5; r++) { const R = m * .09 * r, n = Math.floor(R * 6.28 / (m * .045)); for (let i = 0; i < n; i++) { const a = i / n * 6.28 + t * .3 * (r % 2 ? 1 : -1); g.save(); g.translate(cx + Math.cos(a) * R, cy + Math.sin(a) * R); g.rotate(a + 1.57); g.fillStyle = col(r); g.fillText(testo[i % testo.length], 0, 0); g.restore(); } } break; }
+    case 'belloli': {   // le lettere distanziate nello spazio bianco, una parola che si apre
+      const pw = o.parola.toUpperCase(); g.font = F(m * .09, '400'); const sp = (w * .8) / Math.max(1, pw.length - 1) * (.4 + .6 * cresce); [...pw].forEach((c, i) => { g.fillStyle = col(i); g.fillText(c, cx + (i - (pw.length - 1) / 2) * sp, cy + Math.sin(i + t) * h * .04 * cresce); }); break; }
+    case 'zeroglifici': {   // lettere grandi spezzate, frammenti che galleggiano
+      for (const l of o.lett) { g.save(); g.translate(l.x * w, l.y * h); g.rotate(l.r + Math.sin(t * .5 + l.cx * 9) * .1); g.font = `900 ${Math.round(l.z * m)}px ${o.font}`; g.beginPath(); g.rect(-l.z * m * l.cx, -l.z * m * l.cy, l.z * m * l.cw, l.z * m * l.cw); g.clip(); g.fillStyle = col((l.cx * 9) | 0); g.fillText(l.c, 0, 0); g.restore(); } break; }
+    case 'fiume': {   // 川 e 州: il fiume con un'isola sola
+      const rows = 7, cols = 10; g.font = `400 ${Math.round(Math.min(w / cols, h / rows) * .8)}px "Hiragino Mincho ProN", "Noto Serif CJK JP", serif`; const ri = (o.sd | 0) % rows, ci = (o.sd * 3 | 0) % cols;
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { if ((r * cols + c) / (rows * cols) > cresce) continue; g.fillStyle = r === ri && c === ci ? col(2) : col(0); g.fillText(r === ri && c === ci ? '州' : '川', w * (c + .5) / cols, h * (r + .5) / rows); } break; }
+    case 'macchina': {   // dattilopoema: un solo carattere battuto a macchina che costruisce una figura
+      g.font = `400 ${Math.round(m * .03)}px "Courier New", monospace`; const ch = pick(['o', 'x', '/', ':', '=', '#', '(', '*']), st = m * .028, n = Math.floor(1400 * cresce); let k = 0;
+      for (let y = st; y < h && k < n; y += st) for (let x = st; x < w && k < n; x += st * .62) { const dx = (x - cx) / m, dy = (y - cy) / m, v = Math.sin(Math.hypot(dx, dy) * 18 - t * 2 + Math.atan2(dy, dx) * 3); if (v > .2) { g.fillStyle = col((v * 5) | 0); g.fillText(o.sd % 2 < 1 ? ch : 'abcdefghijklmnopqrstuvwxyz'[k % 26], x, y); } k++; } break; }
+    case 'lettrismo': for (const l of o.lett) { l.r += l.vr * dt; g.save(); g.translate(l.x * w, l.y * h); g.rotate(l.r); g.font = `900 ${Math.round(l.z * m)}px ${o.font}`; g.fillStyle = col((l.x * 9) | 0); g.fillText(l.c, 0, 0); g.restore(); } break;
+    case 'ping': {   // ping pong: le parole rimbalzano e fanno un quadrato
+      g.font = F(m * .07, '400'); const ws = ['ping', 'pong', 'ping pong', 'ping pong ping', 'pong']; ws.forEach((p, i) => { g.fillStyle = col(i); g.fillText(p, cx + Math.sin(t * 2 + i) * w * .05 * (i % 2 ? 1 : -1), h * (i + 1) / 6); }); break; }
+    case 'o': {   // la O: lettere O che crescono, si annidano, diventano uova
+      for (let i = 8; i >= 1; i--) { g.fillStyle = o.colori ? col(i) : (i % 2 ? o.fg : o.bg); g.font = `400 ${Math.round(m * .12 * i * (.8 + .2 * Math.sin(t + i)))}px ${o.font}`; g.fillText('O', cx, cy); } break; }
+  }
+};
+
+/* ---------- TESCHI: sempre diversi ---------- */
+const TESCHI_VISTI = new Set();
+function teschio() {
+  const d = REGIA.dis, P = palCss(), n = Math.random() < .7 ? 1 : d > .6 ? pick([3, 5, 7, 12]) : pick([2, 3, 5]);
+  const stile = pick(d < .3 ? ['memento', 'geometrico', 'calavera', 'geometrico'] : d > .7 ? ['psichedelico', 'calavera', 'citipati', 'geometrico', 'psichedelico'] : ['memento', 'calavera', 'geometrico', 'psichedelico', 'citipati']);
+  const nuovo = () => { let T, k = 0; do { T = { w: rnd(.75, 1.05), h: rnd(.85, 1.15), mento: rnd(.45, .75), zig: rnd(.05, .2), occhio: pick(['tondo', 'mandorla', 'esagono', 'cuore', 'goccia', 'quadro', 'stella']), oz: rnd(.1, .16), od: rnd(.17, .24), oy: rnd(-.08, .08), naso: pick(['cuore', 'triangolo', 'goccia', 'pera']), nz: rnd(.06, .12), denti: 4 + ((Math.random() * 9) | 0), dz: rnd(.08, .16), crepe: Math.random() < .4 ? 1 + ((Math.random() * 3) | 0) : 0, rot: gauss() * .12, c1: pick(P), c2: pick(P), c3: pick(P), petali: 5 + ((Math.random() * 8) | 0) }; } while (TESCHI_VISTI.has(JSON.stringify(T, (a, v) => typeof v === 'number' ? Math.round(v * 20) : v)) && ++k < 20); TESCHI_VISTI.add(JSON.stringify(T, (a, v) => typeof v === 'number' ? Math.round(v * 20) : v)); return T; };
+  const o = { stile, P, teschi: Array.from({ length: n }, nuovo), bg: stile === 'memento' ? pick(['#111', '#2a1d14', '#f1ece1']) : pick(P), hold: rnd(3.5, 6), sd: rnd(1000) };
+  return scenaInizia('teschio', o);
+}
+function disegnaTeschio(g, T, x, y, s, t, stile, o) {
+  const L = Math.max(1.2, s * .02), osso = stile === 'memento' ? '#efe7d4' : stile === 'psichedelico' ? T.c1 : stile === 'calavera' ? '#f7f3ea' : T.c1, nero = '#0b0b0b';
+  g.save(); g.translate(x, y); g.rotate(T.rot + Math.sin(t * .8) * .03); g.scale(s, s); g.lineWidth = L / s; g.strokeStyle = nero; g.lineJoin = 'round';
+  // il cranio e la mascella
+  g.fillStyle = osso; g.beginPath(); g.ellipse(0, -.12, .5 * T.w, .5 * T.h * .85, 0, Math.PI * .92, Math.PI * 2.08); const mx = .5 * T.w * T.mento, yj = .38 + T.zig;
+  g.lineTo(.5 * T.w * .88, .12); g.quadraticCurveTo(.5 * T.w * .8, .3, mx, yj); g.lineTo(-mx, yj); g.quadraticCurveTo(-.5 * T.w * .8, .3, -.5 * T.w * .88, .12); g.closePath(); g.fill(); g.stroke();
+  const ap = Math.max(0, Math.sin(t * 5)) * .04;   // la mascella che batte
+  g.beginPath(); g.moveTo(-mx * .95, yj - .02); g.lineTo(mx * .95, yj - .02); g.lineTo(mx * .8, yj + .14 + ap); g.quadraticCurveTo(0, yj + .22 + ap, -mx * .8, yj + .14 + ap); g.closePath(); g.fill(); g.stroke();
+  for (let i = 0; i < T.denti; i++) { const u = (i + .5) / T.denti, dx = -mx * .85 + u * mx * 1.7, dw = mx * 1.7 / T.denti * .8; g.fillStyle = stile === 'psichedelico' ? T.c3 : '#fbf8f0'; g.fillRect(dx - dw / 2, yj - .02 - T.dz, dw, T.dz); g.strokeRect(dx - dw / 2, yj - .02 - T.dz, dw, T.dz); g.fillRect(dx - dw / 2, yj - .02 + ap * .5, dw, T.dz * .8); g.strokeRect(dx - dw / 2, yj - .02 + ap * .5, dw, T.dz * .8); }
+  // gli occhi
+  for (const sx of [-1, 1]) { const ex = sx * T.od, ey = T.oy, r = T.oz; g.fillStyle = stile === 'calavera' ? T.c2 : nero; g.beginPath();
+    if (T.occhio === 'tondo') g.arc(ex, ey, r, 0, 6.28); else if (T.occhio === 'mandorla') g.ellipse(ex, ey, r * 1.2, r * .75, sx * .3, 0, 6.28); else if (T.occhio === 'quadro') g.rect(ex - r, ey - r * .8, r * 2, r * 1.6);
+    else if (T.occhio === 'cuore') { g.moveTo(ex, ey + r); g.bezierCurveTo(ex - r * 1.6, ey - r * .2, ex - r * .5, ey - r * 1.3, ex, ey - r * .4); g.bezierCurveTo(ex + r * .5, ey - r * 1.3, ex + r * 1.6, ey - r * .2, ex, ey + r); }
+    else if (T.occhio === 'goccia') { g.moveTo(ex + sx * r * 1.1, ey - r); g.quadraticCurveTo(ex - sx * r * 1.4, ey, ex, ey + r); g.quadraticCurveTo(ex + sx * r * 1.3, ey + r * .3, ex + sx * r * 1.1, ey - r); }
+    else { const nn = T.occhio === 'stella' ? 10 : 6; for (let q = 0; q < nn; q++) { const a = q / nn * 6.28, rr = T.occhio === 'stella' && q % 2 ? r * .5 : r; q ? g.lineTo(ex + Math.cos(a) * rr, ey + Math.sin(a) * rr) : g.moveTo(ex + Math.cos(a) * rr, ey + Math.sin(a) * rr); } g.closePath(); }
+    g.fill(); g.stroke();
+    if (stile === 'calavera') { for (let q = 0; q < T.petali; q++) { const a = q / T.petali * 6.28 + t * .3; g.fillStyle = q % 2 ? T.c1 : T.c3; g.beginPath(); g.ellipse(ex + Math.cos(a) * r * 1.45, ey + Math.sin(a) * r * 1.45, r * .32, r * .16, a, 0, 6.28); g.fill(); g.stroke(); } g.fillStyle = nero; g.beginPath(); g.arc(ex, ey, r * .35, 0, 6.28); g.fill(); }
+    if (stile === 'psichedelico') { for (let q = 4; q >= 1; q--) { g.fillStyle = o.P[(q + Math.floor(t * 4)) % o.P.length]; g.beginPath(); g.arc(ex, ey, r * q / 5, 0, 6.28); g.fill(); } } }
+  // il naso
+  g.fillStyle = stile === 'calavera' ? T.c3 : nero; g.beginPath(); const nz = T.nz, ny = T.oy + T.oz + .05;
+  if (T.naso === 'cuore') { g.moveTo(0, ny); g.bezierCurveTo(-nz * 1.4, ny + nz * .6, -nz * .6, ny + nz * 1.8, 0, ny + nz * 1.4); g.bezierCurveTo(nz * .6, ny + nz * 1.8, nz * 1.4, ny + nz * .6, 0, ny); } else if (T.naso === 'triangolo') { g.moveTo(0, ny); g.lineTo(nz, ny + nz * 1.6); g.lineTo(-nz, ny + nz * 1.6); }
+  else if (T.naso === 'goccia') { g.moveTo(0, ny); g.quadraticCurveTo(nz * 1.3, ny + nz * 1.6, 0, ny + nz * 1.6); g.quadraticCurveTo(-nz * 1.3, ny + nz * 1.6, 0, ny); } else { g.ellipse(-nz * .45, ny + nz, nz * .5, nz * .8, .3, 0, 6.28); g.ellipse(nz * .45, ny + nz, nz * .5, nz * .8, -.3, 0, 6.28); }
+  g.fill(); g.stroke();
+  // le crepe, i decori
+  g.strokeStyle = nero; for (let c = 0; c < T.crepe; c++) { g.beginPath(); let px = (c - 1) * .15, py = -.55; g.moveTo(px, py); for (let q = 0; q < 4; q++) { px += gauss() * .06; py += .07; g.lineTo(px, py); } g.stroke(); }
+  if (stile === 'calavera') { for (let q = 0; q < 7; q++) { g.fillStyle = q % 2 ? T.c2 : T.c1; g.beginPath(); g.arc(-.24 + q * .08, -.4, .025, 0, 6.28); g.fill(); g.stroke(); } g.fillStyle = T.c2; g.beginPath(); g.moveTo(0, -.55); g.lineTo(.06, -.45); g.lineTo(0, -.35); g.lineTo(-.06, -.45); g.closePath(); g.fill(); g.stroke(); }
+  if (stile === 'geometrico') { g.strokeStyle = T.c2; g.lineWidth = L / s * 1.5; for (let q = 0; q < 3; q++) { g.beginPath(); g.arc(0, -.2, .12 + q * .07, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); } }
+  if (stile === 'citipati') { for (let q = -2; q <= 2; q++) { g.save(); g.translate(q * .2, -.62 - Math.abs(q) * -.02); g.scale(.16, .16); g.fillStyle = '#f7f3ea'; g.beginPath(); g.arc(0, 0, .5, 0, 6.28); g.fill(); g.lineWidth = L / s / .16; g.stroke(); g.fillStyle = nero; g.beginPath(); g.arc(-.18, 0, .13, 0, 6.28); g.arc(.18, 0, .13, 0, 6.28); g.fill(); g.restore(); }
+    for (const sx of [-1, 1]) { g.fillStyle = T.c2; g.beginPath(); g.moveTo(sx * .45, -.55); g.quadraticCurveTo(sx * .75, -.5, sx * .62, -.2); g.lineTo(sx * .5, -.3); g.closePath(); g.fill(); g.stroke(); } }
+  g.restore();
+}
+SCENE.teschio = (g, w, h, t, dt, o) => {
+  const m = Math.min(w, h); g.fillStyle = o.bg; g.fillRect(0, 0, w, h);
+  if (o.stile === 'psichedelico') { for (let r = 10; r >= 1; r--) { g.fillStyle = o.P[(r + Math.floor(t * 3)) % o.P.length]; g.beginPath(); g.arc(w / 2, h / 2, Math.hypot(w, h) / 2 * r / 10, 0, 6.28); g.fill(); } }
+  const n = o.teschi.length, cols = Math.ceil(Math.sqrt(n * w / h)), rows = Math.ceil(n / cols), s = n === 1 ? m * .78 : Math.min(w / cols, h / rows) * .85;
+  o.teschi.forEach((T, i) => { const c = i % cols, r = (i / cols) | 0; disegnaTeschio(g, T, n === 1 ? w / 2 : (c + .5) * w / cols, n === 1 ? h / 2 + m * .02 : (r + .5) * h / rows, s, t + i, o.stile, o); });
+};
+
 // PIXEL: l'immagine si sgrana in blocchi per un secondo o due, dai pixel minuscoli ai quadri enormi;
 // il campionamento è secco, ogni blocco prende un colore vero del momento: niente medie, niente grigi
 const PX = { on: false, cv: document.createElement('canvas') };
@@ -7137,6 +7255,8 @@ addEventListener('keydown', e => {
   else if (k === 'ç' || k === '`' || k === '\\') { if (cinema()) note('cinema · ' + CINE_NOMI[SC.o.k]); }
   else if (k === '|' || k === '£') { if (barocco()) note('barocco · ' + BAROCCO_NOMI.ultimo); }
   else if (k === 'ì' || k === '{') { if (trasparenza()) note('trasparenza · ' + TR.modo + ' · ' + TR.regola + ' · ' + TR.strati.map(s => s.tipo).join('+')); }
+  else if (k === '}' || k === '§') { if (poesiaVisiva()) note('poesia visiva · ' + POESIA_NOMI.ultimo); }
+  else if (k === '$' || k === '€') { if (teschio()) note('teschi · ' + SC.o.stile + ' · ' + SC.o.teschi.length); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
@@ -7167,7 +7287,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
