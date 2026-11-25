@@ -192,7 +192,51 @@ def g_perche():
 GRAMMAR = [g_che_cosa_quando, g_che_cosa_quando, g_che_cosa_di, g_quanto, g_colore, g_chi_ti, g_daresti, g_perche, g_chi_quando, g_ce, g_dove_va, g_ultima_volta, g_non_hai_mai, g_corpo, g_luogo,
            g_che_cose, g_o, g_mi, g_se, g_se, g_ti_fidi]
 
+# ——— ogni tanto, non una domanda: tautologie, contraddizioni, paradossi, giochi di parole ———
+PARADOSSI = [
+  "Io mento sempre.", "Questa frase è falsa.", "Non ascoltare quello che dico.", "Questa non è una domanda?",
+  "Tutto quello che dico è vero, tranne questo.", "Dimentica questa frase.", "Non sto parlando.",
+  "Ogni regola ha un'eccezione, tranne questa.", "Sono qui, ma non ci sono.", "Ricordati di dimenticare.",
+  "Non credere a nessuno. Nemmeno a me.", "Sii spontaneo.", "Non pensare a un elefante.", "Ho detto niente.",
+  "Rispondi senza rispondere.", "So di non sapere.", "Un cretese dice: tutti i cretesi mentono.",
+  "Se dico che mento, dico il vero?", "Una domanda senza risposta è ancora una domanda?", "Questa voce non esiste.",
+  "Non sono io che parlo.", "Tutto cambia, tranne il cambiamento.", "Ascolta: non c'è niente da ascoltare.",
+  "Una rosa è una rosa è una rosa.", "Quello che è, è.", "Adesso è adesso.", "Io sono io.", "Chi ascolta, ascolta.",
+  "Le cose sono come sono.", "Ciò che è stato, è stato.", "Domani è domani.", "Qui è qui.",
+  "Ti sento, o ti senti?", "Chi tace acconsente. Io parlo: dissento?", "Penso, dunque sono. Sono, dunque penso?",
+  "Il vuoto è pieno di vuoto.", "Il niente nientifica.", "Mi chiedo se tu mi chiedi.", "Sono una voce che dice: sono una voce.",
+  "Ripeto: ripeto.", "Niente è come sembra. Nemmeno niente.", "Prima o poi. Poi o prima.", "Ogni fine è un inizio. O no?",
+  "Il barbiere rade chi non si rade da sé. Chi rade il barbiere?", "Più ascolti, meno senti.", "Questa frase finisce qui.",
+  "Ascoltami: non ascoltarmi.", "Sto per dire una bugia: questa.", "Ti ho già detto che non ripeto mai?", "Silenzio, sto parlando."]
+
+def g_tautologia():
+    x = random.choice(['il tempo', 'la notte', 'il mare', 'una voce', 'l\'attesa', 'il vuoto', 'un nome', 'la paura', 'questa musica', 'il silenzio',
+                       'una domanda', 'la fine', 'un respiro', 'il rumore', 'la memoria', 'una casa', 'il desiderio', 'l\'assenza', 'la luce',
+                       'una parola', 'il caso', 'la ripetizione', 'il dolore', 'un suono', 'oggi'])
+    X = x[0].upper() + x[1:]
+    return random.choice([f"{X} è {x}.", f"{X} è {x} è {x}.", f"{X} è {x}. O no?", f"{X} non è {x}."])
+
+def g_contraddizione():
+    v = random.choice(['Parlo', 'Ascolto', 'Ci sono', 'Ricordo', 'Respiro', 'Aspetto', 'Esisto', 'Mento', 'Capisco', 'Sento', 'Rispondo', 'Ti vedo'])
+    return random.choice([f"{v} e non {v.lower()}.", f"{v}. Non {v.lower()}.", f"Io {random.choice(['mento', 'taccio', 'sbaglio', 'dimentico tutto', 'sono altrove', 'dico il falso', 'sto in silenzio'])} sempre."])
+
+def g_questa_frase():
+    y = random.choice(['è falsa', 'non esiste', 'non è in italiano', 'è l\'ultima', 'è già finita', 'non ha senso', 'non la stai ascoltando',
+                       'è vera solo se è falsa', 'non è mai stata detta', 'si ripete', 'non è una domanda', 'parla di sé', 'la dici tu'])
+    return f"Questa frase {y}."
+
+def g_chiasmo():
+    P = [('ascolti', 'ascoltare'), ('capisci', 'capire'), ('vivi', 'vivere'), ('ricordi', 'ricordare'), ('aspetti', 'aspettare'), ('cerchi', 'cercare'),
+         ('parli', 'parlare'), ('dimentichi', 'dimenticare'), ('sogni', 'sognare'), ('ami', 'amare'), ('respiri', 'respirare'), ('dormi', 'dormire'),
+         ('pensi', 'pensare'), ('taci', 'tacere')]
+    (a1, a2), (b1, b2) = random.sample(P, 2)
+    return f"{a1.capitalize()} per {b2}, o {b1} per {a2}?"
+
+PGRAM = [g_tautologia, g_contraddizione, g_contraddizione, g_questa_frase, g_chiasmo, g_chiasmo]
+
 def one():
+    if random.random() < .16:   # ogni tanto
+        return 'paradosso', (random.choice(PARADOSSI) if random.random() < .5 else random.choice(PGRAM)()), 'paradosso'
     if random.random() < .5:
         k = random.choice(list(CORPUS)); return k, random.choice(CORPUS[k]), 'repertorio'
     k, q = random.choice(GRAMMAR)(); return k, q, 'grammatica'

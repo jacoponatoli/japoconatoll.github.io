@@ -91,7 +91,7 @@ const live=new Map();let liveId=0,flash=null;
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^DOMANDA$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^SPOKEN$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -1254,7 +1254,7 @@ async function askOnce(buf,it,rate,again){
   const lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(8,Math.pow(10,(-17-lvl)/20))),t=ctx.currentTime+.4,play=buf.duration/rate;
   const s=ctx.createBufferSource();s.buffer=buf;s.playbackRate.value=rate;const g=ctx.createGain();g.gain.value=gain;
   s.connect(g);g.connect(L.spoken); /* close and dry: no filter, no reverb */s.start(t);s.stop(t+play+.2);
-  log('DOMANDA',it.q,play+rr(6,10));setTimeout(()=>{try{g.disconnect()}catch(e){}},(play+4)*1000);
+  log(it.kind==='paradosso'?'PARADOSSO':'DOMANDA',it.q,play+rr(6,10));setTimeout(()=>{try{g.disconnect()}catch(e){}},(play+4)*1000);
   await sleep((play+.5)*1000)}
 async function domandeDeck(){
   await sleep(rr(60,150)*1000);await loadQuestions();setInterval(loadQuestions,3*3600e3);
@@ -1610,7 +1610,7 @@ const LEGEND={
   gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
-  question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
+  question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
   spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
