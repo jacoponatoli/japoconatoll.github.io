@@ -5747,6 +5747,7 @@ const MOVES = {
   cielo: [.45, () => cielo()],
   cinema: [.6, () => cinema()],
   barocco: [.6, () => barocco()],
+  trasparenza: [.8, () => trasparenza()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -6141,6 +6142,7 @@ function passaggio(dur) {
   if (!view.width) return;
   const d = REGIA.dis;
   if (!FLU.on && Math.random() < (d < .3 ? .4 : d > .7 ? .1 : .18)) { XF.on = false; return; }   // ogni tanto uno stacco secco
+  if (!TR.on && !REGIA.over && Math.random() < .1 + .12 * d) { XF.on = false; trasparenza('passaggio', view); return; }   // passaggio per trasparenza: la scena di prima resta sopra, combinata, e si consuma
   for (const c of [XF.cv, XF.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
   const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
   const C = campoXF(), F = C.F, gw = C.gw, gh = C.gh; XF.mk.width = gw; XF.mk.height = gh;
@@ -6602,6 +6604,84 @@ SCENE.barocco = (g, w, h, t, dt, o) => {
   }
 };
 
+// ===== TRASPARENZE COMBINATORIE =====
+// Più strati si sovrappongono; ogni zona dello schermo è coperta da un sottoinsieme di strati (2^n combinazioni)
+// e il suo colore lo decide una REGOLA, non una media: i colori restano pieni, i confini netti.
+// Regole: albers (il colore di mezzo, trasparenza finta), sovrastampa (sottrattiva), luce (additiva), paridispari (xor),
+// conta (quanti strati), retino (punti, righe, scacchi), tabella (una tabella di verità a caso che si rimescola), vera (rara, sfumata).
+// Strati: piani geometrici alla Moholy-Nagy, cerchi di Venn, una forma grande, bande, un ricordo del film, l'immagine di prima che svanisce.
+const TR = { on: false, cv: document.createElement('canvas'), mk: document.createElement('canvas'), vb: document.createElement('canvas') };
+const TR_REGOLE_ORD = ['albers', 'albers', 'conta', 'retino', 'sovrastampa', 'luce'], TR_REGOLE_MEZZO = ['albers', 'sovrastampa', 'luce', 'retino', 'conta', 'paridispari', 'vera'], TR_REGOLE_DIS = ['paridispari', 'tabella', 'tabella', 'luce', 'sovrastampa', 'retino', 'conta'];
+function trRegola() { const d = REGIA.dis; return pick(d < .3 ? TR_REGOLE_ORD : d > .7 ? TR_REGOLE_DIS : TR_REGOLE_MEZZO); }
+function trStrato(tipo) {
+  const d = REGIA.dis, P = currentPalette().c, col = pick(P).slice(0, 3), sp = (.6 + 1.6 * d);
+  const s = { tipo, col, on: true, x: rnd(.2, .8), y: rnd(.2, .8), vx: gauss() * .04 * sp, vy: gauss() * .03 * sp, a: rnd(6.28), va: gauss() * .2 * sp, sc: rnd(.25, .6), vs: rnd(.2, .8), ph: rnd(6.28) };
+  if (tipo === 'piani') s.forme = Array.from({ length: 1 + ((Math.random() * 3) | 0) }, () => ({ k: pick(['rett', 'rett', 'cerchio', 'triangolo', 'barra']), x: rnd(-.3, .3), y: rnd(-.3, .3), w: rnd(.2, .7), h: rnd(.1, .6), a: rnd(6.28) }));
+  if (tipo === 'forma') s.F = formaGeometrica(clamp(d + gauss() * .2, 0, 1));
+  if (tipo === 'bande') { s.n = 3 + ((Math.random() * 8) | 0); s.vert = Math.random() < .5; }
+  if (tipo === 'ricordo') { const v = LT.mem.filter(c => performance.now() - c.t > 4000); s.img = v.length ? pick(v) : null; if (!s.img) s.tipo = 'piani', s.forme = [{ k: 'cerchio', x: 0, y: 0, w: .6, h: .6, a: 0 }]; s.soglia = rnd(.3, .7); }
+  return s;
+}
+function trasparenza(modo, vecchio) {
+  if (TR.on || !view.width) return false;
+  const d = REGIA.dis, n = vecchio ? 1 + ((Math.random() * 2) | 0) : Math.max(1, Math.round(d < .3 ? rnd(1, 2.4) : d > .7 ? rnd(3, 5.4) : rnd(2, 3.6)));
+  const tipi = d < .3 ? ['venn', 'venn', 'piani', 'forma'] : d > .7 ? ['piani', 'bande', 'venn', 'ricordo', 'forma', 'piani'] : ['piani', 'venn', 'forma', 'bande', 'ricordo'];
+  const strati = Array.from({ length: n }, () => trStrato(pick(tipi)));
+  if ((modo === 'memoria' || (!modo && !vecchio && Math.random() < .3)) && LT.mem.length) { strati.unshift(trStrato('ricordo')); modo = 'memoria'; }   // la memoria: una scena passata affiora sotto, combinata
+  if (vecchio) { const c = document.createElement('canvas'); c.width = view.width >> 1; c.height = view.height >> 1; c.getContext('2d').drawImage(vecchio, 0, 0, c.width, c.height); strati.unshift({ tipo: 'vecchio', img: c, col: [0, 0, 0], on: true }); }
+  const gw = 256, gh = Math.max(60, Math.round(gw * view.height / view.width));
+  for (const c of [TR.cv, TR.mk, TR.vb]) { c.width = gw; c.height = gh; }
+  TR.mx = TR.mk.getContext('2d', { willReadFrequently: true }); TR.vx = TR.vb.getContext('2d', { willReadFrequently: true });
+  Object.assign(TR, { on: true, t: 0, modo: modo || (vecchio ? 'passaggio' : pick(['stato', 'stato', 'memoria'])), strati, regola: trRegola(), gw, gh, id: TR.cv.getContext('2d').createImageData(gw, gh),
+    tin: vecchio ? .1 : rnd(.6, 1.2), hold: vecchio ? rnd(1.2, 2.8) : rnd(3, 8), tout: rnd(.5, 1), passo: d < .3 ? rnd(.8, 1.6) : d > .7 ? rnd(.15, .5) : rnd(.4, 1), tp: 0, gray: 0,
+    retino: pick(['bayer', 'righe', 'punti', 'scacchi', 'diagonali']), cambiaRegola: d > .55 && Math.random() < .6, tReg: rnd(1, 3) });
+  TR.tab = trTabella(); return true;
+}
+function trTabella() { const P = currentPalette().c, out = []; for (let k = 0; k < 64; k++) { const r = Math.random(); out.push(r < .25 ? 'base' : r < .45 ? 'inverso' : r < .55 ? [0, 0, 0] : pick(P).slice(0, 3)); } return out; }
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+function trMaschera(s, t, e) {   // disegna lo strato in bianco su nero e restituisce i dati
+  const g = TR.mx, w = TR.gw, h = TR.gh, m = Math.min(w, h); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff';
+  s.x = mod(s.x + s.vx * TR.dt + .2, 1.4) - .2; s.y = mod(s.y + s.vy * TR.dt + .2, 1.4) - .2; s.a += s.va * TR.dt; const k = s.sc * (1 + .15 * Math.sin(t * s.vs + s.ph)) * (.3 + .7 * e);
+  if (s.tipo === 'venn') { g.beginPath(); g.arc(s.x * w, s.y * h, m * k * .9, 0, 6.28); g.fill(); }
+  else if (s.tipo === 'piani') { g.translate(s.x * w, s.y * h); g.rotate(s.a); for (const f of s.forme) { g.save(); g.translate(f.x * m, f.y * m); g.rotate(f.a); const W2 = f.w * m * k * 1.6, H2 = f.h * m * k * 1.6; g.beginPath();
+      if (f.k === 'cerchio') g.arc(0, 0, W2 / 2, 0, 6.28); else if (f.k === 'triangolo') { g.moveTo(0, -H2); g.lineTo(W2 / 2, H2 / 2); g.lineTo(-W2 / 2, H2 / 2); } else if (f.k === 'barra') g.rect(-W2, -H2 * .08, W2 * 2, H2 * .16); else g.rect(-W2 / 2, -H2 / 2, W2, H2); g.fill(); g.restore(); } }
+  else if (s.tipo === 'forma') { g.translate(s.x * w, s.y * h); g.rotate(s.a * .3); const R = m * k * .8; for (let i = 0; i < s.F.paths.length; i++) { g.beginPath(); s.F.paths[i].forEach(([x, y], j) => j ? g.lineTo(x * R, y * R) : g.moveTo(x * R, y * R)); g.closePath(); g.fillStyle = i ? '#000' : '#fff'; g.fill(); } }
+  else if (s.tipo === 'bande') { const L = s.vert ? w : h, st = L / (s.n * 2), off = (t * 20 * (s.vx > 0 ? 1 : -1)) % (st * 2); for (let i = -2; i < s.n * 2 + 2; i += 2) s.vert ? g.fillRect(i * st + off, 0, st, h) : g.fillRect(0, i * st + off, w, st); }
+  else if (s.tipo === 'ricordo' || s.tipo === 'vecchio') {   // l'immagine stessa fa da maschera: le sue zone chiare (o scure) restano
+    g.drawImage(s.img, 0, 0, w, h); const id = g.getImageData(0, 0, w, h), a = id.data, th = s.tipo === 'vecchio' ? 1 - e : s.soglia;
+    s.pix = new Uint8ClampedArray(a); for (let i = 0; i < a.length; i += 4) { const l = (a[i] * .3 + a[i + 1] * .59 + a[i + 2] * .11) / 255; a[i] = a[i + 1] = a[i + 2] = l > th ? 255 : 0; } return a; }
+  return g.getImageData(0, 0, w, h).data;
+}
+function trasparenzaDraw(dt) {
+  if (!TR.on) return; TR.t += dt; TR.dt = dt; const t = TR.t, T2 = TR.tin + TR.hold, T3 = T2 + TR.tout; if (t > T3) { TR.on = false; return; }
+  const e = TR.modo === 'passaggio' ? clamp(t / (T2), 0, 1) : t < TR.tin ? ease(t / TR.tin) : t < T2 ? 1 : 1 - ease((t - T2) / TR.tout), n = TR.strati.length;
+  // combinatoria: verso l'ordine gli strati si accendono uno alla volta (codice di Gray), verso il disordine a caso; a volte cambia anche la regola
+  if (TR.modo === 'stato' && n > 1 && (TR.tp += dt) > TR.passo) { TR.tp = 0; if (REGIA.dis < .45) { TR.gray++; const gc = TR.gray ^ (TR.gray >> 1); TR.strati.forEach((s, i) => s.on = !!(gc >> i & 1) || i === 0 && !gc); } else TR.strati.forEach(s => s.on = Math.random() < .6); }
+  if (TR.cambiaRegola && (TR.tReg -= dt) <= 0) { TR.tReg = rnd(1, 3); TR.regola = trRegola(); TR.tab = trTabella(); }
+  const w = TR.gw, h = TR.gh, N = w * h;
+  TR.vx.drawImage(view, 0, 0, w, h); const B = TR.vx.getImageData(0, 0, w, h).data;
+  const M = TR.strati.map(s => s.on ? trMaschera(s, t, e) : null);
+  const P = currentPalette().c.map(c => c.slice(0, 3)).concat([[0, 0, 0], [255, 255, 255]]), a = TR.id.data, R = TR.regola;
+  const vicino = (r, g2, b) => { let bi = 0, bd = 1e9; for (let i = 0; i < P.length; i++) { const q = P[i], dd = (r - q[0]) ** 2 + (g2 - q[1]) ** 2 + (b - q[2]) ** 2; if (dd < bd) { bd = dd; bi = i; } } return P[bi]; };
+  for (let i = 0; i < N; i++) { const k = i * 4, x = i % w, y = (i / w) | 0; let r = B[k], g2 = B[k + 1], b = B[k + 2], cnt = 0, bits = 0, sr = 0, sg = 0, sb = 0, mr = 255, mg = 255, mb = 255, ar = 0, ag = 0, ab = 0;
+    for (let j = 0; j < n; j++) { const mk = M[j]; if (!mk || mk[k] < 128) continue; cnt++; bits |= 1 << j; const s = TR.strati[j], c = s.pix ? [s.pix[k], s.pix[k + 1], s.pix[k + 2]] : s.col;
+      sr += c[0]; sg += c[1]; sb += c[2]; mr = mr * c[0] / 255; mg = mg * c[1] / 255; mb = mb * c[2] / 255; ar = 255 - (255 - ar) * (255 - c[0]) / 255; ag = 255 - (255 - ag) * (255 - c[1]) / 255; ab = 255 - (255 - ab) * (255 - c[2]) / 255; }
+    if (cnt) {
+      if (R === 'albers') { const q = vicino((r + sr) / (cnt + 1), (g2 + sg) / (cnt + 1), (b + sb) / (cnt + 1)); r = q[0]; g2 = q[1]; b = q[2]; }
+      else if (R === 'sovrastampa') { r = r * mr / 255; g2 = g2 * mg / 255; b = b * mb / 255; }
+      else if (R === 'luce') { r = 255 - (255 - r) * (255 - ar) / 255; g2 = 255 - (255 - g2) * (255 - ag) / 255; b = 255 - (255 - b) * (255 - ab) / 255; }
+      else if (R === 'paridispari') { if (cnt & 1) { r = 255 - r; g2 = 255 - g2; b = 255 - b; } }
+      else if (R === 'conta') { const q = P[(cnt * 3) % P.length]; r = q[0]; g2 = q[1]; b = q[2]; }
+      else if (R === 'retino') { const v = TR.retino === 'bayer' ? BAYER[(y & 3) * 4 + (x & 3)] / 16 : TR.retino === 'righe' ? (y % 4) / 4 : TR.retino === 'diagonali' ? ((x + y) % 5) / 5 : TR.retino === 'scacchi' ? ((x >> 1) + (y >> 1)) % 2 * .7 : (((x % 4) - 1.5) ** 2 + ((y % 4) - 1.5) ** 2) / 4.5;
+        if (v < Math.min(.85, .35 + .2 * cnt) * e) { r = sr / cnt; g2 = sg / cnt; b = sb / cnt; } }
+      else if (R === 'tabella') { const c = TR.tab[bits % 64]; if (c === 'inverso') { r = 255 - r; g2 = 255 - g2; b = 255 - b; } else if (c !== 'base') { r = c[0]; g2 = c[1]; b = c[2]; } }
+      else { const al = .45 * e; r = r * (1 - al) + sr / cnt * al; g2 = g2 * (1 - al) + sg / cnt * al; b = b * (1 - al) + sb / cnt * al; }   // vera: la sola sfumata, rara
+    }
+    a[k] = r; a[k + 1] = g2; a[k + 2] = b; a[k + 3] = 255; }
+  TR.cv.getContext('2d').putImageData(TR.id, 0, 0);
+  vctx.save(); vctx.globalAlpha = TR.modo === 'passaggio' ? 1 : clamp(e * 1.5, 0, 1); vctx.imageSmoothingEnabled = false; vctx.drawImage(TR.cv, 0, 0, view.width, view.height); vctx.restore();
+}
+
 // PIXEL: l'immagine si sgrana in blocchi per un secondo o due, dai pixel minuscoli ai quadri enormi;
 // il campionamento è secco, ogni blocco prende un colore vero del momento: niente medie, niente grigi
 const PX = { on: false, cv: document.createElement('canvas') };
@@ -6969,7 +7049,7 @@ function frame(t, dt) {
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   if (FLU.on && FLU.scia < 1) { vctx.imageSmoothingEnabled = true; vctx.globalAlpha = FLU.scia; vctx.drawImage(work, 0, 0, view.width, view.height); vctx.globalAlpha = 1; }   // la scia
   else vctx.drawImage(work, 0, 0, view.width, view.height);
-  passaggioDraw(); scenaDraw(Math.min(.1, dt || .033)); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
+  passaggioDraw(); trasparenzaDraw(Math.min(.1, dt || .033)); scenaDraw(Math.min(.1, dt || .033)); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
@@ -7056,6 +7136,7 @@ addEventListener('keydown', e => {
   else if (k === '@' || k === '°') { if (cielo()) note('cielo: ' + SC.o.cost.map(c => c.nome).join(', ')); }
   else if (k === 'ç' || k === '`' || k === '\\') { if (cinema()) note('cinema · ' + CINE_NOMI[SC.o.k]); }
   else if (k === '|' || k === '£') { if (barocco()) note('barocco · ' + BAROCCO_NOMI.ultimo); }
+  else if (k === 'ì' || k === '{') { if (trasparenza()) note('trasparenza · ' + TR.modo + ' · ' + TR.regola + ' · ' + TR.strati.map(s => s.tipo).join('+')); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
@@ -7086,7 +7167,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
