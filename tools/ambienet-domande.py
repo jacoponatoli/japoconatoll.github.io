@@ -4,8 +4,8 @@ Una voce di macchina fa domande a chi ascolta: sull'intelletto, sull'intimità, 
 voce e chi la ascolta, su dove si è adesso, e domande di mistica. Domande corte, sempre nuove: metà scelte da un
 repertorio scritto, metà composte da una piccola grammatica che ne genera migliaia. Una domanda già fatta non torna
 finché non ne sono passate molte altre.
-Voce: Piper (paola, italiana) resa robotica ma chiara — formanti appena abbassati, fase azzerata (un'altezza sola,
-metallica, decisa), presenza sulle consonanti, volume alto. Se Piper manca, espeak-ng con lo stesso trattamento.
+Voce: Piper (paola, italiana), la più chiara e umana possibile: vicina, asciutta, senza effetti — niente cambi d'altezza,
+niente filtri, solo il volume portato in alto. Se Piper manca, espeak-ng.
 Scrive out/q/<hash>.mp3 e out/q/index.json; tiene le ultime 120 domande."""
 import json, os, random, subprocess, wave, io, hashlib, datetime, math, struct
 
@@ -208,7 +208,7 @@ if not os.environ.get('STUB'):
 
 def synth(text):
     if voice:
-        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.15, 1.25), noise_scale=.33, noise_w=.45)
+        with wave.open('q.wav', 'wb') as wf: voice.synthesize(text, wf, length_scale=random.uniform(1.08, 1.15), noise_scale=.6, noise_w=.75)
         with wave.open('q.wav', 'rb') as rf: return rf.getframerate(), 'piper'
     if os.environ.get('STUB'):   # prova locale senza voci: un tono lungo quanto la frase
         sr = 22050; n = int(sr * (.6 + .07 * len(text)))
@@ -221,11 +221,7 @@ def synth(text):
 
 def render(text, path):
     sr, eng = synth(text)
-    f = 2 ** (-2 / 12)   # formanti appena più bassi: né donna né uomo
-    af = (f'asetrate={int(sr * f)},aresample=19200,atempo={1 / f:.4f},'
-          "afftfilt=real='hypot(re,im)':imag='0':win_size=512:overlap=0.75,"   # fase azzerata: un'altezza sola (150 Hz), voce di macchina
-          'aresample=44100,highpass=f=90,equalizer=f=2600:t=q:w=1:g=3,'
-          'apad=pad_dur=0.25,loudnorm=I=-16:TP=-1.5')
+    af = 'aresample=44100,highpass=f=60,apad=pad_dur=0.25,loudnorm=I=-16:TP=-1.5'   # pulita: nessun effetto
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', 'q.wav', '-af', af, '-ac', '1', '-b:a', '64k', path], check=True)
     d = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path], capture_output=True, text=True).stdout.strip() or 0)
     return eng, round(d, 2)
@@ -234,6 +230,7 @@ idx = {'items': [], 'asked': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8')); idx.setdefault('asked', [])
     except Exception: pass
+idx['items'] = [it for it in idx['items'] if it.get('voice') == 'chiara']   # via le domande della voce robotica
 asked = set(idx['asked']); stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 while made < N and tries < N * 40:
     tries += 1
@@ -243,7 +240,7 @@ while made < N and tries < N * 40:
     try: eng, dur = render(q, f'{OUT}/{h}.mp3')
     except Exception as e: print('errore', e); continue
     asked.add(q); idx['asked'].append(q); made += 1
-    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'dur': dur, 'made': stamp})
+    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'chiara', 'dur': dur, 'made': stamp})
     print(f'{k:9s} {dur:5.2f}s  {q}')
 idx['items'] = idx['items'][:KEEP]
 idx['asked'] = idx['asked'][-700:]   # dopo molte altre, una domanda può tornare: l'uguale, diverso
