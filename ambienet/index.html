@@ -22,6 +22,8 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:ui-monospa
 #pop{position:fixed;left:24px;bottom:64px;max-width:min(430px,86vw);padding:12px 15px 13px;background:rgba(12,12,12,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-left:3px solid #fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.6;letter-spacing:.02em;color:rgba(255,255,255,.88);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;pointer-events:none;z-index:5}
 #pop.on{opacity:1;transform:none}
 #pop b{display:block;font-weight:400;letter-spacing:.18em;text-transform:uppercase;font-size:10px;margin-bottom:6px}
+#wall{position:fixed;inset:0;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 1.4s;pointer-events:none;z-index:4;font-family:"Archivo","Arial Black","Helvetica Neue",Arial,sans-serif;font-weight:800;font-stretch:125%;text-transform:uppercase;white-space:nowrap;-webkit-user-select:none;user-select:none}
+#wall.on{opacity:1}#wall div{line-height:1.04}
 @keyframes in{from{opacity:0}to{opacity:1}}
 #foot{position:fixed;bottom:14px;line-height:1.8;left:24px;right:24px;font-size:10px;letter-spacing:.2em;opacity:.35;text-transform:uppercase}
 html.embed,html.embed body{background:transparent!important}html.embed body>*{display:none!important}
@@ -30,7 +32,7 @@ html.embed,html.embed body{background:transparent!important}html.embed body>*{di
 <body>
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
-<div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div>
+<div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div><div id="wall"></div>
 <div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="poem" style="color:#f2e3b8">poetry</span> · <span class="lg" data-k="question" style="color:#cfe8ff">questions</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
@@ -1256,6 +1258,14 @@ async function askOnce(buf,it,rate,again){
   s.connect(g);g.connect(L.spoken); /* close and dry: no filter, no reverb */s.start(t);s.stop(t+play+.2);
   log(it.kind==='paradosso'?'PARADOSSO':'DOMANDA',it.q,play+rr(6,10));setTimeout(()=>{try{g.disconnect()}catch(e){}},(play+4)*1000);
   await sleep((play+.5)*1000)}
+/* the paradoxes, tautologies, contradictions are also written: big lettering as in SLOGAN, white on black, the whole screen */
+const wallEl=document.getElementById('wall');
+function showWall(t){const w=t.toUpperCase().split(' ');let best=null;
+  for(let n=1;n<=Math.min(innerWidth<innerHeight?7:5,w.length);n++){const per=Math.ceil(w.length/n),lines=[];for(let i=0;i<w.length;i+=per)lines.push(w.slice(i,i+per).join(' '));
+    const wd=Math.max(...lines.map(l=>{ruler.textContent=l;return ruler.offsetWidth/100}));const fs=Math.min(innerWidth*.9/wd,innerHeight*.8/(lines.length*1.04));
+    if(!best||fs>best.fs)best={fs,lines}}
+  wallEl.innerHTML='';best.lines.forEach(l=>{const d=document.createElement('div');d.textContent=l;d.style.fontSize=best.fs+'px';wallEl.appendChild(d)});wallEl.classList.add('on')}
+function hideWall(){wallEl.classList.remove('on')}
 async function domandeDeck(){
   await sleep(rr(60,150)*1000);await loadQuestions();setInterval(loadQuestions,3*3600e3);
   const KW={mistica:'mistica',nostalgia:'intimo',terra:'qui',aria:'mente'};
@@ -1267,10 +1277,12 @@ async function domandeDeck(){
     let buf;try{const r=await fetch(POEM_BASE+q.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(30000);continue}
     if(speaking)continue;
     speaking=true;master.gain.setTargetAtTime(.42,ctx.currentTime,.8);
+    const para=q.kind==='paradosso';if(para)showWall(q.q);
     await askOnce(buf,q,1,false);
     master.gain.setTargetAtTime(.3,ctx.currentTime,1.5);                 /* the space for the answer */
     await sleep(rr(5,10)*AX(1.4,1,.7)*1000);
     if(R()<AX(.3,.15,.05)){master.gain.setTargetAtTime(.4,ctx.currentTime,.8);await askOnce(buf,q,1,true);await sleep(rr(5,9)*1000)} /* the same question, again: not the same */
+    if(para)hideWall();
     speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,4);
     await sleep(rr(110,260)*AX(1.3,1,.75)*1000);
   }
@@ -1610,7 +1622,7 @@ const LEGEND={
   gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
-  question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
+  question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”), also written across the whole screen in big white letters on black. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
   spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
