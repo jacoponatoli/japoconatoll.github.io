@@ -92,7 +92,7 @@ const live=new Map();let liveId=0,flash=null;
    blue   — recordings from the archives (music, field recordings, classical, voices)
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
-const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL)$/],
+const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL|AUTOMATON)$/],
   ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
@@ -1358,6 +1358,68 @@ async function filmDeck(){
     await sleep(rr(240,560)*AX(1.2,1,.8)*1000);
   }
 }
+/* MUSICAL AUTOMATA — after Peter Beyls, "Selectionist musical automata" (Generative Art 2003, pp. 289–297).
+   A one-dimensional cellular automaton 12 cells wide, with 2–5 values per cell and a neighbourhood of 3, 5 or 7:
+   its rule (a lookup table) is a genotype. Langton's lambda — how many entries of the rule give a live cell — is
+   Beyls' "complexity navigator": here it follows the order–chaos attractor (low lambda: the automaton falls into a
+   steady state or a cycle; middle: the edge of chaos; high: turbulence). Every generation is a row of 12 cells
+   read through a mapping neighbourhood (12, 6, 4 or 3 cells per note): each group that is alive becomes a degree
+   of the scene's scale. Beyls' tension scale (minor seventh 1, major second 10, major seventh 100, minor second
+   1000) filters the notes against the drone: in order only the mild frictions pass, in disorder everything.
+   Two rules are two anchors of a "musical climate": the automaton moves from one to the other by genetic
+   interpolation, entry by entry. Then nine children are bred from the two (cross-over and a little mutation),
+   and since nobody is there to choose, the selection is Beyls' own proposal: each child is run silently, its
+   complexity measured (density, change, period), and the one closest to what the moment asks is kept. When the
+   automaton freezes in a cycle, a little noise disturbs it. On screen the living row: · ∘ ○ ● ◉. */
+let autoBus=null;
+const CA_GLYPH=['·','∘','○','●','◉'];
+function caRule(k,r,lam){const n=(2*r+1)*(k-1)+1;return Array.from({length:n},()=>R()<lam?1+ri(0,k-2):0)}   /* totalistic: the sum of the neighbourhood points to an entry */
+function caStep(row,rule,r){const W=row.length,out=new Array(W);for(let i=0;i<W;i++){let s=0;for(let j=-r;j<=r;j++)s+=row[(i+j+W)%W];out[i]=rule[s]}return out}
+function caMeasure(rule,r,k){   /* Beyls' unsupervised selection: density, rate of change, period */
+  let row=Array.from({length:12},()=>ri(0,k-1));const seen=new Map();let dens=0,chg=0,per=0;
+  for(let g=0;g<48;g++){const nx=caStep(row,rule,r);dens+=nx.filter(v=>v).length/12;chg+=nx.filter((v,i)=>v!==row[i]).length/12;const key=nx.join('');if(!per&&seen.has(key))per=g-seen.get(key);seen.set(key,g);row=nx}
+  return{dens:dens/48,chg:chg/48,per}}
+function caFit(m){const want=AX(.2,.45,.75);return -Math.abs(m.chg-want)-(m.dens<.08||m.dens>.92?1:0)-(axis()==='order'&&!m.per?.2:0)}
+const tension=(a,b)=>{const iv=((Math.round(a-b))%12+12)%12;return iv===10?1:iv===2?10:iv===11?100:iv===1?1000:0};
+async function automiDeck(){
+  await sleep(rr(120,300)*1000);
+  autoBus=ctx.createGain();autoBus.gain.value=.85;autoBus.connect(master);const as=ctx.createGain();as.gain.value=.4;autoBus.connect(as);as.connect(reverb);
+  while(true){
+    await hush();
+    const k=ri(2,5),r=pick([1,1,2,3]),lamOf=()=>AX(rr(.15,.32),rr(.4,.6),rr(.65,.9));
+    let A=caRule(k,r,lamOf()),B=caRule(k,r,lamOf()),rule=A.slice(),row=Array.from({length:12},()=>R()<.3?ri(1,k-1):0);
+    const gens=Math.round(AX(rr(50,80),rr(60,110),rr(80,140))),mapN=pick(AX([12,6,6],[6,4,6],[4,3,4])),lim=AX(10,110,1e9);
+    let prev=S.root+24;const line=log('AUTOMATON',`k ${k} · r ${r}`,-1);const seen=new Map();
+    for(let g=0;g<gens&&!still;g++){
+      if(g&&g%12===0){   /* genetic interpolation: some entries of B enter the rule */
+        for(let q=0;q<rule.length;q++)if(R()<.25)rule[q]=B[q];
+        if(rule.every((v,q)=>v===B[q])){   /* the climate reached: breed nine children, keep the fittest for this moment */
+          const kids=Array.from({length:9},()=>{const cut=ri(1,A.length-1);return A.map((v,q)=>q<cut?v:B[q]).map(v=>R()<.05?ri(0,k-1):v)});
+          let best=kids[0],bf=-1e9;for(const c of kids){const f=caFit(caMeasure(c,r,k));if(f>bf){bf=f;best=c}}
+          A=B;B=best;
+        }
+      }
+      row=caStep(row,rule,r);const key=row.join('');
+      if(seen.has(key)&&R()<AX(.15,.4,.7))row[ri(0,11)]=ri(0,k-1);   /* noise disturbs a frozen cycle */
+      seen.set(key,g);
+      const step=AX(rr(1.2,1.9),rr(.8,1.3),rr(.4,.8)),t0=ctx.currentTime+.05,groups=12/mapN;
+      for(let q=0;q<groups;q++){
+        let s=0;for(let c=q*mapN;c<(q+1)*mapN;c++)s+=row[c];if(!s)continue;
+        const dg=(s-1)%8+q*2;let m=deg(dg,S.root+24+emoOct());
+        for(let tries=0;tries<4&&(tension(m,S.root)>lim||tension(m,prev)>lim*10);tries++)m=deg(dg+tries+1,S.root+24+emoOct());
+        if(tension(m,S.root)>lim)continue;
+        prev=m;const t=t0+q*step/groups;
+        if(R()<AX(.75,.6,.45))tone(mtof(m),t,step*rr(2,3.5),{type:R()<.6?'sine':'triangle',gain:.035,attack:Math.min(.6,step*.4),cutoff:1800,dest:autoBus,pan:(q+.5)/groups*1.4-.7});
+        else bell(mtof(m),t,step*rr(3,5),.03,autoBus,(q+.5)/groups*1.4-.7);
+      }
+      const lam=rule.filter(v=>v).length/rule.length,it=line&&live.get(line);
+      if(it){it.text=`AUTOMATON · λ ${lam.toFixed(2)} · ${row.map(v=>CA_GLYPH[Math.min(4,v)]).join('')}`;render()}
+      await sleep(step*1000);
+    }
+    if(line)unlive(line);
+    await sleep(rr(150,420)*AX(1.1,1,.8)*1000);
+  }
+}
 async function spokenLoop(){
   await sleep(rr(120,240)*1000);let fails=0;
   while(true){
@@ -1690,7 +1752,7 @@ setInterval(guardian,100);setInterval(lorenzTick,1000);setInterval(emoTick,1000)
 
 /* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
 const LEGEND={
-  gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals.'],
+  gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals. Now and then a musical cellular automaton, after Peter Beyls (Generative Art 2003): a row of twelve cells whose rule drifts from one climate to another, breeds, and is selected by the order or chaos of the moment; its living row is written on screen.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
   question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). Every question is also written across the whole screen, white on black, in the lettering of SLOGAN. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
@@ -1735,7 +1797,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();automiDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
