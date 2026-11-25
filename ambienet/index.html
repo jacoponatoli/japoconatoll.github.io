@@ -357,7 +357,20 @@ async function overloadLoop(){
    Sometimes a past scene returns: the same palette, the same loops, the same voices, and yet different
    (other recordings, another transposition, a voice exchanged): the same returns only as difference. */
 let still=false,fromVoid=false,sceneT=null,erodeT=null,erodeId=0;const MEM=[],VOIDS=!EMBED;
-async function hush(){while(still)await sleep(3000)} /* pings, games, errors, voices and slogans wait while a scene empties and refills */
+async function hush(){while(still)await sleep(3000)}
+/* THE WORDS TAKE TURNS — voices are never many. One at a time, with a silence of words between one and the next
+   (70–150 s, longer in order, shorter in disorder), and the kinds alternate: a kind that spoke in the last two turns
+   waits for the others (it may speak again only if nobody else has spoken for a long while). Archive voices, slogans,
+   poems, questions and film dialogues all ask for their turn here. */
+const VOX={last:-1e9,busy:false,hist:[],gap:90};
+async function voiceTurn(kind){
+  while(true){
+    const since=performance.now()/1000-VOX.last,free=!speaking&&!VOX.busy&&!still;
+    if(free&&since>VOX.gap&&(!VOX.hist.slice(-2).includes(kind)||since>VOX.gap*3)){VOX.busy=true;return}
+    await sleep(rr(3000,8000));
+  }
+}
+function voiceDone(kind){VOX.busy=false;VOX.last=performance.now()/1000;VOX.hist.push(kind);if(VOX.hist.length>8)VOX.hist.shift();VOX.gap=rr(70,150)*AX(1.3,1,.8)} /* pings, games, errors, voices and slogans wait while a scene empties and refills */
 function erode(span){
   still=true;const id=erodeId,act=shuffle(Object.keys(T).filter(k=>T[k]>.01&&k!=='drone')),step=span/(act.length+1);
   act.forEach((k,i)=>setTimeout(()=>{if(still&&id===erodeId){T[k]=0;(k==='net'?['netdry','netdelay','netverb']:[k]).forEach(n=>L[n]&&L[n].gain.setTargetAtTime(0,ctx.currentTime,rr(14,24)))}},(i+1)*step*1000));
@@ -1100,6 +1113,7 @@ async function sloganLoop(){
       let pool=sloganIdx.filter(x=>!sloganSeen.has(x.f));if(!pool.length){sloganSeen.clear();pool=sloganIdx}
       const it=pick(pool);sloganSeen.add(it.f);
       let buf;try{buf=await sloganBuffer(it)}catch(e){await sleep(20000);continue}
+      await voiceTurn('slogan');
       const m=megaphone(dest),reps=pick([1,2,2,3]),crowd=R()<.35,rate=pick([1,1,.92,.85]),t0=ctx.currentTime+.3;let t=t0;
       const back=R()<.18,rbuf=back?reverseBuffer(buf):null;
       for(let r=0;r<reps;r++){
@@ -1120,7 +1134,8 @@ async function sloganLoop(){
       const total=t-t0+4;
       log('SLOGAN',it.t+(reps>1?`  ×${reps}`:'')+(crowd?' · crowd':'')+(back?' · first reversed':'')+' · '+m.kind,total);
       setTimeout(()=>{try{m.out.disconnect()}catch(e){}},(total+6)*1000);
-      await sleep((total+(inScene?rr(100,220):rr(240,480)))*1000);
+      await sleep(total*1000);voiceDone('slogan');
+      await sleep((inScene?rr(100,220):rr(240,480))*1000);
     }else if(sloganText.length&&'speechSynthesis'in window){ // fallback: the browser's voice, quiet
       const text=pick(sloganText),vs=speechSynthesis.getVoices().filter(v=>/^it/i.test(v.lang));
       const u=new SpeechSynthesisUtterance(text);if(vs.length)u.voice=pick(vs);u.lang='it-IT';u.rate=.8;u.pitch=.3;u.volume=.25;
@@ -1224,7 +1239,7 @@ async function poesiaDeck(){
     let pool=poemIdx.filter(x=>!poemSeen.has(x.f));if(!pool.length){poemSeen.clear();pool=poemIdx}
     const it=R()<.6?pool[0]:pick(pool);poemSeen.add(it.f); /* mostly the newest */
     let buf;try{const r=await fetch(POEM_BASE+it.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(60000);continue}
-    if(still||speaking)continue;
+    await voiceTurn('poem');
     const kids=/bambin/.test(it.voice),choir=/bambini/.test(it.voice)||(kids&&R()<.35),glide=/tra i registri/.test(it.voice),
       rate=R()<.3?pick([.9,.86,.82]):1,lvl=rangeDb(buf,0,Math.min(buf.duration,30)),gain=Math.max(.05,Math.min(8,Math.pow(10,(-23-lvl)/20))),t=ctx.currentTime+.3,play=buf.duration/rate;
     const out=ctx.createGain();out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(1,t+1.5);out.gain.setValueAtTime(1,t+play-1);out.gain.linearRampToValueAtTime(0,t+play+.5);
@@ -1240,7 +1255,7 @@ async function poesiaDeck(){
     log('POESIA',`${it.form} · ${it.voice}${choir&&!/bambini/.test(it.voice)?' in coro':''}${slowTag(rate)}`,3);
     (it.times||[]).forEach((tt,i)=>{const nx=(it.times[i+1]??it.dur)-tt;setTimeout(()=>log('POESIA',it.lines[i],Math.max(2,nx/rate+.4)),(.3+tt/rate)*1000)}); /* each verse while it is read */
     await sleep((play+1)*1000);
-    speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);setTimeout(()=>{try{out.disconnect()}catch(e){}},2000);
+    speaking=false;voiceDone('poem');master.gain.setTargetAtTime(.8,ctx.currentTime,3);setTimeout(()=>{try{out.disconnect()}catch(e){}},2000);
     await sleep(rr(360,780)*AX(1.3,1,1.2)/(1+EM.w.nostalgia*.6)*1000);
   }
 }
@@ -1258,6 +1273,22 @@ async function askOnce(buf,it,rate,again){
   s.connect(g);g.connect(L.spoken); /* close and dry: no filter, no reverb */s.start(t);s.stop(t+play+.2);
   log(it.kind==='paradosso'?'PARADOSSO':'DOMANDA',it.q,play+rr(6,10));setTimeout(()=>{try{g.disconnect()}catch(e){}},(play+4)*1000);
   await sleep((play+.5)*1000)}
+/* the dark repetition: a few seconds after the child, the same question returns lower, slower, as from another,
+   more frightening entity — prepared by the Action (pitch and formants down, slowed; q.d), or, for older questions,
+   the same voice slowed down here. Dark low-passed, a doubled shadow an octave under, much reverb, a low swell. */
+async function askDark(buf,fallback){
+  const rate=fallback?.7:1,lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(8,Math.pow(10,(-18-lvl)/20))),t=ctx.currentTime+.3,play=buf.duration/rate;
+  const lp=filt('lowpass',rr(2200,3200)),g=ctx.createGain();g.gain.value=gain;lp.connect(g);g.connect(L.spoken);
+  const w=ctx.createGain();w.gain.value=.55;g.connect(w);w.connect(reverb);
+  const s=ctx.createBufferSource();s.buffer=buf;s.playbackRate.value=rate;s.connect(lp);s.start(t);s.stop(t+play+.2);
+  const sh=ctx.createBufferSource(),sg=ctx.createGain();sh.buffer=buf;sh.playbackRate.value=rate*.5;sg.gain.value=gain*.22;   /* the shadow, an octave under */
+  const slp=filt('lowpass',900);sh.connect(slp);slp.connect(sg);sg.connect(L.spoken);sg.connect(w);sh.start(t+.04);sh.stop(t+Math.min(play*2,play+1.5));
+  const sw=ctx.createGain();sw.gain.setValueAtTime(0,t);sw.gain.linearRampToValueAtTime(.07,t+play*.6);sw.gain.linearRampToValueAtTime(0,t+play+3);sw.connect(L.spoken);
+  [mtof(S.root-24),mtof(S.root-24)*1.007].forEach(f=>{const o=ctx.createOscillator();o.frequency.value=f;o.connect(sw);o.start(t);o.stop(t+play+3.2)});
+  log('DOMANDA','— '+(qSeenLast||''),play+2);
+  setTimeout(()=>{try{g.disconnect();sg.disconnect();sw.disconnect()}catch(e){}},(play+5)*1000);
+  await sleep((play+.6)*1000)}
+let qSeenLast='';
 /* the questions and the paradoxes are also written: the lettering of SLOGAN, white on black, as big as possible —
    every line enlarged until it touches both edges, words never broken, the lines spread over the whole height;
    of all the ways to break the lines, the one that covers the most screen. No full stops. */
@@ -1286,21 +1317,24 @@ async function domandeDeck(){
   await sleep(rr(60,150)*1000);await loadQuestions();setInterval(loadQuestions,3*3600e3);
   const KW={mistica:'mistica',nostalgia:'intimo',terra:'qui',aria:'mente'};
   while(true){
-    if(!qIdx.length||speaking){await sleep(20000);continue}
+    if(!qIdx.length){await sleep(20000);continue}
     let pool=qIdx.filter(x=>!qSeen.has(x.f));if(pool.length<4){qSeen.clear();pool=qIdx}
     const wk={};for(const e in KW)wk[KW[e]]=EM.w[e];
     const it=wpick(Object.fromEntries(pool.map((x,i)=>[i,1+3*(wk[x.kind]||0)])));const q=pool[+it];qSeen.add(q.f);
     let buf;try{const r=await fetch(POEM_BASE+q.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(30000);continue}
-    if(speaking)continue;
+    let dbuf=null;if(q.d)try{const r=await fetch(POEM_BASE+q.d);if(r.ok)dbuf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){}
+    await voiceTurn('question');
     speaking=true;master.gain.setTargetAtTime(.42,ctx.currentTime,.8);
-    showWall(q.q);
+    showWall(q.q);qSeenLast=q.q;
     await askOnce(buf,q,1,false);
-    master.gain.setTargetAtTime(.3,ctx.currentTime,1.5);                 /* the space for the answer */
-    await sleep(rr(5,10)*AX(1.4,1,.7)*1000);
-    if(R()<AX(.3,.15,.05)){master.gain.setTargetAtTime(.4,ctx.currentTime,.8);await askOnce(buf,q,1,true);await sleep(rr(5,9)*1000)} /* the same question, again: not the same */
+    master.gain.setTargetAtTime(.32,ctx.currentTime,1.2);
+    await sleep(rr(1.8,3.5)*1000);
+    await askDark(dbuf||buf,!dbuf);                                         /* the same question, from another entity */
+    master.gain.setTargetAtTime(.28,ctx.currentTime,1.5);                 /* the space for the answer */
+    await sleep(rr(5,9)*AX(1.4,1,.7)*1000);
     hideWall();
-    speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,4);
-    await sleep(rr(110,260)*AX(1.3,1,.75)*1000);
+    speaking=false;voiceDone('question');master.gain.setTargetAtTime(.8,ctx.currentTime,4);
+    await sleep(rr(200,420)*AX(1.3,1,.75)*1000);
   }
 }
 /* FILM DIALOGUES — now and then a short scene of dialogue from a film: public-domain films of every kind and every
@@ -1343,7 +1377,7 @@ async function filmDeck(){
     let pool=filmIdx.filter(x=>!filmSeen.has(x.f));if(!pool.length){filmSeen.clear();pool=filmIdx}
     const it=R()<.5?pool[0]:pick(pool);filmSeen.add(it.f);
     let buf;try{const r=await fetch(POEM_BASE+it.f);if(!r.ok)throw 0;buf=await ctx.decodeAudioData(await r.arrayBuffer())}catch(e){await sleep(60000);continue}
-    if(still||speaking)continue;
+    await voiceTurn('film');
     const kind=pick(REGISTERS),rate=R()<.25?pick([.95,.91]):1,lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(8,Math.pow(10,(-23-lvl)/20)))*1.4,t=ctx.currentTime+.7,play=buf.duration/rate;
     const out=ctx.createGain(),fx=ctx.createGain();
     out.gain.setValueAtTime(0,t-.1);out.gain.linearRampToValueAtTime(gain,t+.12);out.gain.setValueAtTime(gain,t+play-.15);out.gain.linearRampToValueAtTime(0,t+play+.3);out.connect(L.spoken);
@@ -1353,9 +1387,9 @@ async function filmDeck(){
     src.connect(transmission(kind,t,play,out,fx));src.start(t);src.stop(t+play+.2);
     speaking=true;master.gain.setTargetAtTime(.6,ctx.currentTime,1.2);
     const line=log('FILM',`${it.title}${it.year?' ('+it.year+')':''} · ${LANG_EN[it.lang]||it.lang} · ${kind}${slowTag(rate)}`);
-    await sleep((play+1)*1000);unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);
+    await sleep((play+1)*1000);unlive(line);speaking=false;voiceDone('film');master.gain.setTargetAtTime(.8,ctx.currentTime,3);
     setTimeout(()=>{try{out.disconnect();fx.disconnect()}catch(e){}},2000);
-    await sleep(rr(240,560)*AX(1.2,1,.8)*1000);
+    await sleep(rr(360,720)*AX(1.2,1,.8)*1000);
   }
 }
 /* MUSICAL AUTOMATA — after Peter Beyls, "Selectionist musical automata" (Generative Art 2003, pp. 289–297).
@@ -1431,7 +1465,7 @@ async function spokenLoop(){
     const len=Math.min(buf.duration-8,rr(28,48));let st=null,lvl=-99;
     for(let k=0;k<12;k++){const s0=rr(4,buf.duration-len-2),d=rangeDb(buf,s0,len);if(d>-42&&d>lvl){st=s0;lvl=d;if(d>-32)break}}
     if(st==null){fails++;await sleep(1500);continue}
-    if(still||speaking){await sleep(20000);continue}
+    await voiceTurn('spoken');
     fails=0;
     const rate=pick([1,1,.96,.92]),gain=Math.max(.05,Math.min(10,Math.pow(10,(-24-lvl)/20))),t=ctx.currentTime+.15,fi=rr(4,7),fo=rr(6,9),play=len/rate;
     const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;
@@ -1456,9 +1490,9 @@ async function spokenLoop(){
     const line=log('SPOKEN',`${it.title}${it.creator?' — '+it.creator:''} · ${kind==='moon'?'from the moon':kind}${slowTag(rate)}`);
     await sleep((play+.3)*1000);
     if(R()<.6)await wearOut(buf,st+len,rate,gain);
-    unlive(line);speaking=false;master.gain.setTargetAtTime(.8,ctx.currentTime,3);
+    unlive(line);speaking=false;voiceDone('spoken');master.gain.setTargetAtTime(.8,ctx.currentTime,3);
     setTimeout(()=>{try{g.disconnect()}catch(e){}},1000);
-    await sleep(rr(300,600)*1000);
+    await sleep(rr(420,780)*1000);
   }
 }
 

@@ -234,7 +234,48 @@ def g_chiasmo():
 
 PGRAM = [g_tautologia, g_contraddizione, g_contraddizione, g_questa_frase, g_chiasmo, g_chiasmo]
 
+# ——— il perturbante (Freud, «Das Unheimliche», 1919): il familiare che diventa estraneo, il doppio, la ripetizione,
+#     la casa, lo sguardo, la bambola, la voce che ti conosce ———
+PERTURBANTE = [
+  "Sei sicuro di essere solo, adesso?", "Chi c'era in questa stanza, prima di te?", "Di chi è il respiro che senti?", "Hai chiuso la porta?",
+  "Chi ti sta guardando, adesso?", "Ti sei mai incontrato per strada?", "Se ti voltassi adesso, chi vedresti?", "Lo senti anche tu, quel rumore?",
+  "Perché la tua voce ti sembra di un altro?", "Sei sicuro che questa sia casa tua?", "Ricordi di essere già stato qui?", "Chi ti ha dato il tuo nome?",
+  "E se io fossi dentro di te?", "Da quanto tempo non chiudi gli occhi?", "Chi risponde, quando non ci sei?", "Hai mai avuto paura del tuo riflesso?",
+  "Ti ricordi di me?", "Perché mi ascolti al buio?", "Chi dorme nel tuo letto, quando non ci sei?", "Sai chi c'è dietro la porta?",
+  "Hai sentito? Qualcuno ha detto il tuo nome.", "Di chi sono le mani che stai guardando?", "Quante volte hai già sentito questa domanda?",
+  "E se questa voce fosse la tua?", "Che cosa c'è sotto il tuo letto?", "Perché il silenzio ha cambiato suono?", "Chi ti ha seguito fino a qui?",
+  "Hai notato che la stanza è più piccola?", "Ti sembra di conoscermi?", "Che cosa ti guarda, quando chiudi gli occhi?", "Chi sta sognando te, adesso?",
+  "Sei sveglio? Ne sei proprio sicuro?", "Perché sorridi, quando hai paura?", "Hai sentito bussare?", "Che cosa hai sepolto?", "Ti ho già fatto questa domanda?",
+  "C'è qualcuno nella stanza accanto?", "Che ore erano, quando sei entrato?", "Chi ha spento la luce?", "Ti sei mai visto dormire?",
+  "Perché le bambole tengono gli occhi aperti?", "Chi ti somiglia più di te?", "Dove sei, quando non ricordi?", "Chi parla, quando parlo io?",
+  "Il tuo doppio dorme?", "Riconosci questa casa?", "Sei sicuro di essere ancora tu?", "Chi ha imparato la tua voce?", "Perché non mi guardi?",
+  "Chi ti ha visto entrare?"]
+
+def g_perturbante():
+    r = random.random()
+    if r < .3:
+        v = random.choice(['respira', 'aspetta', 'cammina', 'ti guarda', 'sussurra', 'ascolta', 'bussa', 'ride piano', 'conta', 'canta piano'])
+        d = random.choice(['dietro di te', 'nella stanza accanto', 'sotto il pavimento', 'dentro lo specchio', 'alla finestra', 'nel corridoio', 'sotto il letto',
+                           'sulle scale', 'dentro il muro', 'nel buio della casa', 'dietro la porta'])
+        return f"Chi {v} {d}, adesso?"
+    if r < .5:
+        return "Hai sentito " + random.choice(['quel passo', 'la porta', 'il tuo nome', 'qualcuno respirare', 'un bambino ridere', 'la finestra aprirsi',
+                                              'una voce uguale alla tua', 'il telefono squillare', 'qualcuno chiamarti', 'la casa muoversi', 'il pavimento']) + "?"
+    if r < .7:
+        return "E se " + random.choice(['questa voce fosse la tua', 'fossi tu a sognare me', 'la stanza fosse vuota da anni', 'qualcuno ti stesse imitando',
+                                       'il tuo riflesso si muovesse prima di te', 'questa domanda l\'avessi scritta tu', 'non fossi mai uscito di qui',
+                                       'chi ami avesse un\'altra faccia', 'io fossi già dentro casa', 'domani fosse uguale a oggi, per sempre',
+                                       'la tua ombra restasse qui quando te ne vai']) + "?"
+    if r < .85:
+        return "Perché " + random.choice(['la tua ombra è in ritardo', 'lo specchio è appannato', 'la porta è socchiusa', 'il ritratto ti guarda',
+                                         'la tua voce suona estranea', 'nessuno risponde', 'il silenzio respira', 'l\'orologio è fermo',
+                                         'la casa sembra più grande dentro', 'la bambola ha cambiato posto']) + "?"
+    return "Chi ha " + random.choice(['spento la luce', 'aperto la finestra', 'scritto il tuo nome sul vetro', 'spostato le sedie', 'lasciato la porta aperta',
+                                      'chiamato poco fa', 'preso il tuo posto', 'cantato la ninna nanna', 'apparecchiato per due']) + "?"
+
 def one():
+    if random.random() < .42:   # il perturbante, quasi una volta su due
+        return 'perturbante', (random.choice(PERTURBANTE) if random.random() < .45 else g_perturbante()), 'perturbante'
     if random.random() < .16:   # ogni tanto
         return 'paradosso', (random.choice(PARADOSSI) if random.random() < .5 else random.choice(PGRAM)()), 'paradosso'
     if random.random() < .5:
@@ -269,6 +310,10 @@ def render(text, path):
     f = 2 ** (random.uniform(4.2, 4.8) / 12)   # voce di bambino o bambina: altezza e timbro più alti, durata invariata
     af = f'asetrate={int(sr * f)},aresample=44100,atempo={1 / f:.4f},highpass=f=80,apad=pad_dur=0.25,loudnorm=I=-16:TP=-1.5'
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', 'q.wav', '-af', af, '-ac', '1', '-b:a', '64k', path], check=True)
+    # la stessa domanda da un'altra entità: altezza e timbro molto più bassi, più lenta
+    fd = 2 ** (random.uniform(-6.5, -4.5) / 12)
+    afd = f'asetrate={int(sr * fd)},aresample=44100,atempo={random.uniform(.76, .82) / fd:.4f},highpass=f=50,apad=pad_dur=0.4,loudnorm=I=-17:TP=-1.5'
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', 'q.wav', '-af', afd, '-ac', '1', '-b:a', '64k', path.replace('.mp3', '_d.mp3')], check=True)
     d = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path], capture_output=True, text=True).stdout.strip() or 0)
     return eng, round(d, 2)
 
@@ -276,7 +321,8 @@ idx = {'items': [], 'asked': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8')); idx.setdefault('asked', [])
     except Exception: pass
-idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina' and it.get('v') == 4]   # solo la voce attuale
+idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina' and it.get('v') == 6]   # solo la voce attuale, con la sua ombra
+N = max(N, 60 - len(idx['items']))   # se ne restano poche, se ne fanno di più
 asked = set(idx['asked']); stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 while made < N and tries < N * 40:
     tries += 1
@@ -286,11 +332,11 @@ while made < N and tries < N * 40:
     try: eng, dur = render(q, f'{OUT}/{h}.mp3')
     except Exception as e: print('errore', e); continue
     asked.add(q); idx['asked'].append(q); made += 1
-    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'bambino o bambina', 'v': 4, 'dur': dur, 'made': stamp})
+    idx['items'].insert(0, {'f': f'q/{h}.mp3', 'q': q, 'kind': k, 'src': src, 'engine': eng, 'voice': 'bambino o bambina', 'v': 6, 'd': f'q/{h}_d.mp3', 'dur': dur, 'made': stamp})
     print(f'{k:9s} {dur:5.2f}s  {q}')
 idx['items'] = idx['items'][:KEEP]
 idx['asked'] = idx['asked'][-700:]   # dopo molte altre, una domanda può tornare: l'uguale, diverso
-keep = {os.path.basename(it['f']) for it in idx['items']}
+keep = {os.path.basename(it['f']) for it in idx['items']} | {os.path.basename(it['d']) for it in idx['items'] if it.get('d')}
 for fn in os.listdir(OUT):
     if fn.endswith('.mp3') and fn not in keep: os.remove(f'{OUT}/{fn}')
 idx['updated'] = stamp
