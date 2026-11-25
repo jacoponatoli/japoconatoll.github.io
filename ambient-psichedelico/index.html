@@ -2752,6 +2752,8 @@ const MOVES = {
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.55, () => mostro()],
+  lotta: [.6, () => lotta()],
+  pixel: [.6, () => pixela()],
   ambigua: [.6, () => { if (!active.some(a => a.proc === P.ambigua && a.target === 1)) entraMotore(P.ambigua); }],
   volto: [.5, () => { if (!active.some(a => a.proc === P.volto && a.target === 1)) entraMotore(P.volto); }],
   sovraccarico: [.45, () => { if (REGIA.tempo === 'lento') return; REGIA.over = performance.now() + rnd(1.5, 3.5) * 1000; S.tscaleT = 3.8; glitch(rnd(.3, .8)); }],
@@ -3115,13 +3117,8 @@ function campoForma(k, x, y, Q) {   // x, y in [0..aspetto]×[0..1]; restituisce
     default: { const i = Math.floor(x * Q.f), j = Math.floor(y * Q.f); return ((i + j) & 1) * .5 + h(i, j) * .5; }
   }
 }
-function passaggio(dur) {
-  if (!view.width) return;
-  const d = REGIA.dis;
-  if (Math.random() < (d < .3 ? .4 : d > .7 ? .1 : .18)) { XF.on = false; return; }   // ogni tanto uno stacco secco
-  for (const c of [XF.cv, XF.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
-  const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
-  const gw = 240, gh = Math.max(60, Math.round(240 * view.height / view.width)), asp = gw / gh; XF.mk.width = gw; XF.mk.height = gh;
+function campoXF() {   // il campo di un passaggio: forme (anche fuse) e rumore, secondo l'asse ordine–disordine
+  const gw = 240, gh = Math.max(60, Math.round(240 * view.height / view.width)), asp = gw / gh, d = REGIA.dis;
   // quanto rumore: segue l'asse, con uno scarto; agli estremi a volte forma pura o rumore puro
   let lam = clamp(.15 + .7 * d + gauss() * .18, 0, 1); if (Math.random() < .1) lam = 0; else if (Math.random() < .08) lam = 1;
   const libere = FORME_XF.filter(k => !XF.ultime.includes(k)), k1 = pick(libere), k2 = Math.random() < .3 ? pick(libere.filter(k => k !== k1)) : null;
@@ -3137,14 +3134,93 @@ function passaggio(dur) {
   norm(A); if (k2) { norm(B); for (let i = 0; i < A.length; i++) A[i] = fuse === 'media' ? (A[i] + B[i]) / 2 : fuse === 'min' ? Math.min(A[i], B[i]) : fuse === 'max' ? Math.max(A[i], B[i]) : A[i] * B[i]; norm(A); }
   norm(N2); const F = new Float32Array(gw * gh); for (let i = 0; i < F.length; i++) F[i] = (1 - lam) * A[i] + lam * N2[i]; norm(F);
   if (Math.random() < .3) for (let i = 0; i < F.length; i++) F[i] = 1 - F[i];   // a volte dall'esterno verso l'interno
+  return { F, gw, gh, forma: k1 + (k2 ? '+' + k2 : '') + ' · rumore ' + lam.toFixed(2) };
+}
+function passaggio(dur) {
+  if (!view.width) return;
+  const d = REGIA.dis;
+  if (Math.random() < (d < .3 ? .4 : d > .7 ? .1 : .18)) { XF.on = false; return; }   // ogni tanto uno stacco secco
+  for (const c of [XF.cv, XF.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
+  const g = XF.cv.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(view, 0, 0);
+  const C = campoXF(), F = C.F, gw = C.gw, gh = C.gh; XF.mk.width = gw; XF.mk.height = gh;
   const base = { lento: 1.6, medio: 1.1, veloce: .75, frenesia: .5 }[REGIA.tempo] || 1;
-  Object.assign(XF, { on: true, t: 0, last: performance.now(), F, gw, gh, id: XF.mk.getContext('2d').createImageData(gw, gh), pw: rnd(.45, 2.2), forma: k1 + (k2 ? '+' + k2 : '') + ' · rumore ' + lam.toFixed(2),
+  Object.assign(XF, { on: true, t: 0, last: performance.now(), F, gw, gh, id: XF.mk.getContext('2d').createImageData(gw, gh), pw: rnd(.45, 2.2), forma: C.forma,
     dur: (dur || base * rnd(.45, 1.8)) * (REGIA.over ? .35 : 1) });
+  XF.conteso = !REGIA.over && Math.random() < .1 + .15 * d;   // ogni tanto il passaggio è una lotta: avanza, arretra, poi passa
+  if (XF.conteso) { XF.dur *= rnd(1.8, 3); XF.osc = 1 + ((Math.random() * 3) | 0); XF.amp = rnd(.25, .5); XF.sd = rnd(100); }
+}
+// LOTTA: un'altra immagine (un ricordo di poco fa, o il presente rovesciato) prova a entrare e viene respinta,
+// oppure entra del tutto, resta un attimo e poi si ritira: il flusso di prima continua
+const LT = { on: false, mem: [], memT: 0, src: document.createElement('canvas'), tmp: document.createElement('canvas'), mk: document.createElement('canvas') };
+function lottaMemoria(dt) {   // ogni pochi secondi una fotografia del flusso, per i ricordi che tornano
+  if ((LT.memT -= dt) > 0 || !view.width) return; LT.memT = rnd(3, 6);
+  const c = LT.mem.length >= 8 ? LT.mem.shift() : document.createElement('canvas'); c.width = view.width >> 1; c.height = view.height >> 1;
+  c.getContext('2d').drawImage(view, 0, 0, c.width, c.height); c.t = performance.now(); LT.mem.push(c);
+}
+function lotta(modo) {
+  if (LT.on || !view.width) return false;
+  for (const c of [LT.src, LT.tmp]) if (c.width !== view.width || c.height !== view.height) { c.width = view.width; c.height = view.height; }
+  const vecchi = LT.mem.filter(c => performance.now() - c.t > 10000), g = LT.src.getContext('2d');
+  const fonte = vecchi.length && Math.random() < .65 ? 'ricordo' : pick(['specchio', 'capovolto', 'canali']);
+  g.save(); g.imageSmoothingEnabled = false;
+  if (fonte === 'ricordo') g.drawImage(pick(vecchi), 0, 0, view.width, view.height);
+  else { if (fonte === 'specchio') { g.translate(view.width, 0); g.scale(-1, 1); } if (fonte === 'capovolto') { g.translate(view.width, view.height); g.scale(-1, -1); }
+    g.drawImage(view, 0, 0); if (fonte === 'canali') { g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; g.fillRect(0, 0, view.width, view.height); } }
+  g.restore();
+  const C = campoXF(); LT.mk.width = C.gw; LT.mk.height = C.gh;
+  modo = modo || (Math.random() < .55 ? 'respinta' : 'ritorno');
+  const vel = { lento: 1.4, medio: 1, veloce: .75, frenesia: .55 }[REGIA.tempo] || 1;
+  Object.assign(LT, { on: true, t: 0, F: C.F, id: LT.mk.getContext('2d').createImageData(C.gw, C.gh), modo, fonte, sd: rnd(100),
+    picco: modo === 'respinta' ? rnd(.2, .75) : 1.05, salita: rnd(.5, 1.4) * vel, tenuta: modo === 'respinta' ? rnd(.1, .6) * vel : rnd(.5, 1.4), discesa: rnd(.5, 1.5) * vel, scosse: rnd(.03, .12) });
+  return true;
+}
+function lottaDraw(dt) {
+  if (!LT.on) return; LT.t += dt;
+  const T1 = LT.salita, T2 = T1 + LT.tenuta, T3 = T2 + LT.discesa, t = LT.t;
+  if (t >= T3) { LT.on = false; return; }
+  let c = t < T1 ? LT.picco * (1 - Math.pow(1 - t / T1, 2)) : t < T2 ? LT.picco : LT.picco * (1 - Math.pow((t - T2) / LT.discesa, 1.6));
+  c += (fbm(t * 3 + LT.sd, LT.sd, 2) - .5) * LT.scosse * 2 * (t < T2 ? 1 : 1 - (t - T2) / LT.discesa);   // la tensione: spinge, cede, rispinge
+  const a = LT.id.data, F = LT.F; for (let i = 0; i < F.length; i++) a[i * 4 + 3] = F[i] < c ? 255 : 0;
+  LT.mk.getContext('2d').putImageData(LT.id, 0, 0);
+  const g = LT.tmp.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(LT.src, 0, 0);
+  g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = false; g.drawImage(LT.mk, 0, 0, LT.tmp.width, LT.tmp.height);
+  vctx.drawImage(LT.tmp, 0, 0);
+}
+// PIXEL: l'immagine si sgrana in blocchi per un secondo o due, dai pixel minuscoli ai quadri enormi;
+// il campionamento è secco, ogni blocco prende un colore vero del momento: niente medie, niente grigi
+const PX = { on: false, cv: document.createElement('canvas') };
+function pixela() {
+  if (PX.on || !view.width) return false;
+  const m = Math.min(view.width, view.height), lg = (a, b) => Math.exp(rnd(Math.log(a), Math.log(b)));
+  const modo = pick(['fisso', 'fisso', 'cresce', 'cala', 'pulsa', 'salti']);
+  Object.assign(PX, { on: true, t: 0, dur: rnd(1, 2.4) * (REGIA.tempo === 'lento' ? 1.3 : 1), modo, a: lg(3, m / 4), b: lg(3, m / 3), fermo: Math.random() < .25 && !REGIA.over, salto: 0, cur: 0 });
+  if (PX.modo === 'fisso') PX.b = PX.a;
+  return true;
+}
+function pixelDraw(dt) {
+  if (!PX.on) return; PX.t += dt; const u = PX.t / PX.dur; if (u >= 1) { PX.on = false; return; }
+  let b;
+  if (PX.modo === 'pulsa') b = PX.a + (PX.b - PX.a) * (.5 - .5 * Math.cos(u * 6.28 * 2));
+  else if (PX.modo === 'salti') { if ((PX.salto -= dt) <= 0) { PX.salto = rnd(.12, .4); PX.cur = Math.exp(rnd(Math.log(3), Math.log(Math.min(view.width, view.height) / 3))); } b = PX.cur; }
+  else b = Math.exp(Math.log(PX.a) + (Math.log(PX.b) - Math.log(PX.a)) * u);
+  b = Math.max(2, b); const w = Math.max(1, Math.round(view.width / b)), h = Math.max(1, Math.round(view.height / b));
+  if (PX.cv.width !== w || PX.cv.height !== h) { PX.cv.width = w; PX.cv.height = h; PX.preso = false; }
+  const g = PX.cv.getContext('2d');
+  if (!PX.fermo || !PX.preso) { g.imageSmoothingEnabled = false; g.drawImage(view, 0, 0, w, h); PX.preso = true;   // a volte i pixel restano fermi
+    // ogni blocco va al colore più vicino della gamma che sta andando: restano colori pieni
+    const pal = currentPalette().c.map(c => typeof c === 'string' ? [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)] : c).concat([[0, 0, 0]]);
+    const id = g.getImageData(0, 0, w, h), d = id.data;
+    for (let k = 0; k < d.length; k += 4) { let bi = 0, bd = 1e9; for (let i = 0; i < pal.length; i++) { const q = pal[i], dd = (d[k] - q[0]) ** 2 + (d[k + 1] - q[1]) ** 2 + (d[k + 2] - q[2]) ** 2; if (dd < bd) { bd = dd; bi = i; } }
+      d[k] = pal[bi][0]; d[k + 1] = pal[bi][1]; d[k + 2] = pal[bi][2]; }
+    g.putImageData(id, 0, 0); }
+  vctx.save(); vctx.imageSmoothingEnabled = false; vctx.drawImage(PX.cv, 0, 0, view.width, view.height); vctx.restore();
 }
 function passaggioDraw() {
   if (!XF.on) return; const now = performance.now(); XF.t += Math.min(.1, (now - XF.last) / 1000); XF.last = now;
   const u = XF.t / XF.dur; if (u >= 1) { XF.on = false; return; }
-  const e = Math.pow(u, XF.pw), a = XF.id.data, F = XF.F;
+  let e = Math.pow(u, XF.pw);
+  if (XF.conteso) e = clamp(u + XF.amp * Math.sin(u * Math.PI * (2 * XF.osc + 1)) * (1 - u) + (fbm(u * 6 + XF.sd, XF.sd, 2) - .5) * .2 * (1 - u), 0, 1);
+  const a = XF.id.data, F = XF.F;
   for (let i = 0; i < F.length; i++) a[i * 4 + 3] = F[i] > e ? 255 : 0;
   XF.mk.getContext('2d').putImageData(XF.id, 0, 0);
   const g = XF.tmp.getContext('2d'); g.globalCompositeOperation = 'copy'; g.drawImage(XF.cv, 0, 0);
@@ -3463,7 +3539,7 @@ function frame(t, dt) {
   wctx.putImageData(img, 0, 0);
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(work, 0, 0, view.width, view.height);
-  passaggioDraw();
+  passaggioDraw(); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
@@ -3541,6 +3617,8 @@ addEventListener('keydown', e => {
   else if (k === '2') apparizione(P.labirinto);
   else if (k === ',') { enter(P.canale); note('canale di Shannon'); }
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
+  else if (k === '>') { if (lotta()) note('lotta · ' + LT.modo + ' · ' + LT.fonte); }
+  else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
   else if (k === "'" || k === '+' || k === '<' || k === '*' || k === '?') { const q = k === '?' ? P.ambigua : k === "'" ? P.volto : k === '+' ? P.natura : k === '<' ? P.blotter : (Math.random() < .5 ? P.fosfeni : P.knoll); if (active.filter(a => a.target && !a.proc.persist).length >= 3) leave(); enter(q); note(q.name); }
   else if (k === '-') { REGIA.modo = REGIA.modo === 'caso' ? 'caos' : 'caso'; REGIA.modoT = rnd(40, 90); note('montaggio: ' + REGIA.modo); }
@@ -3569,7 +3647,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, mostro, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, mostro, LT, lotta, PX, pixela, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
