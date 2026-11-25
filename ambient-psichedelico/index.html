@@ -5066,6 +5066,67 @@ function letteraSecca(ch) {
   MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false; MONO.fin = rnd(.5, 1); MONO.fout = rnd(.5, 1);
 }
 
+
+// FORMA A PIENA PAGINA: come la lettera, ma una forma geometrica. Dalle più semplici (cerchio, quadrato, rombo, triangolo)
+// alle più complesse (poligoni a molti lati, stelle a molte punte, poligoni stellati, rose, ingranaggi, anelli, mezzelune).
+// Parametri continui e memoria delle forme viste: non ne torna mai una identica. Grande, quasi fino ai bordi; due colori soli.
+const FS_VISTE = new Set();
+function formaGeometrica(c) {
+  const TAU = 6.2832, fam = pick(c < .3 ? ['cerchio', 'ovale', 'quadrato', 'rettangolo', 'rombo', 'triangolo', 'cerchio', 'quadrato']
+    : c < .65 ? ['poligono', 'stella', 'croce', 'superellisse', 'mezzaluna', 'rombo', 'ovale', 'rettangolo', 'triangolo', 'poligono', 'stella']
+    : ['stella', 'stellato', 'rosa', 'ingranaggio', 'ondulato', 'anello', 'poligono', 'stella', 'croce', 'superellisse', 'mezzaluna']);
+  const rot = c < .3 && Math.random() < .6 ? pick([0, Math.PI / 4, Math.PI / 2, Math.PI]) * (Math.random() < .5 ? 1 : 0) : rnd(TAU);
+  const giro = (n, f, ph = 0) => Array.from({ length: n }, (_, i) => { const a = ph + i / n * TAU, r = f(a, i); return [r * Math.cos(a), r * Math.sin(a)]; });
+  let paths = [], stira = false, nome = fam, P = {};
+  switch (fam) {
+    case 'cerchio': paths = [giro(180, () => 1)]; break;
+    case 'ovale': P.k = rnd(1.08, 1.7); paths = [giro(180, a => 1).map(([x, y]) => [x * P.k, y])]; stira = Math.random() < .4; break;
+    case 'quadrato': paths = [[[-1, -1], [1, -1], [1, 1], [-1, 1]]]; break;
+    case 'rettangolo': P.k = rnd(1.15, 2.6); paths = [[[-P.k, -1], [P.k, -1], [P.k, 1], [-P.k, 1]]]; stira = Math.random() < .5; break;
+    case 'rombo': P.k = rnd(1, 1.8); paths = [[[0, -P.k], [1, 0], [0, P.k], [-1, 0]]]; break;
+    case 'triangolo': P.k = rnd(.7, 1.4); paths = [[[0, -1], [P.k, .8], [-P.k, .8]]]; break;
+    case 'poligono': P.n = 5 + ((Math.random() * (c < .65 ? 8 : 30)) | 0); paths = [giro(P.n, () => 1)]; nome = P.n + ' lati'; break;
+    case 'stella': P.n = c < .65 ? 4 + ((Math.random() * 9) | 0) : 8 + ((Math.random() * 60) | 0); P.q = rnd(.18, .85); paths = [giro(P.n * 2, (a, i) => i % 2 ? P.q : 1)]; nome = 'stella a ' + P.n + ' punte'; break;
+    case 'stellato': { P.n = 5 + ((Math.random() * 20) | 0); do { P.m = 2 + ((Math.random() * (P.n / 2 - 1)) | 0); } while (gcd(P.n, P.m) !== 1 && P.m > 1 && Math.random() < .9);
+      const pts = []; for (let i = 0; i < P.n; i++) { const a = i * P.m / P.n * TAU; pts.push([Math.cos(a), Math.sin(a)]); } paths = [pts]; nome = '{' + P.n + '/' + P.m + '}'; break; }
+    case 'rosa': P.k = 2 + ((Math.random() * 10) | 0); P.e = rnd(.3, 1.5); P.b = rnd(0, .4); paths = [giro(720, a => P.b + (1 - P.b) * Math.pow(Math.abs(Math.cos(P.k * a / 2)), P.e))]; nome = 'rosa a ' + P.k; break;
+    case 'ingranaggio': { P.n = 6 + ((Math.random() * 30) | 0); P.q = rnd(.65, .9); const pts = []; for (let i = 0; i < P.n; i++) for (const [f, r] of [[0, P.q], [.15, 1], [.5, 1], [.65, P.q]]) { const a = (i + f) / P.n * TAU; pts.push([r * Math.cos(a), r * Math.sin(a)]); }
+      paths = [pts]; if (Math.random() < .5) { const hr = rnd(.18, .45); paths.push(giro(90, () => hr)); } nome = 'ingranaggio a ' + P.n; break; }
+    case 'ondulato': P.k = 3 + ((Math.random() * 25) | 0); P.a = rnd(.05, .3); paths = [giro(720, a => 1 + P.a * Math.sin(P.k * a))]; nome = 'ondulato a ' + P.k; break;
+    case 'superellisse': P.e = pick([rnd(.25, .8), rnd(2.5, 7)]); P.k = rnd(1, 1.6); paths = [giro(360, a => 1).map(([x, y]) => [Math.sign(x) * Math.pow(Math.abs(x), 2 / P.e) * P.k, Math.sign(y) * Math.pow(Math.abs(y), 2 / P.e)])]; break;
+    case 'croce': P.t = rnd(.18, .6); P.k = rnd(1, 1.5); { const t = P.t; paths = [[[-t, -P.k], [t, -P.k], [t, -t], [1, -t], [1, t], [t, t], [t, P.k], [-t, P.k], [-t, t], [-1, t], [-1, -t], [-t, -t]]]; } break;
+    case 'mezzaluna': P.d = rnd(.25, .7); P.r = rnd(.8, 1); { const A = giro(180, () => 1), B = giro(180, () => P.r).map(([x, y]) => [x + P.d, y]).reverse(); paths = [A, B]; } break;
+    case 'anello': { const base = pick(['cerchio', 'poligono', 'stella']); P.n = 3 + ((Math.random() * 12) | 0); P.h = rnd(.35, .8);
+      const f = base === 'cerchio' ? () => 1 : base === 'poligono' ? () => 1 : (a, i) => i % 2 ? .55 : 1, n = base === 'cerchio' ? 180 : base === 'poligono' ? P.n : P.n * 2;
+      paths = [giro(n, f), giro(n, f).map(([x, y]) => [x * P.h, y * P.h])]; nome = 'anello (' + base + ')'; break; }
+  }
+  return { paths, rot, stira, nome, sig: fam + JSON.stringify(P, (k, v) => typeof v === 'number' ? Math.round(v * 20) / 20 : v) + Math.round(rot * 10) };
+}
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+function formaSecca() {
+  if (MONO.phase || RIT.phase || TD.phase) return false;
+  const cv = MONO.cv; cv.width = view.width; cv.height = view.height; const g = cv.getContext('2d'), w = cv.width, h = cv.height;
+  let F, k = 0; do { F = formaGeometrica(clamp(REGIA.dis + gauss() * .18, 0, 1)); } while (FS_VISTE.has(F.sig) && ++k < 30); FS_VISTE.add(F.sig);
+  const lum = c => (.3 * c[0] + .59 * c[1] + .11 * c[2]) / 255, css = c => `rgb(${c.map(Math.round).join(',')})`;
+  // due colori: quelli dell'immagine appena passata, oppure (a volte) quelli della scena che sta per arrivare
+  let A, B, anticipa = Math.random() < .35 && !(SERIE.on && performance.now() < SERIE.until);
+  if (anticipa) { let p; do { p = pick(PALETTES); } while (p === S.palTo); const cs = shuffled(p.c.map(c => c.slice(0, 3))); A = cs[0]; B = cs.slice(1).sort((x, y) => Math.abs(lum(y) - lum(A)) - Math.abs(lum(x) - lum(A)))[0];
+    S.palFrom = currentPalette(); S.palTo = p; S.palT = 0; S.palDur = rnd(1.2, 2.5); }   // sotto la forma il film cambia già colori
+  else { const C = coloriDallImmagine(); A = C[0] || [0, 0, 0]; B = C.slice(1, 8).sort((x, y) => Math.abs(lum(y) - lum(A)) - Math.abs(lum(x) - lum(A)))[0]; }
+  if (!B || Math.abs(lum(B) - lum(A)) < .25) B = lum(A) > .5 ? [0, 0, 0] : [255, 255, 255];
+  if (Math.random() < .3) [A, B] = [B, A];
+  g.fillStyle = css(A); g.fillRect(0, 0, w, h);
+  // misura: quasi fino ai bordi, a volte un po' meno; ovali e rettangoli a volte stirati sullo schermo
+  const cs = Math.cos(F.rot), sn = Math.sin(F.rot), R = F.paths.map(pp => pp.map(([x, y]) => [x * cs - y * sn, x * sn + y * cs]));
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const p of R[0]) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+  const fr = Math.random() < .75 ? rnd(.86, .97) : rnd(.65, .86), sx0 = w * fr / (x1 - x0), sy0 = h * fr / (y1 - y0), sc = Math.min(sx0, sy0), sx = F.stira ? sx0 : sc, sy = F.stira ? sy0 : sc;
+  const cx = w / 2 - (x0 + x1) / 2 * sx, cy = h / 2 - (y0 + y1) / 2 * sy;
+  R.forEach((pp, k) => { g.beginPath(); pp.forEach(([x, y], i) => i ? g.lineTo(cx + x * sx, cy + y * sy) : g.moveTo(cx + x * sx, cy + y * sy)); g.closePath();
+    g.fillStyle = css(k ? A : B); g.fill(); });   // la prima è la forma, le altre la scavano (buchi, mezzelune)
+  MONO.segno = F.nome + (anticipa ? ' · anticipa' : ''); MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'forma'; MONO.pix = false; MONO.fin = rnd(.5, 1); MONO.fout = rnd(.5, 1.1);
+  return true;
+}
+
 // ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
 const TD = { phase: '', t: 0, hold: 0, tex: document.createElement('canvas') };
 TD.tex.width = 640; TD.tex.height = 400;
@@ -5385,6 +5446,7 @@ const MOVES = {
   glitch: [.8, () => glitch(rnd(.15, .9))],
   mandala: [.7, () => apparizione(P.mandala)],
   lettera: [.6, () => letteraSecca()],
+  forma: [.6, () => formaSecca()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
   mostro: [.22, () => mostro()],
@@ -6420,6 +6482,7 @@ addEventListener('keydown', e => {
   else if (k === '.') { enter(P.caos); note('gioco del caos'); }
   else if (k === '>') { if (lotta()) note('lotta · ' + LT.modo + ' · ' + LT.fonte); }
   else if (k === '~' || k === 'ù') { if (fluido()) note(FLU.on ? 'fluido · ' + FLU.modo : 'fine del fluido'); }
+  else if (k === '^' || k === 'ò') { if (formaSecca()) note('forma · ' + MONO.segno); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
   else if (k === '!') { if (mostro()) note('MOSTRAI'); else note('MOSTRAI si sta svegliando…'); }
@@ -6450,7 +6513,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
