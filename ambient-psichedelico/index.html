@@ -3762,7 +3762,35 @@ const SCRIPTS = {
   coreano: rangeChars(0xAC00, 0xD7A3),
   cherokee: rangeChars(0x13A0, 0x13F4),
   geroglifici: () => String.fromCodePoint(0x13000 + ((Math.random() * 1070) | 0)),
+  kanji: '夢心空火水光愛無道花山月日気魂禅宇宙風雨雷龍虎鳥魚木森人目口手音声生死時永遠静動明暗天地神仏',
+  sanscrito: 'ॐॐअआइईउऋएओकखगघचजञटडणतदधनपबभमयरलवशषसह',
+  segni: '!?+×÷=∞∑∫∂∇√πΩλψ∅∈∀∃≈≠≡⊕⊗†‡§¶&@#%*☉☽☿♀♂♃♄✦✧❖◎◉△▽☯☸⚛∴∵※¿¡↯⌘⍟⌬⏣',
 };
+// formule matematiche (anche famose) per la lettera a piena pagina
+const FORMULE = ['E = mc²', 'e^(iπ) + 1 = 0', 'a² + b² = c²', 'F = ma', 'πr²', 'φ = (1 + √5) / 2', 'Δx · Δp ≥ ħ/2', 'iħ ∂ψ/∂t = Ĥψ', 'S = k log W', '1 + 1 = 2',
+  '0,999… = 1', 'e = Σ 1/n!', 'x = (−b ± √(b² − 4ac)) / 2a', 'Gμν = 8πTμν', 'V − E + F = 2', 'Σ 1/n² = π²/6', 'z → z² + c', '√−1 = i', 'ζ(s) = Σ n⁻ˢ', '∇ · E = ρ/ε₀',
+  'dS ≥ 0', '∫ eˣ dx = eˣ', 'ℵ₀ < 2^ℵ₀', 'P = NP ?', '∞ + 1 = ∞', 'Fₙ = Fₙ₋₁ + Fₙ₋₂', 'λ = h/p', 'eˣ = Σ xⁿ/n!', 'A = 4πr²', 'sin² θ + cos² θ = 1', '1/0', 'x ≠ x'];
+// segni inventati: sembrano lettere di un alfabeto, ma non esistono. Tratti su una griglia, archi, punti, a volte simmetrici
+function glifoInventato(g, cx, cy, size, col) {
+  const gw = 2 + ((Math.random() * 2) | 0), gh = 3 + ((Math.random() * 2) | 0), u = size / gh, w0 = u * gw, P = (i, j) => [cx - w0 / 2 + i * u, cy - size / 2 + j * u];
+  const lw = size * rnd(.07, .14), simm = Math.random() < .35, tratti = [];
+  const n = 2 + ((Math.random() * 3) | 0);
+  for (let k = 0; k < n; k++) { const tipo = pick(['linea', 'linea', 'spezzata', 'arco', 'arco', 'punto', 'anello']);
+    const a = [(Math.random() * (gw + 1)) | 0, (Math.random() * (gh + 1)) | 0], b = [(Math.random() * (gw + 1)) | 0, (Math.random() * (gh + 1)) | 0];
+    if (a[0] === b[0] && a[1] === b[1]) b[1] = (b[1] + 2) % (gh + 1);
+    tratti.push({ tipo, a, b, c: [(Math.random() * (gw + 1)) | 0, (Math.random() * (gh + 1)) | 0], verso: Math.random() < .5, r: rnd(.4, 1) }); }
+  g.save(); g.strokeStyle = g.fillStyle = col; g.lineWidth = lw; g.lineCap = pick(['round', 'butt', 'square']); g.lineJoin = pick(['round', 'miter']);
+  const disegna = (sx) => { for (const t of tratti) { const A = P(...t.a), B = P(...t.b), C = P(...t.c), X = p => [cx + (p[0] - cx) * sx, p[1]];
+    g.beginPath();
+    if (t.tipo === 'linea') { g.moveTo(...X(A)); g.lineTo(...X(B)); }
+    else if (t.tipo === 'spezzata') { g.moveTo(...X(A)); g.lineTo(...X(C)); g.lineTo(...X(B)); }
+    else if (t.tipo === 'arco') { const m = X([(A[0] + B[0]) / 2, (A[1] + B[1]) / 2]), r = Math.hypot(B[0] - A[0], B[1] - A[1]) / 2, an = Math.atan2(B[1] - A[1], (B[0] - A[0]) * sx); g.arc(m[0], m[1], Math.max(r, u * .3), an, an + Math.PI, t.verso); }
+    else if (t.tipo === 'anello') { const p = X(A); g.arc(p[0], p[1], u * .35 * t.r, 0, 6.2832); }
+    else { const p = X(A); g.arc(p[0], p[1], lw * .9, 0, 6.2832); g.fill(); continue; }
+    g.stroke(); } };
+  disegna(1); if (simm) disegna(-1);
+  g.restore();
+}
 const SCRIPT_NAMES = Object.keys(SCRIPTS);
 const charOf = sc => { const S = SCRIPTS[sc]; if (!S) return LET[(Math.random() * LET.length) | 0]; if (typeof S === 'function') return S(); const a = [...S]; return a[(Math.random() * a.length) | 0]; };
 const anyScript = () => Math.random() < .25 ? 'latino' : pick(SCRIPT_NAMES);
@@ -4989,21 +5017,53 @@ function quadro(kind) {
 }
 
 // LETTERA A PIENA PAGINA: una sola lettera, grande, secca, ferma, a colori pieni
+const LT_FONT = ['"Helvetica Neue", Helvetica, Arial, sans-serif', '"Arial Black", sans-serif', 'Georgia, serif', '"Times New Roman", serif', '"Courier New", monospace', 'Impact, sans-serif',
+  'Futura, "Century Gothic", sans-serif', 'Didot, "Bodoni 72", "Bodoni MT", serif', 'Garamond, "EB Garamond", serif', 'Palatino, "Palatino Linotype", serif', '"Trebuchet MS", sans-serif', 'Verdana, sans-serif',
+  '"Gill Sans", "Gill Sans MT", sans-serif', 'Optima, Candara, sans-serif', 'Baskerville, "Baskerville Old Face", serif', 'Rockwell, "Rockwell Extra Bold", serif', '"American Typewriter", "Courier New", monospace',
+  'Copperplate, "Copperplate Gothic Light", fantasy', '"Brush Script MT", "Snell Roundhand", cursive', 'Papyrus, fantasy', '"Lucida Console", Monaco, monospace', 'Menlo, Consolas, monospace',
+  '"Avenir Next", Avenir, sans-serif', '"Hoefler Text", "Book Antiqua", serif', 'Chalkduster, "Comic Sans MS", cursive', '"Marker Felt", "Segoe Print", cursive', 'Herculanum, fantasy', 'Charter, "Bitstream Charter", serif',
+  'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui, sans-serif'];
+const LT_STILE = [['400', 'normal'], ['700', 'normal'], ['900', 'normal'], ['300', 'normal'], ['400', 'italic'], ['700', 'italic'], ['900', 'italic']];
+let LT_CODA = [];
+function prossimoFont() {   // mai lo stesso carattere due volte di fila: si scorre tutto il mazzo prima di rimescolarlo
+  if (!LT_CODA.length) { const ult = LT_CODA.ultimo; LT_CODA = shuffled(LT_FONT.flatMap(f => [f])); if (LT_CODA[0] === ult) LT_CODA.push(LT_CODA.shift()); }
+  const f = LT_CODA.shift(); LT_CODA.ultimo = f; return f;
+}
+function coloriDallImmagine() {   // i colori più presenti nell'immagine che c'è adesso: la lettera ne è la continuazione
+  const c = document.createElement('canvas'); c.width = 48; c.height = 30; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(view, 0, 0, 48, 30);
+  const d = g.getImageData(0, 0, 48, 30).data, H = new Map();
+  for (let k = 0; k < d.length; k += 4) { const q = (d[k] >> 5) << 10 | (d[k + 1] >> 5) << 5 | (d[k + 2] >> 5), e = H.get(q); if (e) { e.n++; e.r += d[k]; e.g += d[k + 1]; e.b += d[k + 2]; } else H.set(q, { n: 1, r: d[k], g: d[k + 1], b: d[k + 2] }); }
+  const sat = e => { const r = e.r / e.n, g2 = e.g / e.n, b = e.b / e.n, mx = Math.max(r, g2, b), mn = Math.min(r, g2, b); return mx ? (mx - mn) / mx : 0; };
+  return [...H.values()].sort((a, b) => b.n * (.35 + sat(b)) - a.n * (.35 + sat(a))).map(e => [e.r / e.n, e.g / e.n, e.b / e.n]);   // i colori vivi pesano di più del bianco e del nero
+}
 function letteraSecca(ch) {
   if (MONO.phase || RIT.phase || TD.phase) return;
   const cv = MONO.cv; cv.width = view.width; cv.height = view.height; const g = cv.getContext('2d'), w = cv.width, h = cv.height;
-  ch = ch || (Math.random() < .75 ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0] : charOf(anyScript()));
-  if (Math.random() < .25 && /[A-Z]/.test(ch)) ch = ch.toLowerCase();
-  const P5 = currentPalette().c, lum = c => (.3 * c[0] + .59 * c[1] + .11 * c[2]) / 255, css = c => `rgb(${c.map(Math.round).join(',')})`;
-  let bg, fg; if (Math.random() < .35) { const wh = Math.random() < .5; bg = wh ? '#fff' : '#000'; fg = wh ? '#000' : '#fff'; }
-  else { let A, B, k = 0; do { A = pick(P5); B = pick(P5); k++; } while ((A === B || Math.abs(lum(A) - lum(B)) < .3) && k < 60); if (Math.abs(lum(A) - lum(B)) < .3) B = lum(A) > .5 ? [0, 0, 0] : [255, 255, 255]; bg = css(A); fg = css(B); }   // sempre ben leggibile
-  g.fillStyle = bg; g.fillRect(0, 0, w, h);
-  const font = pick(['"Helvetica Neue", Helvetica, Arial, sans-serif', '"Arial Black", sans-serif', 'Georgia, serif', '"Times New Roman", serif', '"Courier New", monospace', 'Impact, sans-serif', 'Futura, "Century Gothic", sans-serif', 'Didot, "Bodoni 72", serif']);
-  const wt = pick(['400', '700', '900', '700']), size = h * (Math.random() < .7 ? rnd(.85, 1.05) : rnd(1.2, 1.9));   // a volte così grande da uscire dalla pagina
-  g.font = `${wt} ${size}px ${font}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fg;
-  const off = size > h * 1.1 ? [gauss() * w * .1, gauss() * h * .1] : [0, h * .04];
-  g.fillText(ch, w / 2 + off[0], h / 2 + off[1]);
-  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false;
+  let tipo = 'lettera';
+  if (!ch) { const r = Math.random();
+    if (r < .26) ch = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(Math.random() * 26) | 0];
+    else if (r < .42) ch = charOf(pick(['kanji', 'kanji', 'hiragana', 'katakana', 'cinese']));
+    else if (r < .52) ch = charOf(pick(['sanscrito', 'devanagari', 'tibetano']));
+    else if (r < .66) ch = charOf(anyScript());
+    else if (r < .76) ch = charOf('segni');
+    else if (r < .88) { ch = pick(FORMULE); tipo = 'formula'; }
+    else tipo = 'inventato'; }
+  if (Math.random() < .25 && /^[A-Z]$/.test(ch)) ch = ch.toLowerCase();
+  MONO.segno = tipo === 'inventato' ? '(segno inventato)' : ch;
+  const lum = c => (.3 * c[0] + .59 * c[1] + .11 * c[2]) / 255, css = c => `rgb(${c.map(Math.round).join(',')})`;
+  // fondo = il colore che domina l'immagine di prima; lettera = il suo colore più lontano per luce, così si legge sempre
+  const C = coloriDallImmagine(), A = C[0] || [0, 0, 0]; let B = C.slice(1, 8).sort((p, q) => Math.abs(lum(q) - lum(A)) - Math.abs(lum(p) - lum(A)))[0];
+  if (!B || Math.abs(lum(B) - lum(A)) < .3) B = lum(A) > .5 ? [0, 0, 0] : [255, 255, 255];
+  g.fillStyle = css(A); g.fillRect(0, 0, w, h);
+  const font = prossimoFont(), [wt, it] = pick(LT_STILE);
+  if (tipo === 'inventato') { glifoInventato(g, w / 2, h / 2, h * rnd(.5, .72), css(B)); MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false; MONO.fin = rnd(.5, 1); MONO.fout = rnd(.5, 1); return; }
+  let size = h * .9; g.font = `${it} ${wt} ${size}px ${font}`;
+  let M = g.measureText(ch), bw = (M.actualBoundingBoxLeft || 0) + (M.actualBoundingBoxRight || M.width), bh = (M.actualBoundingBoxAscent || size * .7) + (M.actualBoundingBoxDescent || 0);
+  size *= Math.min(w * .82 / Math.max(1, bw), h * .78 / Math.max(1, bh)); g.font = `${it} ${wt} ${size}px ${font}`;   // sempre dentro la pagina
+  M = g.measureText(ch); const L = M.actualBoundingBoxLeft || M.width / 2, R = M.actualBoundingBoxRight || M.width / 2, As = M.actualBoundingBoxAscent || size * .7, De = M.actualBoundingBoxDescent || 0;
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = css(B);
+  g.fillText(ch, w / 2 - (R - L) / 2, h / 2 + (As - De) / 2);   // il centro del segno, non della riga: sempre centrata
+  MONO.phase = 'in'; MONO.a = 0; MONO.t = 0; MONO.hold = REGIA.on ? rnd(1, 2.4) : rnd(3, 7); MONO.mode = 'lettera'; MONO.pix = false; MONO.fin = rnd(.5, 1); MONO.fout = rnd(.5, 1);
 }
 
 // ENTRATA NEL 3D: l'immagine viva si avvolge su un solido, che da piatto diventa 3D e gira nello spazio su un fondo neutro
@@ -5331,6 +5391,7 @@ const MOVES = {
   lotta: [.6, () => lotta()],
   pixel: [.6, () => pixela()],
   linee: [.65, () => linee()],
+  macchia: [.6, () => macchia()],
   fluido: [.55, () => !FLU.on && fluido(true)],
   ambigua: [.6, () => { if (!active.some(a => a.proc === P.ambigua && a.target === 1)) entraMotore(P.ambigua); }],
   volto: [.5, () => { if (!active.some(a => a.proc === P.volto && a.target === 1)) entraMotore(P.volto); }],
@@ -5870,6 +5931,47 @@ function lineeDraw(dt) {
     if (hor) { vctx.fillRect(0, a0 - lw / 2, VW, lw); vctx.fillRect(0, a0 + th - lw / 2, VW, lw); } else { vctx.fillRect(a0 - lw / 2, 0, lw, VH); vctx.fillRect(a0 + th - lw / 2, 0, lw, VH); }
   }
 }
+
+// MACCHIA: Rorschach nel flusso. Una macchia simmetrica sempre nuova si allarga sul film, si trasforma e si ritira;
+// i colori sono quelli della palette che sta andando (o presi dall'immagine), così la macchia è collegata a ciò che c'era.
+// Complessità, numero di livelli, grana (pixel, morbida, a contorni) e palette cambiano ogni volta, secondo l'asse.
+const MC = { on: false, o: {}, cv: document.createElement('canvas') };
+function macchia() {
+  if (MC.on || !view.width) return false;
+  const d = REGIA.dis, o = MC.o; newBlobs(o); o.t = rnd(10);
+  if (d > .6) { o.fray *= rnd(1.2, 1.8); o.warp *= rnd(1.2, 1.7); } else if (d < .3) { o.fray *= .5; o.warp *= .6; }
+  const stile = pick(d < .3 ? ['contorni', 'morbida', 'contorni', 'pixel'] : d > .7 ? ['pixel', 'contorni', 'morbida', 'pixel'] : ['contorni', 'morbida', 'pixel']);
+  const gw = stile === 'pixel' ? Math.round(rnd(28, 80)) : stile === 'morbida' ? Math.round(rnd(70, 120)) : Math.round(rnd(130, 190));
+  const lv = Math.max(1, Math.min(7, Math.round((d < .3 ? rnd(1, 3) : d > .7 ? rnd(3, 7) : rnd(2, 5)))));
+  const pal = currentPalette().c.map(c => typeof c === 'string' ? [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)] : c.slice(0, 3));
+  const colori = pick(['palette', 'palette', 'due', 'immagine', 'nero']);
+  let cols = colori === 'immagine' ? coloriDallImmagine().slice(0, 8) : colori === 'due' ? shuffled(pal).slice(0, 2) : colori === 'nero' ? [[0, 0, 0], pick(pal)] : shuffled(pal);
+  if (!cols.length) cols = pal;
+  Object.assign(MC, { on: true, t: 0, stile, gw, gh: Math.max(8, Math.round(gw * view.height / view.width)), lv, cols, colori, perGruppo: Math.random() < .5,
+    fondo: Math.random() < .55 ? null : pick([[0, 0, 0], [255, 255, 255], pick(pal)]), tin: rnd(1, 2.2), hold: rnd(3, 7), tout: rnd(1, 2), vel: rnd(.015, .05) * (.6 + d), sh: 0, shv: rnd(.2, 1.2) * (Math.random() < .5 ? -1 : 1) });
+  MC.cv.width = MC.gw; MC.cv.height = MC.gh; MC.id = MC.cv.getContext('2d').createImageData(MC.gw, MC.gh);
+  return true;
+}
+function macchiaDraw(dt) {
+  if (!MC.on) return; MC.t += dt; const T1 = MC.tin, T2 = T1 + MC.hold, T3 = T2 + MC.tout, t = MC.t;
+  if (t > T3) { MC.on = false; return; }
+  const e = t < T1 ? ease(t / T1) : t < T2 ? 1 : 1 - ease((t - T2) / MC.tout);   // l'inchiostro si allarga e si ritira
+  const o = MC.o; o.t += MC.vel * dt * 30; MC.sh += MC.shv * dt;
+  if ((MC.fr = (MC.fr || 0) + 1) % (MC.gw > 140 ? 2 : 1) === 0 || !MC.pronto) {
+    const w = MC.gw, h = MC.gh, F = inkField(o, w, h, o.t), Id = o.Id, a = MC.id.data, th = o.th * (1 + (1 - e) * 2.2), n = MC.cols.length;
+    const L = v => { if (v < th) return 0; let l = 1; for (let k = 1; k < MC.lv; k++) if (v > th * (1 + k * .7)) l++; return l; };
+    const lab = MC.lab && MC.lab.length === w * h ? MC.lab : (MC.lab = new Int8Array(w * h));
+    for (let i = 0; i < w * h; i++) lab[i] = L(F[i]);
+    const s0 = Math.floor(MC.sh);
+    for (let i = 0; i < w * h; i++) { const l = lab[i], k = i * 4;
+      if (!l) { if (MC.fondo) { a[k] = MC.fondo[0]; a[k + 1] = MC.fondo[1]; a[k + 2] = MC.fondo[2]; a[k + 3] = Math.round(255 * e); } else a[k + 3] = 0; continue; }
+      const x = i % w, bordo = MC.stile === 'contorni' && ((x < w - 1 && lab[i + 1] !== l) || (i + w < w * h && lab[i + w] !== l) || (x > 0 && lab[i - 1] !== l));
+      if (bordo) { a[k] = a[k + 1] = a[k + 2] = 0; a[k + 3] = 255; continue; }
+      const c = MC.cols[(((l + s0 + (MC.perGruppo ? Id[i] : 0)) % n) + n) % n]; a[k] = c[0]; a[k + 1] = c[1]; a[k + 2] = c[2]; a[k + 3] = 255; }
+    MC.cv.getContext('2d').putImageData(MC.id, 0, 0); MC.pronto = true;
+  }
+  vctx.save(); vctx.imageSmoothingEnabled = MC.stile === 'morbida'; vctx.imageSmoothingQuality = 'high'; vctx.drawImage(MC.cv, 0, 0, view.width, view.height); vctx.restore();
+}
 // PIXEL: l'immagine si sgrana in blocchi per un secondo o due, dai pixel minuscoli ai quadri enormi;
 // il campionamento è secco, ogni blocco prende un colore vero del momento: niente medie, niente grigi
 const PX = { on: false, cv: document.createElement('canvas') };
@@ -5942,8 +6044,8 @@ function mostro() {
   if (MO.phase || TD.phase || MONO.phase || RIT.phase) return false;
   if (!mostroSrc()) { mostroPrepara(); return false; }   // il generatore non è ancora pronto: riproverà
   const d = REGIA.dis, sg = () => (Math.random() < .5 ? -1 : 1);
-  Object.assign(MO, { phase: 'in', t: 0, vin: pick(['punto', 'zoom', 'lancio', 'punto']), vout: pick(['punto', 'via', 'zoom']), tin: rnd(.6, 1.4), tout: rnd(.6, 1.3),
-    hold: rnd(5, 9), dyn: d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']), rot: 0, vr: gauss() * .12, px: 0, py: 0, vx: gauss() * .02, vy: gauss() * .015,
+  Object.assign(MO, { phase: 'in', t: 0, vin: pick(['punto', 'zoom', 'lancio', 'punto']), vout: pick(['punto', 'via', 'zoom']), tin: rnd(1, 1.8), tout: rnd(1, 1.7),
+    hold: rnd(2.5, 5), dyn: d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']), rot: 0, vr: gauss() * .12, px: 0, py: 0, vx: gauss() * .02, vy: gauss() * .015,
     dir: [sg() * rnd(.6, 1), sg() * rnd(.3, 1)], bg: pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa', '#000000']), sc: rnd(.8, 1),
     pelle: Math.random() < .6 ? 'pattern' : 'colori', h0: rnd(360), hv: rnd(300, 900) * sg(), hstop: rnd(.35, .7) });
   // mentre appare cambia molto: MOSTRAI passa a un umore mosso e muta subito
@@ -5999,7 +6101,7 @@ function drawMostro(dt) {
   else { k = 1; ox += MO.dir[0] * VW * (1 - e) * 1.1; oy += MO.dir[1] * VH * (1 - e) * 1.1; }   // lancio / via
   const sz = m * 1.3 * MO.sc * k * (MO.dyn === 'oscillante' ? 1 + .03 * Math.sin(MO.t * 2.5) : 1);
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.clearRect(0, 0, VW, VH);
-  g.globalAlpha = MO.phase === 'out' ? e : Math.min(1, MO.t / .3 + (MO.phase === 'in' ? 0 : 1)); g.fillStyle = MO.bg; g.fillRect(0, 0, VW, VH);   // il vuoto attorno
+  g.globalAlpha = MO.phase === 'gira' ? 1 : e; g.fillStyle = MO.bg; g.fillRect(0, 0, VW, VH);   // il vuoto attorno
   g.globalAlpha = al; g.translate(VW / 2 + ox, VH / 2 + oy); g.rotate(MO.rot); g.imageSmoothingEnabled = true; g.drawImage(MO.tmp, -sz / 2, -sz / 2, sz, sz);
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;
 }
@@ -6237,7 +6339,7 @@ function frame(t, dt) {
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   if (FLU.on && FLU.scia < 1) { vctx.imageSmoothingEnabled = true; vctx.globalAlpha = FLU.scia; vctx.drawImage(work, 0, 0, view.width, view.height); vctx.globalAlpha = 1; }   // la scia
   else vctx.drawImage(work, 0, 0, view.width, view.height);
-  passaggioDraw(); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
+  passaggioDraw(); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
@@ -6250,9 +6352,9 @@ function loop(t) {
   if (paused || t - last < (FLU.on ? 12 : 33)) return;
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (MONO.phase) {
-    if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / (REGIA.on ? .35 : 1.4)); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
+    if (MONO.phase === 'in') { MONO.a = Math.min(1, MONO.a + dt / (MONO.fin || (REGIA.on ? .35 : 1.4))); if (MONO.a >= 1) { MONO.phase = 'ferma'; MONO.t = 0; drawMono(1); } }
     else if (MONO.phase === 'ferma') { MONO.t += dt; if (MONO.t > MONO.hold) { MONO.phase = 'out'; } if (MONO.mode === 'rorschach') { drawInk(); drawMono(1); } return; }   // pagina immobile (la macchia si trasforma piano)
-    else { MONO.a -= dt / (REGIA.on ? .5 : 1.8); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; } }
+    else { MONO.a -= dt / (MONO.fout || (REGIA.on ? .5 : 1.8)); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; MONO.fin = MONO.fout = 0; } }
   }
   const fermo = performance.now() < FERMO.until, still = rituale(dt) || fermo;   // la sosta breve sull'immagine ambigua
   if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
@@ -6309,7 +6411,7 @@ addEventListener('keydown', e => {
   else if (k === 'w') apparizione(P.concreto);
   else if (k === '9') apparizione(P.tessuti);
   else if (k === '7') apparizione(P.yturralde);
-  else if (k === '6') { if (Math.random() < .5) tavolaRorschach(); else apparizione(P.rorschach); }
+  else if (k === '6') { const r = Math.random(); if (r < .5) { if (macchia()) note('macchia · ' + MC.stile + ' · ' + MC.lv + ' livelli · ' + MC.colori); } else if (r < .75) tavolaRorschach(); else apparizione(P.rorschach); }
   else if (k === '5') apparizione(P.sagome);
   else if (k === '4') letteraSecca();
   else if (k === '3') entra3D();
@@ -6348,7 +6450,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
