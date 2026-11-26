@@ -1,0 +1,1261 @@
+{
+ "nota": "Partiture del film PSICHEDELICO: ogni viaggio è l'andamento di un resoconto vero (pubblico dominio o licenza libera), ridotto a momenti, durate relative (d), intensità (i, 0–1), paura o estasi (v, da -1 a 1) e segni (s). Nessun testo dei resoconti è riportato.",
+ "momenti": [
+  "soglia",
+  "geometria",
+  "fioritura",
+  "dissoluzione",
+  "oceano",
+  "rientro",
+  "riverbero"
+ ],
+ "viaggi": [
+  {
+   "id": "mitchell-1896",
+   "titolo": "La torre gotica",
+   "fonte": "S. Weir Mitchell, Remarks on the effects of Anhelonium lewinii (the mescal button), British Medical Journal, 1896",
+   "url": "https://doi.org/10.1136/bmj.2.1875.1625",
+   "anno": 1896,
+   "sostanza": "mescal",
+   "assetto": "architettonico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 1.2,
+     "i": 0.3,
+     "v": 0.2,
+     "s": [
+      "luce",
+      "colori"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.6,
+     "s": [
+      "stelle",
+      "colori",
+      "geometria"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.6,
+     "i": 0.85,
+     "v": 0.8,
+     "s": [
+      "cattedrale",
+      "architettura",
+      "gioielli"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1,
+     "i": 0.9,
+     "v": 0.8,
+     "s": [
+      "gioielli",
+      "colori",
+      "mandala"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 1,
+     "i": 0.8,
+     "v": 0.5,
+     "s": [
+      "vuoto",
+      "cosmo",
+      "tempo"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.6,
+     "i": 0.3,
+     "v": 0.4,
+     "s": [
+      "luce"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ellis-1897",
+   "titolo": "Gioielli d'oro",
+   "fonte": "Havelock Ellis, Mescal: A New Artificial Paradise, The Contemporary Review, 1898 (Venerdì Santo 1897)",
+   "url": "https://druglibrary.org/SCHAFFER/heroin/history/mescal.htm",
+   "anno": 1897,
+   "sostanza": "mescal",
+   "assetto": "luminoso",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.8,
+     "i": 0.2,
+     "v": 0.3,
+     "s": [
+      "luce"
+     ]
+    },
+    {
+     "k": "soglia",
+     "d": 0.8,
+     "i": 0.4,
+     "v": 0.1,
+     "s": [
+      "luce",
+      "colori"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.6,
+     "s": [
+      "mandala",
+      "geometria"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.2,
+     "i": 0.8,
+     "v": 0.9,
+     "s": [
+      "gioielli",
+      "colori"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.4,
+     "i": 0.9,
+     "v": 0.8,
+     "s": [
+      "fiori",
+      "insetti",
+      "architettura",
+      "gioielli"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.5,
+     "s": [
+      "fiamma",
+      "arte",
+      "luce"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.8,
+     "i": 0.3,
+     "v": 0.6,
+     "s": [
+      "volti",
+      "colori"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ellis-pittore",
+   "titolo": "Il pittore e il teschio",
+   "fonte": "Havelock Ellis, Mescal: A New Artificial Paradise, 1898 (l'amico pittore)",
+   "url": "https://druglibrary.org/SCHAFFER/heroin/history/mescal.htm",
+   "anno": 1897,
+   "sostanza": "mescal",
+   "assetto": "umano",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.6,
+     "i": 0.6,
+     "v": -0.2,
+     "s": [
+      "luce",
+      "colori",
+      "gioielli"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 1,
+     "i": 0.9,
+     "v": -0.9,
+     "s": [
+      "paura",
+      "morte",
+      "vuoto"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.7,
+     "v": -0.3,
+     "s": [
+      "acqua",
+      "insetti",
+      "spirale"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.9,
+     "i": 0.8,
+     "v": -0.5,
+     "s": [
+      "corpo",
+      "morte",
+      "luce"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.4,
+     "i": 0.7,
+     "v": 0.3,
+     "s": [
+      "corpo",
+      "fuoco",
+      "fiori",
+      "spirale",
+      "risata",
+      "specchio"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.7,
+     "i": 0.3,
+     "v": 0,
+     "s": [
+      "tempo"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.5,
+     "i": 0.3,
+     "v": -0.1,
+     "s": [
+      "fondale",
+      "creature"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ellis-poeta",
+   "titolo": "I draghi del poeta",
+   "fonte": "Havelock Ellis, Mescal: A New Artificial Paradise, 1898 (il secondo poeta)",
+   "url": "https://druglibrary.org/SCHAFFER/heroin/history/mescal.htm",
+   "anno": 1897,
+   "sostanza": "mescal",
+   "assetto": "luminoso",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.6,
+     "i": 0.3,
+     "v": 0.3,
+     "s": [
+      "colori"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.3,
+     "i": 0.7,
+     "v": 0.8,
+     "s": [
+      "serpenti",
+      "creature",
+      "fumo"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.6,
+     "v": 0.5,
+     "s": [
+      "architettura",
+      "cattedrale",
+      "volti",
+      "ricordo"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 1,
+     "i": 0.5,
+     "v": 0.7,
+     "s": [
+      "fiume",
+      "luce",
+      "folla",
+      "arte"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.8,
+     "s": [
+      "musica",
+      "colori",
+      "gioielli"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.5,
+     "i": 0.2,
+     "v": 0.5,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "ellis-musica",
+   "titolo": "La musica in figure",
+   "fonte": "Havelock Ellis, Mescal: A New Artificial Paradise, 1898 (l'esperimento con la musica)",
+   "url": "https://druglibrary.org/SCHAFFER/heroin/history/mescal.htm",
+   "anno": 1897,
+   "sostanza": "mescal",
+   "assetto": "organico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.5,
+     "i": 0.3,
+     "v": 0.4,
+     "s": [
+      "musica"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.5,
+     "v": 0.6,
+     "s": [
+      "musica",
+      "nuvole"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.6,
+     "v": 0.7,
+     "s": [
+      "uccelli",
+      "musica"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.6,
+     "v": 0.7,
+     "s": [
+      "fiori",
+      "erba"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.9,
+     "i": 0.7,
+     "v": 0.8,
+     "s": [
+      "gioielli",
+      "luce"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.4,
+     "i": 0.2,
+     "v": 0.5,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "prentiss-morgan-1",
+   "titolo": "Il panorama senza fine",
+   "fonte": "D. W. Prentiss e F. P. Morgan, Anhalonium Lewinii (Mescal Buttons), Therapeutic Gazette, 1895 (esperimento I)",
+   "url": "https://digirepo.nlm.nih.gov/catalog/nlm:nlmuid-101751140-bk",
+   "anno": 1895,
+   "sostanza": "mescal",
+   "assetto": "organico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 1,
+     "i": 0.3,
+     "v": -0.2,
+     "s": [
+      "corpo"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 0.8,
+     "i": 0.5,
+     "v": 0.5,
+     "s": [
+      "colori",
+      "geometria"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 2,
+     "i": 0.85,
+     "v": 0.9,
+     "s": [
+      "colori",
+      "mandala",
+      "gioielli"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.8,
+     "v": 0.3,
+     "s": [
+      "insetti",
+      "volti",
+      "creature"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.8,
+     "i": 0.7,
+     "v": 0.6,
+     "s": [
+      "tempo",
+      "vuoto",
+      "cosmo"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.8,
+     "i": 0.3,
+     "v": 0,
+     "s": []
+    },
+    {
+     "k": "riverbero",
+     "d": 0.5,
+     "i": 0.2,
+     "v": -0.2,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "prentiss-morgan-2",
+   "titolo": "Gli osservatori",
+   "fonte": "D. W. Prentiss e F. P. Morgan, Anhalonium Lewinii (Mescal Buttons), Therapeutic Gazette, 1895 (esperimento II)",
+   "url": "https://digirepo.nlm.nih.gov/catalog/nlm:nlmuid-101751140-bk",
+   "anno": 1895,
+   "sostanza": "mescal",
+   "assetto": "oscuro",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.8,
+     "i": 0.3,
+     "v": 0.3,
+     "s": []
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.8,
+     "i": 0.6,
+     "v": -0.1,
+     "s": [
+      "tempo",
+      "musica"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1.3,
+     "i": 0.8,
+     "v": 0.2,
+     "s": [
+      "geometria",
+      "spirale",
+      "griglia",
+      "colori"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 1,
+     "i": 0.9,
+     "v": -0.9,
+     "s": [
+      "paura",
+      "specchio",
+      "volti"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 0.6,
+     "i": 0.6,
+     "v": 0,
+     "s": [
+      "geometria",
+      "mandala"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.5,
+     "i": 0.8,
+     "v": -0.7,
+     "s": [
+      "paura"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 1,
+     "i": 0.3,
+     "v": -0.1,
+     "s": []
+    },
+    {
+     "k": "riverbero",
+     "d": 0.7,
+     "i": 0.4,
+     "v": -0.3,
+     "s": [
+      "specchio",
+      "tempo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "prentiss-morgan-4",
+   "titolo": "Affondare",
+   "fonte": "D. W. Prentiss e F. P. Morgan, Anhalonium Lewinii (Mescal Buttons), Therapeutic Gazette, 1895 (esperimento IV)",
+   "url": "https://digirepo.nlm.nih.gov/catalog/nlm:nlmuid-101751140-bk",
+   "anno": 1895,
+   "sostanza": "mescal",
+   "assetto": "umano",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.8,
+     "i": 0.3,
+     "v": 0.4,
+     "s": []
+    },
+    {
+     "k": "dissoluzione",
+     "d": 1.2,
+     "i": 0.8,
+     "v": -0.8,
+     "s": [
+      "corpo",
+      "morte",
+      "paura"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.4,
+     "i": 0.6,
+     "v": -0.2,
+     "s": [
+      "ricordo",
+      "architettura",
+      "volti"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.6,
+     "i": 0.7,
+     "v": -0.6,
+     "s": [
+      "vuoto",
+      "paura"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.8,
+     "i": 0.4,
+     "v": -0.3,
+     "s": [
+      "acqua",
+      "tempo"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.6,
+     "i": 0.2,
+     "v": -0.4,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "prentiss-morgan-6",
+   "titolo": "Danze al tamburo",
+   "fonte": "D. W. Prentiss e F. P. Morgan, Anhalonium Lewinii (Mescal Buttons), Therapeutic Gazette, 1895 (esperimento VI)",
+   "url": "https://digirepo.nlm.nih.gov/catalog/nlm:nlmuid-101751140-bk",
+   "anno": 1895,
+   "sostanza": "mescal",
+   "assetto": "luminoso",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 1,
+     "i": 0.3,
+     "v": 0.5,
+     "s": []
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.5,
+     "v": 0.5,
+     "s": [
+      "griglia",
+      "geometria"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 2,
+     "i": 0.8,
+     "v": 0.9,
+     "s": [
+      "folla",
+      "musica",
+      "colori",
+      "volti"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.8,
+     "i": 0.4,
+     "v": 0.3,
+     "s": [
+      "corpo"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.5,
+     "v": 0.6,
+     "s": [
+      "colori",
+      "folla"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.5,
+     "i": 0.2,
+     "v": 0.5,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "ludlow-1",
+   "titolo": "L'eternità in trenta secondi",
+   "fonte": "Fitz Hugh Ludlow, The Hasheesh Eater, 1857 (capitolo I)",
+   "url": "https://standardebooks.org/ebooks/fitz-hugh-ludlow/the-hashish-eater",
+   "anno": 1857,
+   "sostanza": "hashish",
+   "assetto": "architettonico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.5,
+     "i": 0.7,
+     "v": -0.6,
+     "s": [
+      "paura",
+      "corpo"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.8,
+     "i": 0.7,
+     "v": -0.5,
+     "s": [
+      "musica",
+      "cattedrale",
+      "tempo",
+      "spirale"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.7,
+     "v": -0.5,
+     "s": [
+      "architettura",
+      "specchio",
+      "paura"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.4,
+     "i": 0.8,
+     "v": 0.6,
+     "s": [
+      "acqua",
+      "neve",
+      "bosco",
+      "architettura"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.6,
+     "i": 0.9,
+     "v": -0.8,
+     "s": [
+      "volti",
+      "morte",
+      "paura"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.8,
+     "i": 0.9,
+     "v": -0.9,
+     "s": [
+      "corpo",
+      "paura",
+      "acqua",
+      "tunnel"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.9,
+     "i": 1,
+     "v": -0.2,
+     "s": [
+      "mare",
+      "architettura",
+      "folla",
+      "morte",
+      "tempo"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.9,
+     "i": 0.8,
+     "v": 0.9,
+     "s": [
+      "acqua",
+      "cattedrale",
+      "musica",
+      "luce"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.6,
+     "i": 0.7,
+     "v": -0.3,
+     "s": [
+      "creature",
+      "griglia",
+      "volti"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.9,
+     "s": [
+      "mare",
+      "luce",
+      "fiori"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.5,
+     "i": 0.2,
+     "v": 0.4,
+     "s": [
+      "tempo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ludlow-4",
+   "titolo": "La Grande Muraglia",
+   "fonte": "Fitz Hugh Ludlow, The Hasheesh Eater, 1857 (capitolo IV)",
+   "url": "https://standardebooks.org/ebooks/fitz-hugh-ludlow/the-hashish-eater",
+   "anno": 1857,
+   "sostanza": "hashish",
+   "assetto": "cosmico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.6,
+     "i": 0.5,
+     "v": 0.1,
+     "s": [
+      "fiume",
+      "corpo"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.7,
+     "v": 0.9,
+     "s": [
+      "luce",
+      "nuvole",
+      "estasi"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1.5,
+     "i": 0.8,
+     "v": 0.8,
+     "s": [
+      "architettura",
+      "erba",
+      "cavalli",
+      "folla"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.7,
+     "i": 0.6,
+     "v": 0.7,
+     "s": [
+      "risata",
+      "serpenti",
+      "creature",
+      "architettura"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.7,
+     "i": 0.7,
+     "v": 0.8,
+     "s": [
+      "uccelli",
+      "nuvole",
+      "vuoto"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.6,
+     "i": 0.6,
+     "v": 0.6,
+     "s": [
+      "musica",
+      "corpo",
+      "risata"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.6,
+     "i": 0.5,
+     "v": 0.1,
+     "s": [
+      "specchio"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.8,
+     "i": 0.7,
+     "v": 0.9,
+     "s": [
+      "luce",
+      "creature",
+      "nuvole"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.4,
+     "i": 0.4,
+     "v": 0.5,
+     "s": [
+      "acqua",
+      "fiamma"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.8,
+     "i": 0.5,
+     "v": 0.9,
+     "s": [
+      "stelle",
+      "cosmo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmt-rh",
+   "titolo": "Morire tra i triangoli",
+   "fonte": "Michael, Luke e Robinson, An encounter with the self, Frontiers in Psychology, 2023, CC BY (partecipante RH)",
+   "url": "https://doi.org/10.3389/fpsyg.2023.1083356",
+   "anno": 2023,
+   "sostanza": "DMT",
+   "assetto": "oscuro",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.8,
+     "i": 0.8,
+     "v": -0.9,
+     "s": [
+      "paura",
+      "corpo",
+      "morte"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1,
+     "i": 0.9,
+     "v": -0.2,
+     "s": [
+      "geometria",
+      "mandala",
+      "griglia",
+      "colori"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 1,
+     "i": 0.9,
+     "v": 0.2,
+     "s": [
+      "creature",
+      "corpo",
+      "volti"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.8,
+     "i": 1,
+     "v": -0.6,
+     "s": [
+      "morte",
+      "specchio",
+      "vuoto"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.4,
+     "i": 0.3,
+     "v": 0.2,
+     "s": []
+    }
+   ]
+  },
+  {
+   "id": "dmt-bb",
+   "titolo": "Il bambino",
+   "fonte": "Michael, Luke e Robinson, An encounter with the self, Frontiers in Psychology, 2023, CC BY (partecipante BB)",
+   "url": "https://doi.org/10.3389/fpsyg.2023.1083356",
+   "anno": 2023,
+   "sostanza": "DMT",
+   "assetto": "umano",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.3,
+     "i": 0.8,
+     "v": 0,
+     "s": [
+      "corpo"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 0.8,
+     "i": 0.9,
+     "v": -0.2,
+     "s": [
+      "colori",
+      "spirale",
+      "musica",
+      "ricordo",
+      "tempo"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.9,
+     "i": 0.9,
+     "v": 0.9,
+     "s": [
+      "volti",
+      "ricordo",
+      "luce"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.8,
+     "i": 0.8,
+     "v": 1,
+     "s": [
+      "estasi",
+      "risata",
+      "luce"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.6,
+     "i": 0.4,
+     "v": 0.7,
+     "s": [
+      "corpo"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmt-tm",
+   "titolo": "Cadere, poi gli uccelli",
+   "fonte": "Michael, Luke e Robinson, An encounter with the self, Frontiers in Psychology, 2023, CC BY (partecipante TM)",
+   "url": "https://doi.org/10.3389/fpsyg.2023.1083356",
+   "anno": 2023,
+   "sostanza": "DMT",
+   "assetto": "oscuro",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.2,
+     "i": 0.7,
+     "v": -0.3,
+     "s": []
+    },
+    {
+     "k": "dissoluzione",
+     "d": 1,
+     "i": 0.9,
+     "v": -0.9,
+     "s": [
+      "paura",
+      "tunnel",
+      "vuoto"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 1,
+     "i": 0.6,
+     "v": 0.8,
+     "s": [
+      "uccelli",
+      "bosco",
+      "luce"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.4,
+     "i": 0.2,
+     "v": 0.6,
+     "s": [
+      "uccelli"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmt-rv",
+   "titolo": "La geometria sono io",
+   "fonte": "Michael, Luke e Robinson, An encounter with the self, Frontiers in Psychology, 2023, CC BY (partecipante RV)",
+   "url": "https://doi.org/10.3389/fpsyg.2023.1083356",
+   "anno": 2023,
+   "sostanza": "DMT",
+   "assetto": "cosmico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.5,
+     "i": 0.7,
+     "v": 0.6,
+     "s": [
+      "ricordo",
+      "bosco"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1.2,
+     "i": 0.9,
+     "v": 0.7,
+     "s": [
+      "geometria",
+      "mandala",
+      "tunnel",
+      "specchio"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.8,
+     "v": 0.5,
+     "s": [
+      "creature",
+      "corpo",
+      "volti"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 0.8,
+     "i": 0.9,
+     "v": -0.7,
+     "s": [
+      "paura",
+      "ricordo",
+      "vuoto"
+     ]
+    },
+    {
+     "k": "oceano",
+     "d": 0.9,
+     "i": 0.9,
+     "v": 1,
+     "s": [
+      "estasi",
+      "luce",
+      "mare"
+     ]
+    },
+    {
+     "k": "riverbero",
+     "d": 0.6,
+     "i": 0.4,
+     "v": 0.8,
+     "s": [
+      "luce"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dmt-st",
+   "titolo": "L'ipercubo",
+   "fonte": "Michael, Luke e Robinson, An encounter with the self, Frontiers in Psychology, 2023, CC BY (partecipante ST)",
+   "url": "https://doi.org/10.3389/fpsyg.2023.1083356",
+   "anno": 2023,
+   "sostanza": "DMT",
+   "assetto": "architettonico",
+   "momenti": [
+    {
+     "k": "soglia",
+     "d": 0.5,
+     "i": 0.7,
+     "v": -0.2,
+     "s": [
+      "corpo",
+      "tempo"
+     ]
+    },
+    {
+     "k": "geometria",
+     "d": 1.2,
+     "i": 0.9,
+     "v": 0.4,
+     "s": [
+      "griglia",
+      "geometria",
+      "musica"
+     ]
+    },
+    {
+     "k": "dissoluzione",
+     "d": 1,
+     "i": 1,
+     "v": 0.1,
+     "s": [
+      "specchio",
+      "griglia",
+      "corpo"
+     ]
+    },
+    {
+     "k": "fioritura",
+     "d": 0.8,
+     "i": 0.9,
+     "v": 0.6,
+     "s": [
+      "geometria",
+      "mandala",
+      "spirale"
+     ]
+    },
+    {
+     "k": "rientro",
+     "d": 0.5,
+     "i": 0.3,
+     "v": 0.4,
+     "s": []
+    }
+   ]
+  }
+ ]
+}

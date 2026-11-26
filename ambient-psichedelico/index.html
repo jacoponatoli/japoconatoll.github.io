@@ -5718,7 +5718,7 @@ function lorenz(dt) { const [x, y, z] = REGIA.lz, h = Math.min(dt, .1) * .045;
 const asse = () => REGIA.dis < .3 ? 'ordine' : REGIA.dis > .7 ? 'disordine' : 'complessità';
 const lzAng = () => (Math.atan2(REGIA.lz[1] - REGIA.lz[0] * 0, REGIA.lz[2] - 27) + Math.PI) / (2 * Math.PI);
 const T = () => TEMPI[REGIA.tempo];
-function nuovoTempo() { let t; do { t = pick(['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']); } while (t === REGIA.tempo);
+function nuovoTempo() { const M = vgMomento(), L = M ? M.tempi : ['lento', 'medio', 'medio', 'veloce', 'veloce', 'frenesia']; let t, k = 0; do { t = pick(L); } while (t === REGIA.tempo && L.length > 1 && k++ < 12);
   REGIA.tempo = t; REGIA.tT = t === 'frenesia' ? rnd(3, 7) : rnd(5, 12); S.tscaleT = rnd(...T().ts); }
 function motoreNuovo() {   // il motore visto meno di recente, tra quelli non in scena
   if (REGIA.voce && Math.random() < .7) { const t = [P.lettere, P.boetti].filter(q => !active.some(a => a.proc === q && a.target === 1)); if (t.length) return pick(t); }
@@ -5752,7 +5752,8 @@ const MOVES = {
   mandala: [.7, () => apparizione(P.mandala)],
   lettera: [.6, () => letteraSecca()],
   forma: [.6, () => formaSecca()],
-  astratto: [.75, () => astratto()],
+  astratto: [.75, () => astratto(vgMomento() && vgMomento().k === 'oceano' ? pick(QUIETI) : undefined)],
+  film: [.3, () => film()],
   microscopio: [.45, () => microscopio()],
   cielo: [.45, () => cielo()],
   cinema: [.6, () => cinema()],
@@ -5805,6 +5806,7 @@ function regiaTick(dt) {
     const ax = asse();
     if (ax === 'ordine') { w.glitch *= .2; w.scossa *= .2; w.sovraccarico = 0; w.palette *= .5; w.simmetria *= 2; w.mosaico *= 2; w.mandala *= 2; }
     if (ax === 'disordine') { w.glitch *= 2; w.scossa *= 2; w.palette *= 1.8; w.sovraccarico *= 2; w.simmetria *= .6; w.mandala *= .3; }
+    vgPesi(w);   // il momento del viaggio
     let m;
     if (REGIA.modo === 'caos') {   // la mossa è quella che l'attrattore indica sull'anello delle mosse: vicine fra loro, con memoria
       const ks = Object.keys(w).filter(x => w[x] > 0), tot = ks.reduce((a, x) => a + w[x], 0);   // l'anello è diviso in archi proporzionali al peso di ogni mossa
@@ -6363,7 +6365,8 @@ function macchiaDraw(dt) {
 const SC = { on: false, t: 0, cv: document.createElement('canvas') };
 function scenaInizia(tipo, o) {
   if (SC.on || MONO.phase || RIT.phase || TD.phase || !view.width) return false;
-  SC.cv.width = Math.round(view.width / 2); SC.cv.height = Math.round(view.height / 2);
+  const f = o.piena ? view.width / Math.min(view.width, QUAL.liv >= 2 ? 800 : QUAL.liv ? 1100 : 1440) : 2;   // gli spezzoni veri a piena risoluzione
+  SC.cv.width = Math.round(view.width / f); SC.cv.height = Math.round(view.height / f);
   LN.on = false; MC.on = false; TR.on = false;
   Object.assign(SC, { on: true, t: 0, tipo, o, tin: rnd(.7, 1.3), hold: o.hold || rnd(5, 9), tout: rnd(.7, 1.3) }); return true;
 }
@@ -6373,7 +6376,7 @@ function scenaDraw(dt) {
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none';
   try { SCENE[SC.tipo](g, w, h, t, dt, SC.o, e); } catch (er) { console.warn(er); SC.on = false; }
   g.restore();
-  vctx.save(); vctx.globalAlpha = SC.tipo === 'microscopio' ? 1 : e; vctx.imageSmoothingEnabled = true;
+  vctx.save(); vctx.globalAlpha = SC.tipo === 'microscopio' || SC.o.alfa1 ? 1 : e; vctx.imageSmoothingEnabled = true;
   if (SC.tipo === 'microscopio') { const r = Math.hypot(view.width, view.height) / 2 * e; vctx.beginPath(); vctx.arc(view.width / 2, view.height / 2, Math.max(1, r), 0, 6.28); vctx.clip(); }   // l'iride
   vctx.drawImage(SC.cv, 0, 0, view.width, view.height); vctx.restore();
 }
@@ -7163,6 +7166,262 @@ SCENE.drago = (g, w, h, t, dt, o) => {
   const meta = pts.length / 2; for (let part = 0; part < 2; part++) { g.strokeStyle = part ? o.c2 : o.c1; g.beginPath(); const a0 = part ? Math.floor(meta) : 0, a1 = part ? n : Math.min(n, Math.floor(meta) + 1); for (let i = a0; i < a1; i++) { const p = pts[i]; i === a0 ? g.moveTo(ox + p[0] * k2, oy + p[1] * k2) : g.lineTo(ox + p[0] * k2, oy + p[1] * k2); } g.stroke(); }   // le due metà del drago, a due colori
 };
 
+/* =================== SPEZZONI DI FILM: il mondo vero che affiora, alla maniera di Tarkovskij ===================
+   Riprese vere e libere (Wikimedia Commons), cercate ogni volta per elementi: nebbia, bosco, erba nel vento, acqua, pioggia, fuoco, mare,
+   nuvole, neve, una fiamma, cavalli, stormi, fiumi, fondali, fumo, luce, fiori. Caricate in anticipo, mute, mai la stessa due volte.
+   Il trattamento è tarkovskiano: rallentate, inquadrature lunghe, la macchina ferma o che avanza appena, a volte seppia o bianco e nero,
+   a volte il freddo di Solaris. Poi il momento del viaggio le contamina: respirano, si accendono di colore, si specchiano, ondeggiano,
+   lasciano la scia, si fanno a fasce piene della palette con i confini neri, vanno in negativo.
+   Entrano con un taglio netto, con l'iride, con una veneziana o bruciando come la pellicola; escono allo stesso modo. */
+const FILM_TEMI = {
+  nebbia: ['fog forest', 'fog trees', 'morning mist', 'fog lake', 'mist valley'],
+  bosco: ['forest trees', 'birch forest', 'pine forest', 'forest wind'],
+  erba: ['grass wind', 'wheat field', 'meadow wind', 'reeds wind', 'tall grass'],
+  acqua: ['water surface', 'stream water', 'brook', 'pond water', 'water ripples', 'puddle'],
+  pioggia: ['rain', 'raindrops', 'rain puddle', 'rain on window'],
+  fuoco: ['fire flames', 'bonfire', 'burning wood', 'campfire', 'fireplace', 'controlled burn'],
+  mare: ['sea waves', 'ocean waves', 'breaking waves', 'surf', 'sea shore', 'stormy sea'],
+  nuvole: ['clouds timelapse', 'clouds', 'sky clouds', 'sunset clouds'],
+  neve: ['snowfall', 'snow falling', 'snowing forest'],
+  fiamma: ['candle flame', 'candles', 'oil lamp flame'],
+  cavalli: ['horses', 'horse field', 'horses running'],
+  uccelli: ['flock of birds', 'starlings murmuration', 'birds flying', 'seagulls flying'],
+  fiume: ['river', 'waterfall', 'rapids', 'river flowing'],
+  fondale: ['underwater', 'coral reef', 'jellyfish', 'kelp forest', 'school of fish'],
+  fumo: ['smoke', 'steam', 'incense smoke', 'smoke rising'],
+  luce: ['sunlight forest', 'sun rays', 'reflections water', 'sunrise', 'sunset sea'],
+  fiori: ['flower blooming', 'flowers timelapse', 'blooming flower', 'flowers wind'],
+};
+// niente parlato, niente animazioni, niente cronaca o guerra, niente fuochi d'artificio (lampeggiano)
+const FILM_NO = /animat|simulat|render|cgi|blender|unity|unreal|\b3d\b|diagram|graph|chart|\bmap\b|logo|lecture|interview|\btalk|speech|conference|presentation|tutorial|how to|news|press|parliament|senate|game|minecraft|screencast|screen ?record|trailer|music video|wiki|edit-?a-?thon|protest|riot|military|army|\bwar\b|missile|bomb|explos|rocket|police|accident|crash|victim|dead|death|kill|fatal|surgery|medical|hospital|slaughter|hunt|nude|naked|sex|porn|erotic|advert|promo|\btv\b|television|broadcast|podcast|vlog|selfie|firework|drone show|unboxing/i;
+const FILM_GRADI = { naturale: 'contrast(1.06) saturate(.95)', seppia: 'sepia(.8) contrast(1.15) brightness(.95) saturate(1.1)', bianconero: 'grayscale(1) contrast(1.25) brightness(1.02)', freddo: 'saturate(.5) contrast(1.1) brightness(.95) sepia(.25) hue-rotate(150deg)' };
+const FI = { ok: !/senzafilm/.test(location.search), pronti: [], visti: new Set(), cache: {}, caricando: 0, pausa: 0, falliti: 0, attivo: null, tick: 1, n: 0, locale: /filmlocale/.test(location.search),
+  vt: document.createElement('video'), tc: document.createElement('canvas') };
+FI.tc.width = FI.tc.height = 4; FI.tg = FI.tc.getContext('2d', { willReadFrequently: true });
+function filmSorgente(vi) {   // la versione ricodificata più adatta (480p o 720p), che questo browser sa leggere
+  const max = QUAL.liv >= 2 ? 400 : QUAL.liv ? 540 : 760;
+  const d = (vi.derivatives || []).filter(x => /^video\//.test(x.type || '') && x.height >= 240 && x.height <= max && FI.vt.canPlayType(x.type)).sort((a, b) => b.height - a.height);
+  if (d.length) return d[0].src;
+  if (/^video\/(webm|mp4)/.test(vi.mime || '') && vi.size < 25e6 && (vi.height || 0) <= 1080 && FI.vt.canPlayType(vi.mime)) return vi.url;
+  return null;
+}
+async function filmCandidati(tema) {   // una ricerca su Commons per parole dell'elemento; i risultati restano in memoria e si consumano
+  const q = pick(FILM_TEMI[tema]), key = tema + '|' + q; let c = FI.cache[key];
+  if (!c || (!c.lista.some(x => !FI.visti.has(x.titolo)) && !c.fine)) {
+    const off = c ? c.off + 40 : pick([0, 0, 0, 20]);
+    const u = 'https://commons.wikimedia.org/w/api.php?' + new URLSearchParams({ origin: '*', format: 'json', formatversion: '2', action: 'query', generator: 'search', gsrnamespace: '6', gsrlimit: '40', gsroffset: String(off),
+      gsrsearch: 'filetype:video ' + q, prop: 'videoinfo', viprop: 'url|size|mime|mediatype|derivatives' });
+    const j = await (await fetch(u)).json(), pages = (j.query && j.query.pages) || [], lista = [];
+    for (const p of pages) { const vi = p.videoinfo && p.videoinfo[0], t = (p.title || '').replace(/^File:/, ''); if (!vi || FILM_NO.test(t)) continue;
+      if ((vi.duration && vi.duration < 6) || (vi.width && vi.width < 400) || (vi.width && vi.height && vi.width < vi.height * .95)) continue;   // niente clip brevissime né verticali
+      const src = filmSorgente(vi); if (src) lista.push({ titolo: t, src, dur: vi.duration || 0, tema }); }
+    c = FI.cache[key] = { lista: (c ? c.lista : []).concat(lista), off, fine: pages.length < 10 };
+  }
+  return c.lista.filter(x => !FI.visti.has(x.titolo));
+}
+function filmLibera(v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} }
+function filmCarica(c) {
+  return new Promise(res => {
+    const v = document.createElement('video'); v.crossOrigin = 'anonymous'; v.muted = v.defaultMuted = true; v.playsInline = true; v.preload = 'auto'; v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    let fatto = false; const fine = ok => { if (fatto) return; fatto = true; clearTimeout(to); if (!ok) filmLibera(v); res(ok ? v : null); }, to = setTimeout(() => fine(false), 30000);
+    // la prova: se il video non si lascia leggere non entra, così la tela del film non si sporca mai
+    const pronto = () => { try { FI.tg.drawImage(v, 0, 0, 4, 4); FI.tg.getImageData(0, 0, 1, 1); } catch (e) { fine(false); return; } fine(true); };
+    const attendi = () => v.readyState >= 3 ? pronto() : v.addEventListener('canplay', pronto, { once: true });
+    v.addEventListener('error', () => fine(false), { once: true });
+    v.addEventListener('loadedmetadata', () => { const d = v.duration; if (!isFinite(d) || d < 4 || v.videoWidth < 300 || v.videoWidth < v.videoHeight) { fine(false); return; } c.dur = d;
+      if (d > 16) { v.currentTime = rnd(d * .04, Math.max(d * .05, d - 12)); v.addEventListener('seeked', attendi, { once: true }); } else attendi(); }, { once: true });
+    v.src = c.src;
+  });
+}
+async function filmPrepara(tema) {
+  FI.caricando++;
+  try { let c;
+    if (FI.locale) c = { titolo: 'prova ' + FI.n, src: pick(['filmprova1.webm', 'filmprova2.webm']), tema };
+    else { const L = await filmCandidati(tema); if (!L.length) throw new Error('vuoto'); c = pick(L.slice(0, 25)); FI.visti.add(c.titolo); }
+    const v = await filmCarica(c); if (!v) throw new Error('non si carica');
+    FI.pronti.push({ v, tema, titolo: c.titolo, dur: v.duration }); FI.falliti = 0; FI.n++;
+  } catch (e) { FI.pausa = performance.now() + (++FI.falliti >= 4 ? 90000 : 3000); if (FI.falliti >= 4) FI.falliti = 0; }
+  FI.caricando--;
+}
+const filmTemiOra = () => { const M = vgMomento(); return M ? M.film : Object.keys(FILM_TEMI); };
+function filmTick(dt) {
+  if (FI.attivo && !(SC.on && SC.o === FI.attivo)) { for (const c of FI.attivo.clips) filmLibera(c.v); FI.attivo = null; }   // la scena è finita: il video si spegne
+  if ((FI.tick -= dt) > 0) return; FI.tick = 2;
+  if (!FI.ok || FI.caricando || performance.now() < FI.pausa) return;
+  const ora = filmTemiOra(), poi = vgProssimo() ? vgProssimo().film : [], max = QUAL.liv >= 2 ? 2 : 3;
+  if (FI.pronti.length >= max) { if (!FI.pronti.some(p => ora.includes(p.tema))) { const i = FI.pronti.findIndex(p => !poi.includes(p.tema)); filmLibera(FI.pronti.splice(Math.max(0, i), 1)[0].v); } else return; }
+  const voluti = ora.concat(ora, poi), mancano = voluti.filter(t => !FI.pronti.some(p => p.tema === t));
+  filmPrepara(pick(mancano.length ? mancano : voluti));
+}
+function film(tema, breve) {
+  if (SC.on || MONO.phase || RIT.phase || TD.phase || MO.phase || !FI.ok) return false;
+  const temi = tema ? [tema] : filmTemiOra(), i0 = FI.pronti.findIndex(p => temi.includes(p.tema)); if (i0 < 0) return false;
+  const M = vgMomento(), clips = [FI.pronti.splice(i0, 1)[0]];
+  if (!breve && Math.random() < (M && M.k === 'rientro' ? .4 : .18)) { const j = FI.pronti.findIndex(p => temi.includes(p.tema)); if (j >= 0) clips.push(FI.pronti.splice(j, 1)[0]); }   // a volte due inquadrature montate
+  const lento = /mare|fuoco|fumo|nuvole/.test(clips[0].tema), vel = lento ? rnd(.4, .7) : rnd(.5, .85);
+  const hold = breve ? rnd(2.5, 4) : clips.length > 1 ? rnd(11, 17) : rnd(6, 13), cambi = []; let acc = 0;
+  clips.forEach((c, i) => { c.vel = vel * rnd(.9, 1.1); const quota = hold / clips.length + (i === 0 ? 1.5 : 0), resta = (c.v.duration - c.v.currentTime) / c.vel; c.v.loop = resta < quota + 1; acc += quota; cambi.push(acc); });
+  const tratt = pick(M ? M.tratt : ['vero', 'respiro', 'colore', 'specchio', 'scia', 'onda', 'fasce']), oscuro = M && M.v < -.3;
+  const grado = tratt === 'colore' || tratt === 'fasce' ? 'naturale' : pick(oscuro ? ['bianconero', 'seppia', 'freddo'] : M ? M.gradi : Object.keys(FILM_GRADI));
+  const brucia = clips[0].tema === 'fuoco' && Math.random() < .6;
+  const o = { clips, i: 0, cambi, tratt, grado, hold, piena: true, alfa1: true, camera: pick(['ferma', 'carrellata', 'carrellata', 'laterale', 'ritorno']), dir: pick([-1, 1]),
+    entrata: breve ? 'taglio' : pick(['taglio', 'taglio', 'iride', 'veneziana', 'bruciatura']), uscita: brucia ? 'bruciatura' : breve ? 'taglio' : pick(['taglio', 'bruciatura', 'bruciatura', 'iride', 'veneziana']),
+    cx: rnd(.3, .7), cy: rnd(.3, .7), bande: 5 + ((Math.random() * 10) | 0), oriz: Math.random() < .6, spec: pick(['due', 'due', 'quattro']), amp: [rnd(.002, .008), rnd(.02, .04)],
+    buchi: Array.from({ length: 3 + ((Math.random() * 6) | 0) }, (_, i) => ({ x: rnd(.1, .9), y: rnd(.1, .9), s: i ? rnd(0, .45) : 0, k: i ? rnd(.5, 1) : 1.1, f: 3 + ((Math.random() * 5) | 0), ph: rnd(6.28) })),
+    P: currentPalette().c.map(c => c.slice(0, 3)), L: 3 + ((Math.random() * 3) | 0), hue: rnd(360) };
+  if (!scenaInizia('film', o)) { FI.pronti.push(...clips); return false; }
+  SC.tin = o.entrata === 'taglio' ? .05 : rnd(.9, 1.6); SC.tout = o.uscita === 'taglio' ? .05 : rnd(1.1, 1.9);
+  FI.attivo = o; const c = clips[0]; c.v.playbackRate = c.vel; c.v.play().catch(() => {});
+  return true;
+}
+SCENE.film = (g, w, h, t, dt, o) => {
+  if (o.i < o.clips.length - 1 && t > o.cambi[o.i]) { o.clips[o.i].v.pause(); o.i++; const c = o.clips[o.i]; c.v.playbackRate = c.vel; c.v.play().catch(() => {}); o.t0 = t; }
+  const v = o.clips[o.i].v, m = Math.min(w, h); if (!o.fc) { o.fc = document.createElement('canvas'); o.fc.width = w; o.fc.height = h; o.fx = o.fc.getContext('2d', { willReadFrequently: o.tratt === 'fasce' }); }
+  if (v.readyState >= 2 && v.videoWidth) {
+    const q = o.fx, u = clamp(t / (SC.tin + SC.hold + SC.tout), 0, 1);
+    let z = 1.04, px = 0;   // la macchina da presa: ferma, una carrellata che avanza appena, una che arretra, una panoramica lenta
+    if (o.camera === 'carrellata') z = 1.02 + .14 * u; else if (o.camera === 'ritorno') z = 1.16 - .13 * u; else if (o.camera === 'laterale') { z = 1.15; px = (u - .5) * 2 * o.dir; }
+    if (o.tratt === 'respiro') z *= 1 + (o.amp[0] + (o.amp[1] - o.amp[0]) * u) * (1 + Math.sin(t * 1.25));   // comincia appena a respirare, poi sempre di più
+    const k = Math.max(w / v.videoWidth, h / v.videoHeight) * z, dw = v.videoWidth * k, dh = v.videoHeight * k, dx = (w - dw) / 2 + px * (dw - w) / 2, dy = (h - dh) / 2;
+    q.save(); q.globalCompositeOperation = 'source-over';
+    q.filter = o.tratt === 'colore' ? `saturate(${2.2 + Math.sin(t * .7)}) contrast(1.1) hue-rotate(${(o.hue + t * 14) % 360}deg)` : o.tratt === 'negativo' ? 'invert(1) hue-rotate(180deg) contrast(1.15)' : FILM_GRADI[o.grado];
+    if (o.tratt === 'scia') { q.globalAlpha = o.primo ? .2 : 1; o.primo = true; q.drawImage(v, dx, dy, dw, dh); }   // le scie: il tempo che lascia tracce
+    else if (o.tratt === 'onda') { if (!o.tmp) { o.tmp = document.createElement('canvas'); o.tmp.width = w; o.tmp.height = h; o.tg = o.tmp.getContext('2d'); }
+      o.tg.filter = q.filter; o.tg.drawImage(v, dx, dy, dw, dh); q.filter = 'none'; const s = Math.max(3, Math.round(h / 90)), A = w * .018 * (1 + Math.sin(t * .5));
+      for (let y = 0; y < h; y += s) q.drawImage(o.tmp, 0, y, w, s, Math.sin(y * .018 + t * 1.6) * A, y, w, s); }
+    else q.drawImage(v, dx, dy, dw, dh);
+    q.restore();
+    if (o.tratt === 'specchio') { q.save(); q.translate(w, 0); q.scale(-1, 1); q.drawImage(o.fc, 0, 0, w / 2, h, 0, 0, w / 2, h); q.restore();
+      if (o.spec === 'quattro') { q.save(); q.translate(0, h); q.scale(1, -1); q.drawImage(o.fc, 0, 0, w, h / 2, 0, 0, w, h / 2); q.restore(); } }
+    if (o.tratt === 'fasce') {   // a fasce piene della palette, con i confini neri, i colori che scorrono
+      if (!o.sm) { o.sm = document.createElement('canvas'); o.sm.width = Math.max(80, w >> 2); o.sm.height = Math.max(50, h >> 2); o.sg = o.sm.getContext('2d', { willReadFrequently: true }); }
+      const sw = o.sm.width, sh = o.sm.height; o.sg.drawImage(o.fc, 0, 0, sw, sh); const id = o.sg.getImageData(0, 0, sw, sh), a = id.data, sam = [];
+      for (let i = 0; i < a.length; i += 36) sam.push(a[i] * .3 + a[i + 1] * .59 + a[i + 2] * .11); sam.sort((x, y) => x - y); const th = Array.from({ length: o.L - 1 }, (_, j) => sam[Math.floor(sam.length * (j + 1) / o.L)]);
+      const lev = new Uint8Array(sw * sh); for (let i = 0; i < sw * sh; i++) { const l = a[i * 4] * .3 + a[i * 4 + 1] * .59 + a[i * 4 + 2] * .11; let k2 = 0; for (const x of th) if (l > x) k2++; lev[i] = k2; }
+      for (let i = 0; i < sw * sh; i++) { const x = i % sw, bordo = (x < sw - 1 && lev[i + 1] !== lev[i]) || (i + sw < sw * sh && lev[i + sw] !== lev[i]), c = bordo ? [0, 0, 0] : o.P[(lev[i] + Math.floor(t * 1.2)) % o.P.length]; a[i * 4] = c[0]; a[i * 4 + 1] = c[1]; a[i * 4 + 2] = c[2]; a[i * 4 + 3] = 255; }
+      o.sg.putImageData(id, 0, 0); q.imageSmoothingEnabled = true; q.drawImage(o.sm, 0, 0, w, h); }
+  }
+  // l'entrata e l'uscita: taglio, iride, veneziana, pellicola che brucia
+  g.clearRect(0, 0, w, h);
+  const entra = t < SC.tin, esce = t > SC.tin + SC.hold, p = entra ? clamp(t / SC.tin, 0, 1) : esce ? clamp(1 - (t - SC.tin - SC.hold) / SC.tout, 0, 1) : 1, stile = entra ? o.entrata : esce ? o.uscita : 'pieno';
+  if (stile === 'pieno' || stile === 'taglio') { if (p > 0) g.drawImage(o.fc, 0, 0); return; }
+  if (stile === 'iride') { const r = Math.hypot(Math.max(o.cx, 1 - o.cx) * w, Math.max(o.cy, 1 - o.cy) * h) * ease(p); g.save(); g.beginPath(); g.arc(o.cx * w, o.cy * h, Math.max(1, r), 0, 6.2832); g.clip(); g.drawImage(o.fc, 0, 0); g.restore();
+    g.lineWidth = Math.max(2, m * .01); g.strokeStyle = '#000'; g.stroke(); return; }
+  if (stile === 'veneziana') { const n = o.bande, e = ease(p); g.save(); g.beginPath(); for (let i = 0; i < n; i++) { if (o.oriz) { const bh = h / n; g.rect(0, i * bh + bh * (1 - e) / 2, w, bh * e); } else { const bw = w / n; g.rect(i * bw + bw * (1 - e) / 2, 0, bw * e, h); } } g.clip(); g.drawImage(o.fc, 0, 0); g.restore(); return; }
+  // la bruciatura: buchi che si allargano con il bordo di brace e carbone
+  const R = Math.hypot(w, h), pr = entra ? p : 1 - p; g.beginPath();
+  for (const B of o.buchi) { const r = R * B.k * Math.pow(clamp((pr - B.s) / (1 - B.s), 0, 1), 1.7); if (r < 1) continue;   // la pellicola brucia piano, poi tutta insieme
+    for (let i = 0; i <= 40; i++) { const a = i / 40 * 6.2832, rr = r * (1 + .1 * Math.sin(a * B.f + B.ph + t * 2) + .05 * Math.sin(a * 7 - t * 3)), X = B.x * w + Math.cos(a) * rr, Y = B.y * h + Math.sin(a) * rr; i ? g.lineTo(X, Y) : g.moveTo(X, Y); } g.closePath(); }
+  if (entra) { g.save(); g.clip(); g.drawImage(o.fc, 0, 0); g.restore(); } else { g.drawImage(o.fc, 0, 0); g.save(); g.globalCompositeOperation = 'destination-out'; g.fill(); g.restore(); }
+  g.lineJoin = 'round'; g.strokeStyle = '#000'; g.lineWidth = m * .02; g.stroke(); g.strokeStyle = '#ff7a12'; g.lineWidth = m * .008; g.stroke(); g.strokeStyle = '#fff1b8'; g.lineWidth = Math.max(1, m * .002); g.stroke();
+};
+
+/* =================== IL VIAGGIO: l'arco della regia è un trip ===================
+   Sette momenti (Klüver, Siegel, Dittrich, Leary e Grof, i resoconti): SOGLIA (il mondo resta, ma respira), GEOMETRIA (reticoli, spirali,
+   tunnel, mandala, a occhi chiusi), FIORITURA (la geometria si riempie di figure: volti, creature, architetture), DISSOLUZIONE (il picco: il
+   confine si scioglie, estasi o terrore, poi il bianco o il nero), OCEANO (la quiete senza confini), RIENTRO (il mondo si ricompone a pezzi:
+   le cose, i ricordi, il proprio volto), RIVERBERO (tutto è normale, ma trasfigurato). Ogni viaggio segue una PARTITURA ricavata da un
+   resoconto vero (viaggi.json): la sequenza dei momenti con le sue ondate, le durate, l'intensità, la paura o l'estasi, i segni che compaiono.
+   Il film non racconta il testo: ci allude con i suoi mezzi. Senza partiture, un viaggio inventato con un suo assetto. */
+const VG_FASI = [
+  { k: 'soglia', q: .09, bias: -.35, tempi: ['lento', 'lento', 'medio'], film: ['nebbia', 'bosco', 'erba', 'acqua', 'luce', 'nuvole'], tratt: ['vero', 'vero', 'respiro', 'respiro', 'colore'], gradi: ['naturale', 'naturale', 'freddo', 'seppia'],
+    respira: .012, respiri: false, ganci: ['fermo', 'fermo', 'scala', 'vuoto', 'film'], picchi: [], pesi: { _: .45, film: 7, tinta: 2, palette: .3, G: .4, F: .08, C: .05, lettera: .4, forma: .5 } },
+  { k: 'geometria', q: .14, bias: -.12, tempi: ['medio', 'medio', 'lento', 'veloce'], film: ['acqua', 'fondale', 'fumo', 'uccelli', 'luce'], tratt: ['specchio', 'specchio', 'fasce', 'onda', 'respiro'], gradi: ['naturale', 'bianconero'],
+    respira: 0, respiri: true, ganci: ['fermo', 'scala', 'vuoto', 'lampo'], picchi: ['forma', 'drago', 'orbe', 'fillotassi', 'ripetizione', 'sfera', 'macchia', 'lettera'], pesi: { _: .6, G: 3.2, F: .3, C: .3, film: .5 } },
+  { k: 'fioritura', q: .2, bias: .05, tempi: ['medio', 'veloce', 'veloce', 'lento'], film: ['fondale', 'fiori', 'uccelli', 'fumo'], tratt: ['fasce', 'specchio', 'scia', 'colore'], gradi: ['naturale'],
+    respira: 0, respiri: true, ganci: ['lampo', 'fermo', 'scala', 'domanda', 'specchio'], picchi: ['mostro', 'bosch', 'escher', 'barocco', 'microscopio', 'astratto', 'cinema', 'mani', 'peaks', 'teschio'], pesi: { _: .8, F: 3, G: 1.1, C: .6, tre: 2, film: .4 } },
+  { k: 'dissoluzione', q: .12, bias: .38, tempi: ['veloce', 'frenesia', 'frenesia'], film: ['fuoco', 'fuoco', 'fumo', 'fiume'], tratt: ['scia', 'onda', 'fasce', 'negativo', 'vero'], gradi: ['naturale'],
+    respira: 0, respiri: true, ganci: ['lampo', 'lampo', 'vuoto', 'scala', 'domanda'], picchi: ['sovraccarico', 'teschio', 'mostro', 'specchio', 'sovraccarico', 'macchia', 'bosch'], pesi: { _: .8, C: 3, F: 1, G: .5, palette: 2, film: 1.2 } },
+  { k: 'oceano', q: .13, bias: -.42, tempi: ['lento'], film: ['mare', 'mare', 'nuvole', 'fondale'], tratt: ['vero', 'respiro', 'colore', 'vero'], gradi: ['naturale', 'freddo', 'bianconero'],
+    respira: .008, respiri: false, ganci: ['fermo', 'fermo', 'film'], picchi: [], pesi: { _: .25, film: 6, cielo: 5, astratto: 3, sfera: 1.5, C: .03, F: .08, palette: .25, tinta: 1.5 } },
+  { k: 'rientro', q: .19, bias: -.12, tempi: ['lento', 'medio', 'lento'], film: ['pioggia', 'erba', 'bosco', 'nebbia', 'cavalli', 'neve', 'fiume', 'fiamma'], tratt: ['vero', 'vero', 'respiro', 'vero', 'scia'], gradi: ['seppia', 'bianconero', 'naturale', 'naturale', 'freddo'],
+    respira: 0, respiri: true, ganci: ['domanda', 'specchio', 'fermo', 'film', 'film'], picchi: ['film', 'mani', 'specchio', 'domanda', 'lettera', 'film', 'cielo'], pesi: { _: .6, film: 5, mani: 3, lettera: 1.5, poesia: 3, volto: 1.5, G: .6, F: .35, C: .15 } },
+  { k: 'riverbero', q: .13, bias: -.25, tempi: ['lento', 'medio'], film: ['luce', 'nuvole', 'acqua', 'fiamma', 'erba'], tratt: ['colore', 'respiro', 'vero'], gradi: ['naturale'],
+    respira: .01, respiri: false, ganci: ['fermo', 'scala', 'film'], picchi: [], pesi: { _: .6, film: 3, palette: 1.5, tinta: 2, forma: 1.2, G: .8, F: .25, C: .15 } },
+];
+const VG_GRUPPI = { G: ['simmetria', 'mosaico', 'mandala', 'forma', 'linee', 'fillotassi', 'ripetizione', 'orbe', 'drago', 'sfera', 'macchia', 'tre'],
+  F: ['mostro', 'bosch', 'escher', 'barocco', 'microscopio', 'astratto', 'cinema', 'mani', 'volto', 'ambigua', 'peaks', 'teschio'],
+  C: ['lotta', 'pixel', 'trasparenza', 'fluido', 'glitch', 'scossa', 'sovraccarico', 'eco', 'distorsione', 'lampeggio'] };
+// l'assetto del viaggio (lo stato di chi lo fa, il luogo): cambia il peso delle cose
+const ASSETTI = {
+  luminoso: { teschio: .3, peaks: .3, lotta: .7, mostro: .7, segni: ['luce', 'colori', 'estasi'] },
+  oscuro: { teschio: 3, peaks: 3, lotta: 2, bosch: 2, trasparenza: 1.5, cielo: .5, segni: ['paura', 'morte', 'inferno'], senzaOceano: .35 },
+  cosmico: { cielo: 3, orbe: 3, sfera: 3, fillotassi: 2, mandala: 2, segni: ['cosmo', 'stelle', 'gioielli'] },
+  organico: { microscopio: 3, macchia: 3, mostro: 2, volto: 1.5, segni: ['insetti', 'creature', 'fiori', 'acqua'] },
+  architettonico: { barocco: 3, escher: 3, ripetizione: 3, mosaico: 2, simmetria: 1.5, segni: ['architettura', 'griglia', 'cattedrale'] },
+  umano: { mani: 3, volto: 3, lettera: 2, poesia: 2, segni: ['corpo', 'volti', 'specchio', 'parole'] },
+};
+// i segni dei resoconti: che cosa li evoca nel film (mosse che si fanno più probabili, attrattori dei respiri, ganci, temi degli spezzoni)
+const SEGNI = {
+  acqua: { film: ['acqua'] }, mare: { film: ['mare'] }, fuoco: { film: ['fuoco'] }, bosco: { film: ['bosco'] }, erba: { film: ['erba'] }, nebbia: { film: ['nebbia'] }, pioggia: { film: ['pioggia'] },
+  nuvole: { film: ['nuvole'] }, neve: { film: ['neve'] }, fiume: { film: ['fiume'] }, fondale: { film: ['fondale'] }, uccelli: { film: ['uccelli'] }, cavalli: { film: ['cavalli'] }, fumo: { film: ['fumo'] },
+  luce: { film: ['luce'], ganci: ['vuoto'] }, fiamma: { film: ['fiamma'] }, fiori: { film: ['fiori'], mosse: ['mandala'] },
+  geometria: { mosse: ['forma', 'simmetria', 'mosaico', 'linee'], picchi: ['forma'] }, griglia: { mosse: ['mosaico', 'linee', 'ripetizione'], picchi: ['ripetizione'] },
+  spirale: { mosse: ['drago', 'fillotassi', 'sfera'], picchi: ['fillotassi', 'drago'] }, tunnel: { mosse: ['orbe', 'cinema', 'distorsione'], picchi: ['orbe', 'cinema'] },
+  mandala: { mosse: ['mandala', 'orbe'], picchi: ['orbe'] }, colori: { mosse: ['palette', 'tinta', 'astratto'], picchi: ['astratto'] }, gioielli: { mosse: ['mandala', 'fillotassi', 'orbe', 'sfera'], picchi: ['sfera', 'orbe'] },
+  volti: { mosse: ['volto', 'ambigua', 'mostro'], picchi: ['mostro'] }, creature: { mosse: ['mostro', 'bosch', 'ambigua'], picchi: ['mostro', 'bosch'] }, insetti: { mosse: ['microscopio', 'macchia'], picchi: ['microscopio'] },
+  serpenti: { mosse: ['drago', 'ambigua'], picchi: ['drago'] }, architettura: { mosse: ['barocco', 'escher', 'ripetizione'], picchi: ['barocco', 'escher'] }, cattedrale: { mosse: ['barocco'], picchi: ['barocco'] },
+  inferno: { mosse: ['bosch', 'teschio', 'lotta'], picchi: ['bosch', 'teschio'] }, folla: { mosse: ['bosch'], picchi: ['bosch'] }, morte: { mosse: ['teschio'], picchi: ['teschio'] },
+  cosmo: { mosse: ['cielo', 'sfera', 'orbe'], picchi: ['cielo', 'sfera'] }, stelle: { mosse: ['cielo'], picchi: ['cielo'] }, corpo: { mosse: ['mani'], picchi: ['mani'] }, specchio: { picchi: ['specchio'] },
+  parole: { mosse: ['lettera', 'poesia'], picchi: ['lettera'] }, paura: { mosse: ['lotta', 'peaks', 'teschio'], picchi: ['domanda', 'peaks'], ganci: ['domanda'] }, estasi: { mosse: ['sovraccarico', 'palette'], picchi: ['sovraccarico'] },
+  tempo: { ganci: ['fermo', 'fermo'] }, vuoto: { ganci: ['vuoto'] }, musica: { mosse: ['linee', 'bande'] }, risata: { mosse: ['lettera', 'pixel', 'scossa'] }, macchie: { mosse: ['macchia'], picchi: ['macchia'] },
+  ricordo: { film: ['erba', 'pioggia', 'bosco'], gradi: ['seppia', 'bianconero'] }, arte: { mosse: ['astratto', 'cinema'], picchi: ['astratto'] },
+};
+const QUIETI = ['rothko', 'rothko', 'klein', 'reinhardt', 'newman', 'martin', 'louis'];
+const VIAGGI = [];   // le partiture, da viaggi.json (si aggiungono nel tempo)
+(async () => { for (const u of ['viaggi.json', '/psichedelico/viaggi.json']) { try { const r = await fetch(u, { cache: 'no-cache' }); if (!r.ok) continue; const j = await r.json(), L = Array.isArray(j) ? j : j.viaggi;
+  if (L && L.length) { for (const x of L) if (x && x.momenti && x.momenti.length && !VIAGGI.some(y => y.id === x.id)) VIAGGI.push(x);
+    if (ATT.arco && !ATT.arco.part && ATT.t - ATT.arco.t0 < 25) attArco();   // il primo viaggio è già una partitura
+    return; } } catch (e) {} } })();
+function pesoDi(P2, m) { if (P2[m] != null) return P2[m]; for (const g in VG_GRUPPI) if (P2[g] != null && VG_GRUPPI[g].includes(m)) return P2[g]; return P2._ != null ? P2._ : 1; }
+function vgInventa() {   // un viaggio senza partitura: i sette momenti, durate diverse, a volte un'ondata che torna indietro, a volte niente oceano
+  const AS = ASSETTI[ATT.assetto] || {}, L = [], scuro = ATT.assetto === 'oscuro', senzaOceano = Math.random() < (AS.senzaOceano || .1);
+  for (const F of VG_FASI) { if (F.k === 'oceano' && senzaOceano) continue; L.push({ k: F.k, d: F.q * rnd(.6, 1.5), i: rnd(.3, .9), v: scuro ? rnd(-.8, 0) : rnd(-.2, .8), s: AS.segni && Math.random() < .7 ? [pick(AS.segni)] : [] }); }
+  if (Math.random() < .55) { const j = L.findIndex(x => x.k === 'fioritura'); if (j > 0) L.splice(j + 1, 0, { k: 'geometria', d: .05, i: .5 }, { k: 'fioritura', d: .07, i: .7 }); }
+  if (Math.random() < .3) { const j = L.findIndex(x => x.k === 'rientro'); if (j > 0) L.splice(j + 1, 0, { k: 'fioritura', d: .05, i: .5 }, { k: 'rientro', d: .06, i: .3 }); }
+  return L;
+}
+function vgCostruisci(part) {   // dalla partitura (o dal viaggio inventato) ai momenti del film
+  const AS = ASSETTI[ATT.assetto] || {};
+  return (part ? part.momenti : vgInventa()).map(r => {
+    const F = VG_FASI.find(f => f.k === r.k) || VG_FASI[0], film = [], picchi = [], ganci = [], gradi = [], pesi = Object.assign({}, F.pesi), i = r.i != null ? r.i : .5, v = r.v != null ? r.v : 0;
+    for (const x of r.s || []) { const S2 = SEGNI[x]; if (!S2) continue; film.push(...(S2.film || [])); picchi.push(...(S2.picchi || [])); ganci.push(...(S2.ganci || [])); gradi.push(...(S2.gradi || [])); for (const m2 of S2.mosse || []) pesi[m2] = pesoDi(pesi, m2) * 3 + .5; }
+    for (const [m2, f] of Object.entries(AS)) if (typeof f === 'number') pesi[m2] = pesoDi(pesi, m2) * f;
+    if (v < -.3) { pesi.teschio = pesoDi(pesi, 'teschio') * 2.5 + .2; pesi.peaks = pesoDi(pesi, 'peaks') * 2 + .2; ganci.push('domanda'); gradi.push('bianconero', 'seppia'); }   // la paura
+    if (v > .5) { pesi.teschio = pesoDi(pesi, 'teschio') * .25; pesi.peaks = pesoDi(pesi, 'peaks') * .3; pesi.palette = pesoDi(pesi, 'palette') * 1.4; }   // l'estasi
+    return { k: F.k, d: r.d != null ? r.d : F.q, i, v, film: film.length ? film.concat(F.film.slice(0, 2)) : F.film, tratt: F.tratt, gradi: gradi.length ? gradi : F.gradi,
+      picchi: picchi.length ? picchi.concat(F.picchi.slice(0, 3)) : F.picchi, ganci: ganci.length ? ganci.concat(F.ganci) : F.ganci, pesi, respira: F.respira * (.6 + i * .8), respiri: F.respiri, tempi: F.tempi,
+      bias: clamp(F.bias * (.5 + i) + (v < -.3 ? .06 : 0), -.5, .5) };
+  });
+}
+function vgPartitura() {   // una partitura non suonata di recente; ogni tanto un viaggio inventato
+  if (!VIAGGI.length || Math.random() < .15) return null;
+  const ult = ATT.partUltime || (ATT.partUltime = []), L = VIAGGI.filter(x => !ult.includes(x.id)), p = pick(L.length ? L : VIAGGI);
+  ult.push(p.id); if (ult.length > Math.min(8, VIAGGI.length - 1)) ult.shift(); return p;
+}
+const vgMomento = () => ATT.on && REGIA.on && ATT.arco && ATT.arco.momenti ? ATT.arco.momenti[Math.max(0, ATT.arco.mi)] : null;
+const vgProssimo = () => ATT.on && REGIA.on && ATT.arco && ATT.arco.momenti ? ATT.arco.momenti[ATT.arco.mi + 1] || null : null;
+function vgPesi(w) { const M = vgMomento(); if (!M) return; for (const m in w) w[m] *= pesoDi(M.pesi, m); }
+function vgRespiro(dt, amp) {   // le superfici respirano: tutta l'immagine si allarga e si stringe appena
+  ATT.resp = (ATT.resp || 0) + ((amp || 0) - (ATT.resp || 0)) * Math.min(1, dt * .25);
+  const s = ATT.resp > .0005 ? 'scale(' + (1 + ATT.resp * (1 + Math.sin(ATT.t * 1.47))).toFixed(5) + ')' : ''; if (view.style.transform !== s) view.style.transform = s;
+}
+function vgEntra(M, P0) {   // le soglie fra un momento e l'altro
+  REGIA.tempo = pick(M.tempi); REGIA.tT = rnd(8, 16); S.tscaleT = rnd(...T().ts); if (!M.respiri) ATT.breath = null;
+  if (/fasi/.test(location.search)) note('viaggio · ' + M.k + ' · ' + (ATT.arco.part ? ATT.arco.part.id : 'inventato, ' + ATT.assetto));
+  const occupato = SC.on || MONO.phase || MO.phase || RIT.phase || TD.phase || FO.kind, A = ATT.arco;
+  switch (M.k) {
+    case 'soglia': if (!occupato) film(); break;
+    case 'geometria': if (!occupato && (!P0 || P0.k === 'soglia')) fosfeni('chiusi'); break;   // si chiudono gli occhi e arrivano i reticoli
+    case 'dissoluzione': REGIA.over = performance.now() + rnd(2, 3.5) * 1000; S.tscaleT = 3.8; break;
+    case 'oceano': ATT.vuoto = rnd(1.4, 2.6) * (.6 + M.i * .6); ATT.vuotoC = M.v < -.3 ? '#000' : '#fff'; A.dopo = { film: pick(M.film.filter(f => /mare|nuvole|fondale/.test(f)).concat(['mare'])), alt: 'cielo' }; break;   // il bianco, poi il mare
+    case 'rientro': if (P0 && P0.k === 'dissoluzione') { ATT.vuoto = rnd(1.5, 2.5); ATT.vuotoC = '#000'; A.dopo = { film: pick(M.film) }; } else if (!occupato) film(); break;   // senza oceano: si cade nel buio, poi il mondo
+    case 'riverbero': if (!occupato) { FERMO.until = performance.now() + rnd(1.5, 2.5) * 1000; FERMO.colorsStill = false; } break;
+  }
+}
+function vgSalta() {   // (tasto) il momento successivo
+  const A = ATT.arco; if (!A || !A.momenti) return; const M = A.momenti[A.mi + 1]; if (!M) { attArco(); return; } A.t0 = ATT.t - M.a - .01; }
+
 /* =================== REGIA DELL'ATTENZIONE =================== */
 // sopra il flusso tra ordine e caos, una regia più lenta che tiene lo sguardo:
 // un ARCO (circa 10 minuti, ogni volta diverso: apertura ordinata, sviluppo, culmine, coda lenta) che poi ricomincia con altri attrattori;
@@ -7171,10 +7430,16 @@ SCENE.drago = (g, w, h, t, dt, o) => {
 // che si chiude al culmine. Niente si ripete uguale: memoria degli ultimi attrattori e dei fili già usati. Con ?mostra tutto è più fitto; con ?senzaregia si spegne.
 const MOSTRA = /mostra/.test(location.search);
 const ATT = { on: !/senzaregia/.test(location.search), t: 0, arco: null, fili: [], ultimi: [], bias: 0, vuoto: 0, lampo: null, lampoT: 0, scala: 0, nextHook: 20, nextBreath: 40, breath: null };
-function attArco() {
-  const len = MOSTRA ? rnd(120, 200) : rnd(540, 720), climax = rnd(.68, .86), filo = pick(['mani', 'mostro', 'teschio', 'bosch', 'domande', 'specchio', 'mani', 'domande'].filter(f => !ATT.fili.slice(-2).includes(f)));
-  ATT.fili.push(filo); const n = 3 + ((Math.random() * 3) | 0), capitoli = Array.from({ length: n }, (_, i) => (.1 + (climax - .12) * (i + rnd(.2, .8)) / n) * len).concat([climax * len]);
-  ATT.arco = { t0: ATT.t, len, climax, filo, capitoli, fatti: 0, n: capitoli.length, oggetto: pick(DOM_OGGETTI), T: null, bosch: null, bp: Array.from({ length: 8 }, () => [rnd(.1, .9), rnd(.1, .9)]) };
+function attArco() {   // un nuovo viaggio: una partitura (o un viaggio inventato), i suoi momenti, il culmine, il filo
+  const part = vgPartitura(); ATT.assetto = part && part.assetto && ASSETTI[part.assetto] ? part.assetto : pick(Object.keys(ASSETTI).filter(a => a !== ATT.assetto));
+  const momenti = vgCostruisci(part), tot = momenti.reduce((x, m) => x + m.d, 0);
+  const len = MOSTRA ? rnd(150, 240) : part ? clamp(rnd(330, 560) * Math.sqrt(momenti.length / 7), 280, 840) : rnd(560, 900);
+  let acc = 0; for (const m of momenti) { m.a = acc / tot * len; acc += m.d; m.b = acc / tot * len; }
+  const dis = momenti.filter(m => m.k === 'dissoluzione'), cm = (dis.length ? dis : momenti.filter(m => m.k === 'fioritura')).sort((x, y) => y.i - x.i)[0] || momenti[Math.floor(momenti.length / 2)];
+  const climaxT = cm.a + (cm.b - cm.a) * rnd(.4, .7), primo = momenti[1] ? Math.min(momenti[1].a, climaxT * .5) : len * .1;
+  const filo = pick(['mani', 'mostro', 'teschio', 'bosch', 'domande', 'specchio', 'mani', 'domande'].filter(f => !ATT.fili.slice(-2).includes(f)));
+  ATT.fili.push(filo); const n = 3 + ((Math.random() * 3) | 0), capitoli = Array.from({ length: n }, (_, i) => primo + Math.max(0, climaxT - primo - 4) * (i + rnd(.2, .8)) / n).concat([climaxT]);
+  ATT.arco = { t0: ATT.t, len, climax: climaxT / len, filo, capitoli, fatti: 0, n: capitoli.length, oggetto: pick(DOM_OGGETTI), T: null, bosch: null, bp: Array.from({ length: 8 }, () => [rnd(.1, .9), rnd(.1, .9)]), momenti, part, mi: -1, dopo: null };
 }
 // --- domande perturbanti: brevi, concrete, inquietanti (niente sogni né anime)
 const DOM_OGGETTI = ['la bambola', 'la chiave', 'il dente', 'la sedia', 'il guanto', 'la scatola', 'il cane', 'la porta', 'la culla', 'la maschera', 'il pozzo', 'la lampadina', 'il cappotto', 'la scarpa sinistra', 'il coltello del pane', 'la foto', 'la testa del cavallo', 'il secchio', 'la finestra', 'la bambina'];
@@ -7252,23 +7517,27 @@ function lampoPrepara() {   // un'immagine forte da far comparire per un attimo
 }
 function gancio() {
   if (SC.on || MONO.phase || TD.phase || MO.phase || RIT.phase) return;
-  const scelte = ['lampo', 'lampo', 'fermo', 'fermo', 'vuoto', 'scala', 'domanda']; if (camPronta()) scelte.push('specchio');
-  let k; do { k = pick(scelte); } while (k === ATT.ultimoGancio && Math.random() < .8); ATT.ultimoGancio = k;
+  const M = vgMomento(); let scelte = M ? M.ganci.slice() : ['lampo', 'lampo', 'fermo', 'fermo', 'vuoto', 'scala', 'domanda', 'specchio'];
+  scelte = scelte.filter(x => x !== 'specchio' || camPronta()); if (!scelte.length) scelte = ['fermo'];
+  let k, n = 0; do { k = pick(scelte); } while (k === ATT.ultimoGancio && scelte.length > 1 && n++ < 9); ATT.ultimoGancio = k;
   if (k === 'lampo') { ATT.lampo = lampoPrepara(); ATT.lampoT = rnd(.25, .7); }
   else if (k === 'fermo') { FERMO.until = performance.now() + rnd(1, 2.2) * 1000; FERMO.colorsStill = Math.random() < .6; }
   else if (k === 'vuoto') { ATT.vuoto = rnd(.7, 1.5); ATT.vuotoC = Math.random() < .8 ? '#000' : '#fff'; }
   else if (k === 'scala') { ATT.scala = rnd(.8, 1.6); ATT.scalaP = [rnd(.2, .8), rnd(.2, .8), rnd(3, 6)]; }
   else if (k === 'domanda') domanda(null, true);
-  else if (k === 'specchio') { const s = specchio(); if (s) SC.hold = rnd(1, 1.8); }
+  else if (k === 'specchio') { const s2 = specchio(); if (s2) SC.hold = rnd(1, 1.8); }
+  else if (k === 'film') { if (!film(null, true)) { FERMO.until = performance.now() + rnd(1, 2) * 1000; FERMO.colorsStill = false; } }   // un attimo di mondo vero
 }
 // --- i picchi dei respiri: attrattori sempre diversi
 const PICCHI = ['teschio', 'mostro', 'mani', 'bosch', 'cielo', 'barocco', 'astratto', 'forma', 'lettera', 'cinema', 'microscopio', 'escher', 'specchio', 'domanda', 'sovraccarico', 'peaks', 'drago', 'macchia', 'orbe', 'fillotassi', 'ripetizione', 'sfera'];
 function picco() {
-  const libere = PICCHI.filter(p => !ATT.ultimi.includes(p)); for (let tent = 0; tent < 8; tent++) { const p = pick(libere); let ok = false;
+  const M = vgMomento(), lista = M && M.picchi.length ? M.picchi : PICCHI, l0 = lista.filter(p => !ATT.ultimi.includes(p)), libere = l0.length ? l0 : lista;
+  for (let tent = 0; tent < 8; tent++) { const p = pick(libere); let ok = false;
     switch (p) { case 'teschio': ok = teschio(); if (ok && Math.random() < .5) SC.o.avvicina = true; break; case 'mostro': ok = mostro(); break; case 'mani': ok = mani(); break; case 'bosch': ok = bosch(); break; case 'cielo': ok = cielo(); break;
       case 'barocco': ok = barocco(); break; case 'astratto': ok = astratto(); break; case 'forma': ok = formaSecca(); break; case 'lettera': letteraSecca(); ok = MONO.phase === 'in'; break; case 'cinema': ok = cinema(); break; case 'microscopio': ok = microscopio(); break;
       case 'escher': ok = escher(); break; case 'specchio': ok = specchio(); break; case 'domanda': ok = domanda(); break; case 'peaks': ok = twinpeaks(); break; case 'drago': ok = drago(); break; case 'macchia': ok = macchia(); break; case 'orbe': ok = orbe(); break; case 'fillotassi': ok = fillotassi(); break; case 'ripetizione': ok = ripetizione(); break; case 'sfera': ok = sferaAlterata(); break;
-      case 'sovraccarico': REGIA.over = performance.now() + rnd(1.5, 3) * 1000; S.tscaleT = 3.8; ok = true; break; }
+      case 'sovraccarico': REGIA.over = performance.now() + rnd(1.5, 3) * 1000; S.tscaleT = 3.8; ok = true; break;
+      case 'film': ok = film(); break; }
     if (ok) { ATT.ultimi.push(p); if (ATT.ultimi.length > 7) ATT.ultimi.shift(); return; } }
 }
 // --- i capitoli del filo
@@ -7285,19 +7554,22 @@ function capitolo(k, n) {
   }
 }
 function attTick(dt) {
-  if (!ATT.on || !REGIA.on) return; ATT.t += dt; if (!ATT.arco) attArco();
-  const A = ATT.arco, ta = ATT.t - A.t0, u = ta / A.len;
-  if (u >= 1) { attArco(); return; }
-  // la forma dell'arco piega l'asse ordine–disordine: apertura ordinata, culmine caotico, coda calma
-  ATT.bias = u < .1 ? -.25 * (1 - u / .1) : u > A.climax - .08 && u < A.climax + .04 ? .3 : u > A.climax + .06 ? -.3 : 0;
-  if (u > A.climax + .06 && REGIA.tempo !== 'lento' && Math.random() < dt * .3) { REGIA.tempo = 'lento'; REGIA.tT = rnd(10, 18); }
+  if (!ATT.on || !REGIA.on) { vgRespiro(dt, 0); return; } ATT.t += dt; if (!ATT.arco) attArco();
+  const A = ATT.arco, ta = ATT.t - A.t0;
+  if (ta >= A.len) { attArco(); return; }
+  let mi = A.momenti.findIndex(m => ta < m.b); if (mi < 0) mi = A.momenti.length - 1;
+  if (mi !== A.mi) { const da = A.mi; A.mi = mi; vgEntra(A.momenti[mi], da >= 0 ? A.momenti[da] : null); }
+  const M = A.momenti[mi];
+  // il momento piega l'asse ordine–disordine, con calma
+  ATT.bias += (M.bias - ATT.bias) * Math.min(1, dt * .2); vgRespiro(dt, M.respira);
+  if (A.dopo && ATT.vuoto <= 0 && !SC.on && !MONO.phase) { const d = A.dopo; A.dopo = null; if (!film(d.film) && d.alt === 'cielo') cielo(); }
   if (A.fatti < A.n && ta >= A.capitoli[A.fatti]) { capitolo(A.fatti, A.n); A.fatti++; if (A.fatti === A.n) { REGIA.over = performance.now() + 2500; } return; }
-  // il respiro: accumulo, picco, rilascio
-  if (!ATT.breath && (ATT.nextBreath -= dt) <= 0 && u < A.climax + .05) ATT.breath = { f: 0, t: rnd(10, 15) };
-  if (ATT.breath) { const b = ATT.breath; b.t -= dt;
-    if (b.f === 0) { if (REGIA.tempo !== 'veloce' && REGIA.tempo !== 'frenesia') { REGIA.tempo = 'veloce'; REGIA.tT = 30; } if (b.t < 4 && REGIA.tempo !== 'frenesia') { REGIA.tempo = 'frenesia'; REGIA.tT = 30; } if (b.t <= 0) { b.f = 1; picco(); b.t = rnd(8, 12); } }
+  // il respiro: accumulo, picco, rilascio (non nella soglia, nell'oceano e nel riverbero)
+  if (!ATT.breath && M.respiri && (ATT.nextBreath -= dt) <= 0) ATT.breath = { f: 0, t: rnd(10, 15) * (1.2 - M.i * .4) };
+  if (ATT.breath) { const b = ATT.breath, alto = M.k === 'rientro' || M.i < .4 ? 'veloce' : 'frenesia'; b.t -= dt;
+    if (b.f === 0) { if (REGIA.tempo !== 'veloce' && REGIA.tempo !== 'frenesia') { REGIA.tempo = 'veloce'; REGIA.tT = 30; } if (b.t < 4 && REGIA.tempo !== alto) { REGIA.tempo = alto; REGIA.tT = 30; } if (b.t <= 0) { b.f = 1; picco(); b.t = rnd(8, 12); } }
     else if (b.f === 1) { if (!SC.on && !MO.phase && !MONO.phase) { REGIA.tempo = 'lento'; REGIA.tT = b.t + 2; b.f = 2; } }
-    else if (b.t <= 0) { ATT.breath = null; ATT.nextBreath = MOSTRA ? rnd(30, 50) : rnd(55, 95); } }
+    else if (b.t <= 0) { ATT.breath = null; ATT.nextBreath = (MOSTRA ? rnd(30, 50) : rnd(55, 95)) * (1.3 - M.i * .5); } }
   if (!ATT.breath && (ATT.nextHook -= dt) <= 0) { ATT.nextHook = MOSTRA ? rnd(9, 15) : rnd(14, 26); gancio(); }
 }
 function attDraw(dt) {   // lampo, vuoto, salto di scala: sopra tutto
@@ -7942,7 +8214,7 @@ function loop(t) {
   }
   const fermo = performance.now() < FERMO.until, still = rituale(dt) || fermo;   // la sosta breve sull'immagine ambigua
   if (CAM.on && !CAM.auto && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
-  if (!window.__noev) attTick(dt);
+  filmTick(dt); if (!window.__noev) attTick(dt);
   if (!window.__noev) { if (REGIA.on) regiaTick(dt); else if (!RIT.phase && !MONO.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn(); }
   // derive lente dei parametri globali
   if (still) {   // sosta: la forma è ferma; il colore resta fermo oppure continua a scorrere
@@ -8022,6 +8294,8 @@ addEventListener('keydown', e => {
   else if (k === 'f2') { if (fillotassi()) note('fillotassi'); }
   else if (k === 'f3') { if (ripetizione()) note('ripetizione · ' + SC.o.gruppo); }
   else if (k === 'f4') { if (sferaAlterata()) note('sfera alterata'); }
+  else if (k === 'pageup' || k === 'f8') { if (film()) note('film · ' + FI.attivo.clips.map(c => c.tema + ': ' + c.titolo).join(' / ') + ' · ' + FI.attivo.tratt + ' · ' + FI.attivo.grado); else note(FI.pronti.length ? 'film: nessuno spezzone per questo momento' : 'film: gli spezzoni si stanno caricando…'); }
+  else if (k === 'f9') { vgSalta(); setTimeout(() => { const M = vgMomento(); if (M) note('viaggio · ' + M.k + ' · ' + (ATT.arco.part ? ATT.arco.part.id : 'inventato, ' + ATT.assetto)); }, 60); }
   else if (k === '%') { if (twinpeaks()) note('Twin Peaks · ' + SC.o.k); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
@@ -8053,7 +8327,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, QUAL, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, orbe, fillotassi, ripetizione, sferaAlterata, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, QUAL, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, orbe, fillotassi, ripetizione, sferaAlterata, TD, FI, film, VIAGGI, vgMomento, vgSalta, attArco }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 <script>
