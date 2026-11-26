@@ -17,9 +17,9 @@ body.idle{cursor:none}
 {
 /* SGUARDO (titolo provvisorio)
    Un giro per le pelli dipinte. L'occhio è sempre vicinissimo, non si capisce mai quale dipinto sia:
-   scorre lento sulla pelle e si ferma solo sui genitali. Lì indugia, zooma un pochettino,
+   scorre lento sulla pelle e si ferma sulle parti erogene: genitali, seni, culi, labbra, piedi. Lì indugia, zooma un pochettino,
    si allontana appena, rizooma, sempre poco; poi riparte e, senza stacco, dissolve in un altro
-   corpo di un'altra epoca. I genitali li trova NudeNet (riconoscimento convertito in TFJS da
+   corpo di un'altra epoca. Le parti le trova NudeNet (riconoscimento convertito in TFJS da
    Vladimir Mandic), che analizza nel browser solo il dipinto attuale e il prossimo.
    Solo figure adulte: nessun putto, Cupido o bambino. */
 
@@ -142,8 +142,13 @@ function skinPoints(c) {
 }
 
 /* ---------- genitali: NudeNet ---------- */
-const STOP = { 3: 'vulva', 4: 'pene' };              // qui si ferma
-const PASS = { 1: 'culo', 2: 'seno' };               // qui passa
+// classi di NudeNet (modello completo): dove si ferma e quanto a lungo
+const STOP = {
+  13: { k: 'vulva', hold: [5, 10] }, 15: { k: 'pene', hold: [5, 10] }, 0: { k: 'ano', hold: [4, 8] },
+  11: { k: 'seno', hold: [3.5, 7] }, 5: { k: 'culo', hold: [3.5, 7] }, 14: { k: 'petto', hold: [2.5, 5] },
+  6: { k: 'labbra', hold: [3, 6], lips: true }, 7: { k: 'labbra', hold: [2.5, 5], lips: true },
+  9: { k: 'piedi', hold: [2.5, 5] }, 1: { k: 'ascelle', hold: [2, 4] }
+};
 let model = null, busy = false;
 async function runOn(c, ox, oy, sw, sh, out) {
   const input = tf.tidy(() => tf.expandDims(tf.cast(tf.browser.fromPixels(c), 'float32'), 0));
@@ -152,11 +157,14 @@ async function runOn(c, ox, oy, sw, sh, out) {
   tf.dispose([input, ...outs]);
   for (let i = 0; i < scores.length; i++) {
     const k = classes[i];
-    if (scores[i] < 0.25 || !(STOP[k] || PASS[k])) continue;
+    const S = STOP[k];
+    if (scores[i] < 0.25 || !S) continue;
     const [x1, y1, x2, y2] = boxes[0][i];
-    const u = ox + (x1 + x2) / 2 / c.width * sw, v = oy + (y1 + y2) / 2 / c.height * sh;
+    const bh = Math.abs(y2 - y1);
+    const cyPix = S.lips ? Math.min(y1, y2) + bh * 0.74 : (y1 + y2) / 2;     // dal volto alla bocca
+    const u = ox + (x1 + x2) / 2 / c.width * sw, v = oy + cyPix / c.height * sh;
     if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-    out.push({ u, v, s: clamp(Math.abs(y2 - y1) / c.height * sh, 0.015, 0.3), stop: !!STOP[k], sc: scores[i] });
+    out.push({ u, v, s: clamp(bh * (S.lips ? 0.35 : 1) / c.height * sh, 0.012, 0.3), stop: true, k: S.k, hold: S.hold, sc: scores[i] });
   }
   await new Promise(r => setTimeout(r, 60));          // respiro per il browser
 }
@@ -217,7 +225,7 @@ function limits(v) {
   v.x = clamp(v.x, vw / 2, p.ar - vw / 2); v.y = clamp(v.y, v.z / 2, 1 - v.z / 2);
 }
 function points(p) {
-  const f = (p.foc || []).map(q => ({ x: q.u * p.ar, y: q.v, s: q.s, stop: q.stop }));
+  const f = (p.foc || []).map(q => ({ x: q.u * p.ar, y: q.v, s: q.s, stop: q.stop, hold: q.hold }));
   const s = (p.skin || []).map(q => ({ x: q.u * p.ar, y: q.v, s: 0.12, stop: false }));
   return f.concat(s);
 }
@@ -234,7 +242,7 @@ function plan(v) {
   const pts = points(v.p).filter(q => !v.visited.includes(q.x.toFixed(3) + q.y.toFixed(3)));
   const st = pts.filter(q => q.stop);
   let pt;
-  if (st.length && R() < 0.75) pt = st.sort((a, b) => Math.hypot(a.x - v.x, a.y - v.y) - Math.hypot(b.x - v.x, b.y - v.y))[0];
+  if (st.length && R() < 0.85) pt = st.sort((a, b) => Math.hypot(a.x - v.x, a.y - v.y) - Math.hypot(b.x - v.x, b.y - v.y))[0];
   else if (pts.length) {
     const near = pts.filter(q => Math.hypot(q.x - v.x, q.y - v.y) < 0.35);
     pt = (near.length ? near : pts)[(R() * (near.length || pts.length)) | 0];
@@ -242,7 +250,7 @@ function plan(v) {
   v.visited.push(pt.x.toFixed(3) + pt.y.toFixed(3)); if (v.visited.length > 12) v.visited.shift();
   const z1 = zNear(pt), d = Math.hypot(pt.x - v.x, pt.y - v.y);
   const dur = clamp(d / (v.z * 0.22), 1.8, 9);       // scorre sulla pelle, lento
-  const hold = pt.stop ? rr(4.5, 9) : rr(0, 0.6);    // si ferma solo sui genitali
+  const hold = pt.stop ? rr(pt.hold[0], pt.hold[1]) : rr(0, 0.5);   // si ferma sulle parti erogene
   v.mv = { t0: clock, dur, hold, x0: v.x, y0: v.y, z0: v.z, x1: pt.x, y1: pt.y, z1, stop: pt.stop, ph: R() * 6 };
   v.hops++;
 }
@@ -292,7 +300,7 @@ function frame(now) {
     if (A.p.small && !A.p.det) detect(A.p);
     stepView(A);
     // dopo un genitale (o dopo un po' di pelle) dissolve in un altro corpo
-    if (!fade && next && next.st === 2 && (next.det || !model) && ((A.done && R() < 0.5) || A.hops > 7)) {
+    if (!fade && next && next.st === 2 && (next.det || !model) && ((A.done && R() < 0.3) || A.hops > 9)) {
       B = newView(next); fade = { t0: clock, dur: rr(2.5, 4) };
       recent.push(next); if (recent.length > Math.max(3, pool.length - 3)) recent.shift();
       next = null;
