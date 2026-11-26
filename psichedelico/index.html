@@ -4866,7 +4866,7 @@ P.camera = {
   }
 };
 async function toggleCam() {
-  if (CAM.on) {
+  if (CAM.on && !CAM.auto) {
     CAM.on = false; if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop());
     const a = active.find(x => x.proc === P.camera); if (a) { a.target = 0; a.rate = .5; a.shape = 'cerchio'; a.cx = W / 2; a.cy = H / 2; }
     note('telecamera spenta'); return;
@@ -4878,7 +4878,7 @@ async function toggleCam() {
     CAM.stream = st;
     if (!CAM.video) { const v = CAM.video = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
       v.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(v); }
-    CAM.video.srcObject = st; await CAM.video.play(); CAM.on = true; note('telecamera accesa — V per spegnerla');
+    CAM.video.srcObject = st; await CAM.video.play(); CAM.on = true; CAM.auto = false; note('telecamera accesa — V per spegnerla');
   } catch (e) {
     note(e && e.name === 'NotAllowedError' ? 'accesso negato: consenti la telecamera nelle impostazioni del browser e riprova (V)'
       : e && e.name === 'NotFoundError' ? 'nessuna telecamera trovata' : e && e.name === 'NotReadableError' ? 'la telecamera è usata da un\'altra applicazione' : 'telecamera non disponibile');
@@ -5704,7 +5704,7 @@ const REGIA = { on: !/libero/.test(location.search), tempo: 'medio', tT: 6, cut:
 // i passaggi sono continui, ci sono sorprese ma anche corrispondenze (Galanter); il caso puro no.
 function lorenz(dt) { const [x, y, z] = REGIA.lz, h = Math.min(dt, .1) * .045;
   for (let i = 0; i < 4; i++) { const [a, b, c] = REGIA.lz; REGIA.lz = [a + h / 4 * 10 * (b - a), b + h / 4 * (a * (28 - c) - b), c + h / 4 * (a * b - 8 / 3 * c)]; }
-  const X = REGIA.lz[0]; REGIA.dis = .5 + .5 * Math.sign(X) * Math.min(1, (Math.abs(X) / 17) ** 2); }
+  const X = REGIA.lz[0]; REGIA.dis = clamp(.5 + .5 * Math.sign(X) * Math.min(1, (Math.abs(X) / 17) ** 2) + (typeof ATT !== 'undefined' ? ATT.bias : 0), 0, 1); }
 const asse = () => REGIA.dis < .3 ? 'ordine' : REGIA.dis > .7 ? 'disordine' : 'complessità';
 const lzAng = () => (Math.atan2(REGIA.lz[1] - REGIA.lz[0] * 0, REGIA.lz[2] - 27) + Math.PI) / (2 * Math.PI);
 const T = () => TEMPI[REGIA.tempo];
@@ -6923,7 +6923,7 @@ function teschioGL(T, a, o) {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); return TGL.cv;
 }
 SCENE.teschio = (g, w, h, t, dt, o) => {
-  const m = Math.min(w, h);
+  const m = Math.min(w, h) * (o.avvicina ? 1 + Math.pow(clamp(SC.t / (SC.tin + SC.hold), 0, 1), 2) * 1.8 : 1);   // a volte viene verso di te
   if (o.fondo === 'colore') { g.fillStyle = `rgb(${o.fc.join(',')})`; g.fillRect(0, 0, w, h); }
   else { const gr = g.createRadialGradient(w / 2, h * .4, 0, w / 2, h / 2, Math.hypot(w, h) * .6); gr.addColorStop(0, o.fondo === 'nero' ? '#151515' : '#2c2620'); gr.addColorStop(1, '#030303'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }
   const n = o.teschi.length, cols = Math.min(n, 3), rows = Math.ceil(n / cols), S = n === 1 ? m * .36 : Math.min(w / cols, h / rows) * .3;
@@ -7054,7 +7054,7 @@ SCENE.mani = (g, w, h, t, dt, o) => {
   const cA = o.coppia === 'creazione' ? POSE.creazione : posa(o.pa, fase), cB = o.coppia === 'creazione' ? POSE.indica : posa(o.pb, fase + 7);
   // il movimento: entrano dai lati e si vanno incontro, si toccano quasi, poi si ritirano
   const avv = o.coppia === 'creazione' ? Math.sin(Math.min(1, k * 2.6) * Math.PI / 2) * (1 - Math.max(0, k - .82) * 3) : .5 + .5 * Math.sin(T * .6 + o.sd);
-  const gap = o.coppia === 'stringere' ? .05 : .18, xa = -3.1 + (3.1 - 1.68 - gap) * avv, xb = -xa;
+  const gap = o.vicino != null ? .95 - .95 * o.vicino + (o.tocco ? -.02 : .05) : o.coppia === 'stringere' ? .05 : .18, xa = -3.1 + (3.1 - 1.68 - gap) * avv, xb = -xa;
   const ondA = Math.sin(T * .9) * .12, ondB = Math.sin(T * .8 + 1) * .12;
   gl.viewport(0, 0, MGL.cv.width, MGL.cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
   gl.uniform2f(u.res, MGL.cv.width, MGL.cv.height); gl.uniform1f(u.t, T);
@@ -7062,7 +7062,9 @@ SCENE.mani = (g, w, h, t, dt, o) => {
   gl.uniformMatrix3fv(u.RB, false, rotM(Math.PI + ondB * .5, 0, -(o.rollB + ondB))); gl.uniform3f(u.PB, o.n === 2 ? xb : 99, .1 + ondB, 0); gl.uniform1f(u.sideB, -1);
   gl.uniform4f(u.CA, cA[0], cA[1], cA[2], cA[3]); gl.uniform4f(u.CB, cB[0], cB[1], cB[2], cB[3]); gl.uniform2f(u.TH, cA[4], cB[4]); gl.uniform3f(u.skin, o.skin[0], o.skin[1], o.skin[2]);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  if (o.tocco && avv > .97) o.luce = Math.min(1, (o.luce || 0) + dt * .5);   // al culmine si toccano: una luce
   const s = Math.max(w / MGL.cv.width, h / MGL.cv.height); g.drawImage(MGL.cv, (w - MGL.cv.width * s) / 2, (h - MGL.cv.height * s) / 2, MGL.cv.width * s, MGL.cv.height * s);
+  if (o.luce) { const gl2 = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.min(w, h) * (.1 + .5 * o.luce)); gl2.addColorStop(0, `rgba(255,250,230,${(.9 * o.luce).toFixed(2)})`); gl2.addColorStop(1, 'rgba(255,250,230,0)'); g.fillStyle = gl2; g.fillRect(0, 0, w, h); }
 };
 
 /* ---------- BOSCH: apparizioni dei suoi inferni, le tavole vere (pubblico dominio, da Wikimedia Commons) ---------- */
@@ -7144,6 +7146,133 @@ SCENE.drago = (g, w, h, t, dt, o) => {
   g.fillStyle = o.fondo; g.fillRect(0, 0, w, h); const n = o.k === 'lsys' ? Math.floor(pts.length * clamp(u * 1.4, 0, 1)) : pts.length; g.lineWidth = Math.max(1, m * .002); g.lineCap = 'round';
   const meta = pts.length / 2; for (let part = 0; part < 2; part++) { g.strokeStyle = part ? o.c2 : o.c1; g.beginPath(); const a0 = part ? Math.floor(meta) : 0, a1 = part ? n : Math.min(n, Math.floor(meta) + 1); for (let i = a0; i < a1; i++) { const p = pts[i]; i === a0 ? g.moveTo(ox + p[0] * k2, oy + p[1] * k2) : g.lineTo(ox + p[0] * k2, oy + p[1] * k2); } g.stroke(); }   // le due metà del drago, a due colori
 };
+
+/* =================== REGIA DELL'ATTENZIONE =================== */
+// sopra il flusso tra ordine e caos, una regia più lenta che tiene lo sguardo:
+// un ARCO (circa 10 minuti, ogni volta diverso: apertura ordinata, sviluppo, culmine, coda lenta) che poi ricomincia con altri attrattori;
+// RESPIRI di 55–95 s (accumulo, picco, rilascio); GANCI ogni 14–26 s (lampo, fermo, vuoto, salto di scala, lo specchio, una domanda);
+// un FILO per ogni arco (le mani che si avvicinano, il mostro che cresce, lo stesso teschio che torna, un viaggio dentro un Bosch, le domande, lo specchio)
+// che si chiude al culmine. Niente si ripete uguale: memoria degli ultimi attrattori e dei fili già usati. Con ?mostra tutto è più fitto; con ?senzaregia si spegne.
+const MOSTRA = /mostra/.test(location.search);
+const ATT = { on: !/senzaregia/.test(location.search), t: 0, arco: null, fili: [], ultimi: [], bias: 0, vuoto: 0, lampo: null, lampoT: 0, scala: 0, nextHook: 20, nextBreath: 40, breath: null };
+function attArco() {
+  const len = MOSTRA ? rnd(120, 200) : rnd(540, 720), climax = rnd(.68, .86), filo = pick(['mani', 'mostro', 'teschio', 'bosch', 'domande', 'specchio', 'mani', 'domande'].filter(f => !ATT.fili.slice(-2).includes(f)));
+  ATT.fili.push(filo); const n = 3 + ((Math.random() * 3) | 0), capitoli = Array.from({ length: n }, (_, i) => (.1 + (climax - .12) * (i + rnd(.2, .8)) / n) * len).concat([climax * len]);
+  ATT.arco = { t0: ATT.t, len, climax, filo, capitoli, fatti: 0, n: capitoli.length, oggetto: pick(DOM_OGGETTI), T: null, bosch: null, bp: Array.from({ length: 8 }, () => [rnd(.1, .9), rnd(.1, .9)]) };
+}
+// --- domande perturbanti: brevi, concrete, inquietanti (niente sogni né anime)
+const DOM_OGGETTI = ['la bambola', 'la chiave', 'il dente', 'la sedia', 'il guanto', 'la scatola', 'il cane', 'la porta', 'la culla', 'la maschera', 'il pozzo', 'la lampadina', 'il cappotto', 'la scarpa sinistra', 'il coltello del pane', 'la foto', 'la testa del cavallo', 'il secchio', 'la finestra', 'la bambina'];
+const DOM_FORME = [o => `dov'è ${o} ora?`, o => `chi ha spostato ${o}?`, o => `${o} era già qui prima?`, o => `perché ${o} è ancora calda?`, o => `hai chiuso ${o}?`, o => `quante volte hai contato ${o.replace(/^(la|il|lo|l')\s?/, '')}?`,
+  o => `chi ha messo ${o} dietro di te?`, o => `${o} ti ha visto entrare?`, o => `da quanto tempo ${o} è lì?`, o => `di chi è ${o}?`, () => 'chi c\'era nella stanza accanto?', () => 'lo senti anche tu?', () => 'chi ha acceso la luce?', () => 'è ancora qui?', () => 'chi ha contato i denti?', () => 'perché la porta è aperta?', () => 'quanti siete in questa stanza?', () => 'chi ti sta guardando adesso?', () => 'che ore erano quando è successo?', () => 'perché sorridi?'];
+const DOM_FILO = [o => `dov'è ${o}?`, o => `qualcuno ha visto ${o}?`, o => `${o} si è mossa`.replace(/a$/, o.startsWith('il') ? 'o' : 'a'), o => `${o} è dietro la porta`, o => `${o} ti ha visto`, o => `${o} è qui`];
+const DOM_VISTE = new Set();
+function domandaNuova() { let q, k = 0; do { q = pick(DOM_FORME)(pick(DOM_OGGETTI)); } while (DOM_VISTE.has(q) && ++k < 30); DOM_VISTE.add(q); return q; }
+function domanda(testo, breve) {
+  const P = palCss(), stile = pick(['nero', 'nero', 'sopra', 'colore']);
+  return scenaInizia('domanda', { testo: testo || domandaNuova(), stile, fc: pick(P), font: pick(['Georgia, serif', '"Times New Roman", serif', '"Helvetica Neue", Helvetica, Arial, sans-serif', '"Courier New", monospace', 'Didot, "Bodoni 72", serif']), hold: breve ? rnd(1.4, 2) : rnd(2.6, 4), modo: pick(['tutta', 'lettere', 'tutta']), snap: null });
+}
+SCENE.domanda = (g, w, h, t, dt, o) => {
+  if (o.stile === 'sopra') { if (!o.snap) { o.snap = document.createElement('canvas'); o.snap.width = w; o.snap.height = h; o.snap.getContext('2d').drawImage(view, 0, 0, w, h); } g.drawImage(o.snap, 0, 0); g.fillStyle = 'rgba(0,0,0,.72)'; g.fillRect(0, 0, w, h); }
+  else { g.fillStyle = o.stile === 'colore' ? o.fc : '#000'; g.fillRect(0, 0, w, h); }
+  const m = Math.min(w, h), n = o.modo === 'lettere' ? Math.floor(clamp((SC.t - SC.tin * .5) * 14, 0, o.testo.length)) : o.testo.length, s = o.testo.slice(0, n);
+  g.fillStyle = o.stile === 'colore' ? '#000' : '#f2efe6'; g.textAlign = 'center'; g.textBaseline = 'middle'; let sz = m * .085; g.font = `400 ${sz}px ${o.font}`; const W2 = g.measureText(o.testo).width; if (W2 > w * .86) { sz *= w * .86 / W2; g.font = `400 ${sz}px ${o.font}`; }
+  g.fillText(s, w / 2, h / 2);
+};
+// --- lo specchio: chi guarda entra nel film (la telecamera; niente viene registrato né inviato)
+async function camAuto() {
+  if (CAM.on || CAM.chiesta || !window.isSecureContext || !navigator.mediaDevices) return; CAM.chiesta = true;
+  try { const st = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false }); CAM.stream = st;
+    if (!CAM.video) { const v = CAM.video = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none'; document.body.appendChild(v); }
+    CAM.video.srcObject = st; await CAM.video.play(); CAM.on = true; CAM.auto = true; } catch (e) { CAM.negata = true; }
+}
+if (ATT.on && !/senzacamera/.test(location.search)) setTimeout(camAuto, 4000);
+function camPronta() { return CAM.on && CAM.video && CAM.video.videoWidth > 10; }
+function specchio(k) {
+  if (!camPronta()) return false;
+  return scenaInizia('specchio', { k: k || pick(['poster', 'poster', 'mandala', 'doppio', 'pixel']), P: currentPalette().c.map(c => c.slice(0, 3)), L: 3 + ((Math.random() * 3) | 0), hold: rnd(3.5, 6), n: pick([6, 8, 12]) });
+}
+SCENE.specchio = (g, w, h, t, dt, o) => {
+  const v = CAM.video, gw = Math.round(w / 2), gh = Math.round(h / 2); if (!o.cv) { o.cv = document.createElement('canvas'); o.cv.width = gw; o.cv.height = gh; o.cx = o.cv.getContext('2d', { willReadFrequently: true }); }
+  const q = o.cx, k = Math.max(gw / v.videoWidth, gh / v.videoHeight); q.save(); q.translate(gw, 0); q.scale(-1, 1); q.filter = 'blur(1px)'; q.drawImage(v, (gw - v.videoWidth * k) / 2, (gh - v.videoHeight * k) / 2, v.videoWidth * k, v.videoHeight * k); q.restore();
+  if (o.k !== 'pixel') {   // il volto in fasce di colore piene della palette, con i confini neri
+    const id = q.getImageData(0, 0, gw, gh), a = id.data, L = o.L, sam = []; for (let i = 0; i < a.length; i += 28) sam.push(a[i] * .3 + a[i + 1] * .59 + a[i + 2] * .11); sam.sort((x, y) => x - y); const th = Array.from({ length: L - 1 }, (_, j) => sam[Math.floor(sam.length * (j + 1) / L)]);
+    const lev = new Uint8Array(gw * gh); for (let i = 0; i < gw * gh; i++) { const l = a[i * 4] * .3 + a[i * 4 + 1] * .59 + a[i * 4 + 2] * .11; let k2 = 0; for (const x of th) if (l > x) k2++; lev[i] = k2; }
+    for (let i = 0; i < gw * gh; i++) { const x = i % gw, bordo = (x < gw - 1 && lev[i + 1] !== lev[i]) || (i + gw < gw * gh && lev[i + gw] !== lev[i]), c = bordo ? [0, 0, 0] : o.P[(lev[i] + Math.floor(t * 1.5)) % o.P.length]; a[i * 4] = c[0]; a[i * 4 + 1] = c[1]; a[i * 4 + 2] = c[2]; a[i * 4 + 3] = 255; }
+    q.putImageData(id, 0, 0); }
+  g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.imageSmoothingEnabled = o.k !== 'pixel';
+  if (o.k === 'poster') g.drawImage(o.cv, 0, 0, w, h);
+  else if (o.k === 'pixel') { const b = 10 + 6 * Math.sin(t); g.drawImage(o.cv, 0, 0, gw / b * 4, gh / b * 4); g.drawImage(g.canvas, 0, 0, gw / b * 4, gh / b * 4, 0, 0, w, h); }
+  else if (o.k === 'doppio') { g.drawImage(o.cv, gw * .25, 0, gw * .5, gh, 0, 0, w / 2, h); g.save(); g.translate(w, 0); g.scale(-1, 1); g.drawImage(o.cv, gw * .25, 0, gw * .5, gh, 0, 0, w / 2, h); g.restore(); }
+  else { const R = Math.hypot(w, h) / 2, n = o.n; g.save(); g.translate(w / 2, h / 2); g.rotate(t * .1); for (let i = 0; i < n; i++) { g.save(); g.rotate(i * 6.2832 / n); if (i % 2) g.scale(1, -1); g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, R, -Math.PI / n, Math.PI / n); g.closePath(); g.clip(); g.drawImage(o.cv, gw * .3, gh * .15, gw * .4, gh * .6, 0, -R * .35, R * .7, R * .7); g.restore(); } g.restore(); }
+};
+// --- i ganci brevi
+function lampoPrepara() {   // un'immagine forte da far comparire per un attimo
+  const w = view.width >> 1, h = view.height >> 1, c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'), m = Math.min(w, h);
+  const scelte = ['teschio', 'lettera']; if (BOSCH.img.length) scelte.push('bosch', 'bosch'); if (camPronta()) scelte.push('specchio'); if (MZ.ok) scelte.push('mostro');
+  const k = pick(scelte); g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+  if (k === 'bosch') { const im = pick(BOSCH.img), z = rnd(3, 7), sw = im.naturalWidth / z, sh = sw * h / w; g.drawImage(im, rnd(0, im.naturalWidth - sw), rnd(0, Math.max(1, im.naturalHeight - sh)), sw, sh, 0, 0, w, h); }
+  else if (k === 'teschio' && teschioGLInit()) { const T = { cw: rnd(.92, 1.08), ch: rnd(.92, 1.1), cl: 1, zw: 1, od: 1, oy: 0, os: 1, ns: 1, jl: 1, jw: .55, denti: 12, seme: rnd(100), pm: .1, apre: rnd(0, .08), dtipo: pick([0, 1, 2]), dlung: 2.5, ciclope: Math.random() < .2 ? 1 : 0, corna: Math.random() < .2 ? .7 : 0, lungo: 0, terzo: 0, osso: [230, 220, 196], asse: 'y', incl: 0 };
+    const cv = teschioGL(T, rnd(-.5, .5), { tinta: null, luce: [-.4, .7, 1] }); g.drawImage(cv, (w - h * 1.3) / 2, -h * .15, h * 1.3, h * 1.3); }
+  else if (k === 'specchio') { const v = CAM.video, kk = Math.max(w / v.videoWidth, h / v.videoHeight); g.save(); g.translate(w, 0); g.scale(-1, 1); g.filter = 'contrast(1.6) grayscale(1)'; g.drawImage(v, (w - v.videoWidth * kk) / 2, (h - v.videoHeight * kk) / 2, v.videoWidth * kk, v.videoHeight * kk); g.restore(); }
+  else if (k === 'mostro') { g.fillStyle = pick(palCss()); g.fillRect(0, 0, w, h); g.drawImage(MZ.cv, (w - m * 1.2) / 2, (h - m * 1.2) / 2, m * 1.2, m * 1.2); }
+  else { g.fillStyle = '#f2efe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#000'; g.font = `900 ${m * .8}px ${prossimoFont()}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(pick(['A', 'O', 'X', '?', '!', '夢', 'ॐ', '∞', 'Z', 'M']), w / 2, h / 2); }
+  return c;
+}
+function gancio() {
+  if (SC.on || MONO.phase || TD.phase || MO.phase || RIT.phase) return;
+  const scelte = ['lampo', 'lampo', 'fermo', 'fermo', 'vuoto', 'scala', 'domanda']; if (camPronta()) scelte.push('specchio');
+  let k; do { k = pick(scelte); } while (k === ATT.ultimoGancio && Math.random() < .8); ATT.ultimoGancio = k;
+  if (k === 'lampo') { ATT.lampo = lampoPrepara(); ATT.lampoT = rnd(.25, .7); }
+  else if (k === 'fermo') { FERMO.until = performance.now() + rnd(1, 2.2) * 1000; FERMO.colorsStill = Math.random() < .6; }
+  else if (k === 'vuoto') { ATT.vuoto = rnd(.7, 1.5); ATT.vuotoC = Math.random() < .8 ? '#000' : '#fff'; }
+  else if (k === 'scala') { ATT.scala = rnd(.8, 1.6); ATT.scalaP = [rnd(.2, .8), rnd(.2, .8), rnd(3, 6)]; }
+  else if (k === 'domanda') domanda(null, true);
+  else if (k === 'specchio') { const s = specchio(); if (s) SC.hold = rnd(1, 1.8); }
+}
+// --- i picchi dei respiri: attrattori sempre diversi
+const PICCHI = ['teschio', 'mostro', 'mani', 'bosch', 'cielo', 'barocco', 'astratto', 'forma', 'lettera', 'cinema', 'microscopio', 'escher', 'specchio', 'domanda', 'sovraccarico', 'peaks', 'drago', 'macchia'];
+function picco() {
+  const libere = PICCHI.filter(p => !ATT.ultimi.includes(p)); for (let tent = 0; tent < 8; tent++) { const p = pick(libere); let ok = false;
+    switch (p) { case 'teschio': ok = teschio(); if (ok && Math.random() < .5) SC.o.avvicina = true; break; case 'mostro': ok = mostro(); break; case 'mani': ok = mani(); break; case 'bosch': ok = bosch(); break; case 'cielo': ok = cielo(); break;
+      case 'barocco': ok = barocco(); break; case 'astratto': ok = astratto(); break; case 'forma': ok = formaSecca(); break; case 'lettera': letteraSecca(); ok = MONO.phase === 'in'; break; case 'cinema': ok = cinema(); break; case 'microscopio': ok = microscopio(); break;
+      case 'escher': ok = escher(); break; case 'specchio': ok = specchio(); break; case 'domanda': ok = domanda(); break; case 'peaks': ok = twinpeaks(); break; case 'drago': ok = drago(); break; case 'macchia': ok = macchia(); break;
+      case 'sovraccarico': REGIA.over = performance.now() + rnd(1.5, 3) * 1000; S.tscaleT = 3.8; ok = true; break; }
+    if (ok) { ATT.ultimi.push(p); if (ATT.ultimi.length > 7) ATT.ultimi.shift(); return; } }
+}
+// --- i capitoli del filo
+function capitolo(k, n) {
+  const A = ATT.arco, u = k / (n - 1), ultimo = k === n - 1;
+  if (SC.on) SC.on = false; MONO.phase = ''; MONO.a = 0;
+  switch (A.filo) {
+    case 'mani': if (mani()) { SC.o.coppia = 'creazione'; SC.o.pa = 'creazione'; SC.o.pb = pick(['indica', 'indica', 'aperta', 'rilassata']); SC.o.vicino = u; SC.o.tocco = ultimo; SC.o.rollA = rnd(.4, 1.1); if (ultimo) SC.hold = rnd(9, 12); } break;
+    case 'mostro': if (MO.phase) break; if (mostro()) { MO.sc = .45 + .75 * u; if (ultimo) { MO.sc = 1.6; MO.vin = 'zoom'; MO.hold = rnd(5, 7); } } break;
+    case 'teschio': if (teschio()) { if (!A.T) A.T = SC.o.teschi[0]; else SC.o.teschi = [A.T]; SC.o.fondo = pick(['buio', 'nero', 'colore']); if (ultimo) { SC.o.avvicina = true; SC.hold = rnd(6, 8); } } break;
+    case 'bosch': if (bosch('viaggio')) { if (!A.bosch) A.bosch = SC.o.im; SC.o.im = A.bosch; SC.o.punti = [A.bp[k % 8], A.bp[(k + 1) % 8], A.bp[(k + 2) % 8]]; if (ultimo) { SC.o.k = 'quadro'; SC.hold = rnd(8, 11); } } break;
+    case 'domande': domanda(ultimo ? DOM_FILO[DOM_FILO.length - 1](A.oggetto) : DOM_FILO[Math.min(k, DOM_FILO.length - 2)](A.oggetto)); break;
+    case 'specchio': if (!specchio()) domanda(); else if (ultimo) SC.hold = rnd(7, 9); break;
+  }
+}
+function attTick(dt) {
+  if (!ATT.on || !REGIA.on) return; ATT.t += dt; if (!ATT.arco) attArco();
+  const A = ATT.arco, ta = ATT.t - A.t0, u = ta / A.len;
+  if (u >= 1) { attArco(); return; }
+  // la forma dell'arco piega l'asse ordine–disordine: apertura ordinata, culmine caotico, coda calma
+  ATT.bias = u < .1 ? -.25 * (1 - u / .1) : u > A.climax - .08 && u < A.climax + .04 ? .3 : u > A.climax + .06 ? -.3 : 0;
+  if (u > A.climax + .06 && REGIA.tempo !== 'lento' && Math.random() < dt * .3) { REGIA.tempo = 'lento'; REGIA.tT = rnd(10, 18); }
+  if (A.fatti < A.n && ta >= A.capitoli[A.fatti]) { capitolo(A.fatti, A.n); A.fatti++; if (A.fatti === A.n) { REGIA.over = performance.now() + 2500; } return; }
+  // il respiro: accumulo, picco, rilascio
+  if (!ATT.breath && (ATT.nextBreath -= dt) <= 0 && u < A.climax + .05) ATT.breath = { f: 0, t: rnd(10, 15) };
+  if (ATT.breath) { const b = ATT.breath; b.t -= dt;
+    if (b.f === 0) { if (REGIA.tempo !== 'veloce' && REGIA.tempo !== 'frenesia') { REGIA.tempo = 'veloce'; REGIA.tT = 30; } if (b.t < 4 && REGIA.tempo !== 'frenesia') { REGIA.tempo = 'frenesia'; REGIA.tT = 30; } if (b.t <= 0) { b.f = 1; picco(); b.t = rnd(8, 12); } }
+    else if (b.f === 1) { if (!SC.on && !MO.phase && !MONO.phase) { REGIA.tempo = 'lento'; REGIA.tT = b.t + 2; b.f = 2; } }
+    else if (b.t <= 0) { ATT.breath = null; ATT.nextBreath = MOSTRA ? rnd(30, 50) : rnd(55, 95); } }
+  if (!ATT.breath && (ATT.nextHook -= dt) <= 0) { ATT.nextHook = MOSTRA ? rnd(9, 15) : rnd(14, 26); gancio(); }
+}
+function attDraw(dt) {   // lampo, vuoto, salto di scala: sopra tutto
+  if (ATT.lampo) { ATT.lampoT -= dt; vctx.drawImage(ATT.lampo, 0, 0, view.width, view.height); if (ATT.lampoT <= 0) ATT.lampo = null; }
+  if (ATT.vuoto > 0) { ATT.vuoto -= dt; vctx.fillStyle = ATT.vuotoC; vctx.fillRect(0, 0, view.width, view.height); }
+  if (ATT.scala > 0) { ATT.scala -= dt; const [px, py, z] = ATT.scalaP, sw = view.width / z, sh = view.height / z; if (!ATT.scc) ATT.scc = document.createElement('canvas'); ATT.scc.width = sw; ATT.scc.height = sh; ATT.scc.getContext('2d').drawImage(view, clamp(px * view.width - sw / 2, 0, view.width - sw), clamp(py * view.height - sh / 2, 0, view.height - sh), sw, sh, 0, 0, sw, sh); vctx.drawImage(ATT.scc, 0, 0, view.width, view.height); }
+}
 
 /* ---------- ESCHER: tassellature che si trasformano, figure impossibili, spazi iperbolici, effetto Droste ---------- */
 // omaggi ai suoi procedimenti (divisione regolare del piano, metamorfosi, impossibile, limite del cerchio, ricorsione), non copie di sue tavole
@@ -7625,7 +7754,7 @@ function frame(t, dt) {
   vctx.imageSmoothingEnabled = !glitching || Math.random() < .5; vctx.imageSmoothingQuality = 'high';
   if (FLU.on && FLU.scia < 1) { vctx.imageSmoothingEnabled = true; vctx.globalAlpha = FLU.scia; vctx.drawImage(work, 0, 0, view.width, view.height); vctx.globalAlpha = 1; }   // la scia
   else vctx.drawImage(work, 0, 0, view.width, view.height);
-  passaggioDraw(); trasparenzaDraw(Math.min(.1, dt || .033)); scenaDraw(Math.min(.1, dt || .033)); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
+  passaggioDraw(); trasparenzaDraw(Math.min(.1, dt || .033)); scenaDraw(Math.min(.1, dt || .033)); macchiaDraw(Math.min(.1, dt || .033)); lineeDraw(Math.min(.1, dt || .033)); lottaDraw(Math.min(.1, dt || .033)); pixelDraw(Math.min(.1, dt || .033)); attDraw(Math.min(.1, dt || .033)); lottaMemoria(Math.min(.1, dt || .033));
   if (MONO.a > 0) { if (MONO.mode === 'rorschach' && MONO.phase !== 'out') drawInk(); drawMono(MONO.a); }
   fosfeniDraw();
 }
@@ -7643,7 +7772,8 @@ function loop(t) {
     else { MONO.a -= dt / (MONO.fout || (REGIA.on ? .5 : 1.8)); if (MONO.a <= 0) { MONO.a = 0; MONO.phase = ''; MONO.fin = MONO.fout = 0; } }
   }
   const fermo = performance.now() < FERMO.until, still = rituale(dt) || fermo;   // la sosta breve sull'immagine ambigua
-  if (CAM.on && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
+  if (CAM.on && !CAM.auto && !RIT.phase && !active.some(a => a.proc === P.camera && a.target === 1)) camEnter();
+  if (!window.__noev) attTick(dt);
   if (!window.__noev) { if (REGIA.on) regiaTick(dt); else if (!RIT.phase && !MONO.phase) for (const e of EVENTS) if (Math.random() < e.rate() * dt) e.fn(); }
   // derive lente dei parametri globali
   if (still) {   // sosta: la forma è ferma; il colore resta fermo oppure continua a scorrere
@@ -7750,7 +7880,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
