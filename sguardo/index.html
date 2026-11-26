@@ -17,7 +17,7 @@ body.idle{cursor:none}
 {
 /* SGUARDO (titolo provvisorio)
    La ricerca dell'osceno: ciò che sta fuori scena (ob-skené), portato davanti agli occhi.
-   Una soggettiva: lo sguardo di qualcuno, con il suo respiro, la testa che si muove, le palpebre.
+   Una soggettiva: lo sguardo di qualcuno, con il suo respiro e la testa che si muove.
    Nel vuoto è frenetico, a scatti; quando incontra i corpi rallenta e scorre sulla pelle;
    quando trova i genitali si inchioda (oddio, l'ho trovato), zooma fin quasi a baciarli, resta,
    e se ne va. I dipinti stanno uno accanto all'altro: l'occhio passa sul quadro vicino e continua.
@@ -343,7 +343,7 @@ function stepEye() {
 }
 
 /* ---------- la soggettiva: respiro, testa, palpebre ---------- */
-let vignette = null, blink = { next: 3, t: -1 }, last = { x: 0, y: 0, z: 1 };
+let vignette = null, last = { x: 0, y: 0, z: 1 };
 function makeVignette() {
   vignette = document.createElement('canvas');
   vignette.width = cv.width; vignette.height = cv.height;
@@ -409,14 +409,6 @@ function frame(now) {
   ctx.globalAlpha = 1;
   ctx.drawImage(vignette, 0, 0);
 
-  // palpebre: ogni tanto l'occhio si chiude, più raramente mentre bacia
-  if (blink.t < 0 && clock > blink.next) blink.t = clock;
-  if (blink.t >= 0) {
-    const b = (clock - blink.t) / 0.22, c = b < 0.4 ? b / 0.4 : b < 1 ? 1 - (b - 0.4) / 0.6 : 0;
-    if (b >= 1) { blink.t = -1; blink.next = clock + (kissing ? rr(6, 12) : rr(2, 7)) * (R() < 0.15 ? 0.15 : 1); }
-    const hgt = (H / 2) * Math.min(1, c * 1.05);
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, hgt); ctx.fillRect(0, H - hgt, W, hgt);
-  }
   requestAnimationFrame(frame);
 }
 
