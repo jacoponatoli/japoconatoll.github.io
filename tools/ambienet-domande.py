@@ -273,14 +273,30 @@ def g_perturbante():
     return "Chi ha " + random.choice(['spento la luce', 'aperto la finestra', 'scritto il tuo nome sul vetro', 'spostato le sedie', 'lasciato la porta aperta',
                                       'chiamato poco fa', 'preso il tuo posto', 'cantato la ninna nanna', 'apparecchiato per due']) + "?"
 
+# ——— gli oggetti: domande concrete, brevi, che spostano il familiare (dov'è la bambola ora?) ———
+OGGETTI = ['la bambola', 'la chiave', 'il dente', 'la sedia', 'il guanto', 'la scatola', 'il cane', 'la culla', 'la maschera', 'il cappotto',
+           'la scarpa sinistra', 'il coltello del pane', 'la foto', 'il secchio', 'la lampadina', 'il cavallo a dondolo', 'la bambina', 'il vestito bianco',
+           'il carillon', 'lo specchio piccolo', 'la valigia', 'il gatto', 'la candela', 'l\'orologio', 'il letto', 'la tazza', 'la corda', 'il nastro rosso']
+LUOGHI = ['sotto il letto', 'dietro la porta', 'nel pozzo', 'in cantina', 'nell\'armadio', 'nella stanza accanto', 'in soffitta', 'sul davanzale',
+          'in fondo al corridoio', 'dentro il muro', 'sotto il pavimento', 'nel giardino', 'sulle scale', 'dietro di te', 'nella vasca']
+def g_oggetto():
+    o = random.choice(OGGETTI); r = random.random(); f = o.split(' ')[0] in ('la', "l'") or o.startswith("l'")
+    if r < .2: return f"Dov'è {o}, ora?"
+    if r < .32: return f"Chi ha spostato {o}?"
+    if r < .44: return f"Perché {o} è {random.choice(['ancora calda' if o.startswith('la') else 'ancora caldo', 'bagnata' if o.startswith('la') else 'bagnato', 'girata verso il muro' if o.startswith('la') else 'girato verso il muro', 'aperta' if o.startswith('la') else 'aperto'])}?"
+    if r < .56: return f"Chi ha messo {o} {random.choice(LUOGHI)}?"
+    if r < .66: return f"Hai visto {o}?"
+    if r < .76: return f"Da quanto tempo {o} è {random.choice(LUOGHI)}?"
+    if r < .86: return f"Di chi è {o}?"
+    return f"Quante volte hai contato i {random.choice(['denti', 'passi', 'gradini', 'bottoni', 'chiodi', 'nomi', 'colpi'])}?"
+
 def one():
-    if random.random() < .42:   # il perturbante, quasi una volta su due
-        return 'perturbante', (random.choice(PERTURBANTE) if random.random() < .45 else g_perturbante()), 'perturbante'
-    if random.random() < .16:   # ogni tanto
+    # solo il perturbante: domande concrete e inquietanti; ogni tanto un paradosso. Niente sogni, niente anime, niente consolazioni.
+    if random.random() < .1:
         return 'paradosso', (random.choice(PARADOSSI) if random.random() < .5 else random.choice(PGRAM)()), 'paradosso'
-    if random.random() < .5:
-        k = random.choice(list(CORPUS)); return k, random.choice(CORPUS[k]), 'repertorio'
-    k, q = random.choice(GRAMMAR)(); return k, q, 'grammatica'
+    r = random.random()
+    q = random.choice(PERTURBANTE) if r < .35 else g_oggetto() if r < .75 else g_perturbante()
+    return 'perturbante', q, 'perturbante'
 
 # ——— la voce ———
 MODEL = 'voices/it_IT-paola-medium.onnx'
@@ -321,7 +337,7 @@ idx = {'items': [], 'asked': []}
 if os.path.exists(f'{OUT}/index.json'):
     try: idx = json.load(open(f'{OUT}/index.json', encoding='utf-8')); idx.setdefault('asked', [])
     except Exception: pass
-idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina' and it.get('v') == 6]   # solo la voce attuale, con la sua ombra
+idx['items'] = [it for it in idx['items'] if it.get('voice') == 'bambino o bambina' and it.get('v') == 6 and it.get('kind') in ('perturbante', 'paradosso')]   # solo la voce attuale e solo le domande perturbanti
 N = max(N, 60 - len(idx['items']))   # se ne restano poche, se ne fanno di più
 asked = set(idx['asked']); stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'); made = 0; tries = 0
 while made < N and tries < N * 40:
