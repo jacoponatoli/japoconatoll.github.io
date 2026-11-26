@@ -1712,6 +1712,68 @@
         "Better late than awake",
         "No news is good news, no alarm is better news"
       ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Dritto, rovescio, maglia rasata: lavoriamo a maglia il potere",
+        "Allerta mandarino: sbucciare il mondo lentamente",
+        "Scuole chiuse per maltempo, aperte per malinconia",
+        "Fari puntati sulle lucciole: abbassate gli abbaglianti",
+        "Giù le armi, su i salari, di lato le margherite",
+        "C'è piattaforma e piattaforma: noi ci tuffiamo",
+        "Nos papillons, pas vos profits",
+        "Paz, justicia y una guitarra desafinada",
+        "Huelga general de relojes: hoy la hora la decide el gato",
+        "Shamesgiving? Gamesgiving: give games, not shame",
+        "Pardon all the turkeys, not just one",
+        "Chip tariffs delayed: potato chips declared a free trade zone",
+        "Curb the chips, free the chipmunks",
+        "Assegni di rimborso per ogni bacio perso",
+        "Non è mai troppo presto per disimparare",
+        "L'emozione di essere nessuno corre a piedi nudi",
+        "Quando c'erano le lucciole i treni si fermavano a guardarle",
+        "Il ritorno nelle piazze ha portato a un recupero dei piccioni",
+        "L'edificio è stato minato da un'edera molto paziente",
+        "La vostra vita è in prestito: restituitela colorata",
+        "Mail bombing di cartoline dal mare",
+        "Matria, fratria, sorellanza: patria in manutenzione",
+        "Insicurezza condivisa, tenerezza percepita",
+        "Daspo urbano alle vetrine, cittadinanza ai lombrichi",
+        "Le parole remigrano: tornano a significare",
+        "Venerdì nero, sabato arcobaleno, domenica da inventare",
+        "Agenti autonomi cercasi: anche lumache",
+        "While you were scrolling, the moon came out",
+        "Stipendi da 2.000 euro e 2.000 aggettivi",
+        "Pensione a 62 anni, giovinezza a 63"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Punti di tutte le virgole, unitevi",
+        "L'État, c'est moi. L'état gazeux, c'est nous",
+        "Peace is peace, freedom is a bicycle",
+        "Big Sister is knitting you a scarf",
+        "Tutti per uno, uno per tutti, il resto ai passeri",
+        "Il mondo è bello perché è avariato: ripariamolo a mano",
+        "Chi la fa l'aspetti, chi la disegna la colori",
+        "La rivolta vien ballando",
+        "Ogni promessa è poesia, ogni debito è prosa",
+        "Potere che abbaia, popolo che fischietta",
+        "Amori e buoi da dove vuoi",
+        "Donna al volante, patriarcato in retromarcia",
+        "Plus ça danse, plus c'est autre chose",
+        "Le paradis, c'est les autres aussi",
+        "Don't tread on the daisies",
+        "One snail, one vote",
+        "Ludo ergo sum",
+        "Homo homini lupino",
+        "L'abito non fa il monaco, il monaco fa l'uncinetto",
+        "Una rondine non fa primavera, mille rondini fanno sciopero"
+      ]
     }
   ],
   "letti": [
@@ -2819,6 +2881,40 @@
         "Non c'è rosa senza spine (proverbio)",
         "Better late than never (proverbio)",
         "No news is good news (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "t": [
+        "Dritto e rovescio (programma tv) incrociato con i punti del lavoro a maglia",
+        "Thanksgiving: la grazia presidenziale al tacchino (rito annuale)",
+        "Chips (semiconduttori e patatine)"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Proletari di tutti i paesi, unitevi (Manifesto)",
+        "L'État, c'est moi (frase celebre)",
+        "War is peace, freedom is slavery (1984)",
+        "Big Brother is watching you (1984)",
+        "Tutti per uno, uno per tutti (motto)",
+        "Il mondo è bello perché è vario (proverbio)",
+        "Chi la fa l'aspetti (proverbio)",
+        "L'appetito vien mangiando (proverbio)",
+        "Ogni promessa è debito (proverbio)",
+        "Can che abbaia non morde (proverbio)",
+        "Moglie e buoi dei paesi tuoi (proverbio)",
+        "Donna al volante, pericolo costante (luogo comune sessista)",
+        "Plus ça change, plus c'est la même chose (proverbio)",
+        "L'enfer, c'est les autres (frase celebre)",
+        "Don't tread on me (motto)",
+        "One man, one vote (slogan)",
+        "Cogito ergo sum (motto latino)",
+        "Homo homini lupus (motto latino)",
+        "L'abito non fa il monaco (proverbio)",
+        "Una rondine non fa primavera (proverbio)"
       ]
     }
   ]
