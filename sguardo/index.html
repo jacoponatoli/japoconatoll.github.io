@@ -16,12 +16,12 @@ body.idle{cursor:none}
 <script>
 {
 /* SGUARDO (titolo provvisorio)
-   Un giro per le pelli dipinte. L'occhio è sempre vicinissimo, non si capisce mai quale dipinto sia:
-   scorre lento sulla pelle e si ferma sulle parti erogene: genitali, seni, culi, labbra, piedi. Lì indugia, zooma un pochettino,
-   si allontana appena, rizooma, sempre poco; poi riparte e, senza stacco, dissolve in un altro
-   corpo di un'altra epoca. Le parti le trova NudeNet (riconoscimento convertito in TFJS da
-   Vladimir Mandic), che analizza nel browser solo il dipinto attuale e il prossimo.
-   Solo figure adulte: nessun putto, Cupido o bambino. */
+   Un vecchio porco tra i nudi della storia della pittura. L'occhio è sempre vicino, non si capisce
+   mai quale dipinto sia: scorre sulla pelle cercando genitali. Quando li trova si inchioda
+   (oddio, l'ho trovato), poi zooma fin quasi a baciarli, resta, e se ne va. I dipinti stanno
+   uno accanto all'altro: a un certo punto l'occhio passa sul quadro vicino e continua a cercare.
+   I genitali li trova NudeNet (riconoscimento convertito in TFJS da Vladimir Mandic), che analizza
+   nel browser solo il dipinto attuale e quello accanto. Solo figure adulte: nessun putto o bambino. */
 
 const WORKS = [
   { y: -70,  f: ['Casa dei vettii, vestibolo, priapo che poggia il fallo sulla bilancia 01.jpg', 'Pompeii House of the Vettii 01.jpg'] },
@@ -142,13 +142,7 @@ function skinPoints(c) {
 }
 
 /* ---------- genitali: NudeNet ---------- */
-// classi di NudeNet (modello completo): dove si ferma e quanto a lungo
-const STOP = {
-  13: { k: 'vulva', hold: [5, 10] }, 15: { k: 'pene', hold: [5, 10] }, 0: { k: 'ano', hold: [4, 8] },
-  11: { k: 'seno', hold: [3.5, 7] }, 5: { k: 'culo', hold: [3.5, 7] }, 14: { k: 'petto', hold: [2.5, 5] },
-  6: { k: 'labbra', hold: [3, 6], lips: true }, 7: { k: 'labbra', hold: [2.5, 5], lips: true },
-  9: { k: 'piedi', hold: [2.5, 5] }, 1: { k: 'ascelle', hold: [2, 4] }
-};
+const STOP = { 13: 'vulva', 15: 'pene' };            // solo genitali
 let model = null, busy = false;
 async function runOn(c, ox, oy, sw, sh, out) {
   const input = tf.tidy(() => tf.expandDims(tf.cast(tf.browser.fromPixels(c), 'float32'), 0));
@@ -157,14 +151,11 @@ async function runOn(c, ox, oy, sw, sh, out) {
   tf.dispose([input, ...outs]);
   for (let i = 0; i < scores.length; i++) {
     const k = classes[i];
-    const S = STOP[k];
-    if (scores[i] < 0.25 || !S) continue;
+    if (scores[i] < 0.22 || !STOP[k]) continue;
     const [x1, y1, x2, y2] = boxes[0][i];
-    const bh = Math.abs(y2 - y1);
-    const cyPix = S.lips ? Math.min(y1, y2) + bh * 0.74 : (y1 + y2) / 2;     // dal volto alla bocca
-    const u = ox + (x1 + x2) / 2 / c.width * sw, v = oy + cyPix / c.height * sh;
+    const u = ox + (x1 + x2) / 2 / c.width * sw, v = oy + (y1 + y2) / 2 / c.height * sh;
     if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-    out.push({ u, v, s: clamp(bh * (S.lips ? 0.35 : 1) / c.height * sh, 0.012, 0.3), stop: true, k: S.k, hold: S.hold, sc: scores[i] });
+    out.push({ u, v, s: clamp(Math.abs(y2 - y1) / c.height * sh, 0.01, 0.3), sc: scores[i] });
   }
   await new Promise(r => setTimeout(r, 60));          // respiro per il browser
 }
@@ -192,7 +183,7 @@ async function loadModel() {
   } catch (e) { model = null; }
 }
 
-/* ---------- preparazione: solo il dipinto attuale e il prossimo ---------- */
+/* ---------- preparazione: solo il dipinto attuale e quello accanto ---------- */
 let pool = [], recent = [];
 function prepare(p) {
   if (p.st) return;
@@ -200,76 +191,125 @@ function prepare(p) {
   loadImg([urlAt(p.ii, 1280), p.ii.thumb], img => {
     p.small = cropToCanvas(img, 1600, 1600);
     p.skin = skinPoints(p.small);
-    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 3600, 6000); p.st = 2; }, () => { p.st = 3; });
-  }, () => {   // niente analisi possibile: lo carica comunque
-    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 3600, 6000); p.skin = []; p.st = 2; }, () => { p.st = 3; });
+    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 4000, 7000); p.st = 2; }, () => { p.st = 3; });
+  }, () => {
+    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 4000, 7000); p.skin = []; p.st = 2; }, () => { p.st = 3; });
   }, true);
 }
 function release(p) {
   if (p.hi) { p.hi.width = p.hi.height = 0; p.hi = null; }
   if (p.small) { p.small.width = p.small.height = 0; p.small = null; }
-  if (p.st === 2 || p.st === 1) p.st = 0;
+  p.st = 0; p.det = false; p.visited = [];
 }
 function chooseNext(cur) {
   const c = pool.filter(p => p !== cur && p.st !== 3 && !recent.includes(p));
   const list = c.length ? c : pool.filter(p => p !== cur && p.st !== 3);
-  return list[(R() * list.length) | 0] || null;
+  const withG = list.filter(p => p.foc && p.foc.length);   // preferisce chi ha già mostrato genitali
+  const L = (withG.length && R() < 0.5) ? withG : list;
+  return L[(R() * L.length) | 0] || null;
 }
 
-/* ---------- l'occhio ---------- */
-let A = null, B = null, next = null, fade = null, clock = 0, prev = performance.now(), aspect = 16 / 9;
-function limits(v) {
-  const p = v.p;
-  v.z = clamp(v.z, Z_MIN, Math.min(Z_MAX, 0.92 * p.ar / aspect, 0.92));
-  const vw = v.z * aspect;
-  v.x = clamp(v.x, vw / 2, p.ar - vw / 2); v.y = clamp(v.y, v.z / 2, 1 - v.z / 2);
+/* ---------- l'occhio: il vecchio porco ---------- */
+// i dipinti stanno uno accanto all'altro: il prossimo viene messo a destra o a sinistra
+// di quello attuale, e l'occhio ci passa sopra
+let cur = null, nxt = null, old = null, crossing = false, hops = 0;
+const eye = { x: 0, y: 0.5, z: 0.15 };
+let segs = [], seg = null, clock = 0, prev = performance.now(), aspect = 16 / 9;
+const ZS = () => rr(0.1, 0.19);                        // ampiezza della ricerca
+const kissZ = g => clamp(g.s * rr(0.35, 0.6), 0.008, 0.04);   // quasi a baciarli
+
+function world(p, u, v) { return { x: p.ox + u * p.ar, y: v }; }
+function stops(p) { return (p.foc || []).map((f, i) => ({ ...world(p, f.u, f.v), s: f.s, id: i })).filter(g => !(p.visited || []).includes(g.id)); }
+function skins(p) { return (p.skin || []).map(q => world(p, q.u, q.v)); }
+function placeNext() {
+  nxt = chooseNext(cur); if (!nxt) return;
+  nxt.side = old ? (old.ox < cur.ox ? 1 : -1) : (R() < 0.5 ? 1 : -1);   // mai sopra il dipinto appena lasciato
+  prepare(nxt);
 }
-function points(p) {
-  const f = (p.foc || []).map(q => ({ x: q.u * p.ar, y: q.v, s: q.s, stop: q.stop, hold: q.hold }));
-  const s = (p.skin || []).map(q => ({ x: q.u * p.ar, y: q.v, s: 0.12, stop: false }));
-  return f.concat(s);
+function setOx() { if (nxt) nxt.ox = nxt.side > 0 ? cur.ox + cur.ar : cur.ox - nxt.ar; }
+
+const E = {
+  sine: t => 0.5 - 0.5 * Math.cos(Math.PI * t),
+  halt: t => 1 - Math.pow(1 - t, 4),                 // arriva e si inchioda
+  slow: t => t * t * (3 - 2 * t)
+};
+function push(o) { segs.push(Object.assign({ dur: 1, ease: E.sine, hold: 0 }, o)); }
+function plan() {
+  if (!cur) return;
+  const g = stops(cur);
+  const ready = nxt && nxt.st === 2 && (nxt.det || !model);
+  if (ready && (hops > 6 || (!g.length && hops > 2) || (g.length === 0 && R() < 0.5))) {
+    // passa al dipinto accanto
+    setOx();
+    const gn = stops(nxt), sk = skins(nxt);
+    const t = gn.length ? gn[(R() * gn.length) | 0] : sk.length ? sk[(R() * sk.length) | 0] : world(nxt, 0.5, 0.5);
+    crossing = true;
+    const z = ZS(), d = Math.abs(t.x - eye.x);
+    push({ x: t.x, y: t.y, z, dur: clamp(d / (z * 0.3), 3.5, 11), ease: E.sine, arrive: true });
+    hops = 0;
+    return;
+  }
+  hops++;
+  if (g.length && R() < 0.8) {
+    // trovato: va, si inchioda, un attimo fermo, poi zooma fino quasi a toccare, poi via
+    const t = g.sort((a, b) => Math.hypot(a.x - eye.x, a.y - eye.y) - Math.hypot(b.x - eye.x, b.y - eye.y))[0];
+    cur.visited = cur.visited || []; cur.visited.push(t.id);
+    const z = ZS(), d = Math.hypot(t.x - eye.x, t.y - eye.y), kz = kissZ(t);
+    push({ x: t.x, y: t.y, z: Math.min(z, eye.z * 1.05), dur: clamp(d / (z * 0.45), 1.2, 6), ease: E.halt, hold: rr(0.7, 1.4), shake: 1 });
+    push({ x: t.x, y: t.y, z: kz, dur: rr(3, 5.5), ease: E.slow, hold: rr(3, 6), creep: 0.12 });
+    push({ x: t.x + rr(-0.6, 0.6) * z, y: t.y + rr(-0.4, 0.4) * z, z: ZS(), dur: rr(1.6, 2.6), ease: E.sine });
+    return;
+  }
+  // ricerca sulla pelle
+  const sk = skins(cur).filter(q => Math.hypot(q.x - eye.x, q.y - eye.y) < 0.5);
+  const t = sk.length ? sk[(R() * sk.length) | 0] : { x: eye.x + rr(-0.25, 0.25), y: eye.y + rr(-0.2, 0.2) };
+  const z = ZS(), d = Math.hypot(t.x - eye.x, t.y - eye.y);
+  push({ x: t.x, y: t.y, z, dur: clamp(d / (z * 0.3), 1.8, 7), ease: E.sine, hold: rr(0, 0.3) });
 }
-function zNear(pt) { return clamp(pt.s * rr(1.8, 2.8), Z_MIN, Z_MAX); }
-function newView(p) {
-  const pts = points(p), st = pts.filter(q => q.stop);
-  const pt = (st.length && R() < 0.7) ? st[(R() * st.length) | 0] : pts.length ? pts[(R() * pts.length) | 0] : { x: p.ar / 2, y: 0.5, s: 0.12 };
-  const v = { p, x: pt.x, y: pt.y, z: zNear(pt), mv: null, hops: 0, visited: [] };
-  limits(v);
-  return v;
+function bounds(z) {
+  const vw = z * aspect;
+  let L = cur.ox, Rr = cur.ox + cur.ar;
+  if (crossing && nxt && nxt.ox !== undefined) { L = Math.min(L, nxt.ox); Rr = Math.max(Rr, nxt.ox + nxt.ar); }
+  if (old) { L = Math.min(L, old.ox); Rr = Math.max(Rr, old.ox + old.ar); }
+  return { L: L + vw / 2, R: Math.max(L + vw / 2, Rr - vw / 2) };
 }
-function plan(v) {
-  // prossima tappa nello stesso dipinto: verso un genitale se c'è, altrimenti lungo la pelle
-  const pts = points(v.p).filter(q => !v.visited.includes(q.x.toFixed(3) + q.y.toFixed(3)));
-  const st = pts.filter(q => q.stop);
-  let pt;
-  if (st.length && R() < 0.85) pt = st.sort((a, b) => Math.hypot(a.x - v.x, a.y - v.y) - Math.hypot(b.x - v.x, b.y - v.y))[0];
-  else if (pts.length) {
-    const near = pts.filter(q => Math.hypot(q.x - v.x, q.y - v.y) < 0.35);
-    pt = (near.length ? near : pts)[(R() * (near.length || pts.length)) | 0];
-  } else pt = { x: v.x + rr(-0.2, 0.2), y: v.y + rr(-0.2, 0.2), s: v.z / 2.2, stop: false };
-  v.visited.push(pt.x.toFixed(3) + pt.y.toFixed(3)); if (v.visited.length > 12) v.visited.shift();
-  const z1 = zNear(pt), d = Math.hypot(pt.x - v.x, pt.y - v.y);
-  const dur = clamp(d / (v.z * 0.22), 1.8, 9);       // scorre sulla pelle, lento
-  const hold = pt.stop ? rr(pt.hold[0], pt.hold[1]) : rr(0, 0.5);   // si ferma sulle parti erogene
-  v.mv = { t0: clock, dur, hold, x0: v.x, y0: v.y, z0: v.z, x1: pt.x, y1: pt.y, z1, stop: pt.stop, ph: R() * 6 };
-  v.hops++;
-}
-const ease = t => 0.5 - 0.5 * Math.cos(Math.PI * t);
-function stepView(v) {
-  if (!v.mv) plan(v);
-  const m = v.mv, t = (clock - m.t0) / m.dur;
+function stepEye() {
+  if (!seg) {
+    if (!segs.length) plan();
+    seg = segs.shift();
+    if (!seg) return;
+    seg.t0 = clock; seg.x0 = eye.x; seg.y0 = eye.y; seg.z0 = eye.z;
+  }
+  const t = (clock - seg.t0) / seg.dur;
   if (t < 1) {
-    const e = ease(t);
-    v.x = m.x0 + (m.x1 - m.x0) * e; v.y = m.y0 + (m.y1 - m.y0) * e;
-    v.z = Math.exp(Math.log(m.z0) + (Math.log(m.z1) - Math.log(m.z0)) * e);
-  } else if (clock - m.t0 < m.dur + m.hold) {
-    // indugia: zooma un pochettino, si allontana appena, rizooma, sempre poco
-    const h = clock - m.t0 - m.dur;
-    v.z = m.z1 * (1 - 0.06 * Math.sin(h * 0.7 + m.ph) - 0.05 * Math.min(1, h / m.hold));
-    v.x = m.x1 + Math.sin(h * 0.37 + m.ph) * 0.03 * v.z;
-    v.y = m.y1 + Math.sin(h * 0.29 + m.ph * 2) * 0.03 * v.z;
-  } else { v.mv = null; v.done = m.stop; }
-  limits(v);
+    const e = seg.ease(t);
+    eye.x = seg.x0 + (seg.x - seg.x0) * e;
+    eye.y = seg.y0 + (seg.y - seg.y0) * e;
+    eye.z = Math.exp(Math.log(seg.z0) + (Math.log(seg.z) - Math.log(seg.z0)) * e);
+  } else if (clock - seg.t0 < seg.dur + seg.hold) {
+    const h = clock - seg.t0 - seg.dur;
+    eye.x = seg.x; eye.y = seg.y;
+    if (seg.shake) {                                 // oddio, l'ho trovato
+      const a = Math.exp(-h * 3) * 0.04 * eye.z;
+      eye.x += Math.sin(h * 31) * a; eye.y += Math.sin(h * 23 + 1) * a;
+    }
+    if (seg.creep) eye.z = seg.z * (1 - seg.creep * E.sine(Math.min(1, h / seg.hold)));
+  } else {
+    if (seg.arrive) {                                // è passato sull'altro dipinto
+      old = cur; cur = nxt; nxt = null; crossing = false;
+      recent.push(cur); if (recent.length > Math.max(3, pool.length - 3)) recent.shift();
+    }
+    seg = null;
+  }
+  // l'occhio resta dentro i dipinti caricati
+  eye.z = clamp(eye.z, 0.006, 0.9);
+  const b = bounds(eye.z);
+  eye.x = clamp(eye.x, b.L, b.R); eye.y = clamp(eye.y, eye.z / 2, 1 - eye.z / 2);
+  // il dipinto lasciato alle spalle si libera quando esce dalla vista
+  if (old) {
+    const vw = eye.z * aspect;
+    if (old.ox + old.ar < eye.x - vw / 2 - 0.05 || old.ox > eye.x + vw / 2 + 0.05) { release(old); old = null; }
+  }
 }
 
 /* ---------- disegno ---------- */
@@ -279,42 +319,40 @@ function resize() {
   aspect = cv.width / cv.height;
 }
 addEventListener('resize', resize); resize();
-function draw(v, alpha) {
-  const src = v.p.hi; if (!src) return;
-  const k = src.height, vw = v.z * aspect;
-  const tx = v.z * 0.0012 * (Math.sin(clock * 13.1) + Math.sin(clock * 7.3 + 1.7));
-  const ty = v.z * 0.0012 * (Math.sin(clock * 11.7 + 0.4) + Math.sin(clock * 5.9 + 2.2));
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(src, (v.x + tx - vw / 2) * k, (v.y + ty - v.z / 2) * k, vw * k, v.z * k, 0, 0, cv.width, cv.height);
-  ctx.globalAlpha = 1;
+function drawPanel(p, L, T, vw, z, s) {
+  const src = p && p.hi; if (!src || p.ox === undefined) return;
+  const a = Math.max(L, p.ox), b = Math.min(L + vw, p.ox + p.ar), t = Math.max(T, 0), u = Math.min(T + z, 1);
+  if (b <= a || u <= t) return;
+  const k = src.height;
+  ctx.drawImage(src, (a - p.ox) * k, t * k, (b - a) * k, (u - t) * k,
+                Math.floor((a - L) * s), Math.floor((t - T) * s), Math.ceil((b - a) * s) + 1, Math.ceil((u - t) * s) + 1);
 }
 
 function frame(now) {
   const dt = Math.min(0.1, (now - prev) / 1000); prev = now; clock += dt;
-  if (!A) {
+  if (!cur) {
     const p = pool.find(q => q.st === 2);
-    if (p) { A = newView(p); recent.push(p); }
-  } else {
-    if (!next || next.st === 3) { next = chooseNext(A.p); if (next) prepare(next); }
-    if (next && next.small && !next.det) detect(next);
-    if (A.p.small && !A.p.det) detect(A.p);
-    stepView(A);
-    // dopo un genitale (o dopo un po' di pelle) dissolve in un altro corpo
-    if (!fade && next && next.st === 2 && (next.det || !model) && ((A.done && R() < 0.3) || A.hops > 9)) {
-      B = newView(next); fade = { t0: clock, dur: rr(2.5, 4) };
-      recent.push(next); if (recent.length > Math.max(3, pool.length - 3)) recent.shift();
-      next = null;
+    if (p) {
+      cur = p; cur.ox = 0; recent.push(p);
+      const sk = skins(p), t = sk.length ? sk[(R() * sk.length) | 0] : world(p, 0.5, 0.5);
+      eye.x = t.x; eye.y = t.y; eye.z = ZS();
     }
-    A.done = false;
-    if (fade) stepView(B);
+  } else {
+    if (!nxt) placeNext();
+    if (nxt && nxt.st === 3) nxt = null;
+    if (nxt && nxt.small && !nxt.det) detect(nxt);
+    if (cur.small && !cur.det) detect(cur);
+    if (!crossing) setOx();
+    stepEye();
   }
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  if (A) draw(A, 1);
-  if (fade) {
-    const f = clamp((clock - fade.t0) / fade.dur, 0, 1);
-    draw(B, ease(f));
-    if (f >= 1) { const old = A.p; A = B; B = null; fade = null; if (old !== A.p) release(old); }
+  if (cur) {
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    const z = eye.z, vw = z * aspect;
+    const tx = z * 0.0012 * (Math.sin(clock * 13.1) + Math.sin(clock * 7.3 + 1.7));
+    const ty = z * 0.0012 * (Math.sin(clock * 11.7 + 0.4) + Math.sin(clock * 5.9 + 2.2));
+    const L = eye.x + tx - vw / 2, T = eye.y + ty - z / 2, s = cv.height / z;
+    drawPanel(old, L, T, vw, z, s); drawPanel(cur, L, T, vw, z, s); drawPanel(nxt, L, T, vw, z, s);
   }
   requestAnimationFrame(frame);
 }
@@ -323,9 +361,8 @@ function frame(now) {
   const map = await infos(WORKS.flatMap(w => w.f));
   for (const w of WORKS) {
     const f = w.f.find(n => map.has(n));
-    if (f) pool.push({ ii: map.get(f), ar: 0, year: w.y, st: 0, hi: null, small: null, skin: [], foc: [], det: false });
+    if (f) pool.push({ ii: map.get(f), ar: map.get(f).ar, year: w.y, st: 0, hi: null, small: null, skin: [], foc: [], det: false, visited: [] });
   }
-  pool.forEach(p => { p.ar = p.ii.ar; });
   if (!pool.length) return;
   prepare(pool[(R() * pool.length) | 0]);
   requestAnimationFrame(frame);
