@@ -7171,12 +7171,28 @@ function domanda(testo, breve) {
   const P = palCss(), stile = pick(['nero', 'nero', 'sopra', 'colore']);
   return scenaInizia('domanda', { testo: testo || domandaNuova(), stile, fc: pick(P), font: pick(['Georgia, serif', '"Times New Roman", serif', '"Helvetica Neue", Helvetica, Arial, sans-serif', '"Courier New", monospace', 'Didot, "Bodoni 72", serif']), hold: breve ? rnd(1.4, 2) : rnd(2.6, 4), modo: pick(['tutta', 'lettere', 'tutta']), snap: null });
 }
+// il lettering di SLOGAN: maiuscolo, Archivo nerissimo e largo, ogni riga ingrandita fino a toccare i due bordi,
+// le parole mai spezzate, le righe su tutta l'altezza; tra tutti i modi di andare a capo, quello che copre più schermo
+(() => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap'; document.head.appendChild(l); })();
+function scrittaSlogan(g, testo, w, h, colore) {
+  const words = testo.replace(/\./g, ' ').toLocaleUpperCase('it').replace(/\s+/g, ' ').trim().split(' '), F = sz => `800 ${sz}px Archivo, "Arial Black", Arial, sans-serif`;
+  g.save(); try { g.fontStretch = 'extra-expanded'; } catch (e) {} g.font = F(100);
+  const spw = g.measureText('A A').width - g.measureText('AA').width, ww = words.map(x => g.measureText(x).width), CAP = .76;
+  const above = t => /[ÀÁÂÄÈÉÊËÌÍÎÒÓÔÖÙÚÛÜÑ]/.test(t) ? .2 : .03, below = t => /[¡¿]/.test(t) ? .2 : /[,;QÇ]/.test(t) ? .12 : .03;
+  const mx = Math.max(6, w * .025), my = Math.max(6, h * .03), W = w - mx * 2, H = h - my * 2, n = words.length, cuts = Math.min(n - 1, 13); let best = null;
+  for (let m = 0; m < (1 << cuts); m++) { const lines = []; let from = 0; for (let i = 0; i < n; i++) if (i === n - 1 || (i < cuts && (m >> i & 1))) { lines.push([from, i]); from = i + 1; }
+    let tot = 0, ink = 0, lo = 1e9, hi = 0; const sz = lines.map(l => { let lw = spw * (l[1] - l[0]); for (let i = l[0]; i <= l[1]; i++) lw += ww[i]; const sc = W / lw * 100, tx = words.slice(l[0], l[1] + 1).join(' '); tot += sc * (CAP + above(tx) + below(tx)); ink += sc * sc * lw; lo = Math.min(lo, sc); hi = Math.max(hi, sc); return sc; });
+    const f = Math.min(1, H / tot); let score = ink * f * f; if (hi / lo > 2.6) score *= Math.pow(2.6 / (hi / lo), 3); if (!best || score > best.score) best = { score, lines, sz: sz.map(x => x * f), tot: tot * f }; }
+  const nl = best.lines.length, free = H - best.tot, gapMax = Math.max(...best.sz) * .5; let gap = nl > 1 ? free / (nl - 1) : 0, y = my + (nl > 1 ? 0 : free / 2);
+  if (gap > gapMax) { gap = gapMax; y = my + (H - best.tot - gap * (nl - 1)) / 2; }
+  g.fillStyle = colore; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  best.lines.forEach((l, i) => { const tx = words.slice(l[0], l[1] + 1).join(' '), sz = best.sz[i]; y += sz * above(tx); g.font = F(sz); g.fillText(tx, w / 2, y + sz * CAP); y += sz * (CAP + below(tx)) + gap; });
+  g.restore();
+}
 SCENE.domanda = (g, w, h, t, dt, o) => {
-  if (o.stile === 'sopra') { if (!o.snap) { o.snap = document.createElement('canvas'); o.snap.width = w; o.snap.height = h; o.snap.getContext('2d').drawImage(view, 0, 0, w, h); } g.drawImage(o.snap, 0, 0); g.fillStyle = 'rgba(0,0,0,.72)'; g.fillRect(0, 0, w, h); }
+  if (o.stile === 'sopra') { if (!o.snap) { o.snap = document.createElement('canvas'); o.snap.width = w; o.snap.height = h; o.snap.getContext('2d').drawImage(view, 0, 0, w, h); } g.drawImage(o.snap, 0, 0); g.fillStyle = 'rgba(0,0,0,.78)'; g.fillRect(0, 0, w, h); }
   else { g.fillStyle = o.stile === 'colore' ? o.fc : '#000'; g.fillRect(0, 0, w, h); }
-  const m = Math.min(w, h), n = o.modo === 'lettere' ? Math.floor(clamp((SC.t - SC.tin * .5) * 14, 0, o.testo.length)) : o.testo.length, s = o.testo.slice(0, n);
-  g.fillStyle = o.stile === 'colore' ? '#000' : '#f2efe6'; g.textAlign = 'center'; g.textBaseline = 'middle'; let sz = m * .085; g.font = `400 ${sz}px ${o.font}`; const W2 = g.measureText(o.testo).width; if (W2 > w * .86) { sz *= w * .86 / W2; g.font = `400 ${sz}px ${o.font}`; }
-  g.fillText(s, w / 2, h / 2);
+  scrittaSlogan(g, o.testo, w, h, o.stile === 'colore' ? '#000' : '#fff');
 };
 // --- lo specchio: chi guarda entra nel film (la telecamera; niente viene registrato né inviato)
 async function camAuto() {
