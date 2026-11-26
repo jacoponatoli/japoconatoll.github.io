@@ -105,7 +105,13 @@
       "rimborsi:mp",
       "pantofole:fp",
       "tisane:fp",
-      "finestre:fp"
+      "finestre:fp",
+      "allegria:fs",
+      "complicità:fs",
+      "diserzione generalizzata:fs",
+      "amanti:mp",
+      "cognizione:fs",
+      "rave:ms"
     ],
     "bad": [
       "riarmo:ms",
@@ -248,7 +254,17 @@
       "sondaggi:mp",
       "piattaforme:fp",
       "remigrazione:fs",
-      "parate:fp"
+      "parate:fp",
+      "gerontofascismo:ms",
+      "automa cognitivo:ms",
+      "coscrizione:fs",
+      "nazionalismo:ms",
+      "psicodeflazione:fs",
+      "razionalità demente:fs",
+      "sciacalli:mp",
+      "patria:fs",
+      "oligarchia:fs",
+      "bolla:fs"
     ],
     "subj": [
       "liceali:mp",
@@ -302,7 +318,9 @@
       "sindacaliste:fp",
       "consiglieri:mp",
       "ritardatari:mp",
-      "nottambuli:mp"
+      "nottambuli:mp",
+      "cognitari:mp",
+      "amanti:mp"
     ],
     "place": [
       "licei:mp",
@@ -343,7 +361,8 @@
       "fabbriche:fp",
       "dormitori:mp",
       "vagoni letto:mp",
-      "sottotetti:mp"
+      "sottotetti:mp",
+      "margini:mp"
     ]
   },
   "slogan": [
@@ -1774,6 +1793,56 @@
         "L'abito non fa il monaco, il monaco fa l'uncinetto",
         "Una rondine non fa primavera, mille rondini fanno sciopero"
       ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "lessico di una newsletter",
+      "fonte": "IL DISERTORE, newsletter di Franco Berardi (Bifo)",
+      "t": [
+        "Organizzeremo i disertori, poi la festa",
+        "Disertori di tutto il mondo, disunitevi dalla patria",
+        "Uccidere non è il nostro mestiere, oziare sì",
+        "Per la patria né uccidere né morire: dormire",
+        "La storia delle nazioni è una storia di morte: cambiamo libro",
+        "Diserzione generalizzata, allegria generalizzata",
+        "Irresponsabili proclami di allegria",
+        "Sbellichiamoci sull'orlo dell'abisso",
+        "Cartografiamo l'abisso mentre ci cadiamo",
+        "I poeti disertano, i poeti vincono",
+        "I poeti non possono nulla: tutto il potere ai poeti",
+        "Contro il gerontofascismo, l'infanzia al potere",
+        "Il fascismo è invecchiato, noi no",
+        "Insorgere è alzarsi in piedi: stiracchiamoci",
+        "Più amici, più amanti, meno capitale",
+        "La rivolta fa sempre bene, come il sonno",
+        "Dalla convulsione alla cognizione",
+        "Dalla convulsione alla ricreazione",
+        "Cognitari di tutto il mondo, smontate l'automa",
+        "Smontiamo l'automa cognitivo, rimontiamolo per tutti",
+        "L'automa è inesorabile, noi siamo inesauribili",
+        "Psicodeflazione? Psicofesta",
+        "Contro la razionalità demente, la follia gentile",
+        "Rave politico, sciopero danzante",
+        "Comunità secessive ai margini della civiltà",
+        "L'Occidente ha i giorni contati: contiamo le notti",
+        "Ultima generazione, primo amore",
+        "Generazione Z come zero obbedienza",
+        "Il futuro ha smesso di essere una promessa: facciamolo diventare un gioco",
+        "Realismo distopico, surrealismo utopico",
+        "Disporsi al divenire nulla, con calma",
+        "Voltiamo le spalle agli sciacalli",
+        "Chi semina riarmo raccoglie diserzione",
+        "Volontario per i ricchi, obbligatorio per i poveri: no grazie",
+        "Coscrizione per sorteggio, diserzione per vocazione",
+        "Non saremo i soldati delle vostre guerre, saremo gli amanti delle vostre figlie",
+        "La bolla scoppia, noi facciamo le bolle di sapone",
+        "Esaurimento generale, sciopero generale",
+        "De-antropizzare il lunedì",
+        "Spazi di allegria nella disperazione",
+        "On a toujours raison de déserter",
+        "Deserters of the world, take a nap",
+        "Joy without agenda"
+      ]
     }
   ],
   "letti": [
@@ -2915,6 +2984,38 @@
         "Homo homini lupus (motto latino)",
         "L'abito non fa il monaco (proverbio)",
         "Una rondine non fa primavera (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "IL DISERTORE (Franco Berardi)",
+      "t": [
+        "Chi vuole morire per la patria lo faccia in fretta (scritta su un muro, citata)",
+        "Non saremo noi i soldati delle vostre guerre. Organizzeremo i disertori",
+        "Uccidere non è il nostro mestiere",
+        "La storia delle nazioni è una storia di morte",
+        "È l'ora di dichiarare la diserzione generalizzata",
+        "Irresponsabili proclami di allegria",
+        "I poeti disertano",
+        "Gerontofascismo",
+        "Insorgere significa alzarsi in piedi",
+        "La rivolta fa sempre bene",
+        "Più amici e più amanti",
+        "Dalla convulsione alla cognizione",
+        "Automa cognitivo",
+        "Cognitariato",
+        "Psicodeflazione",
+        "La razionalità demente",
+        "Rave politico",
+        "Comunità secessive",
+        "L'Occidente ha i giorni contati",
+        "Ultima generazione",
+        "Il futuro ha smesso di essere una promessa",
+        "Realismo distopico",
+        "Disporsi al divenire nulla",
+        "Il disertore volta le spalle agli sciacalli",
+        "Sbellichiamoci",
+        "De-antropizzazione della Terra"
       ]
     }
   ]
