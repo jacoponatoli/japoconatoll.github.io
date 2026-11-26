@@ -111,7 +111,11 @@
       "diserzione generalizzata:fs",
       "amanti:mp",
       "cognizione:fs",
-      "rave:ms"
+      "rave:ms",
+      "imprevedibile:ms",
+      "trance:fs",
+      "parentela:fs",
+      "farfalle:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -264,7 +268,11 @@
       "sciacalli:mp",
       "patria:fs",
       "oligarchia:fs",
-      "bolla:fs"
+      "bolla:fs",
+      "entusiasmo obbligatorio:ms",
+      "mindset:ms",
+      "arruolamento:ms",
+      "inevitabile:ms"
     ],
     "subj": [
       "liceali:mp",
@@ -320,7 +328,9 @@
       "ritardatari:mp",
       "nottambuli:mp",
       "cognitari:mp",
-      "amanti:mp"
+      "amanti:mp",
+      "obiettori di coscienza:mp",
+      "figli rotti:mp"
     ],
     "place": [
       "licei:mp",
@@ -1843,6 +1853,54 @@
         "Deserters of the world, take a nap",
         "Joy without agenda"
       ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "lessico di una newsletter (seconda lettura)",
+      "fonte": "IL DISERTORE, newsletter di Franco Berardi (Bifo): Disertare l'idiozia della nazione; Sbellichiamoci; L'Apocalisse psicotica e la diserzione impossibile; La razionalità demente; titoli di tutti i numeri",
+      "t": [
+        "Disertiamo la guerra, il lavoro, il consumo, la riproduzione",
+        "Disertare l'idiozia della nazione",
+        "Non scendo in guerra, non compro nulla",
+        "Non più figli della patria, nuove linee di parentela",
+        "La disperazione il nostro superpotere",
+        "Caliamo il sipario sulla storia, accendiamo le luci in sala",
+        "L'allegria necessaria tra l'oggi e il nulla",
+        "Obiettare è privato, disertare è di tutti",
+        "La diserzione è alla portata di chiunque",
+        "Diserzione diffusa, festa diffusa",
+        "Il batter d'ali di una farfalla manda a farsi fottere l'inevitabile",
+        "L'imprevedibile contro l'inevitabile",
+        "Più di otto secondi di attenzione: è già rivoluzione",
+        "Se non fosse grave ci si potrebbe fare una bella risata: facciamola",
+        "Sbellichiamoci per la pace",
+        "Meno lavoro, più tempo, più desiderio, più mondo",
+        "Il capitale non chiede obbedienza, chiede entusiasmo: niente entusiasmo",
+        "Mindset, business, cash: sonno, ozio, amici",
+        "Fino a qui tutto bene: fino a qui",
+        "Ognuno imprenditore di sé, ognuno solo: nessuno",
+        "Mors tua vita mea? Vita tua vita mea",
+        "Razionalità demente, follia ragionevole",
+        "Non arruolati: in trance",
+        "Preferiamo la danza all'arruolamento",
+        "La fine del mondo è iniziata da tempo: tanto vale ballare",
+        "Machiavellismo dal basso",
+        "Birthstrike: sciopero delle culle contro la carneficina",
+        "La storia si ripete sempre uguale: interrompiamola",
+        "Volontà di non partecipare al loro gioco",
+        "Il futuro è un'abitudine che abbiamo perso",
+        "Coscienza in fuga, corpo in festa",
+        "Il fascismo è una patologia dell'identità: cambiamo identità ogni giorno",
+        "Senescenza al potere? Adolescenza in sciopero",
+        "Psicopatologia delle ultradestre, psicofesta delle ultrasinistre",
+        "Caos e automa: scegliamo il caos",
+        "Cognitari, riprendetevi la coscienza",
+        "Brainrot di Stato",
+        "Mettiamoci d'accordo: disertiamo",
+        "Desertemos",
+        "Fuck war, kiss more",
+        "Terminal age, eternal party"
+      ]
     }
   ],
   "letti": [
@@ -3016,6 +3074,29 @@
         "Il disertore volta le spalle agli sciacalli",
         "Sbellichiamoci",
         "De-antropizzazione della Terra"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "IL DISERTORE (Franco Berardi), seconda lettura",
+      "t": [
+        "Disertiamo la guerra, disertiamo il lavoro schiavistico, disertiamo il consumo, disertiamo la riproduzione",
+        "non scendo in guerra, non compro nulla",
+        "non più figli, ma nuove linee di parentela",
+        "la disperazione il nostro superpotere",
+        "Disertare non è solo un'obiezione",
+        "Il batter d'ali di una farfalla manda a farsi fottere l'inevitabile",
+        "Se non fosse grave e seria la situazione ci si potrebbe fare una bella risata",
+        "Meno lavoro, più tempo. Più desiderio, più mondo",
+        "Il capitalismo non chiedeva più obbedienza. Chiedeva entusiasmo",
+        "mindset, business, cash",
+        "Fino a qui tutto bene",
+        "Mors tua vita mea",
+        "La razionalità demente",
+        "Non vogliono essere arruolati, preferiscono la trance e la danza",
+        "Machiavellismo dal basso",
+        "Birthstrike",
+        "Titoli: Spazzatura, Demenza: Occidente; A che gioco giochiamo; Un attimo prima; Dopo la tormenta?; Hic Rhodus; Lo sfacelo; Voragine; realismo distopico; du devenir néant; Una sinistra intelligenza; Il mestiere del corvo; Quel che possiamo fare; Fuck war; Mentre il ponte si sta sgretolando; Una tragedia alla volta; Per una primavera mediterranea"
       ]
     }
   ]
