@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-25",
+  "aggiornato": "2026-11-26",
   "parole": {
     "good": [
       "sanità:fs",
@@ -101,7 +101,11 @@
       "flashmob:ms",
       "salari:mp",
       "futuro:ms",
-      "marea:fs"
+      "marea:fs",
+      "rimborsi:mp",
+      "pantofole:fp",
+      "tisane:fp",
+      "finestre:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -238,7 +242,13 @@
       "diktat:ms",
       "propaganda:fs",
       "sabotaggi:mp",
-      "saldi:mp"
+      "saldi:mp",
+      "chip:mp",
+      "mail minatorie:fp",
+      "sondaggi:mp",
+      "piattaforme:fp",
+      "remigrazione:fs",
+      "parate:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -290,7 +300,9 @@
       "maestri:mp",
       "attiviste:fp",
       "sindacaliste:fp",
-      "consiglieri:mp"
+      "consiglieri:mp",
+      "ritardatari:mp",
+      "nottambuli:mp"
     ],
     "place": [
       "licei:mp",
@@ -329,7 +341,9 @@
       "camini:mp",
       "outlet:mp",
       "fabbriche:fp",
-      "dormitori:mp"
+      "dormitori:mp",
+      "vagoni letto:mp",
+      "sottotetti:mp"
     ]
   },
   "slogan": [
@@ -1630,6 +1644,74 @@
         "Home sweet nap",
         "A buon dormitor poche sveglie"
       ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Allerta arancione: scuole chiuse per eccesso di sogni",
+        "Allerta meteo su otto regioni: previsti pisolini sparsi",
+        "While you were sleeping: nothing happened, finally",
+        "Stories you might have missed: the best ones were dreams",
+        "Dritto e rovescio, e poi rovescio sul divano",
+        "Fari spenti, sogni puntati",
+        "Giù le armi, su le coperte",
+        "Contro l'economia di guerra, l'economia della merenda",
+        "C'è sonno e sonno, perché c'è cuscino e cuscino",
+        "Pensione a 62 anni, pisolino a 62 minuti",
+        "Stipendi da 2.000 euro, sogni da 2.000 ore",
+        "Nos lenteurs, pas vos profits",
+        "Huelga general de despertadores",
+        "El colchón es de quien lo duerme",
+        "Paz, justicia y siesta",
+        "Napsgiving: thanks for nothing, and for the nap",
+        "Parata del Ringraziamento: sfilano i sonnambuli",
+        "Chip tariffs on hold until 2027, dreams tax-free forever",
+        "Dazi da restituire? Ridateci i pomeriggi",
+        "Rebate checks likely, rebate naps certain",
+        "Curb your chips, uncurb your dreams",
+        "Set to clash? Set to nap",
+        "Non è mai troppo presto per un pisolino",
+        "L'emozione di essere pigri corre sui binari morti",
+        "Quando c'era il sonno i treni arrivavano quando volevano",
+        "Il ritorno nelle piazze ha portato a un recupero di sonno",
+        "L'edificio è stato minato: dalla nostalgia del pomeriggio",
+        "La poesia colpisce ancora: nessuna evacuazione, solo evasione",
+        "Mail bombing? Mail bonbon",
+        "Patria 1.0: supporto terminato, passa al pigiama",
+        "Sicurezza percepita, morbidezza garantita",
+        "Più amache, più sicurezza",
+        "Daspo urbano ai brutti sogni",
+        "Black Friday: offerte di silenzio a tempo indeterminato",
+        "Cyber Monday, Siesta Tuesday",
+        "Agenti autonomi? Noi autonome dalla sveglia",
+        "Il maltempo chiude le scuole, la poesia apre le finestre"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "variazioni di slogan classici (italiani, francesi, inglesi)",
+      "t": [
+        "Nessun dorma? Tutti dormano",
+        "Tutte le strade portano a letto",
+        "Dormire aude",
+        "Dormii, sempre dormii, fortissimamente dormii",
+        "Per pigiama ad astra",
+        "Il re è nudo, noi in pigiama",
+        "Lotta morbida senza sveglia",
+        "Alea iacta est: ora a nanna",
+        "Eppur si dorme",
+        "Chi sogna non paga, e i sogni sono suoi",
+        "Fortune favours the sleepy",
+        "Practice makes perfect, napping makes better",
+        "À la sieste, tous les chats sont rois",
+        "Tout vient à point à qui sait dormir",
+        "The late bird catches the dream",
+        "Il faut battre l'oreiller pendant qu'il est chaud",
+        "Non c'è rosa senza siesta",
+        "Better late than awake",
+        "No news is good news, no alarm is better news"
+      ]
     }
   ],
   "letti": [
@@ -2677,6 +2759,66 @@
         "Après moi le déluge (frase celebre)",
         "Home sweet home (proverbio)",
         "A buon intenditor poche parole (proverbio)"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "t": [
+        "Allerta meteo su 8 regioni, scuole chiuse a Napoli e Salerno (Adnkronos, 26 novembre)",
+        "While You Were Sleeping: 5 stories you might have missed (Newslocker, 26 novembre)",
+        "Dritto e rovescio (programma tv, 26 novembre)",
+        "Fari puntati (titolo QN, 26 novembre)",
+        "Contro l'economia di guerra: giù le armi, su i salari (USB)",
+        "C'è sciopero e sciopero, perché c'è piattaforma e piattaforma (USB)",
+        "Pensione a 62 anni e stipendi da 2.000 euro (USB, sciopero 28 novembre)",
+        "Nos pensions, pas vos profits (retraités, Francia)",
+        "Huelga general 11N (Sindicato de Inquilinas, Madrid)",
+        "Paz y justicia (marcia Generación Z, Messico)",
+        "Shamesgiving (protesta, Michigan Capitol)",
+        "Thanksgiving Day Parade (New York)",
+        "US holds off on Chinese chip tariffs until mid-2027 (titolo)",
+        "Rebate checks 'likely' (titolo)",
+        "If the Supreme Court orders to repay tariffs (titolo)",
+        "AI chip curbs (titolo)",
+        "Congress set to clash over economic costs of tariffs (titolo)",
+        "Non è mai troppo presto (campagna per l'uso consapevole del digitale)",
+        "L'emozione di essere italiani corre sui binari (titolo)",
+        "Quando c'era lei i treni arrivavano in ritardo (manifesti)",
+        "Il ritorno nelle piazze ha portato a un recupero nei sondaggi (Avvenire)",
+        "L'edificio è stato minato, la vostra vita è in pericolo (mail false alle scuole)",
+        "Colpisce ancora: nuovo mail bombing, nessuna evacuazione (QN)",
+        "Black Friday 2026 (comunicati stampa)",
+        "Cyber Monday (claim commerciale)",
+        "Agenti AI autonomi (parola d'ordine della tecnologia)",
+        "Remigrazione (parola d'ordine dei cortei di estrema destra)",
+        "Patria (motto reazionario)",
+        "Sicurezza percepita (frase securitaria)",
+        "Daspo urbano (misura securitaria)"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "slogan classici da variare",
+      "t": [
+        "Nessun dorma (Turandot, 1926)",
+        "Tutte le strade portano a Roma (proverbio)",
+        "Sapere aude (motto)",
+        "Volli, sempre volli, fortissimamente volli (motto)",
+        "Per aspera ad astra (motto latino)",
+        "Il re è nudo (fiaba)",
+        "Lotta dura senza paura (coro)",
+        "Alea iacta est (motto latino)",
+        "Eppur si muove (frase celebre)",
+        "Chi rompe paga e i cocci sono suoi (proverbio)",
+        "Fortune favours the brave (proverbio)",
+        "Practice makes perfect (proverbio)",
+        "La nuit, tous les chats sont gris (proverbio)",
+        "Tout vient à point à qui sait attendre (proverbio)",
+        "The early bird catches the worm (proverbio)",
+        "Il faut battre le fer pendant qu'il est chaud (proverbio)",
+        "Non c'è rosa senza spine (proverbio)",
+        "Better late than never (proverbio)",
+        "No news is good news (proverbio)"
       ]
     }
   ]
