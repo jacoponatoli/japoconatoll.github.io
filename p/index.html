@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+canvas{display:block;width:100vw;height:100vh}
+body.idle{cursor:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+{
+/* P (titolo provvisorio) — un occhio che vaga su un unico piano orizzontale fatto di tutti i dipinti di Bosch.
+   I dipinti sono messi uno accanto all'altro, alla stessa altezza, e si fondono ai bordi:
+   non si vede mai il passaggio da un quadro all'altro.
+   Immagini: Wikidata (opere con autore Hieronymus Bosch) + Wikimedia Commons. */
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const R = Math.random, rr = (a, b) => a + R() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---- parametri ---- */
+const CROP = 0.025;                 // margine tagliato su ogni lato (cornici, bordi)
+const TARGET_H = 3400;              // altezza in px desiderata per ogni dipinto
+const STEPS = [960, 1280, 1920, 3840];
+const Z_MIN = 0.13, Z_MAX = 0.85;   // quanta altezza del dipinto vede l'occhio
+const BAD = /detail|dettaglio|x-?ray|\bIRR\b|infrared|infrarood|radiogra|reverse|verso|frame|cornice/i;
+
+const FALLBACK = [
+  'The Garden of Earthly Delights by Bosch High Resolution 2.jpg',
+  'Jheronimus Bosch 023.jpg', 'Jheronimus Bosch Terrestrial Paradise.jpg',
+  'Hieronymus Bosch- The Seven Deadly Sins and the Four Last Things.JPG',
+  ...[6,7,8,9,10,11,12,13,15,16,17,18,19,20,21,24,25,26,27,28,35,36,38,39,40,41,42,44,58]
+    .map(n => 'Hieronymus Bosch 0' + String(n).padStart(2, '0') + '.jpg')
+];
+
+/* ---- raccolta delle opere ---- */
+async function fromWikidata() {
+  const q = 'SELECT ?item ?img ?whole WHERE { ?item wdt:P170 wd:Q130531 ; wdt:P18 ?img . OPTIONAL { ?item wdt:P361 ?whole } }';
+  const r = await fetch('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q));
+  const rows = (await r.json()).results.bindings;
+  const items = new Set(rows.map(b => b.item.value));
+  const skip = new Set();                      // pannelli che fanno parte di un trittico già presente
+  for (const b of rows) if (b.whole && items.has(b.whole.value)) skip.add(b.item.value);
+  const files = new Set();
+  for (const b of rows) {
+    if (skip.has(b.item.value)) continue;
+    const f = decodeURIComponent(b.img.value.split('Special:FilePath/')[1] || '').replace(/_/g, ' ');
+    if (f && !BAD.test(f)) files.add(f);
+  }
+  return [...files];
+}
+
+async function infos(files) {
+  const out = [];
+  for (let i = 0; i < files.length; i += 40) {
+    const t = files.slice(i, i + 40).map(f => 'File:' + f).join('|');
+    const u = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*' +
+              '&prop=imageinfo&iiprop=size|url|mime&iiurlwidth=1920&titles=' + encodeURIComponent(t);
+    try {
+      const j = await (await fetch(u)).json();
+      for (const p of Object.values((j.query && j.query.pages) || {})) {
+        const ii = p.imageinfo && p.imageinfo[0];
+        if (!ii || !ii.width || !ii.height) continue;
+        if (Math.min(ii.width, ii.height) < 1100 || Math.max(ii.width, ii.height) < 1800) continue;
+        const ar = ii.width / ii.height;
+        if (ar < 0.25 || ar > 4.5) continue;
+        out.push({ ar, width: ii.width, height: ii.height, url: ii.url, thumb: ii.thumburl || '', mime: ii.mime || '', size: ii.size || 0 });
+      }
+    } catch (e) {}
+  }
+  return out;
+}
+
+function sources(ii) {
+  const list = [];
+  const okOrig = /jpeg|png/.test(ii.mime) && ii.size < 30e6;
+  const want = ii.width * TARGET_H / ii.height;
+  const step = STEPS.find(s => s >= want) || 3840;
+  if (step >= ii.width) { if (okOrig) list.push(ii.url); }
+  else if (ii.thumb.includes('/1920px-')) list.push(ii.thumb.replace('/1920px-', '/' + step + 'px-'));
+  if (ii.thumb && !list.includes(ii.thumb)) list.push(ii.thumb);
+  if (okOrig && !list.includes(ii.url)) list.push(ii.url);
+  return list;
+}
+
+/* ---- il piano orizzontale ---- */
+let pool = [], deck = [], last = null;
+const panels = [];
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (R() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function nextInfo() {
+  if (!deck.length) {
+    deck = shuffle(pool.slice());
+    if (deck.length > 1 && deck[deck.length - 1] === last) deck.unshift(deck.pop());
+  }
+  return (last = deck.pop());
+}
+function layout() {
+  for (let i = 1; i < panels.length; i++) {
+    const a = panels[i - 1], b = panels[i];
+    b.x = a.x + a.w - Math.min(b.ov, a.w * 0.5);
+  }
+}
+function addPanel() {
+  const ii = nextInfo(); if (!ii) return;
+  const w = ii.ar;
+  panels.push({ ii, w, ov: Math.min(0.26, w * 0.34), x: panels.length ? 0 : 0, st: 0, cv: null });
+  layout();
+}
+function load(p) {
+  p.st = 1;
+  const srcs = sources(p.ii); let k = 0;
+  if (!srcs.length) return fail(p);
+  const img = new Image();
+  img.decoding = 'async';
+  img.onload = async () => { try { if (img.decode) await img.decode(); } catch (e) {} bake(p, img); };
+  img.onerror = () => { if (++k < srcs.length) img.src = srcs[k]; else fail(p); };
+  img.src = srcs[0];
+}
+function bake(p, img) {
+  if (!panels.includes(p)) return;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const sx = iw * CROP, sy = ih * CROP, sw = iw - 2 * sx, sh = ih - 2 * sy;
+  const sc = Math.min(1, 4600 / sh, 8000 / sw);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw * sc)); c.height = Math.max(1, Math.round(sh * sc));
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  p.w = c.width / c.height;
+  const i = panels.indexOf(p);
+  if (i > 0) {
+    // bordo sinistro sfumato: il dipinto entra dentro quello precedente
+    p.ov = Math.min(p.ov, panels[i - 1].w * 0.5, p.w * 0.45);
+    const o = p.ov * c.height, gr = g.createLinearGradient(0, 0, o, 0);
+    for (let s = 0; s <= 10; s++) { const t = s / 10; gr.addColorStop(t, 'rgba(0,0,0,' + (t * t * (3 - 2 * t)) + ')'); }
+    g.globalCompositeOperation = 'destination-in';
+    g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+  }
+  p.cv = c; p.st = 2;
+  layout();
+}
+function fail(p) {
+  pool = pool.filter(x => x !== p.ii); deck = deck.filter(x => x !== p.ii);
+  const i = panels.indexOf(p); if (i >= 0) panels.splice(i, 1);
+  if (i === 0 && panels.length) panels[0].x = 0;
+  layout();
+}
+function frontier() {
+  let f = null;
+  for (const p of panels) { if (p.st === 2) f = p.x + p.w; else break; }
+  return f;
+}
+function maintain() {
+  if (!pool.length) return;
+  while (!panels.length || panels[panels.length - 1].x + panels[panels.length - 1].w < cam.x + 4.5) {
+    const n = panels.length; addPanel(); if (panels.length === n) break;
+  }
+  let loading = panels.filter(p => p.st === 1).length;
+  for (const p of panels) { if (loading >= 2) break; if (p.st === 0) { load(p); loading++; } }
+  // libera la memoria dei dipinti ormai lontani alle spalle
+  while (started && panels.length > 2 && panels[1].st === 2 && panels[0].x + panels[0].w < cam.maxX - 2.6) {
+    const p = panels.shift(); if (p.cv) p.cv.width = p.cv.height = 0;
+  }
+}
+
+/* ---- l'occhio ---- */
+const cam = { x: 0, y: 0.5, z: 0.35, maxX: 0 };
+let started = false, mv = null, clock = 0, prev = performance.now(), aspect = 16 / 9;
+
+function bounds(z) {
+  const vw = z * aspect, f = frontier();
+  let lo = Math.max(panels[0].x + vw / 2, cam.maxX - 1.2);
+  let hi = f === null ? lo : f - vw / 2;
+  if (hi < lo) { const m = f === null ? lo : (Math.max(panels[0].x + vw / 2, cam.maxX - 1.2) + hi) / 2; lo = hi = Math.min(m, f === null ? m : f - vw / 2); }
+  return { lo, hi };
+}
+function zLimit() {
+  const f = frontier(); if (f === null) return Z_MAX;
+  return clamp((f - panels[0].x) / aspect, Z_MIN, Z_MAX);
+}
+function newMove() {
+  const r = R();
+  const type = r < 0.24 ? 'sacc' : r < 0.36 ? 'travel' : 'glide';
+  let z1 = cam.z;
+  if (type !== 'sacc' && R() < 0.6) z1 = Math.exp(rr(Math.log(0.17), Math.log(0.6)));
+  if (R() < 0.06) z1 = rr(Z_MIN, 0.16);
+  if (R() < 0.05) z1 = rr(0.7, Z_MAX);
+  z1 = clamp(z1, Z_MIN, Math.min(Z_MAX, zLimit()));
+  const vw = z1 * aspect;
+  let dx, dy, dur;
+  if (type === 'sacc')        { dx = rr(-0.5, 1.1) * vw;  dy = rr(-0.7, 0.7) * z1; dur = rr(0.22, 0.55); }
+  else if (type === 'travel') { dx = rr(0.35, 1.0);       dy = rr(-0.35, 0.35);    dur = rr(9, 17); }
+  else                        { dx = rr(-0.35, 1) * vw * 0.8; dy = rr(-0.5, 0.5) * z1; dur = rr(4, 10); }
+  const b = bounds(z1);
+  mv = {
+    type, t0: clock, dur,
+    x0: cam.x, y0: cam.y, z0: cam.z,
+    x1: clamp(cam.x + dx, b.lo, b.hi), y1: clamp(cam.y + dy, z1 / 2, 1 - z1 / 2), z1,
+    bump: type === 'travel' ? rr(0.3, 0.8) : type === 'glide' && R() < 0.3 ? rr(0.1, 0.35) : 0,
+    hold: type === 'sacc' ? rr(0.6, 2.8) : rr(0.15, 1.6),
+    vx: rr(-0.002, 0.006), vy: rr(-0.003, 0.003)
+  };
+}
+const easeSine = t => 0.5 - 0.5 * Math.cos(Math.PI * t);
+const easeSacc = t => 1 - Math.pow(1 - t, 3);
+
+function updateEye(dt) {
+  if (!mv) newMove();
+  const t = (clock - mv.t0) / mv.dur;
+  if (t < 1) {
+    const e = mv.type === 'sacc' ? easeSacc(t) : easeSine(t);
+    cam.x = mv.x0 + (mv.x1 - mv.x0) * e;
+    cam.y = mv.y0 + (mv.y1 - mv.y0) * e;
+    const lz = Math.log(mv.z0) + (Math.log(mv.z1) - Math.log(mv.z0)) * e;
+    cam.z = Math.exp(lz) * (1 + mv.bump * Math.sin(Math.PI * e));
+  } else if (clock - mv.t0 < mv.dur + mv.hold) {
+    // fissazione: deriva lentissima
+    cam.x += mv.vx * cam.z * dt; cam.y += mv.vy * cam.z * dt;
+  } else newMove();
+  // sicurezza: l'occhio non esce mai dal piano già caricato
+  cam.z = clamp(cam.z, Z_MIN * 0.9, Math.min(1, zLimit() * 1.05));
+  cam.y = clamp(cam.y, cam.z / 2, 1 - cam.z / 2);
+  const vw = cam.z * aspect, f = frontier();
+  if (f !== null) cam.x = Math.min(cam.x, f - vw / 2);
+  cam.x = Math.max(cam.x, panels[0].x + vw / 2);
+  cam.maxX = Math.max(cam.maxX, cam.x);
+}
+
+function resize() {
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(innerWidth * d); cv.height = Math.round(innerHeight * d);
+  aspect = cv.width / cv.height;
+}
+addEventListener('resize', resize); resize();
+
+function render() {
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  if (!started) return;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const z = cam.z, vw = z * aspect;
+  // micro-tremore dell'occhio
+  const tx = z * 0.0011 * (Math.sin(clock * 13.1) + Math.sin(clock * 7.3 + 1.7));
+  const ty = z * 0.0011 * (Math.sin(clock * 11.7 + 0.4) + Math.sin(clock * 5.9 + 2.2));
+  const L = cam.x + tx - vw / 2, T = cam.y + ty - z / 2, s = H / z;
+  const top = Math.max(T, 0), bot = Math.min(T + z, 1);
+  if (bot <= top) return;
+  for (const p of panels) {
+    if (p.st !== 2) break;
+    const a = Math.max(L, p.x), b = Math.min(L + vw, p.x + p.w);
+    if (b <= a) continue;
+    const k = p.cv.height;
+    ctx.drawImage(p.cv,
+      (a - p.x) * k, top * k, (b - a) * k, (bot - top) * k,
+      (a - L) * s, (top - T) * s, (b - a) * s, (bot - top) * s);
+  }
+}
+
+function frame(now) {
+  const dt = Math.min(0.1, (now - prev) / 1000); prev = now; clock += dt;
+  maintain();
+  if (!started && panels[0] && panels[0].st === 2) {
+    started = true;
+    cam.z = 0.32; cam.y = rr(0.3, 0.7);
+    cam.x = panels[0].x + Math.min(panels[0].w * 0.3, panels[0].w - cam.z * aspect / 2);
+    cam.maxX = cam.x;
+  }
+  if (started) updateEye(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+(async () => {
+  let files = [];
+  try { files = await fromWikidata(); } catch (e) {}
+  if (files.length < 5) files = FALLBACK;
+  pool = await infos(files);
+  if (pool.length < 4 && files !== FALLBACK) pool = pool.concat(await infos(FALLBACK));
+})();
+
+/* ---- schermo intero e cursore ---- */
+let idleT;
+addEventListener('mousemove', () => {
+  document.body.classList.remove('idle'); clearTimeout(idleT);
+  idleT = setTimeout(() => document.body.classList.add('idle'), 1500);
+});
+function toggleFS() {
+  if (!document.fullscreenElement) { const r = document.documentElement.requestFullscreen; if (r) r.call(document.documentElement).catch(() => {}); }
+  else if (document.exitFullscreen) document.exitFullscreen();
+}
+addEventListener('click', toggleFS);
+addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') toggleFS(); });
+}
+</script>
+</body>
+</html>
