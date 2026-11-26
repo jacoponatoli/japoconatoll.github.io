@@ -2576,6 +2576,16 @@ const LW = 2.6;
 // FLUIDO: ogni tanto tutto diventa liscio e veloce, a 60 fotogrammi invece di 30; per reggere il ritmo
 // la trama interna si fa più grossa, e a volte i fotogrammi lasciano una scia (a scapito dei colori netti)
 const FLU = { on: false, until: 0, px: 300000, modo: '', scia: 1, vel: 1 };
+// QUALITÀ ADATTIVA: misura quanto costa ogni fotogramma; se il computer non ce la fa, abbassa la grana interna, la risoluzione delle scene 3D
+// e spegne gli effetti più pesanti; quando torna il respiro, risale. ?leggero parte già basso; ?pieno non scende mai.
+const QUAL = { liv: /leggero/.test(location.search) ? 2 : 0, ft: 0, n: 0, buoni: 0, fisso: /pieno/.test(location.search),
+  px: [300000, 200000, 130000, 85000], gl: [1, .75, .55, .42] };
+function qualTick(ft) {
+  if (QUAL.fisso) return; QUAL.ft += ft; if (++QUAL.n < 60) return; const m = QUAL.ft / QUAL.n; QUAL.ft = 0; QUAL.n = 0;
+  if (m > 26 && QUAL.liv < 3) { QUAL.liv++; QUAL.buoni = 0; if (!FLU.on) resize(); }
+  else if (m < 11) { if (++QUAL.buoni >= 5 && QUAL.liv > (/leggero/.test(location.search) ? 2 : 0)) { QUAL.liv--; QUAL.buoni = 0; if (!FLU.on) resize(); } } else QUAL.buoni = 0;
+}
+const glScala = () => QUAL.gl[QUAL.liv];
 function fluido(on) {
   if (on === undefined) on = !FLU.on;
   if (on === FLU.on) return false;
@@ -2592,7 +2602,7 @@ const echoC = document.createElement('canvas'); const ectx = echoC.getContext('2
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   view.width = innerWidth * dpr; view.height = innerHeight * dpr;
-  const s = Math.min(1, Math.sqrt((FLU.on ? FLU.px : 300000) / (innerWidth * innerHeight)));
+  const s = Math.min(1, Math.sqrt((FLU.on ? Math.min(FLU.px, QUAL.px[QUAL.liv]) : QUAL.px[QUAL.liv]) / (innerWidth * innerHeight)));
   W = Math.max(160, Math.round(innerWidth * s)); H = Math.max(100, Math.round(innerHeight * s)); N = W * H;
   for (const c of [work, snap, echoC]) { c.width = W; c.height = H; }
   label = new Int32Array(N); prevColor = new Uint8Array(N).fill(255);
@@ -6635,7 +6645,7 @@ function trStrato(tipo) {
   return s;
 }
 function trasparenza(modo, vecchio) {
-  if (TR.on || SC.on || !view.width) return false;
+  if (TR.on || SC.on || !view.width || QUAL.liv >= 2) return false;
   const d = REGIA.dis, n = vecchio ? 1 + ((Math.random() * 2) | 0) : Math.max(1, Math.round(d < .3 ? rnd(1, 2.4) : d > .7 ? rnd(3, 5.4) : rnd(2, 3.6)));
   const tipi = d < .3 ? ['venn', 'venn', 'piani', 'forma'] : d > .7 ? ['piani', 'bande', 'venn', 'ricordo', 'forma', 'piani'] : ['piani', 'venn', 'forma', 'bande', 'ricordo'];
   const strati = Array.from({ length: n }, () => trStrato(pick(tipi)));
@@ -6920,6 +6930,7 @@ function teschioGL(T, a, o) {
   let R = [ca, 0, -sa, 0, 1, 0, sa, 0, ca];   // giro attorno all'asse verticale
   if (T.asse === 'x') R = [1, 0, 0, 0, ca, sa, 0, -sa, ca]; else if (T.asse === 'obliquo') { const cb = Math.cos(a * .45), sb = Math.sin(a * .45); R = [ca, sb * sa, -cb * sa, 0, cb, sb, sa, -sb * ca, cb * ca]; }
   const I = [1, 0, 0, 0, ci, si, 0, -si, ci], M = new Array(9); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) M[c * 3 + r] = R[r * 3] * I[c] + R[r * 3 + 1] * I[3 + c] + R[r * 3 + 2] * I[6 + c];
+  { const S3 = Math.round(420 * glScala()); if (TGL.cv.width !== S3) TGL.cv.width = TGL.cv.height = S3; }
   gl.viewport(0, 0, TGL.cv.width, TGL.cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
   gl.uniform2f(u.res, TGL.cv.width, TGL.cv.height); gl.uniformMatrix3fv(u.rot, false, new Float32Array(M));
   gl.uniform4f(u.pA, T.cw, T.ch, T.cl, T.zw); gl.uniform4f(u.pB, T.od, T.oy, T.os, T.ns); gl.uniform4f(u.pC, T.jl, T.jw, T.apre + Math.max(0, Math.sin(a * 2.3)) * .02, 2.4 / T.denti); gl.uniform4f(u.pD, T.seme, T.pm, 0, 0); gl.uniform4f(u.pE, T.dtipo, T.dlung, 0, 0); gl.uniform4f(u.pF, T.ciclope, T.corna, T.lungo, T.terzo);
@@ -7060,6 +7071,7 @@ SCENE.mani = (g, w, h, t, dt, o) => {
   const avv = o.coppia === 'creazione' ? Math.sin(Math.min(1, k * 2.6) * Math.PI / 2) * (1 - Math.max(0, k - .82) * 3) : .5 + .5 * Math.sin(T * .6 + o.sd);
   const gap = o.vicino != null ? .95 - .95 * o.vicino + (o.tocco ? -.02 : .05) : o.coppia === 'stringere' ? .05 : .18, xa = -3.1 + (3.1 - 1.68 - gap) * avv, xb = -xa;
   const ondA = Math.sin(T * .9) * .12, ondB = Math.sin(T * .8 + 1) * .12;
+  { const W3 = Math.round(880 * glScala()), H3 = Math.round(550 * glScala()); if (MGL.cv.width !== W3) { MGL.cv.width = W3; MGL.cv.height = H3; } }
   gl.viewport(0, 0, MGL.cv.width, MGL.cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
   gl.uniform2f(u.res, MGL.cv.width, MGL.cv.height); gl.uniform1f(u.t, T);
   gl.uniformMatrix3fv(u.RA, false, rotM(ondA * .5, .0, o.rollA + ondA)); gl.uniform3f(u.PA, xa, -.1 + ondA, 0);
@@ -7097,7 +7109,7 @@ SCENE.bosch = (g, w, h, t, dt, o) => {
     case 'quadro': { const s = Math.min(w / IW, h / IH) * (1 + u * .35), dw = IW * s, dh = IH * s; g.drawImage(im, (w - dw) / 2 - (o.punti[0][0] - .5) * u * dw * .3, (h - dh) / 2 - (o.punti[0][1] - .5) * u * dh * .3, dw, dh); break; }
     case 'viaggio': viaggio(); break;
     case 'psiche': {   // il dettaglio ridotto ai colori pieni del film: Bosch dentro la nostra onda
-      viaggio(); if ((o.fr = (o.fr || 0) + 1) % 2 && o.cache) { g.putImageData(o.cache, 0, 0); break; }
+      viaggio(); if (QUAL.liv >= 2) break; if ((o.fr = (o.fr || 0) + 1) % 2 && o.cache) { g.putImageData(o.cache, 0, 0); break; }
       const id = g.getImageData(0, 0, w, h), a = id.data, P = currentPalette().c.map(c => c.slice(0, 3)).concat([[0, 0, 0]]);
       for (let k = 0; k < a.length; k += 4) { let bi = 0, bd = 1e9; const l = a[k] * .3 + a[k + 1] * .59 + a[k + 2] * .11; for (let i = 0; i < P.length; i++) { const q = P[i], dd = (a[k] - q[0]) ** 2 + (a[k + 1] - q[1]) ** 2 + (a[k + 2] - q[2]) ** 2 + (l - (q[0] * .3 + q[1] * .59 + q[2] * .11)) ** 2 * 2; if (dd < bd) { bd = dd; bi = i; } } a[k] = P[bi][0]; a[k + 1] = P[bi][1]; a[k + 2] = P[bi][2]; }
       g.putImageData(id, 0, 0); o.cache = id; break; }
@@ -7302,7 +7314,7 @@ function glScena(fs, nomi, W2 = 720, H2 = 450) {
     const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }')); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
     gl.useProgram(pr); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     const u = {}; for (const k of ['res'].concat(nomi)) u[k] = gl.getUniformLocation(pr, k);
-    return { cv, gl, u, draw(set) { gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.uniform2f(u.res, cv.width, cv.height); set(gl, u); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); return cv; } };
+    return { cv, gl, u, draw(set) { const W4 = Math.round(W2 * glScala()), H4 = Math.round(H2 * glScala()); if (cv.width !== W4) { cv.width = W4; cv.height = H4; } gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.uniform2f(u.res, cv.width, cv.height); set(gl, u); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); return cv; } };
   } catch (e) { console.warn('GL', e); return null; }
 }
 
@@ -7608,7 +7620,7 @@ function mostroPrepara() {
   try { MOSTRAI_AVVIA(MZ.cv, MZ.ctl); MZ.ok = true; } catch (e) { MZ.err = e; console.warn('MOSTRAI', e); }
 }
 function mostroPasso(attivo) {   // fa girare MOSTRAI: a ogni fotogramma quando appare, di rado quando dorme
-  if (!MZ.ok || !MZ.ctl.f) return; if (!attivo && (++MZ.n % 15)) return;
+  if (!MZ.ok || !MZ.ctl.f) return; if (!attivo && (++MZ.n % (QUAL.liv >= 2 ? 60 : 15))) return;
   const f = MZ.ctl.f; MZ.ctl.f = null; try { f(performance.now()); MZ.k = (MZ.k || 0) + 1; MZ.pronto = MZ.k > 3; } catch (e) { MZ.err = e; MZ.ok = false; console.warn('MOSTRAI', e); }
 }
 setTimeout(mostroPrepara, 1500);
@@ -7619,7 +7631,7 @@ function mostro() {
   Object.assign(MO, { phase: 'in', t: 0, vin: pick(['punto', 'zoom', 'lancio', 'punto']), vout: pick(['punto', 'via', 'zoom']), tin: rnd(1, 1.8), tout: rnd(1, 1.7),
     hold: rnd(2.5, 5), dyn: d < .3 ? 'regolare' : d > .7 ? 'caotico' : pick(['regolare', 'oscillante', 'caotico']), rot: 0, vr: gauss() * .12, px: 0, py: 0, vx: gauss() * .02, vy: gauss() * .015,
     dir: [sg() * rnd(.6, 1), sg() * rnd(.3, 1)], bg: pick(['#d8d4cc', '#e9e7e2', '#202020', '#7d7d7d', '#b9b4aa', '#000000']), sc: rnd(.8, 1),
-    pelle: Math.random() < .6 ? 'pattern' : 'colori', h0: rnd(360), hv: rnd(300, 900) * sg(), hstop: rnd(.35, .7) });
+    pelle: Math.random() < (QUAL.liv >= 2 ? 0 : .6) ? 'pattern' : 'colori', h0: rnd(360), hv: rnd(300, 900) * sg(), hstop: rnd(.35, .7) });
   // mentre appare cambia molto: MOSTRAI passa a un umore mosso e muta subito
   try { const M = MZ.ctl.M; M.setMood(d < .35 ? 'onda' : d > .7 ? 'scatto' : pick(['danza', 'onda', 'scatto'])); M.next(); } catch (e) {}
   try { MZ.ctl.fit && MZ.ctl.fit(); } catch (e) {}
@@ -7947,7 +7959,7 @@ function loop(t) {
     if (w.next !== w.type) { w.amt -= dt * .35; if (w.amt <= 0) { w.amt = 0; w.type = w.next; } }
     else if (w.type !== 'nessuna') w.amt = Math.min(1, w.amt + dt * .2); }
   S.acc += 2 * S.tscale * (FLU.on ? FLU.vel * .55 : 1); while (S.acc >= 1) { S.acc--; for (const a of active) a.proc.step(); }
-  const f0 = performance.now(); frame(t, dt); if (TD.phase) draw3D(dt); if (!MO.phase) mostroPasso(false); window.__ft = .9 * (window.__ft || 0) + .1 * (performance.now() - f0);
+  const f0 = performance.now(); frame(t, dt); if (TD.phase) draw3D(dt); if (!MO.phase) mostroPasso(false); window.__ft = .9 * (window.__ft || 0) + .1 * (performance.now() - f0); qualTick(performance.now() - f0);
   if (document.body.classList.contains('ui')) updateInfo();
 }
 
@@ -8041,7 +8053,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, orbe, fillotassi, ripetizione, sferaAlterata, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, QUAL, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, orbe, fillotassi, ripetizione, sferaAlterata, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
