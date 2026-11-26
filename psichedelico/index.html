@@ -5754,6 +5754,10 @@ const MOVES = {
   mani: [.5, () => mani()],
   bosch: [.6, () => bosch()],
   drago: [.45, () => drago()],
+  orbe: [.45, () => orbe()],
+  fillotassi: [.4, () => fillotassi()],
+  ripetizione: [.5, () => ripetizione()],
+  sfera: [.4, () => sferaAlterata()],
   peaks: [.5, () => twinpeaks()],
   tre: [.35, () => entra3D()],
   lampeggio: [.12, () => flicker()],
@@ -7246,12 +7250,12 @@ function gancio() {
   else if (k === 'specchio') { const s = specchio(); if (s) SC.hold = rnd(1, 1.8); }
 }
 // --- i picchi dei respiri: attrattori sempre diversi
-const PICCHI = ['teschio', 'mostro', 'mani', 'bosch', 'cielo', 'barocco', 'astratto', 'forma', 'lettera', 'cinema', 'microscopio', 'escher', 'specchio', 'domanda', 'sovraccarico', 'peaks', 'drago', 'macchia'];
+const PICCHI = ['teschio', 'mostro', 'mani', 'bosch', 'cielo', 'barocco', 'astratto', 'forma', 'lettera', 'cinema', 'microscopio', 'escher', 'specchio', 'domanda', 'sovraccarico', 'peaks', 'drago', 'macchia', 'orbe', 'fillotassi', 'ripetizione', 'sfera'];
 function picco() {
   const libere = PICCHI.filter(p => !ATT.ultimi.includes(p)); for (let tent = 0; tent < 8; tent++) { const p = pick(libere); let ok = false;
     switch (p) { case 'teschio': ok = teschio(); if (ok && Math.random() < .5) SC.o.avvicina = true; break; case 'mostro': ok = mostro(); break; case 'mani': ok = mani(); break; case 'bosch': ok = bosch(); break; case 'cielo': ok = cielo(); break;
       case 'barocco': ok = barocco(); break; case 'astratto': ok = astratto(); break; case 'forma': ok = formaSecca(); break; case 'lettera': letteraSecca(); ok = MONO.phase === 'in'; break; case 'cinema': ok = cinema(); break; case 'microscopio': ok = microscopio(); break;
-      case 'escher': ok = escher(); break; case 'specchio': ok = specchio(); break; case 'domanda': ok = domanda(); break; case 'peaks': ok = twinpeaks(); break; case 'drago': ok = drago(); break; case 'macchia': ok = macchia(); break;
+      case 'escher': ok = escher(); break; case 'specchio': ok = specchio(); break; case 'domanda': ok = domanda(); break; case 'peaks': ok = twinpeaks(); break; case 'drago': ok = drago(); break; case 'macchia': ok = macchia(); break; case 'orbe': ok = orbe(); break; case 'fillotassi': ok = fillotassi(); break; case 'ripetizione': ok = ripetizione(); break; case 'sfera': ok = sferaAlterata(); break;
       case 'sovraccarico': REGIA.over = performance.now() + rnd(1.5, 3) * 1000; S.tscaleT = 3.8; ok = true; break; }
     if (ok) { ATT.ultimi.push(p); if (ATT.ultimi.length > 7) ATT.ultimi.shift(); return; } }
 }
@@ -7289,6 +7293,143 @@ function attDraw(dt) {   // lampo, vuoto, salto di scala: sopra tutto
   if (ATT.vuoto > 0) { ATT.vuoto -= dt; vctx.fillStyle = ATT.vuotoC; vctx.fillRect(0, 0, view.width, view.height); }
   if (ATT.scala > 0) { ATT.scala -= dt; const [px, py, z] = ATT.scalaP, sw = view.width / z, sh = view.height / z; if (!ATT.scc) ATT.scc = document.createElement('canvas'); ATT.scc.width = sw; ATT.scc.height = sh; ATT.scc.getContext('2d').drawImage(view, clamp(px * view.width - sw / 2, 0, view.width - sw), clamp(py * view.height - sh / 2, 0, view.height - sh), sw, sh, 0, 0, sw, sh); vctx.drawImage(ATT.scc, 0, 0, view.width, view.height); }
 }
+
+/* ===== GA2022: l'orbe di Palmer, la fillotassi di Weise, la simmetria come ripetizione di Alexiou e Gourdoukis ===== */
+// un piccolo aiuto per le scene in WebGL: compila un programma a tutto schermo e restituisce chi lo disegna
+function glScena(fs, nomi, W2 = 720, H2 = 450) {
+  try { const cv = document.createElement('canvas'); cv.width = W2; cv.height = H2; const gl = cv.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false, alpha: true }); if (!gl) return null;
+    const sh = (tp, src) => { const s = gl.createShader(tp); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }')); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+    gl.useProgram(pr); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const u = {}; for (const k of ['res'].concat(nomi)) u[k] = gl.getUniformLocation(pr, k);
+    return { cv, gl, u, draw(set) { gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.uniform2f(u.res, cv.width, cv.height); set(gl, u); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); return cv; } };
+  } catch (e) { console.warn('GL', e); return null; }
+}
+
+/* --- L'ORBE (Curtis L. Palmer, «The Black Hole at the Centre of this Orb is a Rhombic Dodecahedron»): il dodecaedro rombico tagliato dai
+   nove piani della simmetria ottaedrica in 48 simplessi, 48 caleidoscopi; guardato in proiezione parallela lungo un asse di simmetria
+   (4, 3 o 2 volte), dall'esterno o dall'interno; sulle superfici una trasparenza tratta dall'insieme di Mandelbrot che ruota
+   (la sua Rotating Transparency Transform), rosso e nero: la struttura 3D si intuisce nel tempo, dai disegni piatti che si accordano --- */
+let ORBGL;
+const ORB_FS = `precision highp float;
+uniform vec2 res; uniform float ang, zoom; uniform mat3 R; uniform vec3 c1, c2; uniform float dentro, mz;
+float mandel(vec2 c){ vec2 z = vec2(0.); float n = 0.; for (int i = 0; i < 48; i++){ z = vec2(z.x * z.x - z.y * z.y, 2. * z.x * z.y) + c; if (dot(z, z) > 4.) break; n += 1.; } return n / 48.; }
+vec2 piega(vec3 p){ p = abs(p); if (p.x < p.y) p.xy = p.yx; if (p.y < p.z) p.yz = p.zy; if (p.x < p.y) p.xy = p.yx; return vec2(p.x - p.z, p.y + p.z * .5); }   // nel simplesso fondamentale
+float rd(vec3 p){ vec3 a = abs(p); return max(a.x + a.y, max(a.y + a.z, a.x + a.z)) - 1.; }
+void main(){
+  vec2 uv = (gl_FragCoord.xy * 2. - res) / res.y * zoom;
+  vec3 ro, rd3; if (dentro < .5){ ro = R * vec3(uv, 3.); rd3 = R * vec3(0., 0., -1.); } else { ro = vec3(0.); rd3 = R * normalize(vec3(uv * .9, -1.)); }
+  // le superfici: i nove piani di simmetria e la pelle del solido; ogni incontro dentro il solido è uno strato trasparente
+  vec3 N[9]; N[0] = vec3(1,0,0); N[1] = vec3(0,1,0); N[2] = vec3(0,0,1); N[3] = normalize(vec3(1,1,0)); N[4] = normalize(vec3(1,-1,0)); N[5] = normalize(vec3(0,1,1)); N[6] = normalize(vec3(0,1,-1)); N[7] = normalize(vec3(1,0,1)); N[8] = normalize(vec3(1,0,-1));
+  float T[11]; for (int i = 0; i < 9; i++){ float d = dot(rd3, N[i]); T[i] = abs(d) < 1e-4 ? 1e9 : -dot(ro, N[i]) / d; }
+  // ingresso e uscita dal dodecaedro rombico (marcia lungo il raggio)
+  float t0 = 1e9, t1 = -1e9; float tt = dentro > .5 ? 0. : 0.; for (int i = 0; i < 90; i++){ float h = rd(ro + rd3 * tt); if (h < .001){ t0 = min(t0, tt); t1 = max(t1, tt); } tt += max(abs(h) * .5, .02); if (tt > 7.) break; }
+  if (dentro > .5){ t0 = 0.; }
+  if (t0 > 1e8){ gl_FragColor = vec4(0.); return; }
+  T[9] = t0; T[10] = t1;
+  // ordina gli strati dal più vicino
+  for (int i = 0; i < 11; i++) for (int j = 0; j < 10; j++){ if (T[j] > T[j + 1]){ float x = T[j]; T[j] = T[j + 1]; T[j + 1] = x; } }
+  vec3 col = vec3(0.); float a = 0.; float ca = cos(ang), sa = sin(ang);
+  for (int i = 0; i < 11; i++){ float t = T[i]; if (t < t0 - .001 || t > t1 + .001 || t > 1e8) continue; vec3 p = ro + rd3 * t; vec2 q = piega(p); q = mat2(ca, -sa, sa, ca) * (q - vec2(.35, .2)) * mz + vec2(-.6, 0.);
+    float m = mandel(q), al = (m > .99 ? .0 : .22 + .6 * m);   // la trasparenza dal Mandelbrot: dentro l'insieme è vuoto
+    vec3 c = mix(c2, c1, smoothstep(.15, .7, m)); col += (1. - a) * al * c; a += (1. - a) * al; if (a > .97) break; }
+  gl_FragColor = vec4(col, a);
+}`;
+function orbe() {
+  if (!ORBGL) ORBGL = glScena(ORB_FS, ['ang', 'zoom', 'R', 'c1', 'c2', 'dentro', 'mz']); if (!ORBGL) return false;
+  const P = currentPalette().c.map(c => c.slice(0, 3).map(v => v / 255)), rosso = Math.random() < .55, asse = pick(['4', '3', '2', '3']);
+  return scenaInizia('orbe', { asse, dentro: Math.random() < .3, c1: rosso ? [.85, .05, .05] : pick(P), c2: rosso ? [0, 0, 0] : pick(P), fondo: rosso ? '#000' : pick(palCss()), v: rnd(.05, .2) * (Math.random() < .5 ? -1 : 1), mz: rnd(1.4, 3), zoom: rnd(.9, 1.3), hold: rnd(7, 11), deriva: Math.random() < .4 });
+}
+SCENE.orbe = (g, w, h, t, dt, o) => {
+  g.fillStyle = o.fondo; g.fillRect(0, 0, w, h);
+  const ax = o.asse === '4' ? [0, 0, 1] : o.asse === '3' ? [1, 1, 1] : [1, 1, 0], l = Math.hypot(...ax), z = ax.map(v => v / l), up0 = Math.abs(z[1]) > .9 ? [1, 0, 0] : [0, 1, 0];
+  let x = [up0[1] * z[2] - up0[2] * z[1], up0[2] * z[0] - up0[0] * z[2], up0[0] * z[1] - up0[1] * z[0]]; const xl = Math.hypot(...x); x = x.map(v => v / xl); const y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]];
+  let M = [x[0], x[1], x[2], y[0], y[1], y[2], z[0], z[1], z[2]];   // colonne: gli assi della vista
+  if (o.deriva) { const a = Math.sin(t * .2) * .25, ca = Math.cos(a), sa = Math.sin(a); M = [M[0] * ca + M[6] * sa, M[1] * ca + M[7] * sa, M[2] * ca + M[8] * sa, M[3], M[4], M[5], M[6] * ca - M[0] * sa, M[7] * ca - M[1] * sa, M[8] * ca - M[2] * sa]; }
+  const c = ORBGL.draw((gl, u) => { gl.uniform1f(u.ang, t * o.v * 6.28); gl.uniform1f(u.zoom, o.zoom * 1.2); gl.uniformMatrix3fv(u.R, false, new Float32Array(M)); gl.uniform3f(u.c1, ...o.c1); gl.uniform3f(u.c2, ...o.c2); gl.uniform1f(u.dentro, o.dentro ? 1 : 0); gl.uniform1f(u.mz, o.mz); });
+  const s = Math.max(w / c.width, h / c.height); g.drawImage(c, (w - c.width * s) / 2, (h - c.height * s) / 2, c.width * s, c.height * s);
+};
+
+/* --- LA FILLOTASSI DEI NUMERI (D. L. Weise, «Periodic Structures on Phyllotactic Patterns»): i numeri interi su una spirale
+   (raggio come la radice di n, angolo di divergenza); lo spettro di un numero reale α (⌊α⌋, ⌊2α⌋, ⌊3α⌋…) e il suo complementare
+   colorano i punti in due colori: i rapporti di Fibonacci fino alla sezione aurea, la quinta musicale (7/12, la tastiera del pianoforte),
+   gli anni bisestili, il ciclo di Metone; accanto la tastiera e la scala di Bresenham; a volte due cicli simultanei (10 × 12 = 60) --- */
+const FILLO = [[1, 1, 'uno'], [1, 2, 'metà'], [2, 3, ''], [3, 5, ''], [5, 8, ''], [8, 13, ''], [13, 21, ''], [21, 34, ''], [.6180339887, 1, 'sezione aurea'], [7, 12, 'quinte'], [.242199, 1, 'bisestili'], [.36826681, 1, 'Metone']];
+function fillotassi() {
+  const P = palCss(), bw = Math.random() < .5;
+  return scenaInizia('fillotassi', { seq: Math.random() < .5 ? FILLO.slice(0, 9) : shuffled(FILLO).slice(0, 5), quadri: Math.random() < .5, cicli: Math.random() < .25, a: bw ? '#f4f1ea' : pick(P), b: bw ? '#111' : pick(P), fondo: bw ? '#7a7a7a' : pick(P), hold: rnd(9, 13), N: 300 + ((Math.random() * 500) | 0), div: pick([137.50776, 137.50776, 150, 222.49, 99.5]) });
+}
+SCENE.fillotassi = (g, w, h, t, dt, o) => {
+  g.fillStyle = o.fondo; g.fillRect(0, 0, w, h); const tot = SC.tin + SC.hold, k = clamp(SC.t / tot, 0, .999) * o.seq.length, i = Math.floor(k), [p, q] = o.seq[i], inv = p / q;   // 1/α
+  const alfa = 1 / inv, inA = n => { const kk = Math.ceil(n / alfa); return Math.floor(kk * alfa) === n; };   // n appartiene allo spettro di α?
+  const quad = o.quadri, R0 = Math.min(w * (quad ? .5 : 1), h * (quad ? .5 : 1)) * .46, cx = quad ? w * .25 : w / 2, cy = quad ? h * .25 : h / 2, N = quad ? Math.min(o.N, 220) : o.N, div = (o.cicli ? 360 * inv : o.div) * Math.PI / 180;
+  const cresce = clamp((k - i) * 3, 0, 1);
+  for (let n = 1; n <= N * cresce; n++) { const r = R0 * Math.sqrt(n / N), a = n * div + t * .05, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r, s = R0 / Math.sqrt(N) * .55 * (.5 + .5 * Math.sqrt(n / N));
+    g.fillStyle = o.cicli ? (n % 10 < 5 ? o.a : o.b) : inA(n) ? o.b : o.a; g.beginPath(); g.arc(x, y, s, 0, 6.28); g.fill(); if (o.cicli && n % 12 === 0) { g.strokeStyle = '#c00'; g.lineWidth = 1.5; g.stroke(); } }
+  if (quad) {   // la tastiera e la scala di Bresenham
+    const n2 = 24, bw2 = w * .5 / n2; for (let n = 1; n <= n2; n++) { g.fillStyle = '#fff'; g.fillRect(w * .5 + (n - 1) * bw2, h * .05, bw2 - 1, h * .4); if (inA(n)) { g.fillStyle = '#000'; g.fillRect(w * .5 + (n - 1) * bw2, h * .05, bw2 - 1, h * .26); } }
+    g.fillStyle = '#ddd'; g.fillRect(w * .52, h * .55, w * .46, h * .4); g.fillStyle = '#000'; let yy = 0; for (let x2 = 0; x2 < 40; x2++) { const yv = Math.floor((x2 + 1) * inv); g.fillRect(w * .52 + x2 * w * .46 / 40, h * .95 - (yv + 1) * h * .4 / 26, w * .46 / 40, h * .4 / 26); yy = yv; }
+    g.fillStyle = '#eee'; g.fillRect(w * .02, h * .55, w * .46, h * .4); g.fillStyle = '#000'; g.font = `${Math.round(h * .045)}px Georgia, serif`; g.textAlign = 'left';
+    g.fillText(`1/α = ${o.seq[i][2] || (p + '/' + q)}`, w * .04, h * .62); for (let n = 1; n <= 12; n++) { g.fillText(String(Math.floor(n * alfa)), w * .04 + (n - 1) * w * .036, h * .74); g.fillText(String(Math.floor(n * alfa / (alfa - 1))), w * .04 + (n - 1) * w * .036, h * .84); }
+  }
+};
+
+/* --- LA RIPETIZIONE (Dota Alexiou, Dimitris Gourdoukis, «Symmetry as repetition»): la simmetria come ripetizione che produce differenza.
+   Un frammento del film ripetuto secondo i gruppi del piano (traslazione, rotazione, specchio, glissoriflessione, combinati);
+   la ripetizione «nuda» diventa «vestita»: ogni copia un poco diversa, e la simmetria a poco a poco si rompe (ordine → complessità).
+   A volte le due metà speculari si avvicinano finché diventano un solo oggetto, o si separano e diventano due --- */
+const GRUPPI = ['p1', 'p2', 'pm', 'pg', 'cm', 'pmm', 'pmg', 'p4', 'p4m', 'p3', 'p6', 'p6m'];
+function ripetizione() {
+  const d = REGIA.dis, k = Math.random() < .25 ? 'specchio' : 'gruppo';
+  const snap = document.createElement('canvas'); snap.width = view.width >> 2; snap.height = view.height >> 2; snap.getContext('2d').drawImage(view, 0, 0, snap.width, snap.height);
+  return scenaInizia('ripetizione', { k, snap, gruppo: pick(d < .4 ? ['p4m', 'p6m', 'pmm', 'p4', 'p6', 'cm'] : GRUPPI), n: 4 + ((Math.random() * 6) | 0), rottura: d * .6 + rnd(.1, .4), sx: rnd(), sy: rnd(), hold: rnd(7, 10) });
+}
+SCENE.ripetizione = (g, w, h, t, dt, o) => {
+  const u = clamp(SC.t / (SC.tin + SC.hold), 0, 1), m = Math.min(w, h), S = o.snap;
+  g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+  const motivo = (cs) => { const c = document.createElement('canvas'); c.width = c.height = Math.ceil(cs); const q = c.getContext('2d'); const s2 = Math.min(S.width, S.height) * .35; q.drawImage(S, o.sx * (S.width - s2), o.sy * (S.height - s2), s2, s2, 0, 0, cs, cs); q.strokeStyle = '#000'; q.lineWidth = 2; q.strokeRect(0, 0, cs, cs); return c; };
+  if (o.k === 'specchio') {   // percezione dell'oggetto: le due metà speculari a distanza variabile
+    const cs = m * .45, M2 = o.M || (o.M = motivo(cs)), sep = (1 - Math.sin(u * Math.PI)) * w * .25;
+    g.drawImage(M2, w / 2 - cs - sep, h / 2 - cs / 2); g.save(); g.translate(w / 2 + sep, 0); g.scale(-1, 1); g.drawImage(M2, -cs, h / 2 - cs / 2); g.restore(); return; }
+  const cs = m / o.n, M2 = o.M || (o.M = motivo(Math.ceil(cs))), rot = { p1: 1, p2: 2, pm: 1, pg: 1, cm: 1, pmm: 2, pmg: 2, p4: 4, p4m: 4, p3: 3, p6: 6, p6m: 6 }[o.gruppo], spec = /m|g/.test(o.gruppo), glide = /g/.test(o.gruppo);
+  const diff = u * o.rottura;   // la differenza cresce dentro la ripetizione
+  for (let j = -1; j * cs < h + cs; j++) for (let i = -1; i * cs < w + cs; i++) {
+    const x = i * cs + (glide && j % 2 ? cs / 2 : 0), y = j * cs, hsh = vhash(i, j);
+    g.save(); g.translate(x + cs / 2 + (hsh - .5) * diff * cs * .6, y + cs / 2 + (vhash(j, i) - .5) * diff * cs * .6);
+    g.rotate(((i + j * 3) % rot) * 6.2832 / rot + (hsh - .5) * diff * 2); if (spec && (i + j) % 2) g.scale(-1, 1); if (glide && j % 2) g.scale(1, -1); const sc = 1 + (vhash(i * 3, j) - .5) * diff;
+    g.scale(sc, sc); if (diff > .1) g.filter = `hue-rotate(${((hsh - .5) * diff * 300).toFixed(0)}deg)`; g.drawImage(M2, -cs / 2, -cs / 2, cs, cs); g.restore(); }
+};
+
+/* --- LA SFERA ALTERATA (Alexiou, Gourdoukis, «At the edges of infinity»): una sfera trasformata generazione dopo generazione da piegature
+   simmetriche (G: una generazione in più; A: adattamenti, la geometria cambia senza nuove facce); bianca, intricata, che gira --- */
+let SFGL;
+const SF_FS = `precision highp float;
+uniform vec2 res; uniform float gen, adatta, t; uniform vec3 col, tipo;
+mat2 r2(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+float mappa(vec3 p){
+  p.xz = r2(t * .25) * p.xz; p.yz = r2(t * .17) * p.yz; float s = 1.;
+  for (int i = 0; i < 7; i++){ if (float(i) >= gen) break;
+    p = abs(p); if (tipo.x > .5){ if (p.x < p.y) p.xy = p.yx; if (p.x < p.z) p.xz = p.zx; if (p.y < p.z) p.yz = p.zy; }   // piega ottaedrica
+    else { p.xy = r2(.6 + adatta) * p.xy; p.yz = r2(.4 - adatta * .5) * p.yz; }
+    p = p * 1.75 - vec3(1., .9, .7) * (.75 + .2 * sin(adatta + float(i))); s *= 1.75; p.xz = r2(adatta * .3) * p.xz; }
+  float d = (length(p) - 1.2) / s; return mix(length(p / s) - .9, d, step(.5, gen));
+}
+vec3 nor(vec3 p){ vec2 e = vec2(.001, 0.); return normalize(vec3(mappa(p + e.xyy) - mappa(p - e.xyy), mappa(p + e.yxy) - mappa(p - e.yxy), mappa(p + e.yyx) - mappa(p - e.yyx))); }
+void main(){ vec2 uv = (gl_FragCoord.xy * 2. - res) / res.y; vec3 ro = vec3(0., 0., 3.2), rd = normalize(vec3(uv * .6, -1.)); float tt = 0., hit = 0.;
+  for (int i = 0; i < 120; i++){ float h = mappa(ro + rd * tt); if (h < .0008){ hit = 1.; break; } tt += h; if (tt > 8.) break; }
+  if (hit < .5){ gl_FragColor = vec4(0.); return; }
+  vec3 p = ro + rd * tt, n = nor(p); float ao = 0.; for (int i = 1; i < 5; i++) ao += (float(i) * .04 - mappa(p + n * float(i) * .04)); ao = clamp(1. - ao * 8., 0., 1.);
+  float dif = max(0., dot(n, normalize(vec3(-.5, .8, .6)))); gl_FragColor = vec4(col * (.25 + .8 * dif) * (.35 + .65 * ao), 1.); }`;
+function sferaAlterata() {
+  if (!SFGL) SFGL = glScena(SF_FS, ['gen', 'adatta', 't', 'col', 'tipo']); if (!SFGL) return false;
+  const P = currentPalette().c.map(c => c.slice(0, 3).map(v => v / 255));
+  return scenaInizia('sfera', { col: Math.random() < .6 ? [.93, .93, .95] : pick(P), fondo: Math.random() < .6 ? '#0b0b0c' : pick(palCss()), tipo: Math.random() < .6 ? 1 : 0, ad: rnd(-.5, .5), hold: rnd(8, 12) });
+}
+SCENE.sfera = (g, w, h, t, dt, o) => {
+  g.fillStyle = o.fondo; g.fillRect(0, 0, w, h); const u = clamp(SC.t / (SC.tin + SC.hold), 0, 1), gen = Math.min(6, Math.floor(u * 7.5));   // G1, G2, … una generazione dopo l'altra
+  const c = SFGL.draw((gl, uu) => { gl.uniform1f(uu.gen, gen); gl.uniform1f(uu.adatta, o.ad + Math.sin(t * .3) * .25); gl.uniform1f(uu.t, t); gl.uniform3f(uu.col, ...o.col); gl.uniform3f(uu.tipo, o.tipo, 0, 0); });
+  const s = Math.max(w / c.width, h / c.height); g.drawImage(c, (w - c.width * s) / 2, (h - c.height * s) / 2, c.width * s, c.height * s);
+};
 
 /* ---------- ESCHER: tassellature che si trasformano, figure impossibili, spazi iperbolici, effetto Droste ---------- */
 // omaggi ai suoi procedimenti (divisione regolare del piano, metamorfosi, impossibile, limite del cerchio, ricorsione), non copie di sue tavole
@@ -7865,6 +8006,10 @@ addEventListener('keydown', e => {
   else if (k === '/') { if (mani()) note('mani · ' + SC.o.coppia); }
   else if (k === 'insert' || k === 'home') { if (bosch()) note('Bosch · ' + SC.o.k); }
   else if (k === 'end' || k === 'pagedown') { if (drago()) note('drago · ' + SC.o.k + ' · ' + SC.o.forma); }
+  else if (k === 'f1') { if (orbe()) note('orbe · asse ' + SC.o.asse + (SC.o.dentro ? ' · dentro' : '')); }
+  else if (k === 'f2') { if (fillotassi()) note('fillotassi'); }
+  else if (k === 'f3') { if (ripetizione()) note('ripetizione · ' + SC.o.gruppo); }
+  else if (k === 'f4') { if (sferaAlterata()) note('sfera alterata'); }
   else if (k === '%') { if (twinpeaks()) note('Twin Peaks · ' + SC.o.k); }
   else if (k === '=') { if (linee()) note('linee · ' + LN.ori + ' · ' + LN.ritmo); }
   else if (k === '#') { if (pixela()) note('pixel · ' + PX.modo); }
@@ -7896,7 +8041,7 @@ S.palTo = S.palFrom = pick(PALETTES); newBands();
 if (FL.ok) setTimeout(() => note('attenzione: contiene luci lampeggianti — premi 0 per disattivarle'), 400);
 if (REGIA.on) { S.tscale = S.tscaleT = 2; enter(motoreNuovo()); } else enter(); active[0].p = 1; active[0].shape = 'tutto';
 requestAnimationFrame(loop);
-window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
+window.__S = S; window.__active = active; window.__enter = enter; window.__P = P; window.__MONO = MONO; window.__tav = tavolaRorschach; window.__INK = INK; window.__PS = { REGIA, S, RIT, MONO, TD, GL, FL, P, flDiv, enter, letteraSecca, apparizione, active, FO, FLF, fosfeni, passaggio, XF, FERMO, MO, MZ, mostro, LT, lotta, PX, pixela, LN, linee, FLU, fluido, MC, macchia, letteraSecca, formaSecca, astratto, SC, microscopio, cielo, cinema, barocco, TR, trasparenza, poesiaVisiva, teschio, escher, twinpeaks, mani, bosch, drago, BOSCH, ATT, domanda, specchio, gancio, picco, orbe, fillotassi, ripetizione, sferaAlterata, TD }; window.__R = REGIA; window.__TD = TD; window.__e3 = entra3D;
 }
 </script>
 </body>
