@@ -407,7 +407,7 @@ function frame(now) {
   drawPanel(old, L, T, vw, z0, s); drawPanel(cur, L, T, vw, z0, s); drawPanel(nxt, L, T, vw, z0, s);
   if (hasFilter) ctx.filter = 'none';
   ctx.globalAlpha = 1;
-  ctx.drawImage(vignette, 0, 0);
+
 
   requestAnimationFrame(frame);
 }
