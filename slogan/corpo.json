@@ -115,7 +115,13 @@
       "imprevedibile:ms",
       "trance:fs",
       "parentela:fs",
-      "farfalle:fp"
+      "farfalle:fp",
+      "vuoto:ms",
+      "rifiuto del lavoro:ms",
+      "autonomia:fs",
+      "assenza:fs",
+      "pausa:fs",
+      "nulla:ms"
     ],
     "bad": [
       "riarmo:ms",
@@ -272,7 +278,14 @@
       "entusiasmo obbligatorio:ms",
       "mindset:ms",
       "arruolamento:ms",
-      "inevitabile:ms"
+      "inevitabile:ms",
+      "lavoro immateriale:ms",
+      "capitalismo cognitivo:ms",
+      "economia dell'attenzione:fs",
+      "debito:ms",
+      "logistica:fs",
+      "estrazione:fs",
+      "produttività:fs"
     ],
     "subj": [
       "liceali:mp",
@@ -330,7 +343,9 @@
       "cognitari:mp",
       "amanti:mp",
       "obiettori di coscienza:mp",
-      "figli rotti:mp"
+      "figli rotti:mp",
+      "moltitudini:fp",
+      "precari cognitivi:mp"
     ],
     "place": [
       "licei:mp",
@@ -372,7 +387,9 @@
       "dormitori:mp",
       "vagoni letto:mp",
       "sottotetti:mp",
-      "margini:mp"
+      "margini:mp",
+      "spazi vuoti:mp",
+      "divani:mp"
     ]
   },
   "slogan": [
@@ -1901,6 +1918,69 @@
         "Fuck war, kiss more",
         "Terminal age, eternal party"
       ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "concetti del post-fordismo e del Comitato Invisibile",
+      "fonte": "post-operaismo (lavoro immateriale, general intellect, capitalismo cognitivo, biopolitica, moltitudine, uomo indebitato), Comitato Invisibile (il capitale come ambiente che occupa il vuoto, il potere è logistico, spazi di non pubblicità), Godani",
+      "t": [
+        "Il capitale ha occupato il vuoto: liberiamolo",
+        "Liberate gli spazi vuoti",
+        "Il vuoto è nostro",
+        "Giù le mani dal vuoto",
+        "Riprendiamoci il nulla",
+        "Il nulla non è in vendita",
+        "Fare niente è un esproprio",
+        "Il sonno è l'ultimo spazio libero: difendiamolo",
+        "Il sonno non produce valore, per questo lo amiamo",
+        "Hanno messo il lavoro nei sogni: sfrattiamolo",
+        "Sogni non retribuiti, sogni non disponibili",
+        "I nostri sogni non sono contenuti",
+        "Non siamo connessi, siamo assenti",
+        "Lavoro immateriale, sciopero immateriale",
+        "Il general intellect va in vacanza",
+        "Intelligenza collettiva, pigrizia collettiva",
+        "Capitalismo cognitivo, cervelli in sciopero",
+        "Ogni gesto è lavoro: fermiamo i gesti",
+        "La fabbrica è ovunque, anche la diserzione",
+        "Dalla catena di montaggio alla catena di notifiche",
+        "Il tempo libero è lavoro travestito",
+        "Tempo libero, liberato davvero",
+        "Produrre soggettività? No grazie, ne abbiamo già una",
+        "Non siamo imprenditori di noi stessi, siamo disoccupati di noi stessi",
+        "La vita messa al lavoro, il lavoro messo a letto",
+        "Biopolitica? Biopigrizia",
+        "Moltitudine sì, produttività no",
+        "Il debito ci fabbrica, noi lo disfiamo",
+        "Il potere è nell'ambiente: cambiamo aria",
+        "Il potere è logistico: blocchiamo tutto, poi dormiamo",
+        "Il capitale è il mezzo, noi siamo i lati",
+        "Hanno occupato la mediazione, noi occupiamo il silenzio",
+        "Spazi di non pubblicità, spazi di non produzione",
+        "Nessuna opinione, molto silenzio",
+        "Giocare è sabotare",
+        "Il gioco non ha scopo: è questo lo scopo",
+        "Ozio è autonomia",
+        "Il rifiuto del lavoro ricomincia dal divano",
+        "Autonomia del sonno",
+        "Ventiquattro ore su sette: ne vogliamo zero",
+        "La notte non è un servizio",
+        "Disconnettersi è una forma di assemblea",
+        "Il vuoto è un bene comune",
+        "La noia è un luogo occupato: liberiamolo",
+        "Ogni pausa è uno sciopero breve",
+        "Il cloud ha occupato il cielo: restituitecelo",
+        "Like non pagati, vita non vissuta",
+        "Il feed si nutre di noi: digiuniamo",
+        "Siamo la materia prima: non ci estraete",
+        "L'attenzione è nostra, non vostra",
+        "Abbiamo dati, non diamo dati",
+        "Il niente è lavoro improduttivo per eccellenza",
+        "The void is not for sale",
+        "Occupy the void",
+        "Sleep is the last strike",
+        "Le vide n'est pas à vous"
+      ]
     }
   ],
   "letti": [
@@ -3097,6 +3177,26 @@
         "Machiavellismo dal basso",
         "Birthstrike",
         "Titoli: Spazzatura, Demenza: Occidente; A che gioco giochiamo; Un attimo prima; Dopo la tormenta?; Hic Rhodus; Lo sfacelo; Voragine; realismo distopico; du devenir néant; Una sinistra intelligenza; Il mestiere del corvo; Quel che possiamo fare; Fuck war; Mentre il ponte si sta sgretolando; Una tragedia alla volta; Per una primavera mediterranea"
+      ]
+    },
+    {
+      "d": "2026-11-26",
+      "tipo": "concetti",
+      "t": [
+        "lavoro immateriale",
+        "general intellect",
+        "capitalismo cognitivo",
+        "fabbrica diffusa / fabbrica sociale",
+        "produzione di soggettività",
+        "biopolitica",
+        "moltitudine",
+        "uomo indebitato",
+        "rifiuto del lavoro",
+        "il capitale è diventato ambiente, si è appropriato del potere del vuoto",
+        "il potere è logistico, blocchiamo tutto",
+        "spazi di non pubblicità",
+        "economia dell'attenzione",
+        "24/7: il sonno come ultimo spazio non colonizzato"
       ]
     }
   ]
