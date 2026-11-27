@@ -4,19 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SGUARDO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,800&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
+#t{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:4vw;box-sizing:border-box;
+   color:#fff;font-family:"Archivo","Arial Black",Arial,sans-serif;font-weight:800;font-stretch:125%;line-height:.92;
+   text-align:center;text-transform:uppercase;overflow-wrap:anywhere;pointer-events:none;visibility:hidden}
+#t span{display:block;max-width:100%}
 canvas{display:block;width:100vw;height:100vh}
 body.idle{cursor:none}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<div id="t"><span></span></div>
 <script>
 {
 /* SGUARDO (titolo provvisorio)
    La ricerca dell'osceno: ciò che sta fuori scena (ob-skené), portato davanti agli occhi.
-   Lo sguardo di qualcuno, senza effetti: solo l'occhio che si muove.
+   Lo sguardo di qualcuno, senza effetti: solo l'occhio che si muove. E la sua voce: la lingua della
+   macchina (classi, punteggi, nomi di file, scarti) che appare grande come uno slogan.
    Nel vuoto è frenetico, a scatti; quando incontra i corpi rallenta e scorre sulla pelle;
    quando trova i genitali si inchioda (oddio, l'ho trovato), zooma fin quasi a baciarli, resta,
    e se ne va. I dipinti stanno uno accanto all'altro: l'occhio passa sul quadro vicino e continua.
@@ -104,6 +113,26 @@ function chooseNext(cur) {
   return L[(R() * L.length) | 0] || null;
 }
 
+/* ---------- la lingua della macchina: quello che l'occhio "pensa", grande come uno slogan ---------- */
+const tBox = document.getElementById('t'), tSpan = tBox.firstChild;
+let tUntil = 0;
+const CLASS = { 'vulva': 'FEMALE_GENITALIA_EXPOSED', 'vulva coperta': 'FEMALE_GENITALIA_COVERED', 'pene': 'MALE_GENITALIA_EXPOSED', 'ano': 'ANUS_EXPOSED' };
+function say(text, dur) {
+  tSpan.textContent = text.replace(/_/g, '_​');
+  tBox.style.visibility = 'visible';
+  // il testo riempie lo schermo: si cerca la misura più grande che ci sta
+  let lo = 10, hi = Math.min(innerHeight * 0.34, innerWidth * 0.3);
+  for (let i = 0; i < 14; i++) {
+    const m = (lo + hi) / 2; tSpan.style.fontSize = m + 'px';
+    if (tSpan.scrollWidth <= tBox.clientWidth * 0.92 && tSpan.offsetHeight <= innerHeight * 0.85) lo = m; else hi = m;
+  }
+  tSpan.style.fontSize = lo + 'px';
+  tUntil = clock + dur;
+}
+function hush() { tBox.style.visibility = 'hidden'; tUntil = 0; }
+const pct = x => x.toFixed(2);
+let discarded = [];
+
 /* ---------- l'occhio: il vecchio porco ---------- */
 let cur = null, nxt = null, old = null, crossing = false, hops = 0;
 const eye = { x: 0, y: 0.5, z: 0.15 };
@@ -112,7 +141,7 @@ const ZS = () => rr(0.1, 0.19);                        // ampiezza della ricerca
 const kissZ = g => clamp(g.s * rr(0.35, 0.6), 0.008, 0.04);   // quasi a baciarli
 
 function world(p, u, v) { return { x: p.ox + u * p.ar, y: v }; }
-function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i })).filter(g => !(p.visited || []).includes(g.id)); }
+function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i, k: f.k, sc: f.sc })).filter(g => !(p.visited || []).includes(g.id)); }
 function skins(p) { return (p.skin || []).map(q => world(p, q.u, q.v)); }
 function panelAt(x) { for (const p of [cur, nxt, old]) if (p && p.ox !== undefined && x >= p.ox && x < p.ox + p.ar) return p; return null; }
 function skinAt(x, y) {                                // quanta pelle c'è sotto lo sguardo (0..1)
@@ -151,7 +180,8 @@ function plan() {
     const t = gn.length && R() < 0.5 ? gn[(R() * gn.length) | 0] : sk.length ? sk[(R() * sk.length) | 0] : world(nxt, 0.5, 0.5);
     crossing = true;
     const d = Math.abs(t.x - eye.x);
-    push({ x: t.x, y: t.y, z: ZS(), dur: clamp(d * 1.6, 1.6, 4.5), ease: E.sine, arrive: true });
+    push({ x: t.x, y: t.y, z: ZS(), dur: clamp(d * 1.6, 1.6, 4.5), ease: E.sine, arrive: true,
+      say: [R() < 0.25 && discarded.length ? 'SCARTATO ' + discarded[(R() * discarded.length) | 0] : nxt.f || 'NEXT', 2.2] });
     hops = 0;
     return;
   }
@@ -165,16 +195,17 @@ function plan() {
       const k = 1 - z * 1.2 / d;
       push({ x: eye.x + (t.x - eye.x) * k, y: eye.y + (t.y - eye.y) * k, z, dur: clamp(d * 0.9, 0.4, 1.6), ease: E.sacc });
     }
-    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6) });
+    const lab = (CLASS[t.k] || 'GENITALIA_EXPOSED') + ' ' + pct(t.sc || rr(0.2, 0.6));
+    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6), sayAtEnd: [lab, 9] });
     push({ x: t.x, y: t.y, z: kz, dur: rr(3, 5.5), ease: E.slow, hold: rr(3, 6.5), creep: 0.12, kiss: 1 });
-    push({ x: t.x + rr(-0.8, 0.8) * z, y: t.y + rr(-0.5, 0.5) * z, z: ZS(), dur: rr(0.6, 1.2), ease: E.sacc });
+    push({ x: t.x + rr(-0.8, 0.8) * z, y: t.y + rr(-0.5, 0.5) * z, z: ZS(), dur: rr(0.6, 1.2), ease: E.sacc, hush: 1 });
     return;
   }
   const sk = skins(cur);
   if (here > 0.35) {
     // sui corpi: rallenta, scorre sulla pelle
     const n = near(sk, 0.3), t = n.length ? n[(R() * n.length) | 0] : { x: eye.x + rr(-0.15, 0.15), y: eye.y + rr(-0.15, 0.15) };
-    push({ x: t.x, y: t.y, z: ZS() * 0.9, dur: rr(1.4, 3), ease: E.sine, hold: rr(0, 0.5) });
+    push({ x: t.x, y: t.y, z: ZS() * 0.9, dur: rr(1.4, 3), ease: E.sine, hold: rr(0, 0.5), say: R() < 0.3 ? ['SKIN ' + pct(here), 1.2] : null });
     return;
   }
   // nel vuoto: frenetico, scatti nervosi, finché non trova pelle
@@ -182,7 +213,7 @@ function plan() {
   for (let i = 0; i < n; i++) {
     const toSkin = sk.length && R() < 0.45;
     const t = toSkin ? sk[(R() * sk.length) | 0] : { x: eye.x + rr(-0.35, 0.35), y: eye.y + rr(-0.3, 0.3) };
-    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25) });
+    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25), say: i === 0 && R() < 0.25 ? [R() < 0.5 ? 'SEARCHING' : 'NO MATCH ' + pct(rr(0, 0.14)), 0.8] : null });
     if (toSkin) break;
   }
 }
@@ -200,7 +231,11 @@ function stepEye() {
     seg = segs.shift();
     if (!seg) return;
     seg.t0 = clock; seg.x0 = eye.x; seg.y0 = eye.y; seg.z0 = eye.z;
+    if (seg.say) say(seg.say[0], seg.say[1]);
+    if (seg.hush) hush();
   }
+  if (seg.sayAtEnd && clock - seg.t0 >= seg.dur) { say(seg.sayAtEnd[0], seg.sayAtEnd[1]); seg.sayAtEnd = null; }
+  if (tUntil && clock > tUntil) hush();
   kissing = !!seg.kiss;
   const t = (clock - seg.t0) / seg.dur;
   if (t < 1) {
@@ -276,10 +311,11 @@ function frame(now) {
   let data = null;
   try { const r = await fetch('punti.json', { cache: 'no-cache' }); if (r.ok) data = await r.json(); } catch (e) {}
   if (data && data.length) {
-    pool = data.map(d => ({ ii: d.ii, foc: d.foc || [], grid: d.grid, skin: (d.skin || []).map(([u, v]) => ({ u, v })) }));
+    pool = data.map(d => ({ f: (d.f || '').replace(/\.(jpe?g|png|tiff?)$/i, ''), ii: d.ii, foc: d.foc || [], grid: d.grid, skin: (d.skin || []).map(([u, v]) => ({ u, v })) }));
   } else {
     try { const w = await (await fetch('opere.json')).json(); pool = await fromCommons(w.map(x => x.f[0])); } catch (e) {}
   }
+  try { discarded = (await (await fetch('scartati.json')).json()).map(f => f.replace(/\.(jpe?g|png|tiff?)$/i, '')); } catch (e) {}
   pool.forEach(p => { p.ar = p.ii.width / p.ii.height; p.st = 0; p.visited = []; });
   if (!pool.length) return;
   prepare(pool[(R() * pool.length) | 0]);
