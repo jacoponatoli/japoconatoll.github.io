@@ -13,7 +13,7 @@ import requests
 from PIL import Image
 from nudenet import NudeDetector
 
-VERSION = 3
+VERSION = 4
 BUDGET = int(os.environ.get('SGUARDO_BUDGET', '45'))    # dipinti analizzati per giro
 MAX_ATLAS = 800
 UA = {'User-Agent': 'SGUARDO/1.0 (https://jacoponatoli.net/sguardo/) python-requests'}
@@ -62,19 +62,31 @@ def imageinfo(files):
     return info
 
 # ---------- Wikidata: dipinti che raffigurano nudi ----------
-def discover():
-    q = '''SELECT DISTINCT ?img ?label (GROUP_CONCAT(DISTINCT ?dl; separator="|") AS ?deps) WHERE {
-      VALUES ?lab { "nudity"@en "female nude"@en "male nude"@en "nude"@en "female nudity"@en "male nudity"@en "naked woman"@en "naked man"@en }
-      ?n rdfs:label ?lab .
-      ?item wdt:P180 ?n ; wdt:P31 wd:Q3305213 ; wdt:P18 ?img .
-      OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") }
-      OPTIONAL { ?item wdt:P180 ?d . ?d rdfs:label ?dl FILTER(LANG(?dl)="en") }
-    } GROUP BY ?img ?label LIMIT 6000'''
+def qid(label):
     try:
-        r = requests.get('https://query.wikidata.org/sparql', headers=dict(UA, Accept='application/sparql-results+json'),
-                         params={'query': q, 'format': 'json'}, timeout=120).json()
-    except Exception as e:
-        print('wikidata:', e); return []
+        r = requests.get('https://www.wikidata.org/w/api.php', headers=UA, timeout=30, params={
+            'action': 'wbsearchentities', 'search': label, 'language': 'en', 'format': 'json', 'limit': 1}).json()
+        return r['search'][0]['id'] if r.get('search') else None
+    except Exception:
+        return None
+
+def discover():
+    ids = {q for q in (qid(l) for l in ['nudity', 'female nude', 'male nude', 'nude (art)', 'female nudity', 'male nudity']) if q}
+    print('soggetti:', ids)
+    if not ids: return []
+    q = 'SELECT ?img ?label ?deps WHERE { { SELECT ?item (GROUP_CONCAT(DISTINCT ?dl; separator="|") AS ?deps) WHERE { ' \
+        'VALUES ?n { ' + ' '.join('wd:' + i for i in ids) + ' } ?item wdt:P180 ?n ; wdt:P31 wd:Q3305213 . ' \
+        'OPTIONAL { ?item wdt:P180 ?d . ?d rdfs:label ?dl FILTER(LANG(?dl)="en") } } GROUP BY ?item LIMIT 8000 } ' \
+        '?item wdt:P18 ?img . OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") } }'
+    r = None
+    for t in range(3):
+        try:
+            resp = requests.get('https://query.wikidata.org/sparql', headers=dict(UA, Accept='application/sparql-results+json'),
+                                params={'query': q}, timeout=150)
+            r = resp.json(); break
+        except Exception as e:
+            print('wikidata:', e, resp.status_code if 'resp' in dir() else ''); time.sleep(20)
+    if not r: return []
     out = []
     for b in r['results']['bindings']:
         f = requests.utils.unquote(b['img']['value'].split('Special:FilePath/')[-1]).replace('_', ' ')
@@ -82,6 +94,7 @@ def discover():
         if CHILD_WORDS.search(text):
             continue
         out.append(f)
+    out = list(dict.fromkeys(out))
     print('candidati da Wikidata:', len(out))
     return out
 
@@ -90,11 +103,11 @@ det = NudeDetector()
 import torch, open_clip
 clip_model, _, clip_pre = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
 clip_tok = open_clip.get_tokenizer('ViT-B-32')
-PROMPTS_CHILD = ['a painting of a baby', 'a painting of a child', 'a painting of putti', 'a painting of cherubs',
-                 'a painting of cupid as a little boy', 'a painting of a naked child', 'a painting of the infant Jesus',
-                 'a painting of a young girl', 'a painting of a young boy', 'a painting of a teenager']
-PROMPTS_ADULT = ['a painting of a naked adult woman', 'a painting of a naked adult man', 'a painting of adult nudes',
-                 'a painting of a landscape', 'a painting of drapery', 'a painting of an old man', 'a painting of adults']
+PROMPTS_CHILD = ['a painting of a baby', 'a painting of a toddler', 'a painting of putti', 'a painting of cherubs',
+                 'a painting of a winged cupid child', 'a painting of a small naked child', 'a painting of the infant Jesus']
+PROMPTS_ADULT = ['a painting of a nude woman', 'a painting of a reclining nude woman', 'a painting of a nude man',
+                 'a painting of women bathing', 'a painting of adult nudes', 'a painting of a woman', 'a painting of a man',
+                 'a painting of a landscape', 'a painting of drapery', 'a painting of a crowd of adults']
 with torch.no_grad():
     T = clip_model.encode_text(clip_tok(PROMPTS_CHILD + PROMPTS_ADULT)); T /= T.norm(dim=-1, keepdim=True)
 
@@ -180,8 +193,9 @@ for w in todo_cur:
     budget -= 1
     try:
         e, cs = analyse(f, info[f], w['y'], 'scelto')
-        if cs > 0.35:     # anche tra quelli scelti a mano: se CLIP vede bambini, niente soste
-            print(f'{f}: possibili bambini ({cs:.2f}), nessuna sosta'); e['foc'] = []
+        print(f'{f}: CLIP bambini {cs:.2f}')
+        if cs > 0.6:      # anche tra quelli scelti a mano: se CLIP vede bambini, niente soste
+            print(f'{f}: possibili bambini, nessuna sosta'); e['foc'] = []
         for n in w['f']: atlas.pop(n, None)
         atlas[f] = e
         print(f'{f}: {len(e["foc"])} genitali')
@@ -204,7 +218,7 @@ if budget > 0 and len(atlas) < MAX_ATLAS:
         budget -= 1
         try:
             e, cs = analyse(f, info[f], None, 'pescato')
-            if cs > 0.2 or not e['foc']:
+            if cs > 0.35 or not e['foc']:
                 scartati.add(f)
                 print(f'scartato {f}: bambini {cs:.2f}, genitali {len(e["foc"])}')
                 continue
