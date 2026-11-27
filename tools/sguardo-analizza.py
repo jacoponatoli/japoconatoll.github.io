@@ -24,7 +24,15 @@ CHILD_WORDS = re.compile(r"child|infant|baby|babies|boy|girl|putto|putti|cupid|a
                          r"christ child|bambin|fanciull|ragazz|enfant|kind|knabe|mädchen|niño|niña|toddler|"
                          r"madonna|virgin and|holy family|sacra famiglia|nativity|natività|adoration|adorazione|"
                          r"innocents|innocenti|youth|adolescent|teen|son\b|daughter|figli|venus and cupid|"
-                         r"amour|angel|angeli|angioletti|lolita|young girl|jeune fille", re.I)
+                         r"amour|angel|angeli|angioletti|lolita|young girl|jeune fille|"
+                         # età nel titolo, in più lingue
+                         r"\b([1-9]|1[0-7])\s*(år|ar|anni|ans|years|jahre|jaar|años)\b|years old|"
+                         r"twelve|thirteen|fourteen|fifteen|sixteen|seventeen|dodic|tredic|quattordic|quindic|sedic|diciassett|"
+                         r"tolv|tretton|fjorton|femton|sexton|sjutton|douze|treize|quatorze|quinze|seize|dix-sept|"
+                         r"zwölf|dreizehn|vierzehn|fünfzehn|sechzehn|siebzehn|pubert|virgin\b|vergine|maiden|"
+                         # pittori che hanno ritratto modelle o modelli minorenni: mai pescati
+                         r"zorn|bouguereau|schiele|kirchner|gauguin|heckel|pechstein|balthus|mueller|müller|"
+                         r"carroll|flandrin|tuke|scott tuke|von gloeden|eakins|larsson|mucha", re.I)
 
 def load(path, default):
     try: return json.load(open(path))
