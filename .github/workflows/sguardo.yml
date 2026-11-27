@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
-    paths: ["sguardo/opere.json", "sguardo/esclusi.json", "tools/sguardo-analizza.py", ".github/workflows/sguardo.yml"]
+    paths: ["sguardo/opere.json", "sguardo/esclusi.json", "tools/sguardo-vocabolario.txt", "tools/sguardo-analizza.py", ".github/workflows/sguardo.yml"]
 permissions:
   contents: write
 concurrency: sguardo

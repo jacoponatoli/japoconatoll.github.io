@@ -179,6 +179,30 @@ def learned(e):
     if W_learn is None or e is None: return None
     return float(1 / (1 + np.exp(-(e @ W_learn + b_learn))))
 
+# ---------- l'inconscio: lo spazio latente ----------
+VOC = []
+for line in open('tools/sguardo-vocabolario.txt', encoding='utf-8'):
+    line = line.strip()
+    if line and not line.startswith('#') and '|' in line:
+        it, en = line.split('|', 1); VOC.append((it.strip(), en.strip()))
+with torch.no_grad():
+    VE = clip_model.encode_text(clip_tok(['a painting of ' + en for _, en in VOC])); VE /= VE.norm(dim=-1, keepdim=True)
+VE = VE.numpy().astype(np.float32)
+dreams = []          # associazioni del giorno, per il sogno della notte
+
+def associate(e, k=6):
+    if e is None: return [], []
+    sims = VE @ e
+    top = list(np.argsort(-sims)[:k])
+    # deriva: dalla parola più vicina alla più vicina di quella, senza tornare indietro
+    chain, cur, used = [], top[0], set()
+    for _ in range(7):
+        chain.append(VOC[cur][0]); used.add(cur)
+        nb = VE @ VE[cur]
+        nb[list(used)] = -9
+        cur = int(np.argmax(nb + 0.04 * np.random.rand(len(nb))))
+    return [VOC[i][0] for i in top], chain
+
 def detect(im):
     W, H = im.size
     regions = [(0, 0, 1, 1)]
@@ -218,6 +242,8 @@ def judge(im, props):
         if ok:
             g = dict(f); g['sc'] = round(max(nn, p or 0), 3); g['nn'] = nn
             if p is not None: g['p'] = round(p, 3)
+            g['as'], g['catena'] = associate(e)
+            dreams.append(g['as'])
             foc.append(g)
         elif nn >= 0.1:
             rej.append({'u': f['u'], 'v': f['v'], 's': f['s'], 'nn': nn, 'p': round(p, 3) if p is not None else None})
@@ -295,6 +321,20 @@ for e0 in old:
         print('errore', e0['f'], ex)
     time.sleep(1)
 
+for e in list(atlas.values()):          # chi non ha ancora associazioni: le riceve
+    if not e.get('foc') or all('as' in g for g in e['foc']): continue
+    try:
+        raw = requests.get(e['ii']['thumb'] or e['ii']['url'], headers=UA, timeout=120).content
+        im = Image.open(io.BytesIO(raw)).convert('RGB'); W, H = im.size
+        im = im.crop((int(W * CROP), int(H * CROP), int(W * (1 - CROP)), int(H * (1 - CROP))))
+        for g in e['foc']:
+            g['as'], g['catena'] = associate(embed(im, g['u'], g['v'], max(g['s'] * 2.2, 0.06)))
+            dreams.append(g['as'])
+        print('associazioni per', e['f'], e['foc'][0]['as'][:3])
+    except Exception as ex:
+        print('errore associazioni', e['f'], ex)
+    time.sleep(1)
+
 for f, e in list(atlas.items()):      # pescati con una versione vecchia dell'analisi: via
     if e.get('src') != 'scelto' and e.get('v') != VERSION:
         atlas.pop(f)
@@ -355,9 +395,23 @@ else:
     json.dump({'giro': giro, 'esempi': int(len(y)), 'coef': occhio['coef'] if occhio else None,
                'b': b_learn}, open(OCCHIO, 'w')) if occhio else None
 
+# ---------- il sogno della notte: le associazioni del giorno, rimescolate ----------
+sogno = []
+pool_w = [w for a in dreams for w in a[:4]] or [w for e in atlas.values() for f in e.get('foc', []) for w in f.get('as', [])[:4]]
+if pool_w:
+    for _ in range(12):
+        n = random.choice([2, 3, 3, 4, 5])
+        line = []
+        while len(line) < n:
+            w = random.choice(pool_w)
+            if w not in line: line.append(w)
+            if len(set(pool_w)) < n: break
+        sogno.append(' '.join(line))
+print('sogno:', ' / '.join(sogno[:4]))
+
 # ---------- quello che la voce può dire: dati veri di questa notte ----------
 oc = load(OCCHIO, {}) or {}
 json.dump({'giro': giro, 'esempi': int(len(y)), 'si': int(y.sum()) if len(y) else 0,
            'precisione': oc.get('precisione'), 'atlante': len(res), 'scartati': len(scartati),
-           'motivi': dict(list(motivi.items())[-400:])},
+           'motivi': dict(list(motivi.items())[-400:]), 'sogno': sogno},
           open('sguardo/voce.json', 'w'), ensure_ascii=False, separators=(',', ':'))

@@ -13,6 +13,9 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden}
    color:#fff;font-family:"Archivo","Arial Black",Arial,sans-serif;font-weight:800;font-stretch:125%;line-height:.92;
    text-align:center;text-transform:uppercase;overflow-wrap:anywhere;pointer-events:none;visibility:hidden}
 #t span{display:block;max-width:100%}
+#u{position:fixed;left:0;right:0;bottom:9vh;padding:0 6vw;text-align:center;color:#fff;pointer-events:none;
+   font-family:"Archivo",Arial,sans-serif;font-weight:400;font-stretch:100%;font-size:clamp(16px,2.6vw,34px);
+   letter-spacing:.02em;text-transform:lowercase;visibility:hidden}
 canvas{display:block;width:100vw;height:100vh}
 body.idle{cursor:none}
 </style>
@@ -20,12 +23,15 @@ body.idle{cursor:none}
 <body>
 <canvas id="c"></canvas>
 <div id="t"><span></span></div>
+<div id="u"></div>
 <script>
 {
 /* SGUARDO (titolo provvisorio)
    La ricerca dell'osceno: ciò che sta fuori scena (ob-skené), portato davanti agli occhi.
    Lo sguardo di qualcuno, senza effetti: solo l'occhio che si muove. E la sua voce: la lingua della
-   macchina (classi, punteggi, nomi di file, scarti) che appare grande come uno slogan.
+   macchina (classi, punteggi, nomi di file, scarti) che appare grande come uno slogan; e sotto, piccolo,
+   l'inconscio: le parole che lo spazio latente di CLIP associa a ciò che guarda, la loro deriva, e il sogno
+   della notte. Con lunghi silenzi senza nessuna scritta.
    Nel vuoto è frenetico, a scatti; quando incontra i corpi rallenta e scorre sulla pelle;
    quando trova i genitali si inchioda (oddio, l'ho trovato), zooma fin quasi a baciarli, resta,
    e se ne va. I dipinti stanno uno accanto all'altro: l'occhio passa sul quadro vicino e continua.
@@ -118,6 +124,7 @@ const tBox = document.getElementById('t'), tSpan = tBox.firstChild;
 let tUntil = 0;
 const CLASS = { 'vulva': 'FEMALE_GENITALIA_EXPOSED', 'vulva coperta': 'FEMALE_GENITALIA_COVERED', 'pene': 'MALE_GENITALIA_EXPOSED', 'ano': 'ANUS_EXPOSED' };
 function say(text, dur) {
+  if (clock < silentUntil) return;
   tSpan.textContent = text.replace(/_/g, '_​');
   tBox.style.visibility = 'visible';
   // il testo riempie lo schermo: si cerca la misura più grande che ci sta
@@ -130,6 +137,25 @@ function say(text, dur) {
   tUntil = clock + dur;
 }
 function hush() { tBox.style.visibility = 'hidden'; tUntil = 0; }
+
+/* ---------- l'inconscio: quello che affiora dallo spazio latente, piccolo, minuscolo ---------- */
+const uBox = document.getElementById('u');
+let uWords = [], uNext = 0, uStep = 0, uUntil = 0;
+function murmur(words, step) {          // parola dopo parola, come una deriva
+  if (clock < silentUntil || !words || !words.length) return;
+  uWords = words.slice(); uBox.textContent = ''; uBox.style.visibility = 'visible';
+  uStep = step || 0.9; uNext = clock; uUntil = clock + uWords.length * uStep + 2.5;
+}
+function tickMurmur() {
+  if (!uUntil) return;
+  if (uWords.length && clock >= uNext) { uBox.textContent += (uBox.textContent ? '  ' : '') + uWords.shift(); uNext = clock + uStep; }
+  if (clock > uUntil) { uBox.style.visibility = 'hidden'; uUntil = 0; uWords = []; }
+}
+// i silenzi: lunghi tratti senza nessuna scritta
+let silentUntil = 0, nextSilence = 25;
+function tickSilence() {
+  if (clock > nextSilence) { silentUntil = clock + rr(20, 60); nextSilence = silentUntil + rr(30, 90); hush(); uBox.style.visibility = 'hidden'; uUntil = 0; }
+}
 const pct = x => (+x).toFixed(2);
 let discarded = [], voce = {}, seenSet = new Set();
 const pickOf = a => a[(R() * a.length) | 0];
@@ -176,7 +202,7 @@ const ZS = () => rr(0.1, 0.19);                        // ampiezza della ricerca
 const kissZ = g => clamp(g.s * rr(0.35, 0.6), 0.008, 0.04);   // quasi a baciarli
 
 function world(p, u, v) { return { x: p.ox + u * p.ar, y: v }; }
-function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i, k: f.k, sc: f.sc, nn: f.nn, p: f.p, u: f.u, v: f.v })).filter(g => !(p.visited || []).includes(g.id)); }
+function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i, k: f.k, sc: f.sc, nn: f.nn, p: f.p, u: f.u, v: f.v, as: f.as, catena: f.catena })).filter(g => !(p.visited || []).includes(g.id)); }
 function skins(p) { return (p.skin || []).map(q => world(p, q.u, q.v)); }
 function panelAt(x) { for (const p of [cur, nxt, old]) if (p && p.ox !== undefined && x >= p.ox && x < p.ox + p.ar) return p; return null; }
 function skinAt(x, y) {                                // quanta pelle c'è sotto lo sguardo (0..1)
@@ -257,7 +283,8 @@ function plan() {
   for (let i = 0; i < n; i++) {
     const toSkin = sk.length && R() < 0.45;
     const t = toSkin ? sk[(R() * sk.length) | 0] : { x: eye.x + rr(-0.35, 0.35), y: eye.y + rr(-0.3, 0.3) };
-    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25), say: i === 0 && R() < 0.25 ? (R() < 0.08 ? ['NON HO UNA CLASSE PER: ' + pickOf(NOCLASS), 2.4] : R() < 0.1 && memoryLine() ? [memoryLine(), 1.6] : [R() < 0.5 ? 'SEARCHING' : R() < 0.6 ? 'NO MATCH ' + pct(rr(0, 0.14)) : 'CERCO ANCORA', 0.9]) : null });
+    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25), murmur: i === 0 && R() < 0.05 && voce.sogno && voce.sogno.length ? pickOf(voce.sogno).split(' ') : null,
+      say: i === 0 && R() < 0.25 ? (R() < 0.08 ? ['NON HO UNA CLASSE PER: ' + pickOf(NOCLASS), 2.4] : R() < 0.1 && memoryLine() ? [memoryLine(), 1.6] : [R() < 0.5 ? 'SEARCHING' : R() < 0.6 ? 'NO MATCH ' + pct(rr(0, 0.14)) : 'CERCO ANCORA', 0.9]) : null });
     if (toSkin) break;
   }
 }
@@ -276,6 +303,7 @@ function stepEye() {
     if (!seg) return;
     seg.t0 = clock; seg.x0 = eye.x; seg.y0 = eye.y; seg.z0 = eye.z;
     if (seg.say) say(seg.say[0], seg.say[1]);
+    if (seg.murmur) murmur(seg.murmur, rr(0.7, 1.3));
     if (seg.hush) hush();
   }
   if (seg.sayAtEnd && clock - seg.t0 >= seg.dur) { say(seg.sayAtEnd[0], seg.sayAtEnd[1]); seg.sayAtEnd = null; }
@@ -342,6 +370,7 @@ function frame(now) {
     if (nxt && nxt.st === 3) nxt = null;
     if (!crossing) setOx();
     stepEye();
+    tickSilence(); tickMurmur();
   }
   const W = cv.width, H = cv.height;
   if (!cur) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); return; }
