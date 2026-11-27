@@ -13,7 +13,7 @@ import requests
 from PIL import Image
 from nudenet import NudeDetector
 
-VERSION = 4
+VERSION = 5
 BUDGET = int(os.environ.get('SGUARDO_BUDGET', '45'))    # dipinti analizzati per giro
 MAX_ATLAS = 800
 UA = {'User-Agent': 'SGUARDO/1.0 (https://jacoponatoli.net/sguardo/) python-requests'}
@@ -72,12 +72,14 @@ def qid(label):
 
 def discover():
     ids = {q for q in (qid(l) for l in ['nudity', 'female nude', 'male nude', 'nude (art)', 'female nudity', 'male nudity']) if q}
-    print('soggetti:', ids)
+    kids = {q for q in (qid(l) for l in ['child', 'infant', 'boy', 'girl', 'putto', 'Cupid', 'Christ Child', 'cherub',
+                                        'angel', 'Madonna and Child', 'baby', 'toddler', 'adolescent', 'Eros', 'Amor']) if q}
+    print('soggetti:', ids, 'esclusi:', kids)
     if not ids: return []
-    q = 'SELECT ?img ?label ?deps WHERE { { SELECT ?item (GROUP_CONCAT(DISTINCT ?dl; separator="|") AS ?deps) WHERE { ' \
-        'VALUES ?n { ' + ' '.join('wd:' + i for i in ids) + ' } ?item wdt:P180 ?n ; wdt:P31 wd:Q3305213 . ' \
-        'OPTIONAL { ?item wdt:P180 ?d . ?d rdfs:label ?dl FILTER(LANG(?dl)="en") } } GROUP BY ?item LIMIT 8000 } ' \
-        '?item wdt:P18 ?img . OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") } }'
+    q = ('SELECT DISTINCT ?img ?label WHERE { VALUES ?n { ' + ' '.join('wd:' + i for i in ids) + ' } '
+         '?item wdt:P180 ?n ; wdt:P31 wd:Q3305213 ; wdt:P18 ?img . '
+         'FILTER NOT EXISTS { VALUES ?c { ' + ' '.join('wd:' + i for i in kids) + ' } ?item wdt:P180 ?c } '
+         'OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") } } LIMIT 6000')
     r = None
     for t in range(3):
         try:
@@ -90,7 +92,7 @@ def discover():
     out = []
     for b in r['results']['bindings']:
         f = requests.utils.unquote(b['img']['value'].split('Special:FilePath/')[-1]).replace('_', ' ')
-        text = ' '.join([f, b.get('label', {}).get('value', ''), b.get('deps', {}).get('value', '')])
+        text = ' '.join([f, b.get('label', {}).get('value', '')])
         if CHILD_WORDS.search(text):
             continue
         out.append(f)
@@ -194,8 +196,6 @@ for w in todo_cur:
     try:
         e, cs = analyse(f, info[f], w['y'], 'scelto')
         print(f'{f}: CLIP bambini {cs:.2f}')
-        if cs > 0.6:      # anche tra quelli scelti a mano: se CLIP vede bambini, niente soste
-            print(f'{f}: possibili bambini, nessuna sosta'); e['foc'] = []
         for n in w['f']: atlas.pop(n, None)
         atlas[f] = e
         print(f'{f}: {len(e["foc"])} genitali')
