@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-26",
+  "aggiornato": "2026-11-27",
   "parole": {
     "good": [
       "sanità:fs",
@@ -121,7 +121,11 @@
       "autonomia:fs",
       "assenza:fs",
       "pausa:fs",
-      "nulla:ms"
+      "nulla:ms",
+      "comunità secessive:fp",
+      "punti di luce:mp",
+      "macchie solari:fp",
+      "bolle di sapone:fp"
     ],
     "bad": [
       "riarmo:ms",
@@ -285,7 +289,13 @@
       "debito:ms",
       "logistica:fs",
       "estrazione:fs",
-      "produttività:fs"
+      "produttività:fs",
+      "caro vita:ms",
+      "guerra ibrida:fs",
+      "drenaggio fiscale:ms",
+      "ansia acquisitiva:fs",
+      "fasce di garanzia:fp",
+      "sconti:mp"
     ],
     "subj": [
       "liceali:mp",
@@ -345,7 +355,9 @@
       "obiettori di coscienza:mp",
       "figli rotti:mp",
       "moltitudini:fp",
-      "precari cognitivi:mp"
+      "precari cognitivi:mp",
+      "disertori del clima:mp",
+      "gilet gialli:mp"
     ],
     "place": [
       "licei:mp",
@@ -389,7 +401,8 @@
       "sottotetti:mp",
       "margini:mp",
       "spazi vuoti:mp",
-      "divani:mp"
+      "divani:mp",
+      "binari morti:mp"
     ]
   },
   "slogan": [
@@ -1981,6 +1994,76 @@
         "Sleep is the last strike",
         "Le vide n'est pas à vous"
       ]
+    },
+    {
+      "d": "2026-11-27",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Giù le armi, su i cuscini",
+        "Ogni euro speso in armi è tolto al sonno",
+        "Il sonno è un diritto sancito dalla Costituzione",
+        "Fasce di garanzia per i sogni",
+        "Fascia di garanzia: dalle 21 alle 9 si dorme",
+        "Treni fermi, sogni in orario",
+        "Caro vita, carissima pausa",
+        "Tetto al gas, cielo al nulla",
+        "Mini aiuti, maxi ozi",
+        "Guerra ibrida? Pigrizia ibrida",
+        "Il doppio fronte: il cuscino e il divano",
+        "Disertori del clima, del lavoro, del feed",
+        "Black Friday, blank Friday",
+        "Venerdì nero, sabato vuoto",
+        "Nessuno sconto sul nostro tempo",
+        "Fino a esaurimento sogni",
+        "Agentic shopping? Agentic napping",
+        "L'agente compra, noi dormiamo",
+        "Nos rêves, pas vos profits",
+        "Vie chère, nuit gratuite",
+        "Conférence sociale? Sieste sociale",
+        "La flemme est toujours aussi forte",
+        "Disarmiamo il calendario",
+        "Sabotiamo le sveglie e le guerre",
+        "No kings, no alarm clocks",
+        "Allerta gialla: rischio ozio diffuso",
+        "Drenaggio fiscale, drenaggio dei sogni: tappiamo tutto",
+        "Prova generale di non fare niente",
+        "Un milione e mezzo di persone a letto",
+        "Loro fanno quadrato, noi facciamo cerchio sul prato",
+        "Stop all'aumento dell'età svegliabile",
+        "Meno soldi per la difesa, più tempo per la siesta",
+        "Lo sciopero è un diritto, la siesta un rovescio vincente",
+        "Assenze in tutta Italia",
+        "La bolla esploderà, il vuoto resterà"
+      ]
+    },
+    {
+      "d": "2026-11-27",
+      "tipo": "lessico di una newsletter",
+      "fonte": "IL DISERTORE, newsletter di Franco Berardi (Bifo): Un movimento sull'orlo di ignoti domani",
+      "t": [
+        "Non sono frittelle: sono macchie solari",
+        "Disseminati ovunque, lampeggiano ironici punti di sonno",
+        "Rave politico, sonno politico",
+        "Comunità secessive ai margini del calendario",
+        "Spazi di allegria nella disperazione: apriamone uno qui",
+        "Movimento è spostarsi dove si vede l'uscita",
+        "Dalla convulsione alla siesta",
+        "Alzarsi in piedi, poi sdraiarsi insieme",
+        "Più amici, più amanti, meno account",
+        "Smontiamo l'automa, rimontiamolo come un'altalena",
+        "Vaste programme: dormire tutti",
+        "Chi non ha fatto la siesta non ha diritto di parola",
+        "È tempo di tacere: anche il silenzio è un movimento",
+        "Esaurimento o fuga? Fuga, poi un pisolino",
+        "Aura battles contro il potere grigio",
+        "Curare l'ansia acquisitiva: non comprare, giocare",
+        "Il gioco cosmico non ha turni di lavoro",
+        "La bolla scoppia, restano le bolle di sapone",
+        "Rovesciamo la piramide, raddrizziamo l'amaca",
+        "Generazione ultima, primo sonno",
+        "Sull'orlo di ignoti domani, oggi si dorme",
+        "L'automa impone il ritmo: noi andiamo fuori tempo"
+      ]
     }
   ],
   "letti": [
@@ -3197,6 +3280,57 @@
         "spazi di non pubblicità",
         "economia dell'attenzione",
         "24/7: il sonno come ultimo spazio non colonizzato"
+      ]
+    },
+    {
+      "d": "2026-11-27",
+      "t": [
+        "Lo sciopero è un diritto sancito dalla Costituzione",
+        "Ogni euro speso in armi è tolto a scuola, sanità, pensioni, lavoro",
+        "Giù le armi, su i salari",
+        "caro vita",
+        "fasce di garanzia",
+        "Treni fermi dalle 21 di venerdì alle 20 di sabato",
+        "meno soldi per la difesa e più per sanità, scuola e welfare",
+        "stop all'aumento dell'età pensionabile",
+        "Un milione e mezzo di persone coinvolte",
+        "fiscal drag",
+        "prova generale",
+        "Il doppio fronte della guerra ibrida",
+        "I disertori del clima",
+        "Tetto per gas e bollette",
+        "Bollette, sì ai mini aiuti",
+        "Hacker, il G7 fa quadrato",
+        "Allerta gialla per maltempo",
+        "Vie chère, moyens pour l'éducation",
+        "Nos pensions, pas vos profits",
+        "conférence sociale",
+        "la colère est toujours aussi forte",
+        "No Kings",
+        "Disarmiamo il patriarcato",
+        "Black Friday 2026: agentic AI shopping",
+        "fino a esaurimento scorte",
+        "IL DISERTORE: Un movimento sull'orlo di ignoti domani",
+        "non son frittelle (macchie solari)",
+        "disseminati ovunque, lampeggiano ironici punti di luce",
+        "rave politico",
+        "comunità secessive e autonome che si acquartierano ai margini",
+        "spazi di allegria nella disperazione",
+        "Movimento è uno spostamento epistemico",
+        "dalla convulsione alla cognizione",
+        "Insorgere significa alzarsi in piedi",
+        "più amici e più amanti",
+        "smontarlo e rimontarlo per l'interesse collettivo",
+        "Vaste programme",
+        "chi non ha fatto l'inchiesta non ha diritto di parola",
+        "è tempo di tacere",
+        "L'orizzonte del secolo ventuno è l'esaurimento, o la fuga",
+        "aura battles",
+        "ansia acquisitiva",
+        "gioco cosmico",
+        "la bolla dell'AI",
+        "Squaring the pyramid",
+        "generazione ultima"
       ]
     }
   ]
