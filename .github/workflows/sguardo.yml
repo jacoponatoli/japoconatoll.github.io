@@ -21,7 +21,7 @@ jobs:
           python-version: "3.11"
       - name: Analisi
         run: |
-          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -q nudenet pillow requests open_clip_torch
           python tools/sguardo-analizza.py
       - name: Salva
