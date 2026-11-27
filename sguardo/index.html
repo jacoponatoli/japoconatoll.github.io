@@ -12,209 +12,99 @@ body.idle{cursor:none}
 </head>
 <body>
 <canvas id="c"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <script>
 {
 /* SGUARDO (titolo provvisorio)
    La ricerca dell'osceno: ciò che sta fuori scena (ob-skené), portato davanti agli occhi.
-   Una soggettiva: lo sguardo di qualcuno, con il suo respiro e la testa che si muove.
+   Lo sguardo di qualcuno, senza effetti: solo l'occhio che si muove.
    Nel vuoto è frenetico, a scatti; quando incontra i corpi rallenta e scorre sulla pelle;
    quando trova i genitali si inchioda (oddio, l'ho trovato), zooma fin quasi a baciarli, resta,
    e se ne va. I dipinti stanno uno accanto all'altro: l'occhio passa sul quadro vicino e continua.
-   I genitali li trova NudeNet (riconoscimento convertito in TFJS da Vladimir Mandic), che analizza
-   nel browser solo il dipinto attuale e quello accanto. Solo figure adulte: nessun putto o bambino. */
+   Versione leggera: i genitali e la pelle sono già stati trovati una volta sola (punti.json,
+   calcolato da GitHub Actions con NudeNet); il browser carica solo due dipinti alla volta.
+   Solo figure adulte: nessun putto o bambino. */
 
-const WORKS = [
-  { y: -70,  f: ['Casa dei vettii, vestibolo, priapo che poggia il fallo sulla bilancia 01.jpg', 'Pompeii House of the Vettii 01.jpg'] },
-  { y: 1432, f: ['Lamgods open.jpg'] },
-  { y: 1485, f: ['Sandro Botticelli - La nascita di Venere - Google Art Project - edited.jpg', 'La naissance de Vénus, Boticelli.jpg'] },
-  { y: 1500, f: ['The Garden of Earthly Delights by Bosch High Resolution 2.jpg'] },
-  { y: 1502, f: ['Orvieto107.jpg', 'Signorelli Resurrection.jpg'] },
-  { y: 1507, f: ['Albrecht Dürer - Adam (Prado).jpg'] },
-  { y: 1507.5, f: ['Albrecht Dürer - Eve (Prado).jpg'] },
-  { y: 1510, f: ['Giorgione - Sleeping Venus - Google Art Project 2.jpg'] },
-  { y: 1516, f: ['Jan Gossaert 008.jpg'] },
-  { y: 1520, f: ["Titian (Tiziano Vecellio) - Venus Rising from the Sea ('Venus Anadyomene') - Google Art Project.jpg"] },
-  { y: 1538, f: ['Tiziano - Venere di Urbino - Google Art Project.jpg'] },
-  { y: 1541, f: ['Last Judgement (Michelangelo).jpg', 'Last Judgement by Michelangelo.jpg'] },
-  { y: 1546, f: ['Lucas Cranach - Der Jungbrunnen (Gemäldegalerie Berlin).jpg', 'Lucas Cranach (I) - Jungbrunnen - Gemäldegalerie Berlin.jpg'] },
-  { y: 1553, f: ['Tizian - Danae receiving the Golden Rain - Prado.jpg'] },
-  { y: 1610, f: ['Susanna and the Elders (1610), Artemisia Gentileschi.jpg'] },
-  { y: 1654, f: ['Rembrandt Harmensz. van Rijn 016.jpg'] },
-  { y: 1798, f: ['Goya Maja naga2.jpg'] },
-  { y: 1814, f: ['Jean Auguste Dominique Ingres, La Grande Odalisque, 1814.jpg'] },
-  { y: 1853, f: ['Les Baigneuses-Courbet.jpg'] },
-  { y: 1861, f: ['Jean-Léon Gérôme, Phryne revealed before the Areopagus (1861) - 01.jpg'] },
-  { y: 1862, f: ['Le Bain Turc, by Jean Auguste Dominique Ingres, from C2RMFFXD.jpg', 'Le Bain Turc, by Jean Auguste Dominique Ingres, from C2RMF retouched.jpg'] },
-  { y: 1863, f: ['Edouard Manet - Luncheon on the Grass - Google Art Project.jpg'] },
-  { y: 1863.5, f: ['Edouard Manet - Olympia - Google Art Project 3.jpg'] },
-  { y: 1866, f: ['Gustave Courbet - The Origin of the World - WGA05503.jpg', 'Courbet-origine-monde.jpg'] },
-  { y: 1866.2, f: ['Gustave Courbet - Le Sommeil (1866), Paris, Petit Palais.jpg'] },
-  { y: 1866.5, f: ['Gustave Courbet - Woman with a Parrot - Google Art Project.jpg'] },
-  { y: 1873, f: ['William-Adolphe Bouguereau (1825-1905) - Nymphs and Satyr (1873) HQ.jpg', 'William-Adolphe Bouguereau (1825-1905) - Nymphs and Satyr (1873).jpg'] },
-  { y: 1884, f: ['Gustave Caillebotte -Man at His Bath.jpg'] },
-  { y: 1906, f: ['Paula Moderson-Becker - Selbstbildnis am 6 Hochzeitstag (1906).jpg'] },
-  { y: 1906.5, f: ['Paul Cézanne - Les Grandes Baigneuses (The Large Bathers) - Google Art Project.jpg'] },
-  { y: 1907, f: ['Gustav Klimt 010.jpg'] },
-  { y: 1916, f: ['Amedeo Modigliani, 1916, Reclining Nude (Nu couché), oil on canvas, 65.5 x 87 cm, Foundation E.G. Bührle.jpg'] },
-  { y: 1917, f: ['Amedeo Modigliani 012.jpg'] },
-  { y: 1917.5, f: ['Amedeo Modigliani 014.jpg'] }
-];
-
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const cv = document.getElementById('c'), ctx = cv.getContext('2d', { alpha: false });
 const R = Math.random, rr = (a, b) => a + R() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const CROP = 0.03, STEPS = [960, 1280, 1920, 3840];
-const Z_MIN = 0.045, Z_MAX = 0.2;          // sempre vicino: non si deve capire quale dipinto è
+const SMALL = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 800 || (navigator.deviceMemory || 8) <= 4;
+const HI_H = SMALL ? 1500 : 2600;             // altezza dell'immagine scaricata
+const MAX_W = SMALL ? 1920 : 3840;
 
-/* ---------- opere da Wikimedia Commons ---------- */
-async function infos(files) {
-  const map = new Map();
-  for (let i = 0; i < files.length; i += 40) {
-    const t = files.slice(i, i + 40).map(f => 'File:' + f).join('|');
-    const u = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*' +
-              '&prop=imageinfo&iiprop=size|url|mime&iiurlwidth=1920&titles=' + encodeURIComponent(t);
-    try {
-      const j = await (await fetch(u)).json();
-      const norm = {};
-      for (const n of (j.query && j.query.normalized) || []) norm[n.to] = n.from;
-      for (const p of Object.values((j.query && j.query.pages) || {})) {
-        const ii = p.imageinfo && p.imageinfo[0];
-        if (!ii || !ii.width || !ii.height || Math.min(ii.width, ii.height) < 650) continue;
-        const v = { ar: ii.width / ii.height, width: ii.width, height: ii.height, url: ii.url, thumb: ii.thumburl || '', mime: ii.mime || '', size: ii.size || 0 };
-        map.set((norm[p.title] || p.title).replace(/^File:/, '').replace(/_/g, ' '), v);
-        map.set(p.title.replace(/^File:/, ''), v);
-      }
-    } catch (e) {}
-  }
-  return map;
-}
-const okOrig = ii => /jpeg|png/.test(ii.mime) && ii.size < 30e6;
+/* ---------- dati ---------- */
+const okOrig = ii => /jpeg|png/.test(ii.mime) && ii.size < 25e6;
 function urlAt(ii, w) {
   if (w >= ii.width) return okOrig(ii) ? ii.url : ii.thumb;
   if (ii.thumb.includes('/1920px-')) return ii.thumb.replace('/1920px-', '/' + w + 'px-');
   return ii.thumb;
 }
-function hiSources(ii) {
-  const step = STEPS.find(s => s >= ii.width * 3000 / ii.height) || 3840;
-  return [...new Set([urlAt(ii, step), ii.thumb, okOrig(ii) ? ii.url : ''].filter(Boolean))];
+function srcs(ii) {
+  const step = Math.min(MAX_W, STEPS.find(s => s >= ii.width * HI_H / ii.height) || 3840);
+  return [...new Set([urlAt(ii, step), ii.thumb].filter(Boolean))];
 }
-function loadImg(srcs, cb, fail, needClean) {
-  let k = 0, cors = true;
-  const img = new Image(); img.decoding = 'async';
-  const go = () => { if (cors) img.crossOrigin = 'anonymous'; else img.removeAttribute('crossorigin'); img.src = srcs[k]; };
-  img.onload = async () => { try { if (img.decode) await img.decode(); } catch (e) {} cb(img, cors); };
-  img.onerror = () => { if (cors && !needClean) { cors = false; go(); return; } cors = true; if (++k < srcs.length) go(); else fail(); };
-  if (!srcs.length) { fail(); return; }
-  go();
-}
-function cropToCanvas(img, maxH, maxW) {
-  const iw = img.naturalWidth, ih = img.naturalHeight;
-  const sx = iw * CROP, sy = ih * CROP, sw = iw - 2 * sx, sh = ih - 2 * sy;
-  const sc = Math.min(1, maxH / sh, maxW / sw);
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, Math.round(sw * sc)); c.height = Math.max(1, Math.round(sh * sc));
-  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
-  g.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
-  return c;
-}
-function sub(src, x, y, w, h, max) {
-  const sc = Math.min(1, max / Math.max(w, h));
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
-  c.getContext('2d').drawImage(src, x, y, w, h, 0, 0, c.width, c.height);
-  return c;
-}
-
-/* ---------- pelle: punti e mappa ---------- */
-function skinPoints(c, p) {
-  try {
-    const g = sub(c, 0, 0, c.width, c.height, 96).getContext('2d');
-    const w = g.canvas.width, h = g.canvas.height;
-    const d = g.getImageData(0, 0, w, h).data, out = [], grid = new Uint8Array(w * h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4, r = d[i], gg = d[i + 1], b = d[i + 2];
-      const sk = r > 90 && gg > 40 && b > 20 && r > gg && r > b && r - Math.min(gg, b) > 15 && Math.abs(r - gg) > 12;
-      grid[y * w + x] = sk ? 1 : 0;
-      if (sk && x % 2 && y % 2) out.push({ u: x / w, v: y / h });
-    }
-    if (p) p.grid = { w, h, d: grid };
-    for (let i = out.length - 1; i > 0; i--) { const j = (R() * (i + 1)) | 0; [out[i], out[j]] = [out[j], out[i]]; }
-    return out.slice(0, 80);
-  } catch (e) { return []; }
-}
-
-/* ---------- genitali: NudeNet ---------- */
-const STOP = { 13: 'vulva', 15: 'pene' };            // solo genitali
-let model = null, busy = false;
-async function runOn(c, ox, oy, sw, sh, out) {
-  const input = tf.tidy(() => tf.expandDims(tf.cast(tf.browser.fromPixels(c), 'float32'), 0));
-  const outs = await model.executeAsync(input, ['output1', 'output2', 'output3']);
-  const boxes = await outs[0].array(), scores = await outs[1].data(), classes = await outs[2].data();
-  tf.dispose([input, ...outs]);
-  for (let i = 0; i < scores.length; i++) {
-    const k = classes[i];
-    if (scores[i] < 0.22 || !STOP[k]) continue;
-    const [x1, y1, x2, y2] = boxes[0][i];
-    const u = ox + (x1 + x2) / 2 / c.width * sw, v = oy + (y1 + y2) / 2 / c.height * sh;
-    if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-    out.push({ u, v, s: clamp(Math.abs(y2 - y1) / c.height * sh, 0.01, 0.3), sc: scores[i] });
+async function fromCommons(files) {             // riserva, se punti.json non c'è ancora
+  const out = [];
+  for (let i = 0; i < files.length; i += 40) {
+    const t = files.slice(i, i + 40).map(f => 'File:' + f).join('|');
+    try {
+      const j = await (await fetch('https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=size|url|mime&iiurlwidth=1920&titles=' + encodeURIComponent(t))).json();
+      for (const p of Object.values((j.query && j.query.pages) || {})) {
+        const ii = p.imageinfo && p.imageinfo[0];
+        if (ii && ii.width && Math.min(ii.width, ii.height) >= 650)
+          out.push({ ii: { width: ii.width, height: ii.height, url: ii.url, thumb: ii.thumburl || '', mime: ii.mime || '', size: ii.size || 0 }, foc: [], skin: [], grid: null });
+      }
+    } catch (e) {}
   }
-  await new Promise(r => setTimeout(r, 60));          // respiro per il browser
+  return out;
 }
-async function detect(p) {
-  if (!model || busy || !p.small || p.det) return;
-  busy = true;
+function skinFromImage(p) {                      // solo nella riserva
   try {
-    const c = p.small, W = c.width, H = c.height, out = [];
-    await runOn(sub(c, 0, 0, W, H, 960), 0, 0, 1, 1, out);
-    for (const [a, b] of [[0, 0], [0.45, 0], [0, 0.45], [0.45, 0.45]])
-      await runOn(sub(c, a * W, b * H, 0.55 * W, 0.55 * H, 720), a, b, 0.55, 0.55, out);
-    out.sort((a, b) => b.sc - a.sc);
-    const keep = [];
-    for (const f of out) if (!keep.some(g => Math.hypot(g.u - f.u, g.v - f.v) < Math.max(g.s, f.s) * 0.6)) keep.push(f);
-    p.foc = keep;
+    const c = document.createElement('canvas'); c.width = 96; c.height = Math.max(8, Math.round(96 / p.ar));
+    const g = c.getContext('2d'), iw = p.img.naturalWidth, ih = p.img.naturalHeight;
+    g.drawImage(p.img, iw * CROP, ih * CROP, iw * (1 - 2 * CROP), ih * (1 - 2 * CROP), 0, 0, c.width, c.height);
+    const d = g.getImageData(0, 0, c.width, c.height).data; let s = '';
+    for (let i = 0; i < c.width * c.height; i++) {
+      const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
+      const k = r > 90 && gg > 40 && b > 20 && r > gg && r > b && r - Math.min(gg, b) > 15 && Math.abs(r - gg) > 12;
+      s += k ? '1' : '0';
+      if (k && i % 7 === 0) p.skin.push({ u: (i % c.width) / c.width, v: ((i / c.width) | 0) / c.height });
+    }
+    p.grid = { w: c.width, h: c.height, d: s };
   } catch (e) {}
-  p.det = true; p.small.width = p.small.height = 0; p.small = null;
-  busy = false;
-}
-async function loadModel() {
-  try {
-    if (!window.tf) return;
-    await tf.ready();
-    model = await tf.loadGraphModel('model/model.json');
-  } catch (e) { model = null; }
 }
 
-/* ---------- preparazione: solo il dipinto attuale e quello accanto ---------- */
+/* ---------- immagini: solo il dipinto attuale, quello accanto e quello appena lasciato ---------- */
 let pool = [], recent = [];
 function prepare(p) {
   if (p.st) return;
   p.st = 1;
-  loadImg([urlAt(p.ii, 1280), p.ii.thumb], img => {
-    p.small = cropToCanvas(img, 1600, 1600);
-    p.skin = skinPoints(p.small, p);
-    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 4000, 7000); p.st = 2; }, () => { p.st = 3; });
-  }, () => {
-    loadImg(hiSources(p.ii), im => { p.hi = cropToCanvas(im, 4000, 7000); p.skin = []; p.st = 2; }, () => { p.st = 3; });
-  }, true);
+  const list = srcs(p.ii); let k = 0;
+  const img = new Image(); img.decoding = 'async';
+  const fallback = !p.grid;
+  if (fallback) img.crossOrigin = 'anonymous';
+  img.onload = async () => {
+    try { if (img.decode) await img.decode(); } catch (e) {}
+    if (p.st !== 1) return;
+    p.img = img; p.st = 2;
+    if (fallback) skinFromImage(p);
+  };
+  img.onerror = () => { if (++k < list.length) img.src = list[k]; else p.st = 3; };
+  img.src = list[0];
 }
 function release(p) {
-  if (p.hi) { p.hi.width = p.hi.height = 0; p.hi = null; }
-  if (p.small) { p.small.width = p.small.height = 0; p.small = null; }
-  p.st = 0; p.det = false; p.visited = [];
+  if (p.img) { p.img.onload = p.img.onerror = null; p.img.src = ''; p.img = null; }
+  p.st = 0; p.visited = [];
 }
 function chooseNext(cur) {
   const c = pool.filter(p => p !== cur && p.st !== 3 && !recent.includes(p));
   const list = c.length ? c : pool.filter(p => p !== cur && p.st !== 3);
-  const withG = list.filter(p => p.foc && p.foc.length);   // preferisce chi ha già mostrato genitali
-  const L = (withG.length && R() < 0.5) ? withG : list;
+  const withG = list.filter(p => p.foc && p.foc.length);
+  const L = (withG.length && R() < 0.7) ? withG : list;
   return L[(R() * L.length) | 0] || null;
 }
 
 /* ---------- l'occhio: il vecchio porco ---------- */
-// i dipinti stanno uno accanto all'altro: il prossimo viene messo a destra o a sinistra
-// di quello attuale, e l'occhio ci passa sopra
 let cur = null, nxt = null, old = null, crossing = false, hops = 0;
 const eye = { x: 0, y: 0.5, z: 0.15 };
 let segs = [], seg = null, clock = 0, prev = performance.now(), aspect = 16 / 9;
@@ -227,11 +117,11 @@ function skins(p) { return (p.skin || []).map(q => world(p, q.u, q.v)); }
 function panelAt(x) { for (const p of [cur, nxt, old]) if (p && p.ox !== undefined && x >= p.ox && x < p.ox + p.ar) return p; return null; }
 function skinAt(x, y) {                                // quanta pelle c'è sotto lo sguardo (0..1)
   const p = panelAt(x); if (!p || !p.grid) return 0;
-  const G = p.grid, gx = Math.round((x - p.ox) / p.ar * G.w), gy = Math.round(y * G.h);
+  const G = p.grid; if (!G.d) return 0; const gx = Math.round((x - p.ox) / p.ar * G.w), gy = Math.round(y * G.h);
   let s = 0, n = 0;
   for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) {
     const xx = gx + i, yy = gy + j; if (xx < 0 || yy < 0 || xx >= G.w || yy >= G.h) continue;
-    s += G.d[yy * G.w + xx]; n++;
+    s += G.d.charCodeAt(yy * G.w + xx) === 49 ? 1 : 0; n++;
   }
   return n ? s / n : 0;
 }
@@ -253,7 +143,7 @@ function near(list, r) { return list.filter(q => Math.hypot(q.x - eye.x, q.y - e
 function plan() {
   if (!cur) return;
   const g = stops(cur), here = skinAt(eye.x, eye.y);
-  const ready = nxt && nxt.st === 2 && (nxt.det || !model);
+  const ready = nxt && nxt.st === 2;
   if (ready && (hops > 9 || (!g.length && hops > 4))) {
     // passa sul dipinto accanto, di corsa
     setOx();
@@ -275,7 +165,7 @@ function plan() {
       const k = 1 - z * 1.2 / d;
       push({ x: eye.x + (t.x - eye.x) * k, y: eye.y + (t.y - eye.y) * k, z, dur: clamp(d * 0.9, 0.4, 1.6), ease: E.sacc });
     }
-    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6), shake: 1 });
+    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6) });
     push({ x: t.x, y: t.y, z: kz, dur: rr(3, 5.5), ease: E.slow, hold: rr(3, 6.5), creep: 0.12, kiss: 1 });
     push({ x: t.x + rr(-0.8, 0.8) * z, y: t.y + rr(-0.5, 0.5) * z, z: ZS(), dur: rr(0.6, 1.2), ease: E.sacc });
     return;
@@ -342,86 +232,58 @@ function stepEye() {
   }
 }
 
-/* ---------- la soggettiva: respiro, testa, palpebre ---------- */
-let vignette = null, last = { x: 0, y: 0, z: 1 };
-function makeVignette() {
-  vignette = document.createElement('canvas');
-  vignette.width = cv.width; vignette.height = cv.height;
-  const g = vignette.getContext('2d'), W = cv.width, H = cv.height;
-  const gr = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.hypot(W, H) * 0.56);
-  gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.7, 'rgba(0,0,0,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0.85)');
-  g.fillStyle = gr; g.fillRect(0, 0, W, H);
-}
+/* ---------- disegno ---------- */
 function resize() {
-  const d = Math.min(1.5, window.devicePixelRatio || 1);
+  const d = Math.min(SMALL ? 1 : 1.25, window.devicePixelRatio || 1);
   cv.width = Math.round(innerWidth * d); cv.height = Math.round(innerHeight * d);
   aspect = cv.width / cv.height;
-  makeVignette();
 }
 addEventListener('resize', resize); resize();
 function drawPanel(p, L, T, vw, z, s) {
-  const src = p && p.hi; if (!src || p.ox === undefined) return;
+  const img = p && p.img; if (!img || p.ox === undefined) return;
   const a = Math.max(L, p.ox), b = Math.min(L + vw, p.ox + p.ar), t = Math.max(T, 0), u = Math.min(T + z, 1);
   if (b <= a || u <= t) return;
-  const k = src.height;
-  ctx.drawImage(src, (a - p.ox) * k, t * k, (b - a) * k, (u - t) * k,
+  const iw = img.naturalWidth, ih = img.naturalHeight, cx = iw * CROP, cy = ih * CROP, k = ih * (1 - 2 * CROP);
+  ctx.drawImage(img, cx + (a - p.ox) * k, cy + t * k, (b - a) * k, (u - t) * k,
                 Math.floor((a - L) * s), Math.floor((t - T) * s), Math.ceil((b - a) * s) + 1, Math.ceil((u - t) * s) + 1);
 }
-const hasFilter = 'filter' in ctx;
 
 function frame(now) {
+  requestAnimationFrame(frame);
   const dt = Math.min(0.1, (now - prev) / 1000); prev = now; clock += dt;
   if (!cur) {
     const p = pool.find(q => q.st === 2);
     if (p) {
       cur = p; cur.ox = 0; recent.push(p);
       const sk = skins(p), t = sk.length ? sk[(R() * sk.length) | 0] : world(p, 0.5, 0.5);
-      eye.x = t.x; eye.y = t.y; eye.z = ZS(); last = { ...eye };
+      eye.x = t.x; eye.y = t.y; eye.z = ZS();
     }
   } else {
     if (!nxt) placeNext();
     if (nxt && nxt.st === 3) nxt = null;
-    if (nxt && nxt.small && !nxt.det) detect(nxt);
-    if (cur.small && !cur.det) detect(cur);
     if (!crossing) setOx();
     stepEye();
   }
   const W = cv.width, H = cv.height;
-  if (!cur) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); requestAnimationFrame(frame); return; }
-
-  // velocità dello sguardo (in schermi al secondo): scie e fuoco perso quando corre
-  const speed = (Math.hypot(eye.x - last.x, eye.y - last.y) / eye.z + Math.abs(Math.log(eye.z / last.z))) / Math.max(dt, 1e-3);
-  last = { ...eye };
-  const trail = clamp((speed - 1.2) / 6, 0, 0.75);
-  if (trail < 0.02) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
-
-  // testa e respiro di qualcuno che guarda
-  const calm = kissing ? 0.4 : 1;
-  const z0 = eye.z * (1 + 0.012 * Math.sin(clock * 1.55) * calm);
-  const hx = z0 * calm * (0.010 * Math.sin(clock * 0.53) + 0.006 * Math.sin(clock * 1.31 + 2) + 0.0015 * Math.sin(clock * 12.7));
-  const hy = z0 * calm * (0.008 * Math.sin(clock * 0.47 + 1) + 0.007 * Math.sin(clock * 1.55) + 0.0015 * Math.sin(clock * 11.3 + 0.4));
-  const vw = z0 * aspect, L = eye.x + hx - vw / 2, T = eye.y + hy - z0 / 2, s = H / z0;
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  ctx.globalAlpha = 1 - trail;
-  if (hasFilter) { const bl = clamp((speed - 2.5) * 0.9, 0, 6) * H / 1000; ctx.filter = bl > 0.3 ? 'blur(' + bl.toFixed(1) + 'px)' : 'none'; }
-  drawPanel(old, L, T, vw, z0, s); drawPanel(cur, L, T, vw, z0, s); drawPanel(nxt, L, T, vw, z0, s);
-  if (hasFilter) ctx.filter = 'none';
-  ctx.globalAlpha = 1;
-
-
-  requestAnimationFrame(frame);
+  if (!cur) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); return; }
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const z = eye.z, vw = z * aspect, L = eye.x - vw / 2, T = eye.y - z / 2, s = H / z;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = SMALL ? 'medium' : 'high';
+  drawPanel(old, L, T, vw, z, s); drawPanel(cur, L, T, vw, z, s); drawPanel(nxt, L, T, vw, z, s);
 }
 
 (async () => {
-  const map = await infos(WORKS.flatMap(w => w.f));
-  for (const w of WORKS) {
-    const f = w.f.find(n => map.has(n));
-    if (f) pool.push({ ii: map.get(f), ar: map.get(f).ar, year: w.y, st: 0, hi: null, small: null, skin: [], foc: [], det: false, visited: [] });
+  let data = null;
+  try { const r = await fetch('punti.json', { cache: 'no-cache' }); if (r.ok) data = await r.json(); } catch (e) {}
+  if (data && data.length) {
+    pool = data.map(d => ({ ii: d.ii, foc: d.foc || [], grid: d.grid, skin: (d.skin || []).map(([u, v]) => ({ u, v })) }));
+  } else {
+    try { const w = await (await fetch('opere.json')).json(); pool = await fromCommons(w.map(x => x.f[0])); } catch (e) {}
   }
+  pool.forEach(p => { p.ar = p.ii.width / p.ii.height; p.st = 0; p.visited = []; });
   if (!pool.length) return;
   prepare(pool[(R() * pool.length) | 0]);
   requestAnimationFrame(frame);
-  loadModel();
 })();
 
 /* ---------- schermo intero e cursore ---------- */

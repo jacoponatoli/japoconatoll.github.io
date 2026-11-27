@@ -1,3 +1,0 @@
-Il modello in questa cartella è NudeNet (https://github.com/notAI-tech/NudeNet),
-convertito in TensorFlow.js da Vladimir Mandic (https://github.com/vladmandic/nudenet, licenza MIT).
-SGUARDO lo usa solo per trovare nei dipinti i punti su cui l'occhio si ferma.
