@@ -92,8 +92,8 @@ const live=new Map();let liveId=0,flash=null;
    blue   — recordings from the archives (music, field recordings, classical, voices)
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
-const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL|AUTOMATON)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL|AUTOMATON|MINIMAL)$/],
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM|EMOTION)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -1454,6 +1454,156 @@ async function automiDeck(){
     await sleep(rr(150,420)*AX(1.1,1,.8)*1000);
   }
 }
+/* ============ THE VOICE OF THE EMOTIONS — very rare ============
+   Laughter, crying, a scream far away, whispers, a sigh: not recordings but voices made here, by a small formant
+   synthesizer (a pulse through the resonances of a mouth: a, e, i, o, u; noise for the breath). A man, a woman or a
+   child, and each time a different degree: a giggle or a fit of laughter, a sob or a lament, a call or a scream.
+   Always processed: slowed (so lower), sometimes reversed, far away in a large room, in an echo, through a radio,
+   or very close and wandering around the head. The emotional function leans the choice: nostalgia → crying and
+   sighs, mistica → whispers, terra → screams from far away, aria → laughter. Every 12–30 minutes, when it is its turn. */
+const VOWELS={a:[800,1150,2900],e:[480,1900,2600],o:[450,800,2830],i:[300,2300,3000],u:[330,700,2500]};
+function vocalKit(oc){
+  const nb=oc.createBuffer(1,oc.sampleRate*2,oc.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+  const out=oc.createGain();out.connect(oc.destination);
+  const formants=(src,v,k)=>{const sum=oc.createGain();VOWELS[v].forEach((f,i)=>{const b=oc.createBiquadFilter();b.type='bandpass';b.frequency.value=f*k;b.Q.value=[8,11,13][i];const g=oc.createGain();g.gain.value=[4,2,1][i];src.connect(b);b.connect(g);g.connect(sum)});return sum};
+  const voiced=(t,dur,f0,f1,v,k,amp,vib=0)=>{const o=oc.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);
+    if(vib){const l=oc.createOscillator();l.frequency.value=rr(4.5,7);const lg=oc.createGain();lg.gain.value=f0*vib;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur)}
+    const e=oc.createGain();e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(amp,t+Math.min(.05,dur*.25));e.gain.setValueAtTime(amp,t+dur*.65);e.gain.linearRampToValueAtTime(0,t+dur);
+    o.connect(e);formants(e,v,k).connect(out);o.start(t);o.stop(t+dur+.05)};
+  const breath=(t,dur,v,k,amp,hp=0)=>{const s=oc.createBufferSource();s.buffer=nb;s.loop=true;const e=oc.createGain();e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(amp,t+dur*.3);e.gain.linearRampToValueAtTime(0,t+dur);
+    s.connect(e);let n=e;if(hp){const h=oc.createBiquadFilter();h.type='highpass';h.frequency.value=hp;e.connect(h);n=h}
+    (v?formants(n,v,k):n).connect(out);s.start(t,Math.random());s.stop(t+dur+.05)};
+  return{voiced,breath}
+}
+const EMO_VOCAL={
+  laughter(K,p,deg){let t=.1;const n=Math.round(3+deg*8),v=pick(['a','a','e','o','i']),sp=1-deg*.3;
+    for(let i=0;i<n;i++){const d=rr(.08,.14)*sp,f=p.f0*(1.25+deg*.5)*Math.pow(.97,i)*rr(.95,1.06);K.breath(t,.05,v,p.k,.35);K.voiced(t+.03,d,f*1.05,f*.92,v,p.k,.5*Math.pow(.93,i));t+=d+rr(.06,.11)*sp}
+    K.breath(t+.05,rr(.3,.5),0,1,.18,1400);return t+.8},
+  crying(K,p,deg){let t=.1;const n=Math.round(2+deg*3);
+    for(let i=0;i<n;i++){const d=rr(.7,1.5)+deg*.6,v=pick(['a','e','o','u']),f=p.f0*rr(1.05,1.35)*(1+deg*.3);
+      K.voiced(t,d,f,f*rr(.72,.85),v,p.k,.42,.035+deg*.03);K.breath(t,d,v,p.k,.12);t+=d+rr(.1,.3);
+      for(let j=0,m=ri(1,3+Math.round(deg*2));j<m;j++){K.breath(t,rr(.06,.11),'i',p.k,.3,700);t+=rr(.12,.2)}}   /* the sob: short gasps */
+    return t+.6},
+  scream(K,p,deg){let t=.1;const n=ri(1,2+Math.round(deg));
+    for(let i=0;i<n;i++){const d=rr(.8,1.6)+deg,v=pick(['a','e','o']),f=p.f0*rr(2,2.8)*(1+deg*.4);
+      K.voiced(t,d*.35,f*.8,f*1.15,v,p.k,.6);K.voiced(t+d*.33,d*.67,f*1.15,f*.7,v,p.k,.6,.02);K.breath(t,d,v,p.k,.25);t+=d+rr(.5,1.4)}
+    return t+.8},
+  whisper(K,p,deg){let t=.1;const n=Math.round(6+deg*10);
+    for(let i=0;i<n;i++){if(R()<.45){K.breath(t,rr(.05,.12),0,1,.25,rr(3800,6000));t+=rr(.04,.08)}const d=rr(.1,.24);K.breath(t,d,pick(Object.keys(VOWELS)),p.k,.5);t+=d+(R()<.2?rr(.25,.6):rr(.02,.08))}
+    return t+.4},
+  sigh(K,p,deg){let t=.1;const n=ri(1,2);
+    for(let i=0;i<n;i++){K.breath(t,rr(.6,1),'a',p.k,.25,300);t+=rr(.7,1.1);const d=rr(1,1.8)+deg*.6;K.breath(t,d,'a',p.k,.4);K.voiced(t+.1,d*.7,p.f0*1.2,p.f0*.7,'a',p.k,.18*deg+.05);t+=d+rr(.8,1.5)}
+    return t+.3}
+};
+const EMO_EN={laughter:'laughter',crying:'crying',scream:'a scream',whisper:'whispers',sigh:'a sigh'};
+async function emotionDeck(){
+  await sleep(rr(420,1000)*1000);
+  while(true){
+    await hush();
+    const wgt={laughter:1+3*EM.w.aria,crying:.8+3*EM.w.nostalgia,scream:.5+2.5*EM.w.terra,whisper:1+3*EM.w.mistica,sigh:.6+2*EM.w.nostalgia};
+    const kind=wpick(wgt),who=pick(['a man','a woman','a child','a woman','a man']),p=who==='a man'?{f0:rr(100,140),k:rr(.88,.96)}:who==='a woman'?{f0:rr(185,240),k:rr(1.08,1.16)}:{f0:rr(260,330),k:rr(1.25,1.38)};
+    const deg=Math.pow(R(),AX(1.5,1,.6));   /* the degree: from a hint to the whole of it */
+    let buf;try{const oc=new OfflineAudioContext(1,44100*14,44100),K=vocalKit(oc),len=Math.min(13.5,EMO_VOCAL[kind](K,p,deg));buf=await oc.startRendering();
+      const b=ctx.createBuffer(1,Math.ceil(len*44100),44100);b.copyToChannel(buf.getChannelData(0).subarray(0,b.length),0);buf=b}catch(e){await sleep(60000);continue}
+    await voiceTurn('emotion');
+    let fx=kind==='scream'?'far':kind==='whisper'?pick(['close','close','echo','far room']):pick(['far room','echo','radio','close','far']);
+    const rate=pick(kind==='whisper'?[1,.9,.8]:[1,.85,.72,.6]),rev=R()<.15,t=ctx.currentTime+.3,play=buf.duration/rate;
+    if(rev){const d=buf.getChannelData(0);d.reverse()}
+    const lvl=rangeDb(buf,0,buf.duration),gain=Math.max(.05,Math.min(10,Math.pow(10,(-24-lvl)/20)))*(fx==='far'?.5:fx==='far room'?.75:fx==='close'?.85:1);
+    const src=ctx.createBufferSource();src.buffer=buf;src.playbackRate.value=rate;const g=ctx.createGain();g.gain.value=gain;
+    const pan=ctx.createStereoPanner?ctx.createStereoPanner():ctx.createGain();let head=g;
+    if(fx==='far'){const lp=filt('lowpass',rr(1200,2200));g.connect(lp);lp.connect(pan);const w=ctx.createGain();w.gain.value=2.2;lp.connect(w);w.connect(reverb)}
+    else if(fx==='far room'){const lp=filt('lowpass',rr(2500,4000));g.connect(lp);lp.connect(pan);const w=ctx.createGain();w.gain.value=1.2;lp.connect(w);w.connect(reverb)}
+    else if(fx==='echo'){const dl=ctx.createDelay(2),fb=ctx.createGain();dl.delayTime.value=rr(.28,.7);fb.gain.value=rr(.45,.65);g.connect(pan);g.connect(dl);dl.connect(fb);fb.connect(dl);const lp=filt('lowpass',2400);fb.connect(lp);lp.connect(pan);setTimeout(()=>{try{fb.disconnect()}catch(e){}},(play+8)*1000)}
+    else if(fx==='radio'){const hp=filt('highpass',500),lp=filt('lowpass',2600),sh=shaper(4);g.connect(hp);hp.connect(sh);sh.connect(lp);lp.connect(pan)}
+    else g.connect(pan);   /* close: dry, wandering around the head */
+    if(pan.pan){pan.pan.setValueAtTime(rr(-.8,.8),t);if(fx==='close'){for(let k=1;k<=4;k++)pan.pan.linearRampToValueAtTime(rr(-1,1),t+play*k/4)}}
+    pan.connect(L.spoken);src.connect(head);src.start(t);src.stop(t+play+.2);
+    const line=log('EMOTION',`${EMO_EN[kind]} · ${who} · ${fx}${rate<1?' · slowed':''}${rev?' · reversed':''}`,play+2);
+    await sleep((play+(fx==='echo'?3:1.5))*1000);voiceDone('emotion');
+    setTimeout(()=>{try{g.disconnect();pan.disconnect()}catch(e){}},8000);
+    await sleep(rr(720,1800)*AX(1.2,1,.7)*1000);
+  }
+}
+
+/* ============ MINIMAL, PLAYED HERE ============
+   Imitations of the classics of minimal music, played by AMBIENET with its own sounds and its own melodies: not the
+   scores, but the processes. Terry Riley's In C (players moving each at their own pace through a row of short
+   modules over a steady pulse), Steve Reich's phasing (two players on the same pattern, one slightly faster, drifting
+   apart and back) and the shifting of Clapping Music, Philip Glass's additive process (a figure that grows and shrinks
+   one note at a time), Arvo Pärt's tintinnabuli (a melody moving by steps and a voice that always answers with a note
+   of the triad), La Monte Young's just intonation (whole-number ratios held until they beat). In the key and scale of
+   the scene, soft, the pulses always quiet. Every 10–20 minutes, for a minute or two. */
+let minBus=null;
+const mar=(f,t,g,pan)=>{tone(f,t,1.1,{gain:g,attack:.004,dest:minBus,pan});tone(f*3.93,t,.22,{gain:g*.22,attack:.002,dest:minBus,pan})};
+function sus(f,t,dur,g,type,cut,pan){const o=ctx.createOscillator();o.type=type;o.frequency.value=f;const lp=filt('lowpass',cut),e=ctx.createGain();
+  e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(g,t+Math.min(.08,dur*.3));e.gain.setValueAtTime(g,t+dur*.8);e.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(lp);lp.connect(e);let n=e;if(ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=pan||0;e.connect(p);n=p}n.connect(minBus);o.start(t);o.stop(t+dur+.05)}
+async function runWindow(total,step){   /* schedules a little ahead, stops when the scene empties */
+  const T0=ctx.currentTime+.3;let tp=T0;
+  while(ctx.currentTime<T0+total&&!still){const until=ctx.currentTime+1.2;while(tp<until&&tp<T0+total)tp=step(tp,tp-T0);await sleep(400)}
+}
+const MINIMAL={
+  riley:{label:'after Terry Riley · the process of In C, with modules of its own',async run(){
+    const e=60/rr(84,104)/2,base=S.root+24+emoOct(),mods=[];let d=pick([0,2,4]);
+    for(let m=0;m<ri(10,15);m++){const len=ri(2,5),mod=[];for(let i=0;i<len;i++){d=Math.max(-2,Math.min(9,d+pick([-2,-1,0,1,2])));mod.push([d,pick([1,1,2,2,3,4])])}mods.push(mod)}
+    const pl=Array.from({length:ri(4,6)},()=>({m:0,rep:0,reps:ri(2,6),t:0,oct:pick([0,0,12,-12]),pan:rr(-.8,.8),bell:R()<.4,wait:rr(0,8)}));
+    let pulse=0;const T0=ctx.currentTime+.3;
+    await runWindow(rr(80,130),tp=>{
+      const until=tp+1.2;
+      while(T0+pulse*e<until){mar(mtof(base+24),T0+pulse*e,.012,0);pulse++}
+      for(const p of pl){if(!p.t)p.t=T0+p.wait;while(p.t<until&&p.m<mods.length){for(const[dd,du]of mods[p.m]){const f=mtof(deg(dd,base)+p.oct);p.bell?bell(f,p.t,du*e*3,.022,minBus,p.pan):mar(f,p.t,.035,p.pan);p.t+=du*e}
+        if(++p.rep>=p.reps){p.m++;p.rep=0;p.reps=ri(2,6)}}}
+      return until})}},
+  reich:{label:'after Steve Reich · phasing, on a pattern of its own',async run(){
+    const s=rr(.13,.18),base=S.root+24+emoOct(),ds=[0,1,2,4,5].map(x=>deg(x,base)),pat=Array.from({length:12},()=>pick(ds)),k=1-rr(.003,.008);let a=0,b=0;const T0=ctx.currentTime+.3,start=rr(6,12);
+    await runWindow(rr(80,140),tp=>{const until=tp+1.2;
+      while(T0+a*s<until){mar(mtof(pat[a%12]),T0+a*s,.03,-.6);a++}
+      while(T0+start+b*s*k<until){if(T0+start+b*s*k>=T0+start)mar(mtof(pat[b%12]),T0+start+b*s*k,.03,.6);b++}
+      return until})}},
+  clapping:{label:'after Steve Reich · the shifting of Clapping Music, on a pattern of its own',async run(){
+    let pat;do{pat=Array.from({length:12},()=>R()<.6?1:0)}while(pat.filter(x=>x).length<6||pat.join('')==='111011010110');
+    const s=rr(.16,.22),N=ri(4,8),T0=ctx.currentTime+.3;let i=0;
+    const clap=(t,pan,f)=>noise(t,.05,{freq:f,q:1.2,gain:.05,attack:.002,release:.04,dest:minBus,pan});
+    await runWindow(rr(70,110),tp=>{const until=tp+1.2;
+      while(T0+i*s<until){const t=T0+i*s,shift=Math.floor(i/(12*N))%13;if(pat[i%12])clap(t,-.5,1800);if(pat[(i+shift)%12])clap(t+.004,.5,2300);i++}
+      return until})}},
+  glass:{label:'after Philip Glass · additive process',async run(){
+    const e=rr(.16,.22),base=S.root+24+emoOct(),roots=pick([[0,5,3,4],[0,3,4,0],[0,5,1,4],[0,2,5,4]]);let i=0,step=0,ch=0;const T0=ctx.currentTime+.3;
+    const lens=[2,3,4,5,6,6,5,4,3,2];
+    await runWindow(rr(80,120),tp=>{const until=tp+1.2;
+      while(T0+i*e<until){const r=roots[ch%roots.length],fig=[r,r+2,r+4,r+7,r+4,r+2].map(x=>deg(x,base)),L=lens[step%lens.length],t=T0+i*e;
+        for(let q=0;q<L;q++)sus(mtof(fig[q]),t+q*e,e*.9,.022,'square',1300,(q%2?.3:-.3));
+        if(step%lens.length===0)sus(mtof(deg(r,base-24)),t,L*e*lens.length*.5,.03,'sawtooth',500,0);
+        i+=L;if(++step%lens.length===0)ch++}
+      return until})}},
+  part:{label:'after Arvo Pärt · tintinnabuli',async run(){
+    const base=S.root+24+emoOct(),triad=[0,2,4].flatMap(x=>[-7,0,7].map(o=>deg(x+o,base))).sort((a,b)=>a-b);let m=0,dir=pick([1,-1]),n=0,ph=ri(3,6),i=0;const T0=ctx.currentTime+.3;let tt=T0;
+    sus(mtof(deg(0,base-24)),T0,120,.025,'sine',800,0);
+    await runWindow(rr(90,120),tp=>{const until=tp+1.2;
+      while(tt<until){const mp=deg(m,base),below=triad.filter(x=>x<mp).pop()||triad[0],above=triad.find(x=>x>mp)||triad[triad.length-1],tv=i%2?above:below,d=rr(1.6,2.6);
+        sus(mtof(mp),tt,d*1.05,.03,'triangle',1800,-.25);bell(mtof(tv),tt+.02,d*1.6,.03,minBus,.25);
+        m+=dir;if(++n>=ph){n=0;ph=ri(3,6);dir=m>0?-1:m<0?1:pick([1,-1])}tt+=d;i++}
+      return until})}},
+  young:{label:'after La Monte Young · just intonation, held until it beats',async run(){
+    const f=mtof(S.root-12),R7=[1,3/2,2,7/4,9/8,21/16,3,63/32,7/2,4],T0=ctx.currentTime+.3,total=rr(90,150);let k=0;
+    await runWindow(total,tp=>{const until=tp+1.2;
+      while(k<R7.length&&T0+k*rr(6,11)<until){const t=Math.max(tp,T0+k*8),r=R7[k];for(const det of[0,rr(.3,1.2)])sus(f*r+det,t,T0+total-t+4,.012/Math.sqrt(r),'sine',4000,rr(-.6,.6));k++}
+      return until})}}
+};
+async function minimalDeck(){
+  await sleep(rr(300,720)*1000);
+  minBus=ctx.createGain();minBus.gain.value=.85;minBus.connect(master);const ms=ctx.createGain();ms.gain.value=.4;minBus.connect(ms);ms.connect(reverb);
+  let lastS='';
+  while(true){
+    await hush();
+    let k;do{k=pick(Object.keys(MINIMAL))}while(k===lastS);lastS=k;
+    const line=log('MINIMAL',MINIMAL[k].label,-1);
+    try{await MINIMAL[k].run()}catch(e){console.warn(e)}
+    if(line)unlive(line);
+    await sleep(rr(600,1200)*AX(1.1,1,.8)*1000);
+  }
+}
 async function spokenLoop(){
   await sleep(rr(120,240)*1000);let fails=0;
   while(true){
@@ -1786,11 +1936,11 @@ setInterval(guardian,100);setInterval(lorenzTick,1000);setInterval(emoTick,1000)
 
 /* ============ legend: what each colour means (hover on a computer, tap on a phone) ============ */
 const LEGEND={
-  gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals. Now and then a musical cellular automaton, after Peter Beyls (Generative Art 2003): a row of twelve cells whose rule drifts from one climate to another, breeds, and is selected by the order or chaos of the moment; its living row is written on screen.'],
+  gen:['#ff2a1a','Generated','Sounds computed here, live, by the code — nothing is recorded: drones and drone carpets, low binaural beats, Eno-style loops, tanpura and raga lines, shakuhachi, koto, shō, gamelan, singing bowls and Tibetan chant, rain, wind, water, the hum of appliances, animals. Now and then a musical cellular automaton, after Peter Beyls (Generative Art 2003): a row of twelve cells whose rule drifts from one climate to another, breeds, and is selected by the order or chaos of the moment; its living row is written on screen. And now and then an imitation of the classics of minimal music, played here with melodies of its own: the processes of In C by Riley, the phasing and Clapping Music of Reich, the additive figures of Glass, the tintinnabuli of Pärt, the just intonation of La Monte Young.'],
   mix:['#ffcf1a','Remixed from the archive','Recordings taken from the Internet Archive and transformed here: phrases cut and repeated like tape loops (sometimes drifting out of phase), clouds of tiny grains tuned to the scene, and remnants of classical piano — muffled, slowed, wavering like an old tape.'],
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
   question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). Every question is also written across the whole screen, white on black, in the lettering of SLOGAN. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
-  spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak. Now and then also a short scene of dialogue from a film — public-domain films of every kind and language — heard as through a radio or a telephone of every era: AM, shortwave, distant FM, walkie-talkie, police scanner, landline, old telephone, mobile phone, answering machine, intercom, the Moon.'],
+  spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak. Now and then also a short scene of dialogue from a film — public-domain films of every kind and language — heard as through a radio or a telephone of every era: AM, shortwave, distant FM, walkie-talkie, police scanner, landline, old telephone, mobile phone, answering machine, intercom, the Moon. Very rarely, the voice of an emotion made here by a small synthesizer of mouths: laughter, crying, a scream far away, whispers, a sigh — a man, a woman or a child, each time a different degree, always processed.'],
   net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
   cosmos:['#ff8a3d','Cosmos','Sounds from space: NASA sonifications of telescope data (black holes, nebulae, galaxies) and radio and plasma waves recorded by space probes around Jupiter, Saturn and the Sun — from NASA’s audio library and the Internet Archive. Barely touched: a little slower, a little reverb.'],
@@ -1831,7 +1981,7 @@ async function boot(){
   newArp();newPhase();startDrone();newLoops();newScene(true);
   startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
-  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();automiDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
+  if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();automiDeck();emotionDeck();minimalDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
 boot();
 // double click (or the F key): full screen on / off
