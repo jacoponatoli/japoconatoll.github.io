@@ -188,11 +188,16 @@ for line in open('tools/sguardo-vocabolario.txt', encoding='utf-8'):
 with torch.no_grad():
     VE = clip_model.encode_text(clip_tok(['a painting of ' + en for _, en in VOC])); VE /= VE.norm(dim=-1, keepdim=True)
 VE = VE.numpy().astype(np.float32)
+# l'ovvio: quanto ogni parola somiglia a un corpo nudo dipinto qualsiasi. Si sottrae, per far affiorare il resto.
+with torch.no_grad():
+    _o = clip_model.encode_text(clip_tok(['a painting of a naked body', 'a painting of nude skin', 'a close-up of a painted nude']))
+    _o /= _o.norm(dim=-1, keepdim=True)
+OBVIOUS = (VE @ _o.numpy().astype(np.float32).T).mean(axis=1)
 dreams = []          # associazioni del giorno, per il sogno della notte
 
 def associate(e, k=6):
     if e is None: return [], []
-    sims = VE @ e
+    sims = VE @ e - 0.85 * OBVIOUS
     top = list(np.argsort(-sims)[:k])
     # deriva: dalla parola più vicina alla più vicina di quella, senza tornare indietro
     chain, cur, used = [], top[0], set()
@@ -242,7 +247,7 @@ def judge(im, props):
         if ok:
             g = dict(f); g['sc'] = round(max(nn, p or 0), 3); g['nn'] = nn
             if p is not None: g['p'] = round(p, 3)
-            g['as'], g['catena'] = associate(e)
+            g['as'], g['catena'] = associate(e); g['av'] = 2
             dreams.append(g['as'])
             foc.append(g)
         elif nn >= 0.1:
@@ -321,14 +326,14 @@ for e0 in old:
         print('errore', e0['f'], ex)
     time.sleep(1)
 
-for e in list(atlas.values()):          # chi non ha ancora associazioni: le riceve
-    if not e.get('foc') or all('as' in g for g in e['foc']): continue
+for e in list(atlas.values()):          # chi non ha ancora associazioni (o le ha vecchie): le riceve
+    if not e.get('foc') or all(g.get('av') == 2 for g in e['foc']): continue
     try:
         raw = requests.get(e['ii']['thumb'] or e['ii']['url'], headers=UA, timeout=120).content
         im = Image.open(io.BytesIO(raw)).convert('RGB'); W, H = im.size
         im = im.crop((int(W * CROP), int(H * CROP), int(W * (1 - CROP)), int(H * (1 - CROP))))
         for g in e['foc']:
-            g['as'], g['catena'] = associate(embed(im, g['u'], g['v'], max(g['s'] * 2.2, 0.06)))
+            g['as'], g['catena'] = associate(embed(im, g['u'], g['v'], max(g['s'] * 2.2, 0.06))); g['av'] = 2
             dreams.append(g['as'])
         print('associazioni per', e['f'], e['foc'][0]['as'][:3])
     except Exception as ex:
