@@ -9,7 +9,8 @@ from nudenet import NudeDetector
 
 UA = {'User-Agent': 'SGUARDO/1.0 (https://jacoponatoli.net/sguardo/) python-requests'}
 CROP = 0.03
-KEEP = {'FEMALE_GENITALIA_EXPOSED': 'vulva', 'MALE_GENITALIA_EXPOSED': 'pene'}
+KEEP = {'FEMALE_GENITALIA_EXPOSED': 'vulva', 'MALE_GENITALIA_EXPOSED': 'pene',
+        'FEMALE_GENITALIA_COVERED': 'vulva coperta', 'ANUS_EXPOSED': 'ano'}
 works = json.load(open('sguardo/opere.json'))
 files = [f for w in works for f in w['f']]
 
@@ -37,16 +38,21 @@ def detect(im):
     regions = [(0, 0, 1, 1)]
     regions += [(a, b, 0.55, 0.55) for a in (0, 0.45) for b in (0, 0.45)]
     regions += [(a, b, 0.4, 0.4) for a in (0, 0.3, 0.6) for b in (0, 0.3, 0.6)]
+    regions += [(a, b, 0.25, 0.25) for a in (0, 0.25, 0.5, 0.75) for b in (0, 0.25, 0.5, 0.75)]
     out = []
     with tempfile.TemporaryDirectory() as td:
         for (a, b, w, h) in regions:
             box = (int(a * W), int(b * H), int((a + w) * W), int((b + h) * H))
             t = im.crop(box)
+            if max(t.size) < 900:   # i riquadri piccoli si ingrandiscono: corpi piccoli più visibili
+                f = 900 / max(t.size); t = t.resize((int(t.size[0] * f), int(t.size[1] * f)), Image.LANCZOS)
+            sx = (box[2] - box[0]) / t.size[0]; sy = (box[3] - box[1]) / t.size[1]
             pth = os.path.join(td, 't.jpg'); t.save(pth, quality=92)
             for d in det.detect(pth):
-                if d['class'] not in KEEP or d['score'] < 0.25:
+                if d['class'] not in KEEP or d['score'] < 0.15:
                     continue
                 x, y, bw, bh = d['box']
+                x, y, bw, bh = x * sx, y * sy, bw * sx, bh * sy
                 u = (box[0] + x + bw / 2) / W; v = (box[1] + y + bh / 2) / H
                 out.append({'u': round(u, 4), 'v': round(v, 4), 's': round(max(0.01, min(0.3, bh / H)), 4),
                             'k': KEEP[d['class']], 'sc': round(d['score'], 3)})
