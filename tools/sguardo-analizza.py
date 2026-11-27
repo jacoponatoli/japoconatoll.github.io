@@ -195,10 +195,16 @@ with torch.no_grad():
 OBVIOUS = (VE @ _o.numpy().astype(np.float32).T).mean(axis=1)
 dreams = []          # associazioni del giorno, per il sogno della notte
 
+HUB = {'sum': np.zeros(len(VOC), dtype=np.float32), 'n': 0}
 def associate(e, k=6):
     if e is None: return [], []
-    sims = VE @ e - 0.85 * OBVIOUS
-    top = list(np.argsort(-sims)[:k])
+    raw = VE @ e
+    HUB['sum'] += raw; HUB['n'] += 1
+    hub = HUB['sum'] / HUB['n'] if HUB['n'] > 3 else OBVIOUS * 0
+    sims = raw - 0.85 * OBVIOUS - 0.8 * (hub - hub.mean())     # via l'ovvio e via le parole calamita
+    cand = list(np.argsort(-sims)[:k * 3])
+    w = np.exp((sims[cand] - sims[cand].max()) * 40)              # un po' di caso tra le più vicine
+    top = list(np.random.choice(cand, size=k, replace=False, p=w / w.sum()))
     # deriva: dalla parola più vicina alla più vicina di quella, senza tornare indietro
     chain, cur, used = [], top[0], set()
     for _ in range(7):
@@ -247,7 +253,7 @@ def judge(im, props):
         if ok:
             g = dict(f); g['sc'] = round(max(nn, p or 0), 3); g['nn'] = nn
             if p is not None: g['p'] = round(p, 3)
-            g['as'], g['catena'] = associate(e); g['av'] = 2
+            g['as'], g['catena'] = associate(e); g['av'] = 3
             dreams.append(g['as'])
             foc.append(g)
         elif nn >= 0.1:
@@ -327,13 +333,13 @@ for e0 in old:
     time.sleep(1)
 
 for e in list(atlas.values()):          # chi non ha ancora associazioni (o le ha vecchie): le riceve
-    if not e.get('foc') or all(g.get('av') == 2 for g in e['foc']): continue
+    if not e.get('foc') or all(g.get('av') == 3 for g in e['foc']): continue
     try:
         raw = requests.get(e['ii']['thumb'] or e['ii']['url'], headers=UA, timeout=120).content
         im = Image.open(io.BytesIO(raw)).convert('RGB'); W, H = im.size
         im = im.crop((int(W * CROP), int(H * CROP), int(W * (1 - CROP)), int(H * (1 - CROP))))
         for g in e['foc']:
-            g['as'], g['catena'] = associate(embed(im, g['u'], g['v'], max(g['s'] * 2.2, 0.06))); g['av'] = 2
+            g['as'], g['catena'] = associate(embed(im, g['u'], g['v'], max(g['s'] * 2.2, 0.06))); g['av'] = 3
             dreams.append(g['as'])
         print('associazioni per', e['f'], e['foc'][0]['as'][:3])
     except Exception as ex:
