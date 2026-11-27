@@ -100,7 +100,7 @@ function chooseNext(cur) {
   const c = pool.filter(p => p !== cur && p.st !== 3 && !recent.includes(p));
   const list = c.length ? c : pool.filter(p => p !== cur && p.st !== 3);
   const withG = list.filter(p => p.foc && p.foc.length);
-  const L = (withG.length && R() < 0.7) ? withG : list;
+  const L = (withG.length && R() < 0.85) ? withG : list;
   return L[(R() * L.length) | 0] || null;
 }
 

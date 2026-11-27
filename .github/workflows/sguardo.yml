@@ -1,11 +1,13 @@
 name: SGUARDO analisi
-# Analizza una volta sola i dipinti di sguardo/opere.json (genitali con NudeNet + mappa della pelle)
-# e salva i risultati in sguardo/punti.json. Riparte da solo quando cambia l'elenco delle opere.
+# L'atlante che cresce: ogni notte analizza le opere scelte (sguardo/opere.json) e pesca nuovi nudi
+# da Wikidata/Commons; tiene solo quelli con genitali e senza bambini (filtri + CLIP). Esito in sguardo/punti.json.
 on:
+  schedule:
+    - cron: "17 3 * * *"
   workflow_dispatch:
   push:
     branches: [main, master]
-    paths: ["sguardo/opere.json", "tools/sguardo-analizza.py", ".github/workflows/sguardo.yml"]
+    paths: ["sguardo/opere.json", "sguardo/esclusi.json", "tools/sguardo-analizza.py", ".github/workflows/sguardo.yml"]
 permissions:
   contents: write
 concurrency: sguardo
@@ -19,13 +21,14 @@ jobs:
           python-version: "3.11"
       - name: Analisi
         run: |
-          pip install -q nudenet pillow requests
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q nudenet pillow requests open_clip_torch
           python tools/sguardo-analizza.py
       - name: Salva
         run: |
           git config user.name "sguardo-bot"
           git config user.email "sguardo-bot@users.noreply.github.com"
-          git add sguardo/punti.json
+          git add sguardo/punti.json sguardo/scartati.json
           git diff --cached --quiet && exit 0
           git commit -q -m "SGUARDO: punti aggiornati"
           for i in 1 2 3; do git pull -q --rebase && git push -q && break; sleep 5; done
