@@ -237,6 +237,8 @@ if budget > 0 and len(atlas) < MAX_ATLAS:
         time.sleep(1)
 
 for f in esclusi: atlas.pop(f, None)
+for f, e in list(atlas.items()):     # i filtri valgono anche per chi è già nell'atlante
+    if e.get('src') != 'scelto' and CHILD_WORDS.search(f): atlas.pop(f); scartati.add(f)
 res = list(atlas.values())
 json.dump(res, open('sguardo/punti.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 json.dump(sorted(scartati), open('sguardo/scartati.json', 'w'), ensure_ascii=False, indent=0)
