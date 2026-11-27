@@ -41,6 +41,8 @@ def load(path, default):
 atlas = {e['f']: e for e in load('sguardo/punti.json', [])}
 esclusi = set(load('sguardo/esclusi.json', []))
 scartati = set(load('sguardo/scartati.json', []))
+voce_old = load('sguardo/voce.json', {})
+motivi = voce_old.get('motivi', {})
 works = load('sguardo/opere.json', [])
 curated = {}
 for w in works:
@@ -84,10 +86,10 @@ def discover():
                                         'angel', 'Madonna and Child', 'baby', 'toddler', 'adolescent', 'Eros', 'Amor']) if q}
     print('soggetti:', ids, 'esclusi:', kids)
     if not ids: return []
-    q = ('SELECT DISTINCT ?img ?label WHERE { VALUES ?n { ' + ' '.join('wd:' + i for i in ids) + ' } '
+    q = ('SELECT DISTINCT ?item ?img ?label ?date WHERE { VALUES ?n { ' + ' '.join('wd:' + i for i in ids) + ' } '
          '?item wdt:P180 ?n ; wdt:P31 wd:Q3305213 ; wdt:P18 ?img . '
          'FILTER NOT EXISTS { VALUES ?c { ' + ' '.join('wd:' + i for i in kids) + ' } ?item wdt:P180 ?c } '
-         'OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") } } LIMIT 6000')
+         'OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label)="en") } OPTIONAL { ?item wdt:P571 ?date } } LIMIT 8000')
     r = None
     for t in range(3):
         try:
@@ -103,8 +105,16 @@ def discover():
         text = ' '.join([f, b.get('label', {}).get('value', '')])
         if CHILD_WORDS.search(text):
             continue
-        out.append(f)
-    out = list(dict.fromkeys(out))
+        qq = b['item']['value'].rsplit('/', 1)[-1]
+        yr = None
+        try: yr = int(b['date']['value'][:5].lstrip('+')) if 'date' in b else None
+        except Exception: pass
+        out.append((f, yr, qq))
+    seen, uniq = set(), []
+    for t in out:
+        if t[2] in seen: continue
+        seen.add(t[2]); uniq.append(t)
+    out = uniq
     print('candidati da Wikidata:', len(out))
     return out
 
@@ -199,14 +209,18 @@ def detect(im):
 
 def judge(im, props):
     """decide dove fermarsi; prepara gli esempi per l'apprendimento"""
-    foc, ex = [], []
+    foc, ex, rej = [], [], []
     for f in props:
         e = embed(im, f['u'], f['v'], max(f['s'] * 2.2, 0.06))
         p = learned(e)
         nn = f['sc']
         ok = nn >= 0.25 or (p is not None and p >= 0.6 and nn >= 0.05) or (p is None and nn >= 0.15)
         if ok:
-            g = dict(f); g['sc'] = round(max(nn, p or 0), 3); foc.append(g)
+            g = dict(f); g['sc'] = round(max(nn, p or 0), 3); g['nn'] = nn
+            if p is not None: g['p'] = round(p, 3)
+            foc.append(g)
+        elif nn >= 0.1:
+            rej.append({'u': f['u'], 'v': f['v'], 's': f['s'], 'nn': nn, 'p': round(p, 3) if p is not None else None})
         if e is not None:
             if nn >= 0.4 or (p is not None and p >= 0.9 and nn >= 0.1): ex.append((e, 1))
             elif nn < 0.1 and (p is None or p < 0.2): ex.append((e, 0))
@@ -215,7 +229,7 @@ def judge(im, props):
         if all(((u - f['u']) ** 2 + (v - f['v']) ** 2) ** 0.5 > max(f['s'] * 3, 0.08) for f in props):
             e = embed(im, u, v, random.uniform(0.05, 0.15))
             if e is not None: ex.append((e, 0))
-    return foc, ex
+    return foc, ex, rej
 
 def skin(im):
     w = 48; h = max(6, round(48 * im.size[1] / im.size[0]))
@@ -236,12 +250,12 @@ def analyse(f, ii, year, source):
     W, H = im.size
     im = im.crop((int(W * CROP), int(H * CROP), int(W * (1 - CROP)), int(H * (1 - CROP))))
     props = detect(im)
-    foc, ex = judge(im, props)
+    foc, ex, rej = judge(im, props)
     cs = has_child(im, foc + [p for p in props if p['sc'] >= 0.15])
     if cs <= 0.35:                       # impara solo da dipinti senza possibili bambini
         for e, y in ex: newX.append(e.astype(np.float16)); newY.append(y)
     grid, pts = skin(im)
-    return {'f': f, 'y': year, 'src': source, 'v': VERSION, 'giro': giro, 'ii': ii, 'foc': foc, 'grid': grid, 'skin': pts}, cs
+    return {'f': f, 'y': year, 'src': source, 'v': VERSION, 'giro': giro, 'ii': ii, 'foc': foc, 'rej': rej[:6], 'grid': grid, 'skin': pts}, cs
 
 # ---------- il giro ----------
 budget = BUDGET
@@ -286,18 +300,23 @@ for f, e in list(atlas.items()):      # pescati con una versione vecchia dell'an
         atlas.pop(f)
 
 if budget > 0 and len(atlas) < MAX_ATLAS:
-    cand = [f for f in discover() if f not in atlas and f not in scartati and f not in esclusi and f not in curated]
-    random.shuffle(cand)
-    cand = cand[:budget * 2]
+    have = {e.get('q') for e in atlas.values() if e.get('q')}
+    found = [t for t in discover() if t[0] not in atlas and t[0] not in scartati and t[0] not in esclusi and t[0] not in curated and t[2] not in have]
+    random.shuffle(found)
+    found = found[:budget * 2]
+    meta = {t[0]: t for t in found}
+    cand = [t[0] for t in found]
     info = imageinfo(cand)
     for f in cand:
         if budget <= 0: break
         if f not in info: scartati.add(f); continue
         budget -= 1
         try:
-            e, cs = analyse(f, info[f], None, 'pescato')
+            e, cs = analyse(f, info[f], meta[f][1], 'pescato')
+            e['q'] = meta[f][2]
             if cs > 0.35 or not e['foc']:
                 scartati.add(f)
+                motivi[f] = 'bambini' if cs > 0.35 else 'vuoto'
                 print(f'scartato {f}: bambini {cs:.2f}, genitali {len(e["foc"])}')
                 continue
             atlas[f] = e
@@ -325,12 +344,20 @@ if len(y) >= 40 and 0 < y.sum() < len(y):
     from sklearn.model_selection import cross_val_score
     X = np.array(memX, dtype=np.float32)
     clf = LogisticRegression(C=2.0, class_weight='balanced', max_iter=3000)
-    try: print('precisione stimata:', round(float(cross_val_score(clf, X, y, cv=4).mean()), 3))
-    except Exception: pass
+    try:
+        prec = round(float(cross_val_score(clf, X, y, cv=4).mean()), 3); print('precisione stimata:', prec)
+    except Exception: prec = None
     clf.fit(X, y)
-    json.dump({'giro': giro, 'esempi': int(len(y)), 'coef': [round(float(c), 5) for c in clf.coef_[0]],
+    json.dump({'giro': giro, 'esempi': int(len(y)), 'precisione': prec, 'coef': [round(float(c), 5) for c in clf.coef_[0]],
                'b': round(float(clf.intercept_[0]), 5)}, open(OCCHIO, 'w'))
     print('secondo occhio riaddestrato, giro', giro)
 else:
     json.dump({'giro': giro, 'esempi': int(len(y)), 'coef': occhio['coef'] if occhio else None,
                'b': b_learn}, open(OCCHIO, 'w')) if occhio else None
+
+# ---------- quello che la voce può dire: dati veri di questa notte ----------
+oc = load(OCCHIO, {}) or {}
+json.dump({'giro': giro, 'esempi': int(len(y)), 'si': int(y.sum()) if len(y) else 0,
+           'precisione': oc.get('precisione'), 'atlante': len(res), 'scartati': len(scartati),
+           'motivi': dict(list(motivi.items())[-400:])},
+          open('sguardo/voce.json', 'w'), ensure_ascii=False, separators=(',', ':'))

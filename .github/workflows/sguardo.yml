@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "sguardo-bot"
           git config user.email "sguardo-bot@users.noreply.github.com"
-          git add sguardo/punti.json sguardo/scartati.json
+          git add sguardo/punti.json sguardo/scartati.json sguardo/voce.json
           [ -f tools/sguardo-occhio.json ] && git add tools/sguardo-occhio.json
           git diff --cached --quiet && exit 0
           git commit -q -m "SGUARDO: punti aggiornati"

@@ -130,8 +130,43 @@ function say(text, dur) {
   tUntil = clock + dur;
 }
 function hush() { tBox.style.visibility = 'hidden'; tUntil = 0; }
-const pct = x => x.toFixed(2);
-let discarded = [];
+const pct = x => (+x).toFixed(2);
+let discarded = [], voce = {}, seenSet = new Set();
+const pickOf = a => a[(R() * a.length) | 0];
+const NOCLASS = ['DESIDERIO', 'VERGOGNA', 'PUDORE', 'BELLEZZA', 'TENEREZZA', 'SGUARDO', 'COLPA', 'CARNE', 'AMORE'];
+function yearTxt(y) { return y == null ? null : (y < 0 ? '−' + Math.abs(Math.round(y)) : String(Math.round(y))); }
+function memoryLine() {
+  const c = [];
+  if (voce.atlante) c.push('HO VISTO ' + voce.atlante + ' CORPI');
+  if (voce.esempi) c.push((voce.si || 0) + ' SÌ · ' + (voce.esempi - (voce.si || 0)) + ' NO');
+  if (voce.giro) c.push('GIRO ' + voce.giro);
+  if (voce.precisione) c.push('PRECISIONE ' + pct(voce.precisione));
+  if (voce.scartati) c.push(voce.scartati + ' SCARTATI');
+  return c.length ? pickOf(c) : null;
+}
+function scartoLine() {
+  const m = voce.motivi ? Object.entries(voce.motivi) : [];
+  if (m.length && R() < 0.6) {
+    const [f, why] = pickOf(m);
+    return 'SCARTATO: ' + (why === 'bambini' ? 'POSSIBILI BAMBINI' : 'NESSUN GENITALE') + ' — ' + f.replace(/\.(jpe?g|png|tiff?)$/i, '');
+  }
+  return discarded.length ? 'SCARTATO ' + pickOf(discarded) : null;
+}
+function crossLine(p) {
+  const r = R(), yt = yearTxt(p.y);
+  if (r < 0.32 && yt) return yt;
+  if (r < 0.45) return memoryLine() || p.f;
+  if (r < 0.58) return scartoLine() || p.f;
+  if (seenSet.has(p)) return 'GIÀ VISTO';
+  return p.f || 'NEXT';
+}
+function stopLine(t) {
+  const lab = (CLASS[t.k] || 'GENITALIA_EXPOSED');
+  const r = R();
+  if (t.p != null && t.nn != null && Math.abs(t.p - t.nn) > 0.3 && r < 0.5) return R() < 0.6 ? pct(t.nn) + ' / ' + pct(t.p) + ' — FORSE' : 'NON SONO SICURO';
+  if (r < 0.25) return 'X ' + (t.u != null ? t.u.toFixed(4) : '') + ' · Y ' + (t.v != null ? t.v.toFixed(4) : '');
+  return lab + ' ' + pct(t.sc || rr(0.2, 0.6));
+}
 
 /* ---------- l'occhio: il vecchio porco ---------- */
 let cur = null, nxt = null, old = null, crossing = false, hops = 0;
@@ -141,7 +176,7 @@ const ZS = () => rr(0.1, 0.19);                        // ampiezza della ricerca
 const kissZ = g => clamp(g.s * rr(0.35, 0.6), 0.008, 0.04);   // quasi a baciarli
 
 function world(p, u, v) { return { x: p.ox + u * p.ar, y: v }; }
-function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i, k: f.k, sc: f.sc })).filter(g => !(p.visited || []).includes(g.id)); }
+function stops(p) { return (p.foc || []).map((f, i) => Object.assign(world(p, f.u, f.v), { s: f.s, id: i, k: f.k, sc: f.sc, nn: f.nn, p: f.p, u: f.u, v: f.v })).filter(g => !(p.visited || []).includes(g.id)); }
 function skins(p) { return (p.skin || []).map(q => world(p, q.u, q.v)); }
 function panelAt(x) { for (const p of [cur, nxt, old]) if (p && p.ox !== undefined && x >= p.ox && x < p.ox + p.ar) return p; return null; }
 function skinAt(x, y) {                                // quanta pelle c'è sotto lo sguardo (0..1)
@@ -181,7 +216,7 @@ function plan() {
     crossing = true;
     const d = Math.abs(t.x - eye.x);
     push({ x: t.x, y: t.y, z: ZS(), dur: clamp(d * 1.6, 1.6, 4.5), ease: E.sine, arrive: true,
-      say: [R() < 0.25 && discarded.length ? 'SCARTATO ' + discarded[(R() * discarded.length) | 0] : nxt.f || 'NEXT', 2.2] });
+      say: [crossLine(nxt), 2.2] });
     hops = 0;
     return;
   }
@@ -195,17 +230,26 @@ function plan() {
       const k = 1 - z * 1.2 / d;
       push({ x: eye.x + (t.x - eye.x) * k, y: eye.y + (t.y - eye.y) * k, z, dur: clamp(d * 0.9, 0.4, 1.6), ease: E.sacc });
     }
-    const lab = (CLASS[t.k] || 'GENITALIA_EXPOSED') + ' ' + pct(t.sc || rr(0.2, 0.6));
-    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6), sayAtEnd: [lab, 9] });
-    push({ x: t.x, y: t.y, z: kz, dur: rr(3, 5.5), ease: E.slow, hold: rr(3, 6.5), creep: 0.12, kiss: 1 });
+    const lab = stopLine(t), zoomX = Math.round(z / kz);
+    push({ x: t.x, y: t.y, z: z * 0.85, dur: rr(1.4, 2.6), ease: E.halt, hold: rr(0.8, 1.6), sayAtEnd: [lab, R() < 0.5 ? 9 : 4] });
+    const hk = rr(3, 6.5);
+    push({ x: t.x, y: t.y, z: kz, dur: rr(3, 5.5), ease: E.slow, hold: hk, creep: 0.12, kiss: 1,
+      say: R() < 0.35 ? ['×' + zoomX, 3] : null, sayAtEnd: R() < 0.35 ? ['FISSO DA ' + Math.round(hk + 4) + ' SECONDI', 2] : null });
     push({ x: t.x + rr(-0.8, 0.8) * z, y: t.y + rr(-0.5, 0.5) * z, z: ZS(), dur: rr(0.6, 1.2), ease: E.sacc, hush: 1 });
     return;
   }
   const sk = skins(cur);
+  const rj = (cur.rej || []).map(q => world(cur, q.u, q.v)).filter(q => Math.hypot(q.x - eye.x, q.y - eye.y) < 0.4);
+  if (rj.length && R() < 0.3) {
+    // un punto che il secondo occhio ha bocciato: ci va, guarda, rinuncia
+    const t = pickOf(rj), z = ZS();
+    push({ x: t.x, y: t.y, z: z * 0.8, dur: rr(0.8, 1.6), ease: E.halt, hold: rr(0.6, 1.2), sayAtEnd: [R() < 0.5 ? 'NON ERA NIENTE' : 'ERA PELLE', 1.6] });
+    return;
+  }
   if (here > 0.35) {
     // sui corpi: rallenta, scorre sulla pelle
     const n = near(sk, 0.3), t = n.length ? n[(R() * n.length) | 0] : { x: eye.x + rr(-0.15, 0.15), y: eye.y + rr(-0.15, 0.15) };
-    push({ x: t.x, y: t.y, z: ZS() * 0.9, dur: rr(1.4, 3), ease: E.sine, hold: rr(0, 0.5), say: R() < 0.3 ? ['SKIN ' + pct(here), 1.2] : null });
+    push({ x: t.x, y: t.y, z: ZS() * 0.9, dur: rr(1.4, 3), ease: E.sine, hold: rr(0, 0.5), say: R() < 0.3 ? [R() < 0.6 ? 'SKIN ' + pct(here) : 'PELLE ' + Math.round(here * 100) + '%', 1.2] : null });
     return;
   }
   // nel vuoto: frenetico, scatti nervosi, finché non trova pelle
@@ -213,7 +257,7 @@ function plan() {
   for (let i = 0; i < n; i++) {
     const toSkin = sk.length && R() < 0.45;
     const t = toSkin ? sk[(R() * sk.length) | 0] : { x: eye.x + rr(-0.35, 0.35), y: eye.y + rr(-0.3, 0.3) };
-    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25), say: i === 0 && R() < 0.25 ? [R() < 0.5 ? 'SEARCHING' : 'NO MATCH ' + pct(rr(0, 0.14)), 0.8] : null });
+    push({ x: t.x, y: t.y, z: ZS(), dur: rr(0.16, 0.45), ease: E.sacc, hold: rr(0.03, 0.25), say: i === 0 && R() < 0.25 ? (R() < 0.08 ? ['NON HO UNA CLASSE PER: ' + pickOf(NOCLASS), 2.4] : R() < 0.1 && memoryLine() ? [memoryLine(), 1.6] : [R() < 0.5 ? 'SEARCHING' : R() < 0.6 ? 'NO MATCH ' + pct(rr(0, 0.14)) : 'CERCO ANCORA', 0.9]) : null });
     if (toSkin) break;
   }
 }
@@ -253,7 +297,7 @@ function stepEye() {
     if (seg.creep) eye.z = seg.z * (1 - seg.creep * E.sine(Math.min(1, h / seg.hold)));
   } else {
     if (seg.arrive) {
-      old = cur; cur = nxt; nxt = null; crossing = false;
+      old = cur; seenSet.add(old); cur = nxt; nxt = null; crossing = false;
       recent.push(cur); if (recent.length > Math.max(3, pool.length - 3)) recent.shift();
     }
     seg = null;
@@ -311,10 +355,11 @@ function frame(now) {
   let data = null;
   try { const r = await fetch('punti.json', { cache: 'no-cache' }); if (r.ok) data = await r.json(); } catch (e) {}
   if (data && data.length) {
-    pool = data.map(d => ({ f: (d.f || '').replace(/\.(jpe?g|png|tiff?)$/i, ''), ii: d.ii, foc: d.foc || [], grid: d.grid, skin: (d.skin || []).map(([u, v]) => ({ u, v })) }));
+    pool = data.map(d => ({ f: (d.f || '').replace(/\.(jpe?g|png|tiff?)$/i, ''), y: d.y, rej: d.rej || [], ii: d.ii, foc: d.foc || [], grid: d.grid, skin: (d.skin || []).map(([u, v]) => ({ u, v })) }));
   } else {
     try { const w = await (await fetch('opere.json')).json(); pool = await fromCommons(w.map(x => x.f[0])); } catch (e) {}
   }
+  try { voce = await (await fetch('voce.json', { cache: 'no-cache' })).json(); } catch (e) {}
   try { discarded = (await (await fetch('scartati.json')).json()).map(f => f.replace(/\.(jpe?g|png|tiff?)$/i, '')); } catch (e) {}
   pool.forEach(p => { p.ar = p.ii.width / p.ii.height; p.st = 0; p.visited = []; });
   if (!pool.length) return;
