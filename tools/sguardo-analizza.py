@@ -137,6 +137,38 @@ def has_child(im, foc):
                               int(min(1, f['u'] + r * H / W) * W), int(min(1, f['v'] + r) * H))))
     return max(child_score(c) for c in crops if c.size[0] > 8 and c.size[1] > 8)
 
+# ---------- il secondo occhio, quello che impara ----------
+# Ogni notte: i punti trovati (e punti di pelle e di sfondo) diventano impronte CLIP, non immagini.
+# Con quelle impronte si riaddestra un piccolo classificatore che rivede i casi incerti
+# del modello di base. Da un dipinto scartato per possibili bambini non si impara mai niente.
+import numpy as np
+MEM_DIR = os.environ.get('SGUARDO_MEMORIA', '/tmp/sguardo-memoria')
+os.makedirs(MEM_DIR, exist_ok=True)
+MEM = os.path.join(MEM_DIR, 'memoria.npz')
+OCCHIO = 'tools/sguardo-occhio.json'
+occhio = load(OCCHIO, None)
+W_learn = np.array(occhio['coef'], dtype=np.float32) if occhio else None
+b_learn = occhio['b'] if occhio else 0.0
+giro = (occhio or {}).get('giro', 0) + 1
+try:
+    _m = np.load(MEM); memX, memY = list(_m['X']), list(_m['y'])
+except Exception:
+    memX, memY = [], []
+newX, newY = [], []
+
+def embed(im, u, v, side):
+    W, H = im.size
+    r = side * H / 2
+    c = im.crop((int(max(0, u * W - r)), int(max(0, v * H - r)), int(min(W, u * W + r)), int(min(H, v * H + r))))
+    if c.size[0] < 8 or c.size[1] < 8: return None
+    with torch.no_grad():
+        e = clip_model.encode_image(clip_pre(c).unsqueeze(0)); e /= e.norm(dim=-1, keepdim=True)
+    return e[0].numpy().astype(np.float32)
+
+def learned(e):
+    if W_learn is None or e is None: return None
+    return float(1 / (1 + np.exp(-(e @ W_learn + b_learn))))
+
 def detect(im):
     W, H = im.size
     regions = [(0, 0, 1, 1)]
@@ -153,7 +185,7 @@ def detect(im):
             sx = (box[2] - box[0]) / t.size[0]; sy = (box[3] - box[1]) / t.size[1]
             pth = os.path.join(td, 't.jpg'); t.save(pth, quality=92)
             for d in det.detect(pth):
-                if d['class'] not in KEEP or d['score'] < 0.15:
+                if d['class'] not in KEEP or d['score'] < 0.05:      # anche i casi incerti: li rivede il secondo occhio
                     continue
                 x, y, bw, bh = d['box']; x, y, bw, bh = x * sx, y * sy, bw * sx, bh * sy
                 out.append({'u': round((box[0] + x + bw / 2) / W, 4), 'v': round((box[1] + y + bh / 2) / H, 4),
@@ -164,6 +196,26 @@ def detect(im):
         if not any(((g['u'] - f['u']) ** 2 + (g['v'] - f['v']) ** 2) ** 0.5 < max(g['s'], f['s']) * 0.6 for g in keep):
             keep.append(f)
     return keep
+
+def judge(im, props):
+    """decide dove fermarsi; prepara gli esempi per l'apprendimento"""
+    foc, ex = [], []
+    for f in props:
+        e = embed(im, f['u'], f['v'], max(f['s'] * 2.2, 0.06))
+        p = learned(e)
+        nn = f['sc']
+        ok = nn >= 0.25 or (p is not None and p >= 0.6 and nn >= 0.05) or (p is None and nn >= 0.15)
+        if ok:
+            g = dict(f); g['sc'] = round(max(nn, p or 0), 3); foc.append(g)
+        if e is not None:
+            if nn >= 0.4 or (p is not None and p >= 0.9 and nn >= 0.1): ex.append((e, 1))
+            elif nn < 0.1 and (p is None or p < 0.2): ex.append((e, 0))
+    for _ in range(6):    # punti a caso, lontani dai genitali: pelle e sfondo
+        u, v = random.random(), random.random()
+        if all(((u - f['u']) ** 2 + (v - f['v']) ** 2) ** 0.5 > max(f['s'] * 3, 0.08) for f in props):
+            e = embed(im, u, v, random.uniform(0.05, 0.15))
+            if e is not None: ex.append((e, 0))
+    return foc, ex
 
 def skin(im):
     w = 48; h = max(6, round(48 * im.size[1] / im.size[0]))
@@ -183,10 +235,13 @@ def analyse(f, ii, year, source):
     im = Image.open(io.BytesIO(raw)).convert('RGB')
     W, H = im.size
     im = im.crop((int(W * CROP), int(H * CROP), int(W * (1 - CROP)), int(H * (1 - CROP))))
-    foc = detect(im)
-    cs = has_child(im, foc)
+    props = detect(im)
+    foc, ex = judge(im, props)
+    cs = has_child(im, foc + [p for p in props if p['sc'] >= 0.15])
+    if cs <= 0.35:                       # impara solo da dipinti senza possibili bambini
+        for e, y in ex: newX.append(e.astype(np.float16)); newY.append(y)
     grid, pts = skin(im)
-    return {'f': f, 'y': year, 'src': source, 'v': VERSION, 'ii': ii, 'foc': foc, 'grid': grid, 'skin': pts}, cs
+    return {'f': f, 'y': year, 'src': source, 'v': VERSION, 'giro': giro, 'ii': ii, 'foc': foc, 'grid': grid, 'skin': pts}, cs
 
 # ---------- il giro ----------
 budget = BUDGET
@@ -209,6 +264,21 @@ for w in todo_cur:
         print(f'{f}: {len(e["foc"])} genitali')
     except Exception as ex:
         print('errore', f, ex)
+    time.sleep(1)
+
+# l'occhio che ha imparato rilegge i dipinti più vecchi dell'atlante
+old = sorted((e for e in atlas.values() if e.get('v') == VERSION), key=lambda e: e.get('giro', 0))[:min(12, budget)]
+for e0 in old:
+    if W_learn is None or e0.get('giro', 0) >= giro: break
+    budget -= 1
+    try:
+        e, cs = analyse(e0['f'], e0['ii'], e0.get('y'), e0.get('src', 'pescato'))
+        if e0.get('src') != 'scelto' and cs > 0.35:
+            atlas.pop(e0['f']); scartati.add(e0['f']); print('riletto e scartato', e0['f']); continue
+        print(f"riletto {e0['f']}: {len(e0['foc'])} -> {len(e['foc'])} genitali")
+        atlas[e0['f']] = e
+    except Exception as ex:
+        print('errore', e0['f'], ex)
     time.sleep(1)
 
 for f, e in list(atlas.items()):      # pescati con una versione vecchia dell'analisi: via
@@ -243,3 +313,24 @@ res = list(atlas.values())
 json.dump(res, open('sguardo/punti.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 json.dump(sorted(scartati), open('sguardo/scartati.json', 'w'), ensure_ascii=False, indent=0)
 print('atlante:', len(res), 'con genitali:', sum(1 for r in res if r['foc']), 'scartati:', len(scartati))
+
+# ---------- l'apprendimento della notte ----------
+memX += newX; memY += newY
+memX, memY = memX[-8000:], memY[-8000:]
+np.savez_compressed(MEM, X=np.array(memX, dtype=np.float16), y=np.array(memY, dtype=np.int8))
+y = np.array(memY)
+print('memoria:', len(y), 'esempi, di cui genitali:', int(y.sum()) if len(y) else 0, '; nuovi stanotte:', len(newY))
+if len(y) >= 40 and 0 < y.sum() < len(y):
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import cross_val_score
+    X = np.array(memX, dtype=np.float32)
+    clf = LogisticRegression(C=2.0, class_weight='balanced', max_iter=3000)
+    try: print('precisione stimata:', round(float(cross_val_score(clf, X, y, cv=4).mean()), 3))
+    except Exception: pass
+    clf.fit(X, y)
+    json.dump({'giro': giro, 'esempi': int(len(y)), 'coef': [round(float(c), 5) for c in clf.coef_[0]],
+               'b': round(float(clf.intercept_[0]), 5)}, open(OCCHIO, 'w'))
+    print('secondo occhio riaddestrato, giro', giro)
+else:
+    json.dump({'giro': giro, 'esempi': int(len(y)), 'coef': occhio['coef'] if occhio else None,
+               'b': b_learn}, open(OCCHIO, 'w')) if occhio else None

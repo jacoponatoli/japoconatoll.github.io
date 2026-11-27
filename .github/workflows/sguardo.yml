@@ -19,16 +19,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Memoria dell'occhio
+        uses: actions/cache@v4
+        with:
+          path: /tmp/sguardo-memoria
+          key: sguardo-memoria-${{ github.run_id }}
+          restore-keys: sguardo-memoria-
       - name: Analisi
         run: |
           pip install -q torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install -q nudenet pillow requests open_clip_torch
+          pip install -q nudenet pillow requests open_clip_torch scikit-learn numpy
           python tools/sguardo-analizza.py
       - name: Salva
         run: |
           git config user.name "sguardo-bot"
           git config user.email "sguardo-bot@users.noreply.github.com"
           git add sguardo/punti.json sguardo/scartati.json
+          [ -f tools/sguardo-occhio.json ] && git add tools/sguardo-occhio.json
           git diff --cached --quiet && exit 0
           git commit -q -m "SGUARDO: punti aggiornati"
           for i in 1 2 3; do git pull -q --rebase && git push -q && break; sleep 5; done
