@@ -31,7 +31,17 @@ for i in range(0, len(files), 40):
         info[p['title'][5:]] = v
     time.sleep(1)
 
-det = NudeDetector()
+det = None
+try:   # modello più grande e preciso, se scaricabile
+    p640 = '/tmp/640m.onnx'
+    if not os.path.exists(p640):
+        r = requests.get('https://github.com/notAI-tech/NudeNet/releases/download/v3.4-weights/640m.onnx', timeout=120)
+        r.raise_for_status(); open(p640, 'wb').write(r.content)
+    det = NudeDetector(model_path=p640, inference_resolution=640)
+    print('modello 640m')
+except Exception as e:
+    print('modello 640m non disponibile:', e)
+    det = NudeDetector()
 
 def detect(im):
     W, H = im.size
