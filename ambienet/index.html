@@ -33,7 +33,7 @@ html.embed,html.embed body{background:transparent!important}html.embed body>*{di
 <div id="tap">click anywhere for sound · best with headphones</div>
 <div id="now"></div>
 <div id="stage"></div><span id="r" aria-hidden="true"></span><div id="msg"></div><div id="wall"></div>
-<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="poem" style="color:#f2e3b8">poetry</span> · <span class="lg" data-k="question" style="color:#cfe8ff">questions</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
+<div id="foot">AMBIENET — endless ambient music generated from the internet · A project by Jacopo Natoli<br><span class="lg" data-k="gen" style="color:#ff2a1a">generated</span> · <span class="lg" data-k="mix" style="color:#ffcf1a">remixed from the archive</span> · <span class="lg" data-k="net" style="color:#22d65a">signals of the internet</span> · <span class="lg" data-k="sensor" style="color:#e0a458">sensors</span> · <span class="lg" data-k="arch" style="color:#3b7bff">from the archives</span> · <span class="lg" data-k="spoken" style="color:#c792ff">spoken</span> · <span class="lg" data-k="poem" style="color:#f2e3b8">poetry</span> · <span class="lg" data-k="question" style="color:#cfe8ff">questions</span> · <span class="lg" data-k="cosmos" style="color:#ff8a3d">cosmos</span> · <span class="lg" data-k="mantra" style="color:#ff6fb5">mantra</span> · <span class="lg" data-k="song" style="color:#9ef5d0">song</span> · <span class="lg" data-k="game" style="color:#c0ff00">game</span> · <span class="lg" data-k="error" style="color:#ff2bd6">error</span> · <span class="lg" data-k="static" style="color:#8a9bb0">static</span> · <span class="lg" data-k="word" style="color:#fff">words of SLOGAN</span> · <span class="lg" data-k="live" id="micbtn" style="color:#2ee6e6">○ live mic</span></div>
 <div id="pop" role="tooltip"></div>
 <script>
 'use strict';
@@ -88,12 +88,13 @@ const live=new Map();let liveId=0,flash=null;
 /* colour = where the sound comes from:
    red    — generated here (synthesis): larger
    yellow — made here from the archive (loops, grains): larger
-   green  — signals of the internet (notifications, phones, Wikipedia, earthquakes, Bitcoin, network)
+   green  — signals of the internet (notifications, phones, Wikipedia, Bitcoin, network)
+   ochre  — sensors of the world (seismometers, anemometers)
    blue   — recordings from the archives (music, field recordings, classical, voices)
    lilac  — spoken inserts (philosophers, dreams, poems)
    white  — the words of SLOGAN */
 const CATS=[['gen','#ff2a1a',/^(ORGAN|CHOIR|GLASS|SUB SWELL|BOWED METAL|TAPE LOOP \(FRIPP\)|WIND CHIMES|HANDPAN|SHIMMER|DRONE CARPET|ALAP|KOTO|SHAKUHACHI|NOSE FLUTE|SHŌ|GAMELAN|TEMPLE BELL|SINGING BOWL|TINGSHA|TIBETAN CHANT|NATURE|HUM|ANIMAL|BINAURAL|AUTOMATON|MINIMAL)$/],
-  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM|EMOTION)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|EARTHQUAKE|BITCOIN|NETWORK)$/],['word','#ffffff',/^SLOGAN$/]];
+  ['mix','#ffcf1a',/^(GRAINS|LOOP|PIANO REMNANT)$/],['spoken','#c792ff',/^(SPOKEN|FILM|EMOTION)$/],['poem','#f2e3b8',/^POESIA$/],['question','#cfe8ff',/^(DOMANDA|PARADOSSO)$/],['live','#2ee6e6',/^LIVE$/],['cosmos','#ff8a3d',/^COSMOS$/],['mantra','#ff6fb5',/^MANTRA$/],['song','#9ef5d0',/^SONG$/],['game','#c0ff00',/^GAME$/],['error','#ff2bd6',/^ERROR$/],['static','#8a9bb0',/^STATIC$/],['net','#22d65a',/^(NOTIFICATION|PHONE|WIKIPEDIA|BITCOIN|NETWORK)$/],['sensor','#e0a458',/^(EARTH|WIND)$/],['word','#ffffff',/^SLOGAN$/]];
 const catOf=k=>{for(const [c,col,re] of CATS)if(re.test(k))return{c,col,big:c==='gen'||c==='mix'};return{c:'arch',col:'#3b7bff',big:false}};
 function log(k,t,liveSec){
   const text=String(k+' · '+t).replace(/\s+/g,' ').trim(),it={text,...catOf(k)};
@@ -157,7 +158,7 @@ function setup(){
   mk('voices',1.6,.35,.25); // voices: mostly reverb = a far away room
   mk('netdry',0,0,1);mk('netdelay',.25,.9,.5);mk('netverb',2.2,0,.04); // internet sounds: dry, delayed or reflected
   mk('hum',.35,0,1);mk('city',.5,0,1);mk('bigdrone',.4,0);mk('nature',.3,0,1);mk('flute',.8,.2);mk('koto',.6,.15);mk('sho',.9,0);mk('gamelan',.7,.1);mk('airwaves',1.1,.2,.6);mk('phrase',.7,.2);mk('bowls',.9,.1);mk('chant',.9,0,.6);mk('classical',2.0,.1,.15);mk('animals',.8,.15,.7);mk('slogan',1.8,.4,.3);mk('sloganbase',1.8,.4,.3);L.sloganbase.gain.value=.3;
-  mk('binaural',.12,0,1);mk('live',1.2,.2,.6);mk('cosmos',.9,.1);mk('gen2',.9,.25);mk('static',.35,0,1);mk('song',1.2,.1,.55); /* women singing: from another room */ mk('mantra',1.1,.15);L.live.gain.value=.7;mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
+  mk('earth',.35,0,1);L.earth.gain.value=.9; /* sensors: outside the scenes, never faded by the leveller */ mk('binaural',.12,0,1);mk('live',1.2,.2,.6);mk('cosmos',.9,.1);mk('gen2',.9,.25);mk('static',.35,0,1);mk('song',1.2,.1,.55); /* women singing: from another room */ mk('mantra',1.1,.15);L.live.gain.value=.7;mk('remnant',.9,.1);{const g=ctx.createGain();g.gain.value=.9;const ng=ctx.createGain();g.connect(ng);ng.connect(postBus);const sv=ctx.createGain();sv.gain.value=.22;ng.connect(sv);sv.connect(reverb);
    L.spoken=g;T.spoken=0;LN.spoken=ng;LNv.spoken=1;const an=ctx.createAnalyser();an.fftSize=2048;ng.connect(an);an.connect(meterSink);LA.spoken=an} // spoken: its own path, in front
   /* slogans: a far demonstration, mostly reverb (also outside the scenes) · classical: almost all reverb, far away ·
      binaural beats: almost dry, left and right must stay apart · spoken: rare, outside the scenes, nearly dry */
@@ -326,7 +327,7 @@ const EM={lz:[rr(-5,5),rr(-5,5),rr(15,30)],xs:0,zs:23,w:{nostalgia:0,mistica:0,t
 let emoLow=null,emoHigh=null;
 function emoTick(){const h=1/500/10;for(let i=0;i<10;i++){const [a,b,c]=EM.lz;EM.lz=[a+h*10*(b-a),b+h*(a*(28-c)-b),c+h*(a*b-8/3*c)]}
   EM.xs+=(EM.lz[0]-EM.xs)/240;EM.zs+=(EM.lz[2]-EM.zs)/240;
-  const ea=Math.max(-1,Math.min(1,EM.xs/9)),nm=Math.max(-1,Math.min(1,(EM.zs-22.8)/4));
+  SENS.earth*=.995;const ea=Math.max(-1,Math.min(1,EM.xs/9+.8*SENS.air-1.5*SENS.earth)) /* the real earth and the real wind lean the emotion */,nm=Math.max(-1,Math.min(1,(EM.zs-22.8)/4));
   EM.w={terra:Math.max(0,-ea),aria:Math.max(0,ea),nostalgia:Math.max(0,-nm),mistica:Math.max(0,nm)};
   if(emoLow){const t=ctx.currentTime;emoLow.gain.setTargetAtTime(3.5*EM.w.terra-1.5*EM.w.aria,t,20);emoHigh.gain.setTargetAtTime(-6+2.5*EM.w.aria-1.5*EM.w.terra,t,20)}}
 const emoMul=k=>{let m=1;for(const e in EMO)if(EMO[e].layers.includes(k))m+=2*EM.w[e];return m};
@@ -447,20 +448,71 @@ function startWiki(){
     };
   }catch(e){}
 }
+/* ============ SENSORS: the real earth and the real wind act on the music ============
+   EARTH — every earthquake of the last hour (USGS seismometers, the whole planet) is heard as a seismogram:
+   first the P wave (quick, higher), then the S wave (heavier, lower), then the surface waves (a very low tone
+   of the scene, swaying). The gap between P and S is the real one for the distance from Rome, compressed.
+   magnitude → loudness and length · depth → darkness · east/west of Rome → right/left · each quake leans the
+   emotional function toward EARTH, and the lean slowly fades.
+   WIND — the real wind of Rome (Open-Meteo, every 10 minutes) blows a breath of noise under everything:
+   speed → loudness and brightness · gusts → restlessness · direction → left/right · strong wind leans toward AIR. */
+const HERE={lat:41.9,lon:12.5,name:'Rome'};   /* where AMBIENET listens from */
+const SENS={earth:0,air:0,wind:0,gust:0,dir:0};
+function distKm(a,b,c,d){const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 12742*Math.asin(Math.sqrt(x))}
+function rumble(t,dur,o){
+  const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;s.playbackRate.value=o.rate||1;
+  const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(o.freq,t);f.frequency.exponentialRampToValueAtTime(Math.max(30,o.freq*.4),t+dur);f.Q.value=o.q||4;
+  const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(o.gain,t+o.attack);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  const pn=ctx.createStereoPanner();pn.pan.value=o.pan||0;s.connect(f);f.connect(g);g.connect(pn);pn.connect(L.earth);s.start(t);s.stop(t+dur+.1)}
 const seenQ=new Set(),LIVE_WORDS=[],LIVE_PLACES=[];
-function gong(f){
-  if(T.data<.01)return;
-  const m=Math.max(0,f.properties.mag||0),t=ctx.currentTime+.05,fr=mtof(deg(pick([0,0,4]),S.root)),dur=8+m*3,g=Math.min(.25,.06+m*.035);
-  [1,2.32,4.25,6.63].forEach((p,k)=>tone(fr*p,t,dur/(k*.8+1),{gain:g/(k+1),attack:.01+k*.002,dest:L.data,pan:rr(-.3,.3)}));
-  log('EARTHQUAKE',`M ${m.toFixed(1)} · ${f.properties.place||''}`,dur*.6);
-  if(f.properties.place){LIVE_PLACES.push(String(f.properties.place).replace(/^.* of /,''));if(LIVE_PLACES.length>10)LIVE_PLACES.shift()}
+function sismo(f){
+  const p=f.properties,c=f.geometry&&f.geometry.coordinates||[HERE.lon,HERE.lat,10],lon=c[0],lat=c[1],depth=Math.max(0,c[2]||0),m=Math.max(0,p.mag||0);
+  const km=distKm(HERE.lat,HERE.lon,lat,lon),tsp=km/3.5-km/6,sp=Math.min(12,.4+Math.sqrt(tsp)/3);   /* the real S–P delay, compressed */
+  const A=Math.min(.45,.02*Math.pow(1.6,m)),dark=1-Math.min(1,depth/300)*.6;
+  let dl=lon-HERE.lon;if(dl>180)dl-=360;if(dl<-180)dl+=360;const pan=Math.max(-.9,Math.min(.9,dl/120));
+  const t=ctx.currentTime+.1;
+  rumble(t,1.2+m*.4,{freq:280*dark,gain:A*.35,attack:.02,pan,q:2});                 /* P */
+  rumble(t+sp,2.5+m*1.2,{freq:110*dark,gain:A*.8,attack:.12,pan,q:5,rate:.6});      /* S */
+  let coda=0;
+  if(m>=1.5){coda=6+m*4;const t2=t+sp+.8,fr=mtof(S.root-12+pick([0,0,7]));         /* surface waves */
+    const env=ctx.createGain(),trem=ctx.createGain(),lfo=ctx.createOscillator(),lg=ctx.createGain(),pn=ctx.createStereoPanner();
+    lfo.frequency.value=rr(.12,.45);lg.gain.value=.4;lfo.connect(lg);lg.connect(trem.gain);trem.gain.value=1;pn.pan.value=pan*.6;
+    env.gain.setValueAtTime(0,t2);env.gain.linearRampToValueAtTime(A*.5,t2+coda*.25);env.gain.exponentialRampToValueAtTime(.0001,t2+coda);
+    [[1,1],[2,.3],[3.01,.08]].forEach(([h,v])=>{const o=ctx.createOscillator(),og=ctx.createGain();o.frequency.value=fr*h;o.detune.value=rr(-6,6);og.gain.value=v;o.connect(og);og.connect(env);o.start(t2);o.stop(t2+coda+.1)});
+    env.connect(trem);trem.connect(pn);pn.connect(L.earth);lfo.start(t2);lfo.stop(t2+coda+.1)}
+  const place=String(p.place||'').replace(/^.* of /,'');
+  log('EARTH',`M ${m.toFixed(1)} · ${place||'somewhere'} · ${Math.round(depth)} km deep · ${Math.round(km).toLocaleString('en')} km from ${HERE.name}`,Math.max(5,sp+coda*.6));
+  SENS.earth=Math.min(1,SENS.earth+.02*Math.pow(1.6,m));
+  if(place){LIVE_PLACES.push(place);if(LIVE_PLACES.length>10)LIVE_PLACES.shift()}
 }
 async function pollQuakes(first){
   try{const j=await fetchJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
     const fresh=j.features.filter(f=>!seenQ.has(f.id));fresh.forEach(f=>seenQ.add(f.id));
-    fresh.forEach((f,i)=>setTimeout(()=>gong(f),first?rr(5,150)*1000:i*rr(3,9)*1000));
+    fresh.forEach((f,i)=>setTimeout(()=>sismo(f),first?rr(5,150)*1000:i*rr(8,20)*1000));
   }catch(e){}
   setTimeout(()=>pollQuakes(false),180000);
+}
+let windBed=null;
+function startWindBed(){
+  const s=ctx.createBufferSource();s.buffer=noiseBuf;s.loop=true;s.playbackRate.value=.5;
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;bp.frequency.value=300;
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;
+  const g=ctx.createGain();g.gain.value=0;const pn=ctx.createStereoPanner();
+  s.connect(bp);bp.connect(lp);lp.connect(g);g.connect(pn);pn.connect(L.earth);s.start();
+  windBed={bp,g,pn,gust:0};
+  setInterval(()=>{if(!windBed)return;const now=ctx.currentTime,w=Math.min(1,SENS.wind/50),gy=Math.max(0,SENS.gust-SENS.wind)/Math.max(8,SENS.wind);
+    windBed.gust=Math.max(0,Math.min(1,windBed.gust+(R()-.5)*.25*(.3+gy)-windBed.gust*.04));   /* gusts: a restless random walk */
+    const lvl=(.004+.05*w)*(1+windBed.gust*1.5*gy);
+    windBed.g.gain.setTargetAtTime(lvl,now,1.5);windBed.bp.frequency.setTargetAtTime(180+w*700+windBed.gust*900,now,1.2)},400);
+}
+const compass=d=>['N','NE','E','SE','S','SW','W','NW'][Math.round(((d%360)+360)%360/45)%8];
+async function pollWind(){
+  try{const j=await fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${HERE.lat}&longitude=${HERE.lon}&current=wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kmh`);
+    const c=j.current;if(c&&c.wind_speed_10m!=null){SENS.wind=c.wind_speed_10m;SENS.gust=c.wind_gusts_10m??c.wind_speed_10m;SENS.dir=c.wind_direction_10m||0;
+      SENS.air=Math.min(1,SENS.wind/40);if(!windBed)startWindBed();windBed.pn.pan.setTargetAtTime(Math.sin(SENS.dir*Math.PI/180)*.6,ctx.currentTime,10);
+      log('WIND',`${HERE.name} · ${Math.round(SENS.wind)} km/h · gusts ${Math.round(SENS.gust)} · from ${compass(SENS.dir)}`,8)}
+  }catch(e){}
+  setTimeout(pollWind,600000);
 }
 function startBTC(){
   let last=0,gap=6;
@@ -1941,7 +1993,8 @@ const LEGEND={
   poem:['#f2e3b8','Poetry','Poems composed from today\u2019s newspaper headlines by POESIA LA NOTIZIA, in forms from the single hendecasyllable to terza rima, always new, read by synthetic voices that are always different: men, women, androgynous voices between registers, girls and boys, sometimes a small choir of children, sometimes slowed. Each verse appears while it is read.'],
   question:['#cfe8ff','Questions','A voice asks whoever is listening: short questions, always new, on the intellect, on intimacy, on what is deep, on the relation between this voice and you, on where you are now, questions of mysticism. Now and then, instead of a question, a tautology, a contradiction, a paradox or a play on words (“I always lie”). Every question is also written across the whole screen, white on black, in the lettering of SLOGAN. The voice of a child, boy or girl one cannot tell, clear, close and dry, above everything; then the music withdraws and leaves a space for the answer. The emotion of the moment leans the choice; sometimes the same question comes back.'],
   spoken:['#c792ff','Spoken','Rare, dreamlike spoken inserts from the archives — philosophers in lectures and interviews, readings of dreams, nights and poems — left almost untouched so the words can be followed. The music steps back while they speak. Now and then also a short scene of dialogue from a film — public-domain films of every kind and language — heard as through a radio or a telephone of every era: AM, shortwave, distant FM, walkie-talkie, police scanner, landline, old telephone, mobile phone, answering machine, intercom, the Moon. Very rarely, the voice of an emotion made here by a small synthesizer of mouths: laughter, crying, a scream far away, whispers, a sigh — a man, a woman or a child, each time a different degree, always processed.'],
-  net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, the earthquakes of the last hour, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
+  net:['#22d65a','Signals of the internet','The live internet made audible: every edit on Wikipedia, Bitcoin transactions, the latency of the network bending the drone — and the sounds of technology: notifications, ringtones, dial tones, a modem.'],
+  sensor:['#e0a458','Sensors','Instruments already installed in the world, already connected to the internet, act on the music. EARTH: every earthquake of the last hour, recorded by the seismometers of the USGS all over the planet, is heard as a seismogram — first the P wave, quicker and higher, then the S wave, heavier and lower, then the surface waves, a very low tone that sways. The gap between P and S is the real one for the distance from Rome, compressed; magnitude gives loudness and length, depth makes it darker, east or west of Rome puts it right or left. WIND: the real wind of Rome, read every ten minutes, blows a breath of noise under everything — stronger and brighter with speed, restless with gusts, placed by its direction. Each earthquake leans the emotion of the music toward earth; strong wind leans it toward air.'],
   arch:['#3b7bff','From the archives','Real recordings from the Internet Archive: ambient, drone and minimal music, Indian classical music, Japanese, Pacific and Tibetan music, distant classical, field recordings of cities, water and animals. Anything too rhythmic is slowed down and blurred.'],
   cosmos:['#ff8a3d','Cosmos','Sounds from space: NASA sonifications of telescope data (black holes, nebulae, galaxies) and radio and plasma waves recorded by space probes around Jupiter, Saturn and the Sun — from NASA’s audio library and the Internet Archive. Barely touched: a little slower, a little reverb.'],
   mantra:['#ff6fb5','Mantra','Sung voices from the archives — Indian mantras above all, sometimes Gregorian chant. A phrase is cut and repeated, a little slowed, muffled, wavering and far away; sometimes reversed, sometimes with a ghost an octave below.'],
@@ -1979,7 +2032,7 @@ async function boot(){
   ctx.onstatechange=()=>{if(ctx.state==='running')tap.classList.remove('on')};
   log('AMBIENET','listening to the internet…',0);
   newArp();newPhase();startDrone();newLoops();newScene(true);
-  startWiki();pollQuakes(true);startBTC();setTimeout(breathe,8000);
+  startWiki();pollQuakes(true);setTimeout(pollWind,4000);startBTC();setTimeout(breathe,8000);
   setTimeout(pianoTick,3000);alapLoop();
   if(!NO_RADIO){radioDeck(3000);radioDeck(50000)}archiveDeck(1000);grainsDeck();spokenLoop();remnantDeck();cosmosDeck();mantraDeck();gen2Loop();songDeck();gameLoop();errorLoop();overloadLoop();poesiaDeck();domandeDeck();filmDeck();automiDeck();emotionDeck();minimalDeck();staticLoop();netLoop();humLoop();fieldDeck('city','city','CITY');fieldDeck('nature','nature','NATURE · ARCHIVE');bigDroneLoop();natureLoop();fluteLoop();kotoLoop();shoLoop();gamelanLoop();if(!NO_RADIO)airDeck();phraseDeck();bowlsLoop();chantLoop();classicalDeck();animalsLoop();sloganLoop();binauralLoop();fieldDeck('animals','animals','ANIMALS · ARCHIVE');
 }
