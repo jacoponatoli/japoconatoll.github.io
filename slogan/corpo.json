@@ -1,6 +1,6 @@
 {
   "nota": "SLOGAN — il corpo che cresce. 'parole' allarga il lessico del generatore (formato parola:genere+numero, es. sogno:ms, rose:fp). 'slogan' sono slogan inventati: dopo aver letto quelli veri del momento, oppure deturnando le notizie del giorno, i titoli dei giornali, i claim della pubblicità e delle istituzioni, gli slogan storici (anche 'aggiornandoli': 2.0, nuova versione). 'letti' sono gli slogan veri e i titoli letti (non compaiono in pagina). Ogni aggiornamento AGGIUNGE un blocco con la data, non cancella mai. Un blocco può avere 'di' (chi l'ha inventato) e 'tipo'.",
-  "aggiornato": "2026-11-27",
+  "aggiornato": "2026-11-28",
   "parole": {
     "good": [
       "sanità:fs",
@@ -125,7 +125,12 @@
       "comunità secessive:fp",
       "punti di luce:mp",
       "macchie solari:fp",
-      "bolle di sapone:fp"
+      "bolle di sapone:fp",
+      "letargo:ms",
+      "analogico:ms",
+      "istruzione:fs",
+      "umanità:fs",
+      "miele:ms"
     ],
     "bad": [
       "riarmo:ms",
@@ -295,7 +300,11 @@
       "drenaggio fiscale:ms",
       "ansia acquisitiva:fs",
       "fasce di garanzia:fp",
-      "sconti:mp"
+      "sconti:mp",
+      "paradigma:ms",
+      "agenti:mp",
+      "pedagogia:fs",
+      "tasse:fp"
     ],
     "subj": [
       "liceali:mp",
@@ -357,7 +366,9 @@
       "moltitudini:fp",
       "precari cognitivi:mp",
       "disertori del clima:mp",
-      "gilet gialli:mp"
+      "gilet gialli:mp",
+      "fannulloni:mp",
+      "rider:mp"
     ],
     "place": [
       "licei:mp",
@@ -402,7 +413,9 @@
       "margini:mp",
       "spazi vuoti:mp",
       "divani:mp",
-      "binari morti:mp"
+      "binari morti:mp",
+      "prati:mp",
+      "terrazze:fp"
     ]
   },
   "slogan": [
@@ -2064,6 +2077,52 @@
         "Sull'orlo di ignoti domani, oggi si dorme",
         "L'automa impone il ritmo: noi andiamo fuori tempo"
       ]
+    },
+    {
+      "d": "2026-11-28",
+      "tipo": "deturnamento delle notizie del giorno",
+      "t": [
+        "Diamo soldi ai fannulloni: siamo noi",
+        "Fannulloni di tutto il mondo, riposatevi",
+        "Basta aggredire il sonno",
+        "Il sonno che fa da solo",
+        "Già svuotate le piazze? Ora svuotiamo le agende",
+        "Piazze vuote, spazi liberati",
+        "Cuscino caldo, sveglia al gelo",
+        "Cibo caldo, paghe vere, sonno lungo",
+        "Più istruzione, meno distruzione, tanta ricreazione",
+        "Da ogni letto a ogni prato, ci riprendiamo il niente",
+        "Dieci, cento, mille siestas",
+        "Soldi alla scuola, tempo alla ricreazione",
+        "Riducono tutto a ordine pubblico: noi al disordine del sonno",
+        "Gen Z regelt das. Gen Zzz schläft",
+        "Schlaf statt Profite",
+        "Human parola dell'anno, ozio parola del secolo",
+        "Siamo umani, non agenti",
+        "L'agente lavora senza controllo, noi dormiamo senza sveglia",
+        "Analogue is the new nap",
+        "Sleepmaxxing contro il capitale",
+        "Cambio di paradigma: dal turno al sogno",
+        "Marchio IGP: Indicazione di Pigrizia Protetta",
+        "Cyber Monday? Sleepy Monday",
+        "Lunedì cyber, noi offline",
+        "Io obietto la sveglia",
+        "La coperta è corta: dormiamo più vicini",
+        "Finanziaria elettorale, siesta universale",
+        "Stop alla tassa d'imbarco sui sogni",
+        "Proroga a fine febbraio: del letargo",
+        "Nuova luce sulle ore dimenticate",
+        "Tassate le sveglie, non i sogni",
+        "Disertare l'idiozia della nazione, abitare la poesia del divano",
+        "Tra l'oggi e il nulla, un pisolino",
+        "Dodici api in un cucchiaio di miele: niente straordinari",
+        "Non saremo noi i dipendenti dei vostri feed",
+        "Diserzione diffusa, divani diffusi",
+        "Pedagogia di guerra? Pedagogia del gioco",
+        "Dual use: il letto serve a dormire e a sognare",
+        "Basta aggredire il niente: è il nostro Natale",
+        "Tre a tre tra lavoro e ozio: rigori a letto"
+      ]
     }
   ],
   "letti": [
@@ -3331,6 +3390,43 @@
         "la bolla dell'AI",
         "Squaring the pyramid",
         "generazione ultima"
+      ]
+    },
+    {
+      "d": "2026-11-28",
+      "t": [
+        "Il Pd vuol tassare le eredità per dare soldi ai fannulloni",
+        "Basta aggredire il Natale",
+        "Il Nord che fa da solo",
+        "Già svuotate le piazze dei giovani",
+        "Cibo caldo, paghe al gelo. Vogliamo un salario vero",
+        "Più istruzione, meno distruzione",
+        "Da ogni scuola ad ogni strada, ci riprendiamo tutto",
+        "contro la scuola dei padroni, 10, 100, 1000 occupazioni",
+        "Soldi alla scuola",
+        "tutto viene ridotto a un tema di ordine pubblico",
+        "Gen Z regelt das",
+        "Bildung statt Profite! Die Unis gehören uns",
+        "human: parola dell'anno Cambridge 2026",
+        "agent, analogue, wholesome",
+        "maxxing, mogging",
+        "Turismo, il cambio di paradigma",
+        "Stop tassa d'imbarco",
+        "Asl, arriva la proroga a fine febbraio",
+        "Ceramica di Vietri, arriva il marchio Igp",
+        "Nuova luce sulle opere dimenticate",
+        "Pareggio spettacolo 3-3",
+        "Cyber Monday",
+        "decreto scuola",
+        "una finanziaria elettorale, la coperta è corta",
+        "Io obietto la guerra",
+        "Disertare l'idiozia della nazione",
+        "l'intervallo tra l'oggi e il nulla",
+        "l'intera vita di dodici api in un cucchiaio di miele",
+        "Non saremo noi i soldati delle vostre guerre",
+        "diserzione diffusa",
+        "pedagogia di guerra",
+        "dual use"
       ]
     }
   ]
